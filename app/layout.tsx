@@ -3,6 +3,7 @@ import { Noto_Serif } from 'next/font/google'
 import Navbar from '@/components/navbar'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import Head from 'next/head'
 
 const notoSerif = Noto_Serif({
   subsets: ['latin'],
@@ -21,6 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
+      <Head>
+        <meta
+          name='apple-mobile-web-app-title'
+          content='DTTD'
+        />
+      </Head>
       <body className={`${notoSerif.className} antialiased`}>
         <ThemeProvider>
           <Navbar />
