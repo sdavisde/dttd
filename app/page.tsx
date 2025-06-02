@@ -21,13 +21,16 @@ export default function Home() {
                 </p>
                 <div className='flex flex-col gap-2 min-[400px]:flex-row'>
                   <Link href='/events'>
-                    <Button className='flex gap-1'>
+                    <Button
+                      className='flex gap-1'
+                      variant='contained'
+                    >
                       Upcoming Events
                       <ArrowRight className='h-4 w-4' />
                     </Button>
                   </Link>
                   <Link href='/about'>
-                    <Button variant='outlined'>Learn More</Button>
+                    <Button>Learn More</Button>
                   </Link>
                 </div>
               </div>
@@ -45,7 +48,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className='w-full py-12 md:py-24 lg:py-32'>
+        {/* <section className='w-full py-12 md:py-24 lg:py-32'>
           <div className='px-4 md:px-6'>
             <div className='flex flex-col items-center justify-center space-y-4 text-center'>
               <div className='space-y-2'>
@@ -226,17 +229,17 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
       </main>
       <footer className='border-t bg-gray-50'>
         <div className='flex flex-col gap-4 py-10 md:flex-row md:gap-8 md:py-12 px-4 md:px-6'>
           <div className='flex-1 space-y-4'>
             <div className='font-semibold text-xl'>Dusty Trails Tres Dias</div>
             <p className='text-sm text-gray-500'>
-              A Christian community dedicated to helping people pursue a stronger relationship with God.
+              Being like-minded, having the same love, being one in spirit and of one mind. Phil 2:2
             </p>
           </div>
-          <div className='flex flex-col gap-2 md:gap-4'>
+          {/* <div className='flex flex-col gap-2 md:gap-4'>
             <div className='font-medium'>Links</div>
             <nav className='flex flex-col gap-2 text-sm'>
               <Link
@@ -264,17 +267,16 @@ export default function Home() {
                 About
               </Link>
             </nav>
-          </div>
+          </div> */}
           <div className='flex flex-col gap-2 md:gap-4'>
             <div className='font-medium'>Contact</div>
             <div className='text-sm'>
-              <p>info@dustytrailstresdias.org</p>
-              <p>(555) 123-4567</p>
+              <p>admin@dustytrailstresdias.org</p>
             </div>
           </div>
         </div>
         <div className='border-t py-6 text-center text-sm text-gray-500'>
-          <p>© {new Date().getFullYear()} Dusty Trails Tres Dias. All rights reserved.</p>
+          <p>© 2025 Dusty Trails Tres Dias. All rights reserved.</p>
         </div>
       </footer>
     </div>
