@@ -1,17 +1,46 @@
 'use client'
 
 import * as React from 'react'
-import { AppBar, Toolbar, Typography, Button, Box, Link, Container, IconButton, Menu, MenuItem } from '@mui/material'
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Link,
+  Container,
+  IconButton,
+  Menu,
+  MenuItem,
+  Avatar,
+  CircularProgress,
+} from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import { useRouter } from 'next/navigation'
+import { Person, Logout } from '@mui/icons-material'
+import { MouseEvent, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { createClient } from '@/lib/supabase/client'
 
 const pages = ['Events', 'Sponsor', 'Resources', 'About']
 
 export default function Navbar() {
   const router = useRouter()
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null)
+  const supabase = createClient()
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      return user
+    },
+  })
+
+  const handleOpenNavMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget)
   }
 
@@ -19,8 +48,18 @@ export default function Navbar() {
     setAnchorElNav(null)
   }
 
-  const handleHomeClick = () => {
-    router.push('/')
+  const handleOpenUserMenu = (event: MouseEvent<HTMLElement>) => {
+    setAnchorElUser(event.currentTarget)
+  }
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null)
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.refresh()
+    handleCloseUserMenu()
   }
 
   return (
@@ -129,30 +168,76 @@ export default function Navbar() {
             ))}
           </Box>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons or Profile Menu */}
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Link
-              href='/login'
-              sx={{ textDecoration: 'none' }}
-            >
-              <Button
-                variant='outlined'
-                sx={{ color: 'white', borderColor: 'white' }}
-              >
-                Sign In
-              </Button>
-            </Link>
-            <Link
-              href='/register'
-              sx={{ textDecoration: 'none' }}
-            >
-              <Button
-                variant='contained'
-                sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
-              >
-                Register
-              </Button>
-            </Link>
+            {isLoading ? (
+              <CircularProgress
+                size={24}
+                sx={{ color: 'white' }}
+              />
+            ) : user ? (
+              <>
+                <IconButton
+                  onClick={handleOpenUserMenu}
+                  sx={{ p: 0 }}
+                >
+                  <Avatar sx={{ bgcolor: 'white', color: 'primary.main' }}>
+                    {user.email?.[0]?.toUpperCase() || <Person />}
+                  </Avatar>
+                </IconButton>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id='menu-appbar'
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                  <MenuItem onClick={handleCloseUserMenu}>
+                    <Typography textAlign='center'>Profile</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout}>
+                    <Typography
+                      textAlign='center'
+                      className='flex items-center gap-2'
+                    >
+                      <Logout fontSize='small' />
+                      Logout
+                    </Typography>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <>
+                <Button
+                  component={Link}
+                  variant='outlined'
+                  sx={{ color: 'white', borderColor: 'white' }}
+                  href='/login'
+                >
+                  Sign In
+                </Button>
+
+                <Button
+                  component={Link}
+                  variant='contained'
+                  sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
+                  href='/join'
+                  className='flex gap-2'
+                >
+                  <Person />
+                  <span>Join Community</span>
+                </Button>
+              </>
+            )}
           </Box>
         </Toolbar>
       </Container>
