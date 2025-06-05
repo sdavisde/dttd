@@ -17,8 +17,8 @@ async function getValidFolders() {
     .map((folder) => folder.name) as string[]
 }
 
-export default async function FilesFolderPage({ params }: { params: { folder: string } }) {
-  const folder = params.folder
+export default async function FilesFolderPage({ params }: { params: Promise<{ folder: string }> }) {
+  const { folder } = await params
   const VALID_FOLDERS = await getValidFolders()
 
   if (!VALID_FOLDERS.includes(folder)) {
