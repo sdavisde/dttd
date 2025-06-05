@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate": "npx supabase gen types typescript --project-id hlbfwbfhfbbiyztbqmsw > database.types.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -29,6 +30,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.4",
     "stripe": "^18.2.0",
+    "supabase": "^2.24.3",
     "zod": "^3.25.12"
   },
   "devDependencies": {

@@ -19,26 +19,23 @@ import MenuIcon from '@mui/icons-material/Menu'
 import { useRouter } from 'next/navigation'
 import { Person, Logout } from '@mui/icons-material'
 import { MouseEvent, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
+import { useSession } from './auth/session-provider'
 
-const pages = ['Events', 'Sponsor', 'Resources', 'About']
+const pages = [
+  {
+    label: 'Files',
+    href: '/files',
+    authenticationRequired: true,
+  },
+]
 
 export default function Navbar() {
   const router = useRouter()
   const supabase = createClient()
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
-
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      return user
-    },
-  })
+  const { user, isAuthenticated, loading } = useSession()
 
   const handleOpenNavMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget)
@@ -116,19 +113,25 @@ export default function Navbar() {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <MenuItem
-                  key={page}
-                  onClick={handleCloseNavMenu}
-                >
-                  <Link
-                    href={`/${page.toLowerCase()}`}
-                    sx={{ textDecoration: 'none', color: 'inherit' }}
+              {pages.map((page) => {
+                if (page.authenticationRequired && !isAuthenticated) {
+                  return null
+                }
+
+                return (
+                  <MenuItem
+                    key={page.label}
+                    onClick={handleCloseNavMenu}
                   >
-                    <Typography textAlign='center'>{page}</Typography>
-                  </Link>
-                </MenuItem>
-              ))}
+                    <Link
+                      href={page.href}
+                      sx={{ textDecoration: 'none', color: 'inherit' }}
+                    >
+                      <Typography textAlign='center'>{page.label}</Typography>
+                    </Link>
+                  </MenuItem>
+                )
+              })}
             </Menu>
           </Box>
 
@@ -147,30 +150,36 @@ export default function Navbar() {
               textDecoration: 'none',
             }}
           >
-            Dusty Trails Tres Dias
+            DTTD
           </Typography>
 
           {/* Desktop Navigation */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Link
-                key={page}
-                href={`/${page.toLowerCase()}`}
-                sx={{ textDecoration: 'none' }}
-              >
-                <Button
-                  onClick={handleCloseNavMenu}
-                  sx={{ my: 2, color: 'white', display: 'block' }}
+            {pages.map((page) => {
+              if (page.authenticationRequired && !isAuthenticated) {
+                return null
+              }
+
+              return (
+                <Link
+                  key={page.label}
+                  href={page.href}
+                  sx={{ textDecoration: 'none' }}
                 >
-                  {page}
-                </Button>
-              </Link>
-            ))}
+                  <Button
+                    onClick={handleCloseNavMenu}
+                    sx={{ my: 2, color: 'white', display: 'block' }}
+                  >
+                    {page.label}
+                  </Button>
+                </Link>
+              )
+            })}
           </Box>
 
           {/* Auth Buttons or Profile Menu */}
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {isLoading ? (
+            {loading ? (
               <CircularProgress
                 size={24}
                 sx={{ color: 'white' }}
@@ -202,7 +211,9 @@ export default function Navbar() {
                   onClose={handleCloseUserMenu}
                 >
                   <MenuItem onClick={handleCloseUserMenu}>
-                    <Typography textAlign='center'>Profile</Typography>
+                    <Link href='/profile'>
+                      <Typography textAlign='center'>Profile</Typography>
+                    </Link>
                   </MenuItem>
                   <MenuItem onClick={handleLogout}>
                     <Typography

@@ -26,11 +26,9 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
     setError(null)
     setMessage(null)
     setLoading(true)
-    logger.info('handling email auth', { mode, email, password })
 
     try {
       if (mode === 'login') {
-        logger.info('signing in with email', { email, password })
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -39,7 +37,6 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         onSuccess?.()
         router.refresh()
       } else {
-        logger.info('signing up with email', { email, password })
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -66,7 +63,6 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
   const handleGoogleAuth = async () => {
     try {
-      logger.info('signing in with google')
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

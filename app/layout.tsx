@@ -4,6 +4,7 @@ import Navbar from '@/components/navbar'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import Head from 'next/head'
+import { SessionProvider } from '@/components/auth/session-provider'
 
 const notoSerif = Noto_Serif({
   subsets: ['latin'],
@@ -29,10 +30,12 @@ export default function RootLayout({
         />
       </Head>
       <body className={`${notoSerif.className} antialiased`}>
-        <ThemeProvider>
-          <Navbar />
-          <main>{children}</main>
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider>
+            <Navbar />
+            <main>{children}</main>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   )
