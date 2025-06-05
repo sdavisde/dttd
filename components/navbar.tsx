@@ -25,7 +25,7 @@ import { useSession } from './auth/session-provider'
 const pages = [
   {
     label: 'Files',
-    href: '/files',
+    href: '/files/job-descriptions',
     authenticationRequired: true,
   },
 ]
