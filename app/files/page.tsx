@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Box, Container, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Link } from '@mui/material'
 import FolderIcon from '@mui/icons-material/Folder'
-import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
+import { CreateFolderButton } from '@/components/create-folder-button'
 
 async function getBuckets() {
   const supabase = await createClient()
@@ -76,13 +76,16 @@ export default async function FilesPage() {
           sx={{ mb: 3 }}
         >
           <Box sx={{ p: 2, backgroundColor: 'primary.light', color: 'white', borderRadius: '4px 4px 0 0' }}>
-            <Typography
-              variant='h6'
-              component='h2'
-              sx={{ textTransform: 'capitalize' }}
-            >
-              {bucket.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography
+                variant='h6'
+                component='h2'
+                sx={{ textTransform: 'capitalize' }}
+              >
+                {bucket.name}
+              </Typography>
+              <CreateFolderButton bucketName={bucket.name} />
+            </Box>
           </Box>
           <List>
             {bucket.folders.map((folder) => (
