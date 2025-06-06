@@ -19,13 +19,13 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setMessage(null)
     setLoading(true)
+    const supabase = createClient()
 
     try {
       if (mode === 'login') {
@@ -63,6 +63,7 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
   const handleGoogleAuth = async () => {
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
