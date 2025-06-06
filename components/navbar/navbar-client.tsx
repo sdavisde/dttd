@@ -18,43 +18,32 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  SwipeableDrawer,
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
+import CloseIcon from '@mui/icons-material/Close'
 import { useRouter } from 'next/navigation'
 import { Person, Logout, ExpandLess, ExpandMore } from '@mui/icons-material'
 import { MouseEvent, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSession } from '../auth/session-provider'
 
-type Folder = {
+type NavElement = {
   name: string
   slug: string
-}
-
-type Bucket = {
-  name: string
-  folders: Folder[]
+  children?: NavElement[]
 }
 
 type NavbarClientProps = {
-  bucketStructure: Bucket[]
+  navElements: NavElement[]
 }
 
-export function NavbarClient({ bucketStructure }: NavbarClientProps) {
+export function NavbarClient({ navElements }: NavbarClientProps) {
   const router = useRouter()
   const supabase = createClient()
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null)
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
-  const [expandedBucket, setExpandedBucket] = useState<string | null>(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const { user, isAuthenticated, loading } = useSession()
-
-  const handleOpenNavMenu = (event: MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget)
-  }
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null)
-  }
 
   const handleOpenUserMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget)
@@ -70,39 +59,62 @@ export function NavbarClient({ bucketStructure }: NavbarClientProps) {
     handleCloseUserMenu()
   }
 
-  const handleBucketClick = (bucketName: string) => {
-    setExpandedBucket(expandedBucket === bucketName ? null : bucketName)
+  const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+    if (
+      event &&
+      event.type === 'keydown' &&
+      ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')
+    ) {
+      return
+    }
+    setMobileOpen(open)
   }
 
-  const renderBucketMenu = (bucket: Bucket) => (
-    <React.Fragment key={bucket.name}>
-      <ListItemButton onClick={() => handleBucketClick(bucket.name)}>
-        <ListItemText primary={bucket.name} />
-        {expandedBucket === bucket.name ? <ExpandLess /> : <ExpandMore />}
-      </ListItemButton>
-      <Collapse
-        in={expandedBucket === bucket.name}
-        timeout='auto'
-        unmountOnExit
+  const mobileNavContent = (
+    <Box
+      sx={{ width: 'auto', height: '100%' }}
+      role='presentation'
+      onKeyDown={toggleDrawer(false)}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: 2,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
       >
-        <List
-          component='div'
-          disablePadding
+        <Typography
+          variant='h6'
+          component='h2'
         >
-          {bucket.folders.map((folder) => (
+          Dusty Trails Tres Dias
+        </Typography>
+        <IconButton
+          onClick={toggleDrawer(false)}
+          edge='end'
+          aria-label='close navigation'
+        >
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      {isAuthenticated && (
+        <List sx={{ width: '100%', pt: 2 }}>
+          {navElements.map((element) => (
             <ListItemButton
-              key={folder.slug}
-              sx={{ pl: 4 }}
+              key={element.name}
               component={Link}
-              href={`/files/${folder.slug}`}
-              style={{ whiteSpace: 'nowrap' }}
+              href='/files'
+              sx={{ textTransform: 'capitalize' }}
             >
-              <ListItemText primary={folder.name} />
+              <ListItemText primary={element.name} />
             </ListItemButton>
           ))}
         </List>
-      </Collapse>
-    </React.Fragment>
+      )}
+    </Box>
   )
 
   return (
@@ -136,39 +148,26 @@ export function NavbarClient({ bucketStructure }: NavbarClientProps) {
               aria-label='menu'
               aria-controls='menu-appbar'
               aria-haspopup='true'
-              onClick={handleOpenNavMenu}
+              onClick={toggleDrawer(true)}
               color='inherit'
             >
               <MenuIcon />
             </IconButton>
-            <Menu
-              id='menu-appbar'
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
+            <SwipeableDrawer
+              anchor='left'
+              open={mobileOpen}
+              onClose={toggleDrawer(false)}
+              onOpen={toggleDrawer(true)}
               sx={{
-                display: { xs: 'block', md: 'none' },
+                '& .MuiDrawer-paper': {
+                  width: '85%',
+                  maxWidth: '400px',
+                  boxSizing: 'border-box',
+                },
               }}
             >
-              {isAuthenticated &&
-                bucketStructure.map((bucket) => (
-                  <MenuItem
-                    key={bucket.name}
-                    onClick={handleCloseNavMenu}
-                  >
-                    <List sx={{ width: '100%' }}>{renderBucketMenu(bucket)}</List>
-                  </MenuItem>
-                ))}
-            </Menu>
+              {mobileNavContent}
+            </SwipeableDrawer>
           </Box>
 
           {/* Logo - Mobile */}
@@ -192,57 +191,24 @@ export function NavbarClient({ bucketStructure }: NavbarClientProps) {
           {/* Desktop Navigation */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {isAuthenticated && (
-              <List sx={{ display: 'flex', flexDirection: 'row' }}>
-                {bucketStructure.map((bucket) => (
-                  <Box
-                    key={bucket.name}
-                    sx={{ position: 'relative' }}
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                {navElements.map((element) => (
+                  <Button
+                    key={element.name}
+                    component={Link}
+                    href='/files'
+                    sx={{
+                      color: 'white',
+                      textTransform: 'capitalize',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      },
+                    }}
                   >
-                    <Button
-                      onClick={() => handleBucketClick(bucket.name)}
-                      sx={{ my: 2, color: 'white', display: 'block' }}
-                    >
-                      {bucket.name}
-                      {expandedBucket === bucket.name ? <ExpandLess /> : <ExpandMore />}
-                    </Button>
-                    {expandedBucket === bucket.name && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          bgcolor: 'background.paper',
-                          boxShadow: 1,
-                          borderRadius: 1,
-                          zIndex: 1,
-                        }}
-                      >
-                        {bucket.folders.map((folder) => (
-                          <Button
-                            key={folder.name}
-                            component={Link}
-                            href={`/files/${folder.slug}`}
-                            sx={{
-                              display: 'block',
-                              width: '100%',
-                              textAlign: 'left',
-                              px: 2,
-                              py: 1,
-                              color: 'text.primary',
-                              '&:hover': {
-                                bgcolor: 'action.hover',
-                              },
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {folder.name}
-                          </Button>
-                        ))}
-                      </Box>
-                    )}
-                  </Box>
+                    {element.name}
+                  </Button>
                 ))}
-              </List>
+              </Box>
             )}
           </Box>
 

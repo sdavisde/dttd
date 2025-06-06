@@ -3,7 +3,7 @@ import { NavbarClient } from './navbar-client'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
 
-async function getBucketStructure() {
+async function getNavElements() {
   const supabase = await createClient()
   const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets()
 
@@ -18,12 +18,13 @@ async function getBucketStructure() {
 
       if (foldersError) {
         logger.error(`Error fetching folders for bucket ${bucket.name}:`, foldersError)
-        return { name: bucket.name, folders: [] }
+        return { name: bucket.name, slug: slugify(bucket.name), children: [] }
       }
 
       return {
         name: bucket.name,
-        folders: folders
+        slug: slugify(bucket.name),
+        children: folders
           .filter((item) => item.metadata === null) // folders have null mimetype
           .map((folder) => ({
             name: folder.name,
@@ -37,7 +38,7 @@ async function getBucketStructure() {
 }
 
 export async function NavbarServer() {
-  const bucketStructure = await getBucketStructure()
+  const navElements = await getNavElements()
 
-  return <NavbarClient bucketStructure={bucketStructure} />
+  return <NavbarClient navElements={navElements} />
 }

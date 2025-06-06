@@ -57,20 +57,21 @@ export default async function FilesFolderPage({ params }: { params: Promise<{ fo
           borderRadius: 2,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <FolderIcon sx={{ fontSize: 40 }} />
-            <Typography
-              variant='h5'
-              component='h1'
-              sx={{ fontWeight: 'bold' }}
-            >
-              {folderName}
-            </Typography>
-          </Box>
-          <FileUpload folder={folderName} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <FolderIcon sx={{ fontSize: 40 }} />
+          <Typography
+            variant='h5'
+            component='h1'
+            sx={{ fontWeight: 'bold' }}
+          >
+            {folderName}
+          </Typography>
         </Box>
       </Paper>
+
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <FileUpload folder={folderName} />
+      </Box>
 
       <FileTable
         files={data as FileObject[]}
