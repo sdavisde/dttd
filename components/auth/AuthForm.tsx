@@ -40,19 +40,19 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
         })
 
         if (error) throw error
 
-        // Show confirmation message
-        setMessage('Please check your email for the confirmation link to complete your registration.')
+        // Sign in the user immediately after registration
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        if (signInError) throw signInError
 
-        // Clear the form
-        setEmail('')
-        setPassword('')
+        onSuccess?.()
+        router.refresh()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred')
@@ -145,7 +145,7 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         {loading ? <CircularProgress size={24} /> : mode === 'login' ? 'Sign In' : 'Create Account'}
       </Button>
 
-      <Divider sx={{ my: 2 }}>OR</Divider>
+      {/* <Divider sx={{ my: 2 }}>OR</Divider>
 
       <Button
         variant='outlined'
@@ -154,7 +154,7 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         fullWidth
       >
         Continue with Google
-      </Button>
+      </Button> */}
 
       <Typography
         variant='body2'
