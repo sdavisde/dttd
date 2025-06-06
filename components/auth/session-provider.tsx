@@ -1,20 +1,22 @@
 'use client'
 
-import { User } from '@supabase/supabase-js'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePathname } from 'next/navigation'
+import { User } from '@/lib/supabase/types'
 
 type Session = {
   user: User | null
   isAuthenticated: boolean
   loading: boolean
 }
+
 const sessionContext = createContext<Session | null>(null)
 
 type SessionProviderProps = {
   children: React.ReactNode
 }
+
 export function SessionProvider({ children }: SessionProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -23,12 +25,53 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const pathname = usePathname()
 
   useEffect(() => {
-    setLoading(true)
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
+    async function getUser() {
+      setLoading(true)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        setUser(null)
+        setIsAuthenticated(false)
+        setLoading(false)
+        return
+      }
+
+      // Fetch user's roles and permissions
+      const { data: userRoles, error: userRolesError } = await supabase
+        .from('user_roles')
+        .select(
+          `
+            roles (
+              permissions
+            )
+          `
+        )
+        .eq('user_id', user.id)
+
+      let permissions: string[] = []
+      if (userRolesError) {
+        console.error('Error fetching user roles:', userRolesError)
+      } else {
+        // Extract unique permissions from all roles
+        const allPermissions = userRoles
+          ?.map((ur) => ur.roles.permissions)
+          .flat()
+          .filter((p): p is string => p !== null)
+        const uniquePermissions = [...new Set(allPermissions)]
+        permissions = uniquePermissions
+      }
+
+      setUser({
+        ...user,
+        permissions,
+      })
       setIsAuthenticated(!!user)
       setLoading(false)
-    })
+    }
+
+    getUser()
   }, [pathname])
 
   const value = useMemo(
