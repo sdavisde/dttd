@@ -7,6 +7,9 @@ import FolderIcon from '@mui/icons-material/Folder'
 import { FileUpload } from '@/components/file-upload'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
+import { CreateFolderButton } from '@/components/create-folder-button'
+import { StorageUsage } from '@/components/storage-usage'
+import { getStorageUsage } from '@/lib/storage'
 
 async function getValidFolders() {
   const supabase = await createClient()
@@ -71,6 +74,7 @@ export default async function FilesFolderPage({ params }: { params: Promise<{ fo
 
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
         <FileUpload folder={folderName} />
+        <CreateFolderButton bucketName='files' />
       </Box>
 
       <FileTable

@@ -245,11 +245,11 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={handleCloseUserMenu}>
+                  {/* <MenuItem onClick={handleCloseUserMenu}>
                     <Link href='/profile'>
                       <Typography textAlign='center'>Profile</Typography>
                     </Link>
-                  </MenuItem>
+                  </MenuItem> */}
                   <MenuItem onClick={handleLogout}>
                     <Typography
                       textAlign='center'

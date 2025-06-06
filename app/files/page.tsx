@@ -4,6 +4,8 @@ import FolderIcon from '@mui/icons-material/Folder'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
 import { CreateFolderButton } from '@/components/create-folder-button'
+import { getStorageUsage } from '@/lib/storage'
+import { StorageUsage } from '@/components/storage-usage'
 
 async function getBuckets() {
   const supabase = await createClient()
@@ -40,6 +42,8 @@ async function getBuckets() {
 
 export default async function FilesPage() {
   const buckets = await getBuckets()
+  const usedBytes = await getStorageUsage()
+  const totalBytes = 1024 * 1024 * 1024 // 1 GB in bytes
 
   if (buckets.length === 0) {
     return (
@@ -69,6 +73,12 @@ export default async function FilesPage() {
       maxWidth='lg'
       sx={{ py: 4 }}
     >
+      <div className='mb-4'>
+        <StorageUsage
+          usedBytes={usedBytes}
+          totalBytes={totalBytes}
+        />
+      </div>
       {buckets.map((bucket) => (
         <Paper
           key={bucket.name}
