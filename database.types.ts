@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      candidates: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          sponsor_email: string | null
+          sponsor_name: string | null
+          status: Database["public"]["Enums"]["candidate_status"]
+          updated_at: string
+          weekend_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          sponsor_email?: string | null
+          sponsor_name?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
+          updated_at?: string
+          weekend_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          sponsor_email?: string | null
+          sponsor_name?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
+          updated_at?: string
+          weekend_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_weekend_id_fkey"
+            columns: ["weekend_id"]
+            isOneToOne: false
+            referencedRelation: "weekends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           id: string
@@ -75,6 +119,36 @@ export type Database = {
         }
         Relationships: []
       }
+      weekends: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          number: number | null
+          start_date: string
+          title: string | null
+          type: Database["public"]["Enums"]["weekend_type"]
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          number?: number | null
+          start_date: string
+          title?: string | null
+          type: Database["public"]["Enums"]["weekend_type"]
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          number?: number | null
+          start_date?: string
+          title?: string | null
+          type?: Database["public"]["Enums"]["weekend_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -83,7 +157,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      candidate_status:
+        | "sponsored"
+        | "awaiting_forms"
+        | "pending_approval"
+        | "awaiting_payment"
+        | "confirmed"
+        | "rejected"
       permissions: "READ_MEDICAL_HISTORY"
+      weekend_type: "MENS" | "WOMENS"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -199,7 +281,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      candidate_status: [
+        "sponsored",
+        "awaiting_forms",
+        "pending_approval",
+        "awaiting_payment",
+        "confirmed",
+        "rejected",
+      ],
       permissions: ["READ_MEDICAL_HISTORY"],
+      weekend_type: ["MENS", "WOMENS"],
     },
   },
 } as const
