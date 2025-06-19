@@ -20,7 +20,6 @@ export default function Home() {
           updates, and resources.
         </Typography>
 
-        <Button href='/sponsor'>Sponsor Candidate</Button>
         <Button href='/review-candidate'>Review Candidate</Button>
       </Box>
     </Container>

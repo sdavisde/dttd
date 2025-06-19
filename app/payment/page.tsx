@@ -1,5 +1,3 @@
-'use client'
-
 import Checkout from '@/components/checkout'
 
 // todo:
@@ -11,9 +9,14 @@ import Checkout from '@/components/checkout'
 //     - Creating the product / price in stripe to buy
 //     - Rendering the checkout form
 export default function PaymentPage() {
+  const candidateFeePriceId = process.env.CANDIDATE_FEE_PRICE_ID
+  if (!candidateFeePriceId) {
+    throw new Error('Missing candidate fee price id')
+  }
+
   return (
     <div className='payment-page'>
-      <Checkout />
+      <Checkout priceId={candidateFeePriceId} />
     </div>
   )
 }

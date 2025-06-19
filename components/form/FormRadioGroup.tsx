@@ -1,5 +1,5 @@
 import { FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup } from '@mui/material'
-import { UseFormRegister, FieldValues, Path } from 'react-hook-form'
+import { Control, FieldValues, Path, Controller } from 'react-hook-form'
 
 interface Option {
   value: string
@@ -8,35 +8,50 @@ interface Option {
 
 interface FormRadioGroupProps<T extends FieldValues> {
   name: Path<T>
-  register: UseFormRegister<T>
+  control: Control<T>
   label: string
   options: Option[]
   required?: boolean
+  error?: boolean
+  helperText?: string
 }
 
 export function FormRadioGroup<T extends FieldValues>({
   name,
-  register,
+  control,
   label,
   options,
   required = false,
+  error = false,
+  helperText,
 }: FormRadioGroupProps<T>) {
   return (
-    <FormControl
-      required={required}
-      component='fieldset'
-    >
-      <FormLabel component='legend'>{label}</FormLabel>
-      <RadioGroup {...register(name)}>
-        {options.map((option) => (
-          <FormControlLabel
-            key={option.value}
-            value={option.value}
-            control={<Radio />}
-            label={option.label}
-          />
-        ))}
-      </RadioGroup>
-    </FormControl>
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <FormControl
+          required={required}
+          component='fieldset'
+          error={error}
+        >
+          <FormLabel component='legend'>{label}</FormLabel>
+          <RadioGroup
+            {...field}
+            value={field.value || ''}
+          >
+            {options.map((option) => (
+              <FormControlLabel
+                key={option.value}
+                value={option.value}
+                control={<Radio />}
+                label={option.label}
+              />
+            ))}
+          </RadioGroup>
+          {helperText && <FormHelperText>{helperText}</FormHelperText>}
+        </FormControl>
+      )}
+    />
   )
 }

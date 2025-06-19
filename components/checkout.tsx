@@ -11,11 +11,8 @@ if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
-export default function Checkout() {
-  const fetchClientSecret = async () => {
-    // This price id is the team fees
-    return await beginCheckout('price_1RVJhTI3thJHumZEm4bag2pI')
-  }
+export default function Checkout({ priceId }: { priceId: string }) {
+  const fetchClientSecret = async () => beginCheckout(priceId)
 
   return (
     <div id='checkout'>

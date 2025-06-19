@@ -106,7 +106,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
             <ListItemButton
               key={element.name}
               component={Link}
-              href='/files'
+              href={`/${element.slug}`}
               sx={{ textTransform: 'capitalize' }}
             >
               <ListItemText primary={element.name} />
@@ -196,7 +196,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
                   <Button
                     key={element.name}
                     component={Link}
-                    href='/files'
+                    href={`/${element.slug}`}
                     sx={{
                       color: 'white',
                       textTransform: 'capitalize',

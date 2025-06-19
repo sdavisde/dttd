@@ -9,7 +9,6 @@ import {
   TableRow,
   Paper,
   Button,
-  Chip,
   IconButton,
   Dialog,
   DialogTitle,
@@ -23,18 +22,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { StatusFlow } from './StatusFlow'
-import { CandidateStatus } from '@/lib/candidates/types'
-
-interface Candidate {
-  id: string
-  name: string | null
-  email: string | null
-  sponsor_name: string | null
-  sponsor_email: string | null
-  status: CandidateStatus
-  created_at: string
-  weekend: string
-}
+import { Candidate, CandidateStatus } from '@/lib/candidates/types'
+import { StatusChip } from '@/components/candidates/status-chip'
 
 interface CandidateReviewTableProps {
   candidates: Candidate[]
@@ -59,24 +48,9 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
     console.log('Rejecting candidate:', id)
   }
 
-  const getStatusChip = (status: CandidateStatus) => {
-    const statusConfig: Record<CandidateStatus, { color: string; label: string }> = {
-      sponsored: { color: 'default', label: 'Sponsored' },
-      awaiting_forms: { color: 'warning', label: 'Awaiting Forms' },
-      pending_approval: { color: 'info', label: 'Pending Approval' },
-      awaiting_payment: { color: 'secondary', label: 'Awaiting Payment' },
-      confirmed: { color: 'success', label: 'Confirmed' },
-      rejected: { color: 'error', label: 'Rejected' },
-    }
-
-    const config = statusConfig[status]
-    return (
-      <Chip
-        label={config.label}
-        color={config.color as any}
-        size='small'
-      />
-    )
+  const sendEmail = async (id: string) => {
+    // TODO: Implement email sending logic
+    console.log('Sending email to candidate:', id)
   }
 
   return (
@@ -85,24 +59,32 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Candidate Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Candidate Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Sponsor</TableCell>
-              <TableCell>Weekend</TableCell>
               <TableCell>Submitted</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {candidates.map((candidate) => (
-              <TableRow key={candidate.id}>
-                <TableCell>{candidate.name}</TableCell>
+            {candidates.map((candidate, index) => (
+              <TableRow
+                key={candidate.id}
+                sx={{
+                  backgroundColor: index % 2 === 0 ? 'inherit' : 'rgba(0, 0, 0, 0.04)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                  },
+                }}
+              >
+                <TableCell sx={{ fontWeight: 'bold' }}>{candidate.name}</TableCell>
                 <TableCell>{candidate.email}</TableCell>
                 <TableCell>{candidate.sponsor_name}</TableCell>
-                <TableCell>{candidate.weekend}</TableCell>
                 <TableCell>{new Date(candidate.created_at).toLocaleDateString()}</TableCell>
-                <TableCell>{getStatusChip(candidate.status)}</TableCell>
+                <TableCell>
+                  <StatusChip status={candidate.status} />
+                </TableCell>
                 <TableCell>
                   <IconButton
                     size='small'
@@ -146,52 +128,18 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
       >
         {selectedCandidate && (
           <>
-            <DialogTitle>Candidate Details</DialogTitle>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>{selectedCandidate.name}</span>
+              <StatusChip status={selectedCandidate.status} />
+            </DialogTitle>
             <DialogContent>
-              <Box sx={{ mt: 2 }}>
-                <Typography
-                  variant='h6'
-                  gutterBottom
-                >
-                  Application Status
-                </Typography>
-                <StatusFlow currentStatus={selectedCandidate.status} />
-
-                <Typography
-                  variant='h6'
-                  gutterBottom
-                  sx={{ mt: 3 }}
-                >
-                  Basic Information
-                </Typography>
-                <Typography>
-                  <strong>Name:</strong> {selectedCandidate.name}
-                </Typography>
-                <Typography>
-                  <strong>Email:</strong> {selectedCandidate.email}
-                </Typography>
-                <Typography>
-                  <strong>Weekend:</strong> {selectedCandidate.weekend}
-                </Typography>
-
-                <Typography
-                  variant='h6'
-                  sx={{ mt: 3 }}
-                  gutterBottom
-                >
-                  Sponsor Information
-                </Typography>
-                <Typography>
-                  <strong>Name:</strong> {selectedCandidate.sponsor_name}
-                </Typography>
-                <Typography>
-                  <strong>Email:</strong> {selectedCandidate.sponsor_email}
-                </Typography>
-
+              <Box>
+                <Typography variant='body1'>{selectedCandidate.sponsor_name}</Typography>
+                <Typography variant='body1'>{selectedCandidate.sponsor_email}</Typography>
                 {/* TODO: Add more detailed information from the sponsorship form */}
               </Box>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ padding: 2 }}>
               {selectedCandidate.status === 'pending_approval' && (
                 <>
                   <Button
@@ -209,6 +157,15 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
                     Reject
                   </Button>
                 </>
+              )}
+              {selectedCandidate.status === 'sponsored' && (
+                <Button
+                  color='primary'
+                  variant='contained'
+                  onClick={() => sendEmail(selectedCandidate.id)}
+                >
+                  Send Candidate Forms
+                </Button>
               )}
               <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
             </DialogActions>

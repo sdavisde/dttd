@@ -71,6 +71,75 @@ export type Database = {
         }
         Relationships: []
       }
+      sponsorship_request: {
+        Row: {
+          attends_secuela: string | null
+          candidate_email: string | null
+          candidate_name: string | null
+          church_environment: string | null
+          contact_frequency: string | null
+          created_at: string
+          god_evidence: string | null
+          home_environment: string | null
+          id: number
+          payment_owner: string | null
+          prayer_request: string | null
+          reunion_group: string | null
+          social_environment: string | null
+          sponsor_address: string | null
+          sponsor_church: string | null
+          sponsor_name: string | null
+          sponsor_phone: string | null
+          sponsor_weekend: string | null
+          support_plan: string | null
+          work_environment: string | null
+        }
+        Insert: {
+          attends_secuela?: string | null
+          candidate_email?: string | null
+          candidate_name?: string | null
+          church_environment?: string | null
+          contact_frequency?: string | null
+          created_at?: string
+          god_evidence?: string | null
+          home_environment?: string | null
+          id?: number
+          payment_owner?: string | null
+          prayer_request?: string | null
+          reunion_group?: string | null
+          social_environment?: string | null
+          sponsor_address?: string | null
+          sponsor_church?: string | null
+          sponsor_name?: string | null
+          sponsor_phone?: string | null
+          sponsor_weekend?: string | null
+          support_plan?: string | null
+          work_environment?: string | null
+        }
+        Update: {
+          attends_secuela?: string | null
+          candidate_email?: string | null
+          candidate_name?: string | null
+          church_environment?: string | null
+          contact_frequency?: string | null
+          created_at?: string
+          god_evidence?: string | null
+          home_environment?: string | null
+          id?: number
+          payment_owner?: string | null
+          prayer_request?: string | null
+          reunion_group?: string | null
+          social_environment?: string | null
+          sponsor_address?: string | null
+          sponsor_church?: string | null
+          sponsor_name?: string | null
+          sponsor_phone?: string | null
+          sponsor_weekend?: string | null
+          support_plan?: string | null
+          work_environment?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

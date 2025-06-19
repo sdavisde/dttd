@@ -5,69 +5,82 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { FormRadioGroup } from '@/components/form/FormRadioGroup'
+import { logger } from '@/lib/logger'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 const sponsorFormSchema = z.object({
-  candidateName: z.string().min(1, 'Candidate name is required'),
-  candidateEmail: z.string().email('Invalid email address'),
-  sponsorName: z.string().min(1, 'Sponsor name is required'),
-  sponsorAddress: z.string().min(1, 'Address is required'),
-  sponsorPhone: z.string().min(1, 'Phone number is required'),
-  sponsorChurch: z.string().min(1, 'Church is required'),
-  sponsorWeekend: z.string().min(1, 'Weekend information is required'),
-  reunionGroup: z.string().min(1, 'Reunion group information is required'),
-  attendsSecuela: z.string().min(1, 'Please select an option'),
-  contactFrequency: z.string().min(1, 'Contact frequency is required'),
-  churchEnvironment: z.string().min(1, 'Church environment description is required'),
-  homeEnvironment: z.string().min(1, 'Home environment description is required'),
-  socialEnvironment: z.string().min(1, 'Social environment description is required'),
-  workEnvironment: z.string().min(1, 'Work environment description is required'),
-  godEvidence: z.string().min(1, "Evidence of God's leading is required"),
-  supportPlan: z.string().min(1, 'Support plan is required'),
-  prayerRequest: z.string().min(1, 'Prayer request information is required'),
-  submittingMultiple: z.string().min(1, 'Please select an option'),
-  additionalCandidates: z.string(),
-  paymentOwner: z.string().min(1, 'Payment owner is required'),
+  candidate_name: z.string().min(1, 'Candidate name is required'),
+  candidate_email: z.string().email('Invalid email address'),
+  sponsor_name: z.string().min(1, 'Sponsor name is required'),
+  sponsor_address: z.string().min(1, 'Address is required'),
+  sponsor_phone: z.string().min(1, 'Phone number is required'),
+  sponsor_church: z.string().min(1, 'Church is required'),
+  sponsor_weekend: z.string().min(1, 'Weekend information is required'),
+  reunion_group: z.string().min(1, 'Reunion group information is required'),
+  attends_secuela: z.string().min(1, 'Please select an option'),
+  contact_frequency: z.string().min(1, 'Contact frequency is required'),
+  church_environment: z.string().min(1, 'Church environment description is required'),
+  home_environment: z.string().min(1, 'Home environment description is required'),
+  social_environment: z.string().min(1, 'Social environment description is required'),
+  work_environment: z.string().min(1, 'Work environment description is required'),
+  god_evidence: z.string().min(1, "Evidence of God's leading is required"),
+  support_plan: z.string().min(1, 'Support plan is required'),
+  prayer_request: z.string(),
+  payment_owner: z.string().min(1, 'Payment owner is required'),
 })
 
 type SponsorFormSchema = z.infer<typeof sponsorFormSchema>
 
 export function SponsorForm() {
+  const router = useRouter()
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<SponsorFormSchema>({
     resolver: zodResolver(sponsorFormSchema),
     defaultValues: {
-      candidateName: '',
-      candidateEmail: '',
-      sponsorName: '',
-      sponsorAddress: '',
-      sponsorPhone: '',
-      sponsorChurch: '',
-      sponsorWeekend: '',
-      reunionGroup: '',
-      attendsSecuela: '',
-      contactFrequency: '',
-      churchEnvironment: '',
-      homeEnvironment: '',
-      socialEnvironment: '',
-      workEnvironment: '',
-      godEvidence: '',
-      supportPlan: '',
-      prayerRequest: '',
-      submittingMultiple: '',
-      additionalCandidates: '',
-      paymentOwner: '',
+      candidate_name: '',
+      candidate_email: '',
+      sponsor_name: '',
+      sponsor_address: '',
+      sponsor_phone: '',
+      sponsor_church: '',
+      sponsor_weekend: '',
+      reunion_group: '',
+      attends_secuela: '',
+      contact_frequency: '',
+      church_environment: '',
+      home_environment: '',
+      social_environment: '',
+      work_environment: '',
+      god_evidence: '',
+      support_plan: '',
+      prayer_request: '',
+      payment_owner: '',
     },
   })
 
   const onSubmit = async (data: SponsorFormSchema) => {
     try {
-      // TODO: Implement form submission
-      console.log(data)
+      logger.info('Submitting sponsor form:', data)
+      const supabase = createClient()
+      const { data: sponsorshipRequest, error: sponsorshipRequestError } = await supabase
+        .from('sponsorship_request')
+        .insert(data)
+        .select()
+        .single()
+
+      if (sponsorshipRequestError) {
+        throw new Error(sponsorshipRequestError.message)
+      } else {
+        logger.info('Form submitted successfully:', sponsorshipRequest)
+        router.push(`/sponsor/submitted?id=${sponsorshipRequest.id}`)
+      }
     } catch (error) {
-      console.error('Error submitting form:', error)
+      logger.error('Error submitting form:', error)
     }
   }
 
@@ -102,20 +115,24 @@ export function SponsorForm() {
 
             <Grid>
               <TextField
-                {...register('candidateName')}
+                {...register('candidate_name')}
                 label='Candidate Name'
                 required
                 fullWidth
+                error={!!errors.candidate_name}
+                helperText={errors.candidate_name?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('candidateEmail')}
+                {...register('candidate_email')}
                 label='Candidate Email'
                 type='email'
                 required
                 fullWidth
+                error={!!errors.candidate_email}
+                helperText={errors.candidate_email?.message}
               />
             </Grid>
 
@@ -132,55 +149,67 @@ export function SponsorForm() {
 
             <Grid>
               <TextField
-                {...register('sponsorName')}
+                {...register('sponsor_name')}
                 label="Sponsor's Name"
                 required
                 fullWidth
+                error={!!errors.sponsor_name}
+                helperText={errors.sponsor_name?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('sponsorPhone')}
+                {...register('sponsor_phone')}
                 label="Sponsor's Phone #"
                 required
                 fullWidth
+                error={!!errors.sponsor_phone}
+                helperText={errors.sponsor_phone?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('sponsorAddress')}
+                {...register('sponsor_address')}
                 label="Sponsor's Address"
                 required
                 fullWidth
+                error={!!errors.sponsor_address}
+                helperText={errors.sponsor_address?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('sponsorChurch')}
+                {...register('sponsor_church')}
                 label="Sponsor's Church"
                 required
                 fullWidth
+                error={!!errors.sponsor_church}
+                helperText={errors.sponsor_church?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('sponsorWeekend')}
+                {...register('sponsor_weekend')}
                 label="Sponsor's Weekend Attended & Where"
                 required
                 fullWidth
+                error={!!errors.sponsor_weekend}
+                helperText={errors.sponsor_weekend?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('reunionGroup')}
+                {...register('reunion_group')}
                 label="Sponsor's Reunion Group Name & Location"
                 required
                 fullWidth
+                error={!!errors.reunion_group}
+                helperText={errors.reunion_group?.message}
               />
             </Grid>
 
@@ -197,8 +226,8 @@ export function SponsorForm() {
 
             <Grid>
               <FormRadioGroup
-                name='attendsSecuela'
-                register={register}
+                name='attends_secuela'
+                control={control}
                 label='Do you attend Secuela regularly?'
                 options={[
                   { value: 'yes', label: 'Yes' },
@@ -207,15 +236,19 @@ export function SponsorForm() {
                   { value: 'na', label: 'N/A' },
                 ]}
                 required
+                error={!!errors.attends_secuela}
+                helperText={errors.attends_secuela?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('contactFrequency')}
+                {...register('contact_frequency')}
                 label='How often do you have contact with candidate?'
                 required
                 fullWidth
+                error={!!errors.contact_frequency}
+                helperText={errors.contact_frequency?.message}
               />
             </Grid>
 
@@ -230,91 +263,106 @@ export function SponsorForm() {
 
             <Grid>
               <TextField
-                {...register('churchEnvironment')}
+                {...register('church_environment')}
                 label='Church'
                 multiline
                 rows={3}
                 required
                 fullWidth
+                error={!!errors.church_environment}
+                helperText={errors.church_environment?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('homeEnvironment')}
+                {...register('home_environment')}
                 label='Home'
                 multiline
                 rows={3}
                 required
                 fullWidth
+                error={!!errors.home_environment}
+                helperText={errors.home_environment?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('socialEnvironment')}
+                {...register('social_environment')}
                 label='Social/Civic'
                 multiline
                 rows={3}
                 required
                 fullWidth
+                error={!!errors.social_environment}
+                helperText={errors.social_environment?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('workEnvironment')}
+                {...register('work_environment')}
                 label='Work'
                 multiline
                 rows={3}
                 required
                 fullWidth
+                error={!!errors.work_environment}
+                helperText={errors.work_environment?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('godEvidence')}
+                {...register('god_evidence')}
                 label='What evidence have you seen that God is leading the candidate to this weekend?'
                 multiline
                 rows={3}
                 required
                 fullWidth
+                error={!!errors.god_evidence}
+                helperText={errors.god_evidence?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('supportPlan')}
+                {...register('support_plan')}
                 label='How do you intend to support the candidate before, during and after the weekend (4th Day)?'
                 multiline
                 rows={3}
                 required
                 fullWidth
+                error={!!errors.support_plan}
+                helperText={errors.support_plan?.message}
               />
             </Grid>
 
             <Grid>
               <TextField
-                {...register('prayerRequest')}
+                {...register('prayer_request')}
                 label='Has the candidate asked you to submit a specific prayer request on his/her behalf?'
                 multiline
                 rows={3}
-                required
                 fullWidth
+                error={!!errors.prayer_request}
+                helperText={errors.prayer_request?.message}
               />
             </Grid>
 
             <Grid>
               <FormRadioGroup
-                name='paymentOwner'
-                register={register}
+                name='payment_owner'
+                control={control}
                 label='Who is paying for the candidate?'
                 options={[
                   { value: 'sponsor', label: 'Sponsor' },
                   { value: 'candidate', label: 'Candidate' },
                 ]}
                 required
+                error={!!errors.payment_owner}
+                helperText={errors.payment_owner?.message}
               />
             </Grid>
 

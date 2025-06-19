@@ -34,7 +34,15 @@ async function getNavElements() {
     })
   )
 
-  return bucketStructure
+  // Add static navigation elements
+  const staticNavElements = [
+    {
+      name: 'Sponsorship',
+      slug: 'sponsor',
+    },
+  ]
+
+  return [...staticNavElements, ...bucketStructure]
 }
 
 export async function NavbarServer() {
