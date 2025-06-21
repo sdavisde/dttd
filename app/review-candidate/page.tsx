@@ -42,12 +42,23 @@ async function getCandidates(): Promise<Candidate[]> {
     weekends: { title: 'Unknown' },
     name: sponsorshipRequest.candidate_name,
     email: sponsorshipRequest.candidate_email,
-    phone: sponsorshipRequest.sponsor_phone,
-    address: sponsorshipRequest.sponsor_address,
-    church: sponsorshipRequest.sponsor_church,
-    weekend_attended: sponsorshipRequest.sponsor_weekend,
-    reunion_group: sponsorshipRequest.reunion_group,
     weekend: null,
+    // Sponsorship information
+    sponsor_phone: sponsorshipRequest.sponsor_phone,
+    sponsor_address: sponsorshipRequest.sponsor_address,
+    sponsor_church: sponsorshipRequest.sponsor_church,
+    sponsor_weekend: sponsorshipRequest.sponsor_weekend,
+    reunion_group: sponsorshipRequest.reunion_group,
+    contact_frequency: sponsorshipRequest.contact_frequency,
+    church_environment: sponsorshipRequest.church_environment,
+    home_environment: sponsorshipRequest.home_environment,
+    social_environment: sponsorshipRequest.social_environment,
+    work_environment: sponsorshipRequest.work_environment,
+    god_evidence: sponsorshipRequest.god_evidence,
+    support_plan: sponsorshipRequest.support_plan,
+    prayer_request: sponsorshipRequest.prayer_request,
+    payment_owner: sponsorshipRequest.payment_owner,
+    attends_secuela: sponsorshipRequest.attends_secuela,
   }))
   return [...candidates, ...sponsoredCandidates]
 }
