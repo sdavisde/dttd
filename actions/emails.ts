@@ -1,23 +1,32 @@
 'use server'
 
-import { Resend } from 'resend'
+import { CreateEmailResponseSuccess, Resend } from 'resend'
 import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotificationEmail'
 import { createClient } from '@/lib/supabase/server'
+import { Result, err, ok } from '@/lib/results'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Send sponsorship notification email to preweekend couple
-export async function sendSponsorshipNotificationEmail(sponsorshipRequestId: string) {
+export async function sendSponsorshipNotificationEmail(
+  sponsorshipRequestId: number
+): Promise<Result<Error, { data: CreateEmailResponseSuccess | null }>> {
   try {
     const supabase = await createClient()
-    const { data: sponsorshipRequest, error: sponsorshipRequestError } = await supabase
+
+    // Fetch sponsorship request data
+    const { data: sponsorshipRequest, error: fetchError } = await supabase
       .from('sponsorship_request')
       .select('*')
-      .eq('id', Number(sponsorshipRequestId))
+      .eq('id', sponsorshipRequestId)
       .single()
-    if (sponsorshipRequestError) {
-      console.error('Error fetching sponsorship request:', sponsorshipRequestError)
-      return { success: false, error: sponsorshipRequestError }
+
+    if (fetchError) {
+      return err(new Error(`Failed to fetch sponsorship request: ${fetchError.message}`))
+    }
+
+    if (!sponsorshipRequest) {
+      return err(new Error('Sponsorship request not found'))
     }
 
     const { data: preweekendCouple, error: preweekendCoupleError } = await supabase
@@ -25,26 +34,28 @@ export async function sendSponsorshipNotificationEmail(sponsorshipRequestId: str
       .select('*')
       .eq('id', 'preweekend-couple')
       .single()
-    if (preweekendCoupleError || !preweekendCouple?.email_address) {
-      console.error('Error fetching preweekend couple:', preweekendCoupleError)
-      return { success: false, error: preweekendCoupleError }
+    if (preweekendCoupleError) {
+      return err(new Error(`Failed to fetch preweekend couple: ${preweekendCoupleError.message}`))
     }
 
+    // Send email using Resend
     const { data, error } = await resend.emails.send({
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-      to: preweekendCouple.email_address,
-      subject: `New Sponsored Candidate: ${sponsorshipRequest.candidate_name} from ${sponsorshipRequest.sponsor_name}`,
+      to: [preweekendCouple.email_address ?? 'admin@dustytrailstresdias.org'],
+      subject: `New Sponsorship Request - ${sponsorshipRequest.candidate_name}`,
       react: SponsorshipNotificationEmail(sponsorshipRequest),
     })
 
     if (error) {
-      console.error('Email sending error:', error)
-      return { success: false, error }
+      return err(new Error(`Failed to send email: ${error.message}`))
     }
 
-    return { success: true, data }
+    return ok({ data })
   } catch (error) {
-    console.error('Email sending exception:', error)
-    return { success: false, error }
+    return err(
+      new Error(
+        `Error while sending sponsorship notification email: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    )
   }
 }

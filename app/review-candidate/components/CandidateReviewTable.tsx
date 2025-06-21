@@ -24,7 +24,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import CloseIcon from '@mui/icons-material/Close'
 import { Candidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
-import { sendSponsorshipNotificationEmail } from '@/actions/emails'
+import { logger } from '@/lib/logger'
 
 interface CandidateReviewTableProps {
   candidates: Candidate[]
@@ -50,12 +50,7 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
   }
 
   const sendEmail = async (id: string) => {
-    const result = await sendSponsorshipNotificationEmail(id)
-    if (result.success) {
-      console.log('Email sent successfully')
-    } else {
-      console.error('Error sending email:', result.error)
-    }
+    logger.info('Not implmeneted yet')
   }
 
   return (
