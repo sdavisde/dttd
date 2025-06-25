@@ -82,7 +82,6 @@ export default async function ReviewCandidatePage() {
         >
           Review and manage candidate sponsorship requests for upcoming weekends.
         </Typography>
-        <StatusFlow />
         <CandidateReviewTable candidates={candidates} />
       </Box>
     </Container>
