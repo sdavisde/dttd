@@ -31,6 +31,7 @@ import { useSession } from '../auth/session-provider'
 type NavElement = {
   name: string
   slug: string
+  permissions_needed: string[]
   children?: NavElement[]
 }
 
@@ -44,6 +45,12 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user, isAuthenticated, loading } = useSession()
+  const allowedNavElements = navElements.filter((element) => {
+    if (element.permissions_needed.length === 0) {
+      return true
+    }
+    return element.permissions_needed.some((permission) => user?.permissions.includes(permission))
+  })
 
   const handleOpenUserMenu = (event: MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget)
@@ -102,7 +109,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
       </Box>
       {isAuthenticated && (
         <List sx={{ width: '100%', pt: 2 }}>
-          {navElements.map((element) => (
+          {allowedNavElements.map((element) => (
             <ListItemButton
               key={element.name}
               component={Link}
@@ -192,7 +199,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {isAuthenticated && (
               <Box sx={{ display: 'flex', gap: 2 }}>
-                {navElements.map((element) => (
+                {allowedNavElements.map((element) => (
                   <Button
                     key={element.name}
                     component={Link}

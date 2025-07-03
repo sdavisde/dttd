@@ -8,6 +8,8 @@ import { FormRadioGroup } from '@/components/form/FormRadioGroup'
 import { logger } from '@/lib/logger'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { sendSponsorshipNotificationEmail } from '@/actions/emails'
+import * as Results from '@/lib/results'
 
 const sponsorFormSchema = z.object({
   candidate_name: z.string().min(1, 'Candidate name is required'),
@@ -75,10 +77,17 @@ export function SponsorForm() {
 
       if (sponsorshipRequestError) {
         throw new Error(sponsorshipRequestError.message)
-      } else {
-        logger.info('Form submitted successfully:', sponsorshipRequest)
-        router.push(`/sponsor/submitted?id=${sponsorshipRequest.id}`)
       }
+
+      // Now that a sponsorship request has been created, we need to send the preweekend couple an email
+      const emailNotificationResult = await sendSponsorshipNotificationEmail(sponsorshipRequest.id)
+      if (Results.isErr(emailNotificationResult)) {
+        throw new Error(`Error sending sponsorship notification email: ${emailNotificationResult.error.message}`)
+      }
+
+      logger.info('Sponsorship notification email sent successfully')
+      logger.info('Form submitted successfully:', sponsorshipRequest)
+      router.push(`/sponsor/submitted?id=${sponsorshipRequest.id}`)
     } catch (error) {
       logger.error('Error submitting form:', error)
     }

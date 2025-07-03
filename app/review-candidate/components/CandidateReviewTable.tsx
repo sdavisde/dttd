@@ -1,29 +1,15 @@
 'use client'
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Box,
-} from '@mui/material'
 import { useState } from 'react'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import CancelIcon from '@mui/icons-material/Cancel'
-import { StatusFlow } from './StatusFlow'
-import { Candidate, CandidateStatus } from '@/lib/candidates/types'
-import { StatusChip } from '@/components/candidates/status-chip'
+import { Candidate } from '@/lib/candidates/types'
+import { logger } from '@/lib/logger'
+import { createCandidateFromSponsorshipRequest, deleteCandidate } from '@/actions/candidates'
+import { CandidateTable } from './CandidateTable'
+import { CandidateDetailDialog } from './CandidateDetailDialog'
+import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
+import { StatusInfoDialog } from './StatusInfoDialog'
+import * as Results from '@/lib/results'
+import { sendCandidateForms } from '@/actions/emails'
 
 interface CandidateReviewTableProps {
   candidates: Candidate[]
@@ -32,10 +18,51 @@ interface CandidateReviewTableProps {
 export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isStatusInfoOpen, setIsStatusInfoOpen] = useState(false)
 
-  const handleViewDetails = (candidate: Candidate) => {
+  const handleRowClick = (candidate: Candidate) => {
     setSelectedCandidate(candidate)
     setIsDialogOpen(true)
+  }
+
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedCandidate) return
+
+    setIsDeleting(true)
+    try {
+      // Determine if this is a candidate or sponsorship request based on the ID type
+      const isSponsorshipRequest = typeof selectedCandidate.id === 'string' && !isNaN(Number(selectedCandidate.id))
+      const type = isSponsorshipRequest ? 'sponsorship_request' : 'candidate'
+      const id = isSponsorshipRequest ? Number(selectedCandidate.id) : selectedCandidate.id
+
+      const result = await deleteCandidate(id, type)
+
+      if (Results.isOk(result)) {
+        // Close both dialogs and refresh the page to update the table
+        setIsDeleteDialogOpen(false)
+        setIsDialogOpen(false)
+        setSelectedCandidate(null)
+        window.location.reload()
+      } else {
+        logger.error('Failed to delete candidate:', result.error)
+        alert(`Failed to delete: ${result.error.message}`)
+      }
+    } catch (error) {
+      logger.error('Error deleting candidate:', error)
+      alert('An unexpected error occurred while deleting')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false)
   }
 
   const handleApprove = async (id: string) => {
@@ -48,130 +75,53 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
     console.log('Rejecting candidate:', id)
   }
 
-  const sendEmail = async (id: string) => {
-    // TODO: Implement email sending logic
-    console.log('Sending email to candidate:', id)
+  const onSendForms = async (id: string) => {
+    // First, creates a candidate record from sponsorship request
+    // Then, sends candidate and sponsor an email notification
+    logger.info('Sending candidate forms:', id)
+    const result = await createCandidateFromSponsorshipRequest(Number(id))
+    if (Results.isErr(result)) {
+      logger.error('Failed to create candidate from sponsorship request:', result.error)
+      return
+    }
+
+    const candidate = result.data.candidate
+    const sponsorEmail = candidate.sponsor_email
+    const candidateEmail = candidate.email
+
+    const sponsorResult = await sendCandidateForms(candidate)
   }
 
   return (
     <>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Candidate Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Sponsor</TableCell>
-              <TableCell>Submitted</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {candidates.map((candidate, index) => (
-              <TableRow
-                key={candidate.id}
-                sx={{
-                  backgroundColor: index % 2 === 0 ? 'inherit' : 'rgba(0, 0, 0, 0.04)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                  },
-                }}
-              >
-                <TableCell sx={{ fontWeight: 'bold' }}>{candidate.name}</TableCell>
-                <TableCell>{candidate.email}</TableCell>
-                <TableCell>{candidate.sponsor_name}</TableCell>
-                <TableCell>{new Date(candidate.created_at).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <StatusChip status={candidate.status} />
-                </TableCell>
-                <TableCell>
-                  <IconButton
-                    size='small'
-                    onClick={() => handleViewDetails(candidate)}
-                    title='View Details'
-                  >
-                    <VisibilityIcon />
-                  </IconButton>
-                  {candidate.status === 'pending_approval' && (
-                    <>
-                      <IconButton
-                        size='small'
-                        color='success'
-                        onClick={() => handleApprove(candidate.id)}
-                        title='Approve'
-                      >
-                        <CheckCircleIcon />
-                      </IconButton>
-                      <IconButton
-                        size='small'
-                        color='error'
-                        onClick={() => handleReject(candidate.id)}
-                        title='Reject'
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <CandidateTable
+        candidates={candidates}
+        onRowClick={handleRowClick}
+        onStatusInfoClick={() => setIsStatusInfoOpen(true)}
+      />
 
-      <Dialog
-        open={isDialogOpen}
+      <CandidateDetailDialog
+        candidate={selectedCandidate}
+        isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        maxWidth='md'
-        fullWidth
-      >
-        {selectedCandidate && (
-          <>
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>{selectedCandidate.name}</span>
-              <StatusChip status={selectedCandidate.status} />
-            </DialogTitle>
-            <DialogContent>
-              <Box>
-                <Typography variant='body1'>{selectedCandidate.sponsor_name}</Typography>
-                <Typography variant='body1'>{selectedCandidate.sponsor_email}</Typography>
-                {/* TODO: Add more detailed information from the sponsorship form */}
-              </Box>
-            </DialogContent>
-            <DialogActions sx={{ padding: 2 }}>
-              {selectedCandidate.status === 'pending_approval' && (
-                <>
-                  <Button
-                    color='success'
-                    startIcon={<CheckCircleIcon />}
-                    onClick={() => handleApprove(selectedCandidate.id)}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    color='error'
-                    startIcon={<CancelIcon />}
-                    onClick={() => handleReject(selectedCandidate.id)}
-                  >
-                    Reject
-                  </Button>
-                </>
-              )}
-              {selectedCandidate.status === 'sponsored' && (
-                <Button
-                  color='primary'
-                  variant='contained'
-                  onClick={() => sendEmail(selectedCandidate.id)}
-                >
-                  Send Candidate Forms
-                </Button>
-              )}
-              <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
-            </DialogActions>
-          </>
-        )}
-      </Dialog>
+        onDelete={handleDeleteClick}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onSendForms={onSendForms}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        candidateName={selectedCandidate?.name}
+        isDeleting={isDeleting}
+        onCancel={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+      />
+
+      <StatusInfoDialog
+        isOpen={isStatusInfoOpen}
+        onClose={() => setIsStatusInfoOpen(false)}
+      />
     </>
   )
 }

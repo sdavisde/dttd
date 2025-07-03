@@ -18,17 +18,24 @@ async function getNavElements() {
 
       if (foldersError) {
         logger.error(`Error fetching folders for bucket ${bucket.name}:`, foldersError)
-        return { name: bucket.name, slug: slugify(bucket.name), children: [] }
+        return {
+          name: bucket.name,
+          slug: slugify(bucket.name),
+          permissions_needed: [] as string[],
+          children: [],
+        }
       }
 
       return {
         name: bucket.name,
         slug: slugify(bucket.name),
+        permissions_needed: [] as string[],
         children: folders
           .filter((item) => item.metadata === null) // folders have null mimetype
           .map((folder) => ({
             name: folder.name,
             slug: slugify(folder.name),
+            permissions_needed: [] as string[],
           })),
       }
     })
@@ -39,10 +46,16 @@ async function getNavElements() {
     {
       name: 'Sponsorship',
       slug: 'sponsor',
+      permissions_needed: [] as string[],
+    },
+    {
+      name: 'Settings',
+      slug: 'settings',
+      permissions_needed: ['FULL_ACCESS'],
     },
   ]
 
-  return [...staticNavElements, ...bucketStructure]
+  return [...bucketStructure, ...staticNavElements]
 }
 
 export async function NavbarServer() {

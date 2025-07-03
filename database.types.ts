@@ -53,6 +53,27 @@ export type Database = {
           },
         ]
       }
+      contact_information: {
+        Row: {
+          created_at: string
+          email_address: string | null
+          id: string
+          label: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_address?: string | null
+          id: string
+          label?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_address?: string | null
+          id?: string
+          label?: string | null
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           id: string
