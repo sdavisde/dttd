@@ -1,35 +1,15 @@
-import { Tables } from '@/database.types'
+import { HydratedCandidate } from '@/lib/candidates/types'
 import { getUrl } from '@/lib/url'
 import { Body, Container, Head, Heading, Html, Preview, Section, Text, Hr, Button } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
 
-export default function SponsorshipNotificationEmail({
-  attends_secuela,
-  candidate_email,
-  candidate_name,
-  church_environment,
-  contact_frequency,
-  created_at,
-  god_evidence,
-  home_environment,
-  id,
-  payment_owner,
-  prayer_request,
-  reunion_group,
-  social_environment,
-  sponsor_address,
-  sponsor_church,
-  sponsor_name,
-  sponsor_phone,
-  sponsor_weekend,
-  support_plan,
-  work_environment,
-}: Tables<'sponsorship_request'>) {
+export default function SponsorshipNotificationEmail({ candidate_sponsorship_info }: HydratedCandidate) {
   return (
     <Html>
       <Head />
       <Preview>
-        New Sponsorship Request: {candidate_name ?? 'No name'} from {sponsor_name ?? 'Sponsor'}
+        New Sponsorship Request: {candidate_sponsorship_info?.candidate_name ?? 'No name'} from{' '}
+        {candidate_sponsorship_info?.sponsor_name ?? 'Sponsor'}
       </Preview>
       <Tailwind>
         <Body className='bg-white font-sans'>
@@ -54,28 +34,29 @@ export default function SponsorshipNotificationEmail({
               <Section className='bg-gray-50 p-6 rounded-lg mb-6'>
                 <Heading className='text-lg font-semibold text-gray-900 mb-4'>Candidate Information</Heading>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Candidate Name:</strong> {candidate_name ?? 'No name'}
+                  <strong>Candidate Name:</strong> {candidate_sponsorship_info?.candidate_name ?? 'No name'}
                 </Text>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Sponsor Name:</strong> {sponsor_name ?? 'Sponsor'}
+                  <strong>Sponsor Name:</strong> {candidate_sponsorship_info?.sponsor_name ?? 'Sponsor'}
                 </Text>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Sponsor Phone:</strong> {sponsor_phone ?? 'No phone'}
+                  <strong>Sponsor Phone:</strong> {candidate_sponsorship_info?.sponsor_phone ?? 'No phone'}
                 </Text>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Sponsor Church:</strong> {sponsor_church ?? 'No church'}
+                  <strong>Sponsor Church:</strong> {candidate_sponsorship_info?.sponsor_church ?? 'No church'}
                 </Text>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Sponsor Weekend:</strong> {sponsor_weekend ?? 'No weekend'}
+                  <strong>Sponsor Weekend:</strong> {candidate_sponsorship_info?.sponsor_weekend ?? 'No weekend'}
                 </Text>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Reunion Group:</strong> {reunion_group ?? 'No reunion group'}
+                  <strong>Reunion Group:</strong> {candidate_sponsorship_info?.reunion_group ?? 'No reunion group'}
                 </Text>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Contact Frequency:</strong> {contact_frequency ?? 'No contact frequency'}
+                  <strong>Contact Frequency:</strong>{' '}
+                  {candidate_sponsorship_info?.contact_frequency ?? 'No contact frequency'}
                 </Text>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Payment Owner:</strong> {payment_owner ?? 'No payment owner'}
+                  <strong>Payment Owner:</strong> {candidate_sponsorship_info?.payment_owner ?? 'No payment owner'}
                 </Text>
               </Section>
 
@@ -86,22 +67,30 @@ export default function SponsorshipNotificationEmail({
                 <Text className='text-gray-700 mb-3'>
                   <strong>Church Environment:</strong>
                 </Text>
-                <Text className='text-gray-600 mb-4 pl-4'>{church_environment ?? 'No church environment'}</Text>
+                <Text className='text-gray-600 mb-4 pl-4'>
+                  {candidate_sponsorship_info?.church_environment ?? 'No church environment'}
+                </Text>
 
                 <Text className='text-gray-700 mb-3'>
                   <strong>Home Environment:</strong>
                 </Text>
-                <Text className='text-gray-600 mb-4 pl-4'>{home_environment ?? 'No home environment'}</Text>
+                <Text className='text-gray-600 mb-4 pl-4'>
+                  {candidate_sponsorship_info?.home_environment ?? 'No home environment'}
+                </Text>
 
                 <Text className='text-gray-700 mb-3'>
                   <strong>Social Environment:</strong>
                 </Text>
-                <Text className='text-gray-600 mb-4 pl-4'>{social_environment ?? 'No social environment'}</Text>
+                <Text className='text-gray-600 mb-4 pl-4'>
+                  {candidate_sponsorship_info?.social_environment ?? 'No social environment'}
+                </Text>
 
                 <Text className='text-gray-700 mb-3'>
                   <strong>Work Environment:</strong>
                 </Text>
-                <Text className='text-gray-600 mb-4 pl-4'>{work_environment ?? 'No work environment'}</Text>
+                <Text className='text-gray-600 mb-4 pl-4'>
+                  {candidate_sponsorship_info?.work_environment ?? 'No work environment'}
+                </Text>
               </Section>
 
               {/* God's Evidence and Support Plan */}
@@ -109,19 +98,25 @@ export default function SponsorshipNotificationEmail({
                 <Text className='text-gray-700 mb-3'>
                   <strong>Evidence of God's Leading:</strong>
                 </Text>
-                <Text className='text-gray-600 mb-4 pl-4'>{god_evidence ?? 'No god evidence'}</Text>
+                <Text className='text-gray-600 mb-4 pl-4'>
+                  {candidate_sponsorship_info?.god_evidence ?? 'No god evidence'}
+                </Text>
 
                 <Text className='text-gray-700 mb-3'>
                   <strong>Support Plan:</strong>
                 </Text>
-                <Text className='text-gray-600 mb-4 pl-4'>{support_plan ?? 'No support plan'}</Text>
+                <Text className='text-gray-600 mb-4 pl-4'>
+                  {candidate_sponsorship_info?.support_plan ?? 'No support plan'}
+                </Text>
 
-                {prayer_request && (
+                {candidate_sponsorship_info?.prayer_request && (
                   <>
                     <Text className='text-gray-700 mb-3'>
                       <strong>Prayer Request:</strong>
                     </Text>
-                    <Text className='text-gray-600 mb-4 pl-4'>{prayer_request ?? 'No prayer request'}</Text>
+                    <Text className='text-gray-600 mb-4 pl-4'>
+                      {candidate_sponsorship_info?.prayer_request ?? 'No prayer request'}
+                    </Text>
                   </>
                 )}
               </Section>

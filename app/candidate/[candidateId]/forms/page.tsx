@@ -1,34 +1,19 @@
-import { createClient } from '@/lib/supabase/server'
 import { Container, Typography, Box, Paper } from '@mui/material'
 import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
-
-async function getCandidate(candidateId: string) {
-  const supabase = await createClient()
-
-  // First try to find in candidates table
-  const { data: candidate, error: candidateError } = await supabase
-    .from('candidates')
-    .select('*')
-    .eq('id', candidateId)
-    .single()
-
-  if (candidateError) {
-    logger.error('Error fetching candidate:', candidateError)
-    throw candidateError
-  }
-
-  return candidate
-}
+import { getHydratedCandidate } from '@/actions/candidates'
+import * as Results from '@/lib/results'
 
 export default async function CandidateFormsPage({ params }: { params: Promise<{ candidateId: string }> }) {
   const { candidateId } = await params
-  const candidate = await getCandidate(candidateId)
+  const candidateResult = await getHydratedCandidate(candidateId)
 
-  if (!candidate) {
-    logger.error(`Candidate with ID ${candidateId} not found`)
+  if (Results.isErr(candidateResult)) {
+    logger.error(`Failed to fetch candidate ${candidateId}:`, candidateResult.error)
     notFound()
   }
+
+  const candidate = candidateResult.data
 
   return (
     <Container
@@ -50,12 +35,14 @@ export default async function CandidateFormsPage({ params }: { params: Promise<{
           variant='h6'
           color='text.secondary'
         >
-          {candidate.name}
+          {candidate.candidate_sponsorship_info?.candidate_name}
         </Typography>
       </Paper>
 
       <Box>
-        <Typography variant='body1'>Forms page for candidate: {candidate.name}</Typography>
+        <Typography variant='body1'>
+          Forms page for candidate: {candidate.candidate_sponsorship_info?.candidate_name}
+        </Typography>
         <Typography
           variant='body2'
           color='text.secondary'

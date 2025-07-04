@@ -2,12 +2,12 @@
 
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Box } from '@mui/material'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import { Candidate } from '@/lib/candidates/types'
+import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 
 interface CandidateTableProps {
-  candidates: Candidate[]
-  onRowClick: (candidate: Candidate) => void
+  candidates: HydratedCandidate[]
+  onRowClick: (candidate: HydratedCandidate) => void
   onStatusInfoClick: () => void
 }
 
@@ -49,9 +49,9 @@ export function CandidateTable({ candidates, onRowClick, onStatusInfoClick }: Ca
                 },
               }}
             >
-              <TableCell sx={{ fontWeight: 'bold' }}>{candidate.name}</TableCell>
-              <TableCell>{candidate.email}</TableCell>
-              <TableCell>{candidate.sponsor_name}</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>{candidate.candidate_sponsorship_info?.candidate_name}</TableCell>
+              <TableCell>{candidate.candidate_sponsorship_info?.candidate_email}</TableCell>
+              <TableCell>{candidate.candidate_sponsorship_info?.sponsor_name}</TableCell>
               <TableCell>{new Date(candidate.created_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 <StatusChip status={candidate.status} />

@@ -5,10 +5,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PaymentIcon from '@mui/icons-material/Payment'
-import { Candidate } from '@/lib/candidates/types'
+import { HydratedCandidate } from '@/lib/candidates/types'
 
 interface CandidateActionsProps {
-  candidate: Candidate
+  candidate: HydratedCandidate
   onDelete: () => void
   onApprove: (id: string) => void
   onReject: (id: string) => void

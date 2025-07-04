@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Candidate } from '@/lib/candidates/types'
+import { HydratedCandidate } from '@/lib/candidates/types'
 import { logger } from '@/lib/logger'
-import { createCandidateFromSponsorshipRequest, deleteCandidate } from '@/actions/candidates'
+import { deleteCandidate, updateCandidateStatus } from '@/actions/candidates'
 import { CandidateTable } from './CandidateTable'
 import { CandidateDetailDialog } from './CandidateDetailDialog'
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
@@ -13,17 +13,17 @@ import { sendCandidateForms } from '@/actions/emails'
 import { sendPaymentRequestEmail } from '@/actions/emails'
 
 interface CandidateReviewTableProps {
-  candidates: Candidate[]
+  candidates: HydratedCandidate[]
 }
 
 export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) {
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
+  const [selectedCandidate, setSelectedCandidate] = useState<HydratedCandidate | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isStatusInfoOpen, setIsStatusInfoOpen] = useState(false)
 
-  const handleRowClick = (candidate: Candidate) => {
+  const handleRowClick = (candidate: HydratedCandidate) => {
     setSelectedCandidate(candidate)
     setIsDialogOpen(true)
   }
@@ -37,12 +37,7 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
 
     setIsDeleting(true)
     try {
-      // Determine if this is a candidate or sponsorship request based on the ID type
-      const isSponsorshipRequest = typeof selectedCandidate.id === 'string' && !isNaN(Number(selectedCandidate.id))
-      const type = isSponsorshipRequest ? 'sponsorship_request' : 'candidate'
-      const id = isSponsorshipRequest ? Number(selectedCandidate.id) : selectedCandidate.id
-
-      const result = await deleteCandidate(id, type)
+      const result = await deleteCandidate(selectedCandidate.id)
 
       if (Results.isOk(result)) {
         // Close both dialogs and refresh the page to update the table
@@ -76,38 +71,48 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
     console.log('Rejecting candidate:', id)
   }
 
-  const onSendForms = async (id: string) => {
-    // First, creates a candidate record from sponsorship request
-    // Then, sends candidate and sponsor an email notification
-    logger.info('Sending candidate forms:', id)
-    const result = await createCandidateFromSponsorshipRequest(Number(id))
-    if (Results.isErr(result)) {
-      logger.error('Failed to create candidate from sponsorship request:', result.error)
+  const onSendForms = async () => {
+    logger.info('Sending candidate forms:', selectedCandidate?.id)
+
+    const candidateSponsorshipInfo = selectedCandidate?.candidate_sponsorship_info
+    if (!candidateSponsorshipInfo) {
+      logger.error('Candidate sponsorship info not found')
       return
     }
 
-    const candidate = result.data.candidate
-    const candidateFormsResult = await sendCandidateForms(candidate)
+    // Set the candidate status to awaiting_forms
+    const result = await updateCandidateStatus(selectedCandidate.id, 'awaiting_forms')
+    if (Results.isErr(result)) {
+      logger.error('Failed to update candidate status:', result.error)
+      return
+    }
+
+    const candidateFormsResult = await sendCandidateForms(candidateSponsorshipInfo)
     if (Results.isErr(candidateFormsResult)) {
       logger.error('Failed to send candidate forms:', candidateFormsResult.error)
       return
     }
   }
 
-  const onSendPaymentRequest = async (id: string) => {
-    logger.info('Sending payment request:', id)
-    const result = await sendPaymentRequestEmail(id)
+  const onSendPaymentRequest = async () => {
+    logger.info('Sending payment request:', selectedCandidate?.id)
 
-    if (Results.isOk(result)) {
-      logger.info('Payment request email sent successfully')
-      // Close the dialog and refresh the page to update the status
-      setIsDialogOpen(false)
-      setSelectedCandidate(null)
-      window.location.reload()
-    } else {
+    if (!selectedCandidate) {
+      logger.error('No candidate selected to send payment request')
+      return
+    }
+
+    const result = await sendPaymentRequestEmail(selectedCandidate.id)
+
+    if (Results.isErr(result)) {
       logger.error('Failed to send payment request email:', result.error)
       alert(`Failed to send payment request email: ${result.error.message}`)
     }
+
+    // Close the dialog and refresh the page to update the status
+    setIsDialogOpen(false)
+    setSelectedCandidate(null)
+    window.location.reload()
   }
 
   return (
@@ -131,7 +136,7 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
 
       <DeleteConfirmationDialog
         isOpen={isDeleteDialogOpen}
-        candidateName={selectedCandidate?.name}
+        candidateName={selectedCandidate?.candidate_sponsorship_info?.candidate_name}
         isDeleting={isDeleting}
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}

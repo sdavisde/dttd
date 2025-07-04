@@ -1,27 +1,24 @@
 // a submitted page to redurect to when a successful form submission is made
 
+import { getHydratedCandidate } from '@/actions/candidates'
+import * as Results from '@/lib/results'
 import { logger } from '@/lib/logger'
-import { createClient } from '@/lib/supabase/server'
 import { Button, Container, Paper, Typography } from '@mui/material'
 
 export default async function SubmittedPage({ searchParams }: { searchParams: Promise<{ id: string }> }) {
   const { id } = await searchParams
 
-  const supabase = await createClient()
-  const { data: sponsorshipRequest, error: sponsorshipRequestError } = await supabase
-    .from('sponsorship_request')
-    .select('*')
-    .eq('id', Number(id))
-    .single()
-
-  if (sponsorshipRequestError) {
-    logger.error('Error fetching sponsorship request:', sponsorshipRequestError)
-    return <div>Error fetching sponsorship request</div>
+  const candidateResult = await getHydratedCandidate(id)
+  if (Results.isErr(candidateResult)) {
+    logger.error('Error fetching candidate:', candidateResult.error)
+    return <div>Error fetching candidate</div>
   }
 
-  if (!sponsorshipRequest) {
-    logger.error('Sponsorship request not found')
-    return <div>Sponsorship request not found</div>
+  const candidate = candidateResult.data
+
+  if (!candidate) {
+    logger.error('Candidate not found')
+    return <div>Candidate not found</div>
   }
 
   return (
@@ -34,7 +31,7 @@ export default async function SubmittedPage({ searchParams }: { searchParams: Pr
           variant='h5'
           component='h1'
         >
-          Thank you for wanting to sponsor {sponsorshipRequest.candidate_name}!
+          Thank you for wanting to sponsor {candidate.candidate_sponsorship_info?.candidate_name}!
         </Typography>
         <Typography variant='body1'>
           The pre-weekend couple will review your request and get back to you soon.

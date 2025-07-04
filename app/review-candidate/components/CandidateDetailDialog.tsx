@@ -2,12 +2,12 @@
 
 import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, Divider, IconButton } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import { Candidate } from '@/lib/candidates/types'
+import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { CandidateActions } from './CandidateActions'
 
 interface CandidateDetailDialogProps {
-  candidate: Candidate | null
+  candidate: HydratedCandidate | null
   isOpen: boolean
   onClose: () => void
   onDelete: () => void
@@ -37,7 +37,7 @@ export function CandidateDetailDialog({
       fullWidth
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span>{candidate.name}</span>
+        <span>{candidate.candidate_sponsorship_info?.candidate_name}</span>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <StatusChip status={candidate.status} />
           <IconButton
@@ -66,7 +66,7 @@ export function CandidateDetailDialog({
               >
                 Candidate Name
               </Typography>
-              <Typography variant='body1'>{candidate.name}</Typography>
+              <Typography variant='body1'>{candidate.candidate_sponsorship_info?.candidate_name}</Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography
@@ -75,7 +75,7 @@ export function CandidateDetailDialog({
               >
                 Email
               </Typography>
-              <Typography variant='body1'>{candidate.email}</Typography>
+              <Typography variant='body1'>{candidate.candidate_sponsorship_info?.candidate_email}</Typography>
             </Box>
           </Box>
 
@@ -93,7 +93,7 @@ export function CandidateDetailDialog({
                   variant='body1'
                   sx={{ whiteSpace: 'pre-wrap' }}
                 >
-                  {candidate.church_environment}
+                  {candidate.candidate_sponsorship_info?.church_environment}
                 </Typography>
               </Box>
               <Box sx={{ flex: 1 }}>
@@ -107,7 +107,7 @@ export function CandidateDetailDialog({
                   variant='body1'
                   sx={{ whiteSpace: 'pre-wrap' }}
                 >
-                  {candidate.home_environment}
+                  {candidate.candidate_sponsorship_info?.home_environment}
                 </Typography>
               </Box>
             </Box>
@@ -123,7 +123,7 @@ export function CandidateDetailDialog({
                   variant='body1'
                   sx={{ whiteSpace: 'pre-wrap' }}
                 >
-                  {candidate.social_environment}
+                  {candidate.candidate_sponsorship_info?.social_environment}
                 </Typography>
               </Box>
               <Box sx={{ flex: 1 }}>
@@ -137,7 +137,7 @@ export function CandidateDetailDialog({
                   variant='body1'
                   sx={{ whiteSpace: 'pre-wrap' }}
                 >
-                  {candidate.work_environment}
+                  {candidate.candidate_sponsorship_info?.work_environment}
                 </Typography>
               </Box>
             </Box>
@@ -156,7 +156,7 @@ export function CandidateDetailDialog({
                 variant='body1'
                 sx={{ whiteSpace: 'pre-wrap' }}
               >
-                {candidate.god_evidence}
+                {candidate.candidate_sponsorship_info?.god_evidence}
               </Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
@@ -170,15 +170,16 @@ export function CandidateDetailDialog({
                 variant='body1'
                 sx={{ whiteSpace: 'pre-wrap' }}
               >
-                {candidate.support_plan}
+                {candidate.candidate_sponsorship_info?.support_plan}
               </Typography>
             </Box>
           </Box>
 
           {/* Optional Information */}
-          {(candidate.prayer_request || candidate.attends_secuela) && (
+          {(candidate.candidate_sponsorship_info?.prayer_request ||
+            candidate.candidate_sponsorship_info?.attends_secuela) && (
             <Box sx={{ display: 'flex', gap: 4, mb: 3 }}>
-              {candidate.prayer_request && (
+              {candidate.candidate_sponsorship_info?.prayer_request && (
                 <Box sx={{ flex: 1 }}>
                   <Typography
                     variant='body2'
@@ -190,11 +191,11 @@ export function CandidateDetailDialog({
                     variant='body1'
                     sx={{ whiteSpace: 'pre-wrap' }}
                   >
-                    {candidate.prayer_request}
+                    {candidate.candidate_sponsorship_info?.prayer_request}
                   </Typography>
                 </Box>
               )}
-              {candidate.attends_secuela && (
+              {candidate.candidate_sponsorship_info?.attends_secuela && (
                 <Box sx={{ flex: 1 }}>
                   <Typography
                     variant='body2'
@@ -202,11 +203,11 @@ export function CandidateDetailDialog({
                   >
                     Attends Secuela
                   </Typography>
-                  <Typography variant='body1'>{candidate.attends_secuela}</Typography>
+                  <Typography variant='body1'>{candidate.candidate_sponsorship_info?.attends_secuela}</Typography>
                 </Box>
               )}
-              {!candidate.prayer_request && <Box sx={{ flex: 1 }}></Box>}
-              {!candidate.attends_secuela && <Box sx={{ flex: 1 }}></Box>}
+              {!candidate.candidate_sponsorship_info?.prayer_request && <Box sx={{ flex: 1 }}></Box>}
+              {!candidate.candidate_sponsorship_info?.attends_secuela && <Box sx={{ flex: 1 }}></Box>}
             </Box>
           )}
 
@@ -228,7 +229,7 @@ export function CandidateDetailDialog({
                 >
                   Sponsor Name
                 </Typography>
-                <Typography variant='body1'>{candidate.sponsor_name}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.sponsor_name}</Typography>
               </Box>
               <Box sx={{ flex: 1 }}>
                 <Typography
@@ -237,7 +238,7 @@ export function CandidateDetailDialog({
                 >
                   Sponsor Email
                 </Typography>
-                <Typography variant='body1'>{candidate.sponsor_email}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.sponsor_email}</Typography>
               </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
@@ -248,7 +249,7 @@ export function CandidateDetailDialog({
                 >
                   Sponsor Phone
                 </Typography>
-                <Typography variant='body1'>{candidate.sponsor_phone}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.sponsor_phone}</Typography>
               </Box>
               <Box sx={{ flex: 1 }}>
                 <Typography
@@ -257,7 +258,7 @@ export function CandidateDetailDialog({
                 >
                   Sponsor Church
                 </Typography>
-                <Typography variant='body1'>{candidate.sponsor_church}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.sponsor_church}</Typography>
               </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
@@ -268,7 +269,7 @@ export function CandidateDetailDialog({
                 >
                   Sponsor Weekend
                 </Typography>
-                <Typography variant='body1'>{candidate.sponsor_weekend}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.sponsor_weekend}</Typography>
               </Box>
               <Box sx={{ flex: 1 }}>
                 <Typography
@@ -277,7 +278,7 @@ export function CandidateDetailDialog({
                 >
                   Reunion Group
                 </Typography>
-                <Typography variant='body1'>{candidate.reunion_group}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.reunion_group}</Typography>
               </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
@@ -288,7 +289,7 @@ export function CandidateDetailDialog({
                 >
                   Contact Frequency
                 </Typography>
-                <Typography variant='body1'>{candidate.contact_frequency}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.contact_frequency}</Typography>
               </Box>
               <Box sx={{ flex: 1 }}>
                 <Typography
@@ -297,10 +298,10 @@ export function CandidateDetailDialog({
                 >
                   Payment Owner
                 </Typography>
-                <Typography variant='body1'>{candidate.payment_owner}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.payment_owner}</Typography>
               </Box>
             </Box>
-            {candidate.sponsor_address && (
+            {candidate.candidate_sponsorship_info?.sponsor_address && (
               <Box sx={{ mb: 2 }}>
                 <Typography
                   variant='body2'
@@ -308,7 +309,7 @@ export function CandidateDetailDialog({
                 >
                   Sponsor Address
                 </Typography>
-                <Typography variant='body1'>{candidate.sponsor_address}</Typography>
+                <Typography variant='body1'>{candidate.candidate_sponsorship_info?.sponsor_address}</Typography>
               </Box>
             )}
           </Box>

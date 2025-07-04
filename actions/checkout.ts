@@ -1,17 +1,19 @@
 'use server'
 
-import { headers } from 'next/headers'
-
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 
 /**
  * Begins a checkout session for a given price id
  * @param priceId The price id tied to a product in Stripe to buy
+ * @param metadata Object containing metadata for the checkout session
  * @returns The client secret for the checkout session
  */
-export async function beginCheckout(priceId: string): Promise<string> {
-  const origin = (await headers()).get('origin')
+export async function beginCheckout(
+  priceId: string,
+  returnUrl: string,
+  metadata: Record<string, string | undefined>
+): Promise<string> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -33,12 +35,11 @@ export async function beginCheckout(priceId: string): Promise<string> {
     ],
     mode: 'payment',
     metadata: {
-      weekendId: '583d593e-07d4-4a36-81dd-a246e2320347',
-      candidateId: '123',
-      paymentOwnerId: user.id,
-      paymentOwnerEmail: user.email ?? '',
+      ...metadata,
+      userId: user.id,
+      userEmail: user.email ?? '',
     },
-    return_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+    return_url: returnUrl,
   })
 
   if (!session.client_secret) {

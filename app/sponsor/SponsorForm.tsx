@@ -1,22 +1,26 @@
 'use client'
 
-import { Box, Container, Typography, Button, Paper, TextField, Grid } from '@mui/material'
+import { Container, Typography, Button, Paper, TextField, Grid, Alert } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { FormRadioGroup } from '@/components/form/FormRadioGroup'
 import { logger } from '@/lib/logger'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { sendSponsorshipNotificationEmail } from '@/actions/emails'
 import * as Results from '@/lib/results'
 import { useSession } from '@/components/auth/session-provider'
+import { createCandidateWithSponsorshipInfo } from '@/actions/candidates'
 
+/**
+ * This should match 1:1 with the candidate_sponsorship_info table
+ */
 const sponsorFormSchema = z.object({
   candidate_name: z.string().min(1, 'Candidate name is required'),
   candidate_email: z.string().email('Invalid email address'),
   sponsor_name: z.string().min(1, 'Sponsor name is required'),
   sponsor_address: z.string().min(1, 'Address is required'),
+  sponsor_email: z.string().optional(),
   sponsor_phone: z.string().min(1, 'Phone number is required'),
   sponsor_church: z.string().min(1, 'Church is required'),
   sponsor_weekend: z.string().min(1, 'Weekend information is required'),
@@ -33,7 +37,7 @@ const sponsorFormSchema = z.object({
   payment_owner: z.string().min(1, 'Payment owner is required'),
 })
 
-type SponsorFormSchema = z.infer<typeof sponsorFormSchema>
+export type SponsorFormSchema = z.infer<typeof sponsorFormSchema>
 
 export function SponsorForm() {
   const router = useRouter()
@@ -43,6 +47,7 @@ export function SponsorForm() {
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<SponsorFormSchema>({
     resolver: zodResolver(sponsorFormSchema),
     defaultValues: {
@@ -50,6 +55,7 @@ export function SponsorForm() {
       candidate_email: '',
       sponsor_name: '',
       sponsor_address: '',
+      sponsor_email: '',
       sponsor_phone: '',
       sponsor_church: '',
       sponsor_weekend: '',
@@ -75,38 +81,33 @@ export function SponsorForm() {
         throw new Error('Current user email not found')
       }
 
-      // Add the sponsor's email to the form data
-      const formDataWithSponsorEmail = {
+      const sponsorshipFormData = {
         ...data,
-        sponsor_email: user.email,
+        sponsor_email: user?.email,
       }
 
-      logger.info('Submitting sponsor form with sponsor email:', formDataWithSponsorEmail)
+      // Create candidate with sponsorship info using the new schema
+      const candidateResult = await createCandidateWithSponsorshipInfo(sponsorshipFormData)
 
-      const supabase = createClient()
-      const { data: sponsorshipRequest, error: sponsorshipRequestError } = await supabase
-        .from('sponsorship_request')
-        .insert(formDataWithSponsorEmail)
-        .select()
-        .single()
-
-      if (sponsorshipRequestError) {
-        throw new Error(sponsorshipRequestError.message)
+      if (Results.isErr(candidateResult)) {
+        throw new Error(candidateResult.error.message)
       }
 
-      // Now that a sponsorship request has been created, we need to send the preweekend couple an email
-      const emailNotificationResult = await sendSponsorshipNotificationEmail(sponsorshipRequest.id)
-      if (Results.isErr(emailNotificationResult)) {
-        throw new Error(`Error sending sponsorship notification email: ${emailNotificationResult.error.message}`)
-      }
+      // Send notification email to preweekend couple
+      await sendSponsorshipNotificationEmail(candidateResult.data.id)
 
-      logger.info('Sponsorship notification email sent successfully')
-      logger.info('Form submitted successfully:', sponsorshipRequest)
-      router.push(`/sponsor/submitted?id=${sponsorshipRequest.id}`)
+      logger.info('Candidate created successfully:', candidateResult.data)
+
+      router.push(`/sponsor/submitted?id=${candidateResult.data.id}`)
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+      setError('root', { message: errorMessage })
       logger.error('Error submitting form:', error)
     }
   }
+
+  // Check if there are any form validation errors
+  const hasFormErrors = Object.keys(errors).length > 0
 
   return (
     <Container maxWidth='md'>
@@ -256,8 +257,6 @@ export function SponsorForm() {
                 options={[
                   { value: 'yes', label: 'Yes' },
                   { value: 'no', label: 'No' },
-                  { value: 'occasionally', label: 'Occasionally' },
-                  { value: 'na', label: 'N/A' },
                 ]}
                 required
                 error={!!errors.attends_secuela}
@@ -314,7 +313,7 @@ export function SponsorForm() {
             <Grid>
               <TextField
                 {...register('social_environment')}
-                label='Social/Civic'
+                label='Social Environment'
                 multiline
                 rows={3}
                 required
@@ -389,6 +388,25 @@ export function SponsorForm() {
                 helperText={errors.payment_owner?.message}
               />
             </Grid>
+
+            {/* Error Display */}
+            {hasFormErrors && (
+              <Grid>
+                <Alert
+                  severity='error'
+                  sx={{ mt: 2 }}
+                >
+                  {Object.entries(errors).map(([key, value]) => (
+                    <Typography
+                      key={key}
+                      variant='body2'
+                    >
+                      {value.message}
+                    </Typography>
+                  ))}
+                </Alert>
+              </Grid>
+            )}
 
             <Grid>
               <Button

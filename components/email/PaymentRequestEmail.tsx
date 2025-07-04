@@ -1,27 +1,28 @@
-import { Tables } from '@/database.types'
+import { HydratedCandidate } from '@/lib/candidates/types'
 import { getUrl } from '@/lib/url'
 import { Body, Container, Head, Heading, Html, Preview, Section, Text, Hr, Button } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
 
-interface PaymentRequestEmailProps {
-  candidate: Tables<'candidates'>
+interface CandidateFeePaymentRequestEmailProps {
+  candidate: HydratedCandidate
   paymentOwner: 'candidate' | 'sponsor'
-  paymentOwnerEmail: string
   paymentOwnerName: string
 }
 
-export default function PaymentRequestEmail({
+export default function CandidateFeePaymentRequestEmail({
   candidate,
   paymentOwner,
-  paymentOwnerEmail,
   paymentOwnerName,
-}: PaymentRequestEmailProps) {
-  const paymentUrl = getUrl(`/payment?candidate_id=${candidate.id}&payment_owner=${paymentOwner}`)
+}: CandidateFeePaymentRequestEmailProps) {
+  const paymentUrl = getUrl(`/candidate-fee-payment?candidate_id=${candidate.id}&payment_owner=${paymentOwner}`)
 
   return (
     <Html>
       <Head />
-      <Preview>Payment Request for {candidate.name ?? 'Candidate'} - Dusty Trails Tres Dias Weekend</Preview>
+      <Preview>
+        Last Step! Complete Payment for {candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'} - Dusty
+        Trails Tres Dias Weekend
+      </Preview>
       <Tailwind>
         <Body className='bg-white font-sans'>
           <Container className='mx-auto py-8 px-4'>
@@ -41,18 +42,18 @@ export default function PaymentRequestEmail({
               <Text className='text-gray-700 mb-6'>
                 {paymentOwner === 'candidate'
                   ? `Your sponsorship request for the Dusty Trails Tres Dias weekend has been approved! We're excited to have you join us for this spiritual renewal experience.`
-                  : `The sponsorship request for ${candidate.name} has been approved for the Dusty Trails Tres Dias weekend. As the designated payment owner, we need you to complete the payment to confirm their spot.`}
+                  : `The sponsorship request for ${candidate.candidate_sponsorship_info?.candidate_name} has been approved for the Dusty Trails Tres Dias weekend. As the designated payment owner, we need you to complete the payment to confirm their spot.`}
               </Text>
 
               {/* Candidate Information */}
               <Section className='bg-gray-50 p-6 rounded-lg mb-6'>
                 <Heading className='text-lg font-semibold text-gray-900 mb-4'>Candidate Information</Heading>
                 <Text className='text-gray-700 mb-2'>
-                  <strong>Candidate Name:</strong> {candidate.name ?? 'No name'}
+                  <strong>Candidate Name:</strong> {candidate.candidate_sponsorship_info?.candidate_name ?? 'No name'}
                 </Text>
-                {candidate.sponsor_name && (
+                {candidate.candidate_sponsorship_info?.sponsor_name && (
                   <Text className='text-gray-700 mb-2'>
-                    <strong>Sponsor Name:</strong> {candidate.sponsor_name}
+                    <strong>Sponsor Name:</strong> {candidate.candidate_sponsorship_info?.sponsor_name}
                   </Text>
                 )}
                 <Text className='text-gray-700 mb-2'>
