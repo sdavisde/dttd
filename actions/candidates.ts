@@ -28,6 +28,7 @@ export async function createCandidateFromSponsorshipRequest(
         sponsor_name: sponsorshipRequest.sponsor_name,
         status: 'sponsored',
         weekend_id: null,
+        sponsorship_request_id: sponsorshipRequestId,
       })
       .select()
       .single()
