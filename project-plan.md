@@ -18,6 +18,7 @@ To strengthen individuals' walk with Christ through spiritual renewal weekends a
 - **Styling**: Tailwind CSS v4
 - **Form Handling**: React Hook Form + Zod validation
 - **State Management**: TanStack React Query v4
+- **Package Manager**: yarn
 
 ### Backend & Infrastructure
 
@@ -129,77 +130,6 @@ To strengthen individuals' walk with Christ through spiritual renewal weekends a
    - Waitlist system for overflow
 
 **Note**: Weekend creation/management functionality to be implemented
-
-## Technical Requirements
-
-### Data Models
-
-#### User Model (Current Implementation)
-
-```typescript
-interface User {
-  id: string
-  permissions: string[]
-}
-```
-
-#### Sponsorship Request Model
-
-```typescript
-interface SponsorshipRequest {
-  id: number
-  candidate_name: string | null
-  candidate_email: string | null
-  sponsor_name: string | null
-  sponsor_email: string | null
-  sponsor_address: string | null
-  sponsor_phone: string | null
-  sponsor_church: string | null
-  sponsor_weekend: string | null
-  reunion_group: string | null
-  contact_frequency: string | null
-  church_environment: string | null
-  home_environment: string | null
-  social_environment: string | null
-  work_environment: string | null
-  god_evidence: string | null
-  support_plan: string | null
-  prayer_request: string | null
-  payment_owner: string | null
-  attends_secuela: string | null
-  created_at: string
-}
-```
-
-#### Candidate Model
-
-```typescript
-interface Candidate {
-  id: string
-  name: string | null
-  email: string | null
-  sponsor_name: string | null
-  sponsor_email: string | null
-  status: 'sponsored' | 'awaiting_forms' | 'pending_approval' | 'awaiting_payment' | 'confirmed' | 'rejected'
-  weekend_id: string | null
-  created_at: string
-  updated_at: string
-}
-```
-
-#### Weekend Model
-
-```typescript
-interface Weekend {
-  id: string
-  title: string | null
-  number: number | null
-  type: 'MENS' | 'WOMENS'
-  start_date: string
-  end_date: string
-  created_at: string
-}
-```
 
 ---
 
