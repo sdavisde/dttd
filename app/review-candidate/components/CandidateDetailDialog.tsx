@@ -14,6 +14,7 @@ interface CandidateDetailDialogProps {
   onApprove: (id: string) => void
   onReject: (id: string) => void
   onSendForms: (id: string) => void
+  onSendPaymentRequest: (id: string) => void
 }
 
 export function CandidateDetailDialog({
@@ -24,6 +25,7 @@ export function CandidateDetailDialog({
   onApprove,
   onReject,
   onSendForms,
+  onSendPaymentRequest,
 }: CandidateDetailDialogProps) {
   if (!candidate) return null
 
@@ -319,6 +321,7 @@ export function CandidateDetailDialog({
           onApprove={onApprove}
           onReject={onReject}
           onSendForms={onSendForms}
+          onSendPaymentRequest={onSendPaymentRequest}
           onClose={onClose}
         />
       </DialogActions>

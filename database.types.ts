@@ -15,8 +15,8 @@ export type Database = {
           email: string | null
           id: string
           name: string | null
-          sponsor_email: string | null
           sponsor_name: string | null
+          sponsorship_request_id: number | null
           status: Database["public"]["Enums"]["candidate_status"]
           updated_at: string
           weekend_id: string | null
@@ -26,8 +26,8 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string | null
-          sponsor_email?: string | null
           sponsor_name?: string | null
+          sponsorship_request_id?: number | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string
           weekend_id?: string | null
@@ -37,13 +37,20 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string | null
-          sponsor_email?: string | null
           sponsor_name?: string | null
+          sponsorship_request_id?: number | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string
           weekend_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidates_sponsorship_request_id_fkey"
+            columns: ["sponsorship_request_id"]
+            isOneToOne: false
+            referencedRelation: "sponsorship_request"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "candidates_weekend_id_fkey"
             columns: ["weekend_id"]
@@ -109,6 +116,7 @@ export type Database = {
           social_environment: string | null
           sponsor_address: string | null
           sponsor_church: string | null
+          sponsor_email: string | null
           sponsor_name: string | null
           sponsor_phone: string | null
           sponsor_weekend: string | null
@@ -131,6 +139,7 @@ export type Database = {
           social_environment?: string | null
           sponsor_address?: string | null
           sponsor_church?: string | null
+          sponsor_email?: string | null
           sponsor_name?: string | null
           sponsor_phone?: string | null
           sponsor_weekend?: string | null
@@ -153,6 +162,7 @@ export type Database = {
           social_environment?: string | null
           sponsor_address?: string | null
           sponsor_church?: string | null
+          sponsor_email?: string | null
           sponsor_name?: string | null
           sponsor_phone?: string | null
           sponsor_weekend?: string | null

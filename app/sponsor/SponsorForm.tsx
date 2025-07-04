@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { sendSponsorshipNotificationEmail } from '@/actions/emails'
 import * as Results from '@/lib/results'
+import { useSession } from '@/components/auth/session-provider'
 
 const sponsorFormSchema = z.object({
   candidate_name: z.string().min(1, 'Candidate name is required'),
@@ -36,6 +37,7 @@ type SponsorFormSchema = z.infer<typeof sponsorFormSchema>
 
 export function SponsorForm() {
   const router = useRouter()
+  const { user } = useSession()
   const {
     register,
     handleSubmit,
@@ -68,10 +70,23 @@ export function SponsorForm() {
   const onSubmit = async (data: SponsorFormSchema) => {
     try {
       logger.info('Submitting sponsor form:', data)
+
+      if (!user?.email) {
+        throw new Error('Current user email not found')
+      }
+
+      // Add the sponsor's email to the form data
+      const formDataWithSponsorEmail = {
+        ...data,
+        sponsor_email: user.email,
+      }
+
+      logger.info('Submitting sponsor form with sponsor email:', formDataWithSponsorEmail)
+
       const supabase = createClient()
       const { data: sponsorshipRequest, error: sponsorshipRequestError } = await supabase
         .from('sponsorship_request')
-        .insert(data)
+        .insert(formDataWithSponsorEmail)
         .select()
         .single()
 

@@ -4,6 +4,7 @@ import { Button, Box } from '@mui/material'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import DeleteIcon from '@mui/icons-material/Delete'
+import PaymentIcon from '@mui/icons-material/Payment'
 import { Candidate } from '@/lib/candidates/types'
 
 interface CandidateActionsProps {
@@ -12,6 +13,7 @@ interface CandidateActionsProps {
   onApprove: (id: string) => void
   onReject: (id: string) => void
   onSendForms: (id: string) => void
+  onSendPaymentRequest: (id: string) => void
   onClose: () => void
 }
 
@@ -21,6 +23,7 @@ export function CandidateActions({
   onApprove,
   onReject,
   onSendForms,
+  onSendPaymentRequest,
   onClose,
 }: CandidateActionsProps) {
   return (
@@ -58,6 +61,16 @@ export function CandidateActions({
             onClick={() => onSendForms(candidate.id)}
           >
             Send Candidate Forms
+          </Button>
+        )}
+        {candidate.status === 'awaiting_forms' && (
+          <Button
+            color='primary'
+            variant='contained'
+            startIcon={<PaymentIcon />}
+            onClick={() => onSendPaymentRequest(candidate.id)}
+          >
+            Send Payment Request
           </Button>
         )}
         <Button onClick={onClose}>Close</Button>

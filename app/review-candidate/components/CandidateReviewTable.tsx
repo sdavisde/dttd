@@ -10,6 +10,7 @@ import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
 import { StatusInfoDialog } from './StatusInfoDialog'
 import * as Results from '@/lib/results'
 import { sendCandidateForms } from '@/actions/emails'
+import { sendPaymentRequestEmail } from '@/actions/emails'
 
 interface CandidateReviewTableProps {
   candidates: Candidate[]
@@ -86,10 +87,27 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
     }
 
     const candidate = result.data.candidate
-    const sponsorEmail = candidate.sponsor_email
-    const candidateEmail = candidate.email
+    const candidateFormsResult = await sendCandidateForms(candidate)
+    if (Results.isErr(candidateFormsResult)) {
+      logger.error('Failed to send candidate forms:', candidateFormsResult.error)
+      return
+    }
+  }
 
-    const sponsorResult = await sendCandidateForms(candidate)
+  const onSendPaymentRequest = async (id: string) => {
+    logger.info('Sending payment request:', id)
+    const result = await sendPaymentRequestEmail(id)
+
+    if (Results.isOk(result)) {
+      logger.info('Payment request email sent successfully')
+      // Close the dialog and refresh the page to update the status
+      setIsDialogOpen(false)
+      setSelectedCandidate(null)
+      window.location.reload()
+    } else {
+      logger.error('Failed to send payment request email:', result.error)
+      alert(`Failed to send payment request email: ${result.error.message}`)
+    }
   }
 
   return (
@@ -108,6 +126,7 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
         onApprove={handleApprove}
         onReject={handleReject}
         onSendForms={onSendForms}
+        onSendPaymentRequest={onSendPaymentRequest}
       />
 
       <DeleteConfirmationDialog
