@@ -35,6 +35,38 @@ export type Database = {
           },
         ]
       }
+      candidate_payments: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          id: number
+          payment_amount: number | null
+          payment_owner: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: number
+          payment_amount?: number | null
+          payment_owner: string
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: number
+          payment_amount?: number | null
+          payment_owner?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_payments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_sponsorship_info: {
         Row: {
           attends_secuela: string | null

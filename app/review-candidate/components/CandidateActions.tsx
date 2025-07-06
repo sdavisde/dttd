@@ -63,7 +63,7 @@ export function CandidateActions({
             Send Candidate Forms
           </Button>
         )}
-        {candidate.status === 'awaiting_forms' && (
+        {(candidate.status === 'awaiting_forms' || candidate.status === 'awaiting_payment') && (
           <Button
             color='primary'
             variant='contained'

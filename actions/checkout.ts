@@ -1,7 +1,6 @@
 'use server'
 
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
 
 /**
  * Begins a checkout session for a given price id
@@ -12,16 +11,8 @@ import { createClient } from '@/lib/supabase/server'
 export async function beginCheckout(
   priceId: string,
   returnUrl: string,
-  metadata: Record<string, string | undefined>
+  metadata: Record<string, string>
 ): Promise<string> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error('User not found while creating checkout session')
-  }
-
   // Create Checkout Sessions from body params.
   const session = await stripe.checkout.sessions.create({
     ui_mode: 'embedded',
@@ -34,11 +25,7 @@ export async function beginCheckout(
       },
     ],
     mode: 'payment',
-    metadata: {
-      ...metadata,
-      userId: user.id,
-      userEmail: user.email ?? '',
-    },
+    metadata,
     return_url: returnUrl,
   })
 
