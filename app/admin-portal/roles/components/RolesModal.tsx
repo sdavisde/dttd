@@ -22,8 +22,9 @@ interface RoleModalProps {
   role: Role | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (roleId: string, permissions: string[]) => void;
+  onUpdate: (roleId: string, permissions: string[]) => Promise<void>;
   onExited?: () => void;
+  loading?: boolean;
 }
 
 export function RoleModal({
@@ -32,6 +33,7 @@ export function RoleModal({
   onClose,
   onUpdate,
   onExited,
+  loading = false,
 }: RoleModalProps) {
   const [permissions, setPermissions] = useState<string[]>(
     role?.permissions || []
@@ -55,8 +57,9 @@ export function RoleModal({
     setPermissions(permissions.filter((p) => p !== permissionToRemove));
   };
 
-  const handleSave = () => {
-    onUpdate(role!.id, permissions);
+  const handleSave = async () => {
+    if (!role) return;
+    await onUpdate(role.id, permissions);
     onClose();
   };
 
@@ -119,8 +122,12 @@ export function RoleModal({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained">
-          Save Changes
+        <Button 
+          onClick={handleSave} 
+          variant="contained"
+          disabled={loading}
+        >
+          {loading ? 'Saving...' : 'Save Changes'}
         </Button>
       </DialogActions>
     </Dialog>

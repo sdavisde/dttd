@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { updateRolePermissions } from "@/actions/roles";
+import { isErr } from "@/lib/results";
 import {
   TextField,
   Chip,
@@ -10,7 +11,6 @@ import {
   ListItemText,
   Typography,
   Box,
-  CircularProgress,
   Alert,
   InputAdornment,
   Paper,
@@ -22,37 +22,25 @@ import {
 } from "@mui/icons-material";
 import { Role, RoleModal } from "./RolesModal";
 
-export default function Roles() {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [filteredRoles, setFilteredRoles] = useState<Role[]>([]);
+interface RolesProps {
+  initialRoles: Role[];
+  error?: string;
+}
+
+export default function Roles({ initialRoles, error: initialError }: RolesProps) {
+  const [roles, setRoles] = useState<Role[]>(initialRoles);
+  const [filteredRoles, setFilteredRoles] = useState<Role[]>(initialRoles);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(initialError || null);
 
-  // Fetch roles on component mount
+  // Update filtered roles when roles or search term changes
   useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase.from("roles").select("*");
-
-        if (error) {
-          setError(error.message);
-        } else {
-          setRoles(data || []);
-          setFilteredRoles(data || []);
-        }
-      } catch (err) {
-        setError("Failed to fetch roles");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRoles();
-  }, []);
+    setRoles(initialRoles);
+    setFilteredRoles(initialRoles);
+  }, [initialRoles]);
 
   // Filter roles based on search term
   useEffect(() => {
@@ -72,52 +60,40 @@ export default function Roles() {
   };
 
   const handleUpdateRole = async (roleId: string, permissions: string[]) => {
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("roles")
-        .update({ permissions })
-        .eq("id", roleId);
+    setLoading(true);
+    setError(null);
 
-      if (error) {
-        console.error("Error updating role:", error);
+    try {
+      const result = await updateRolePermissions(roleId, permissions);
+      
+      if (isErr(result)) {
+        setError(result.error.message);
         return;
       }
 
-      // Update local state
+      // Update local state on success
       setRoles(
         roles.map((role) =>
           role.id === roleId ? { ...role, permissions } : role
         )
       );
     } catch (err) {
-      console.error("Failed to update role:", err);
+      setError("Failed to update role permissions");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCloseModal = () => setIsModalOpen(false);
   const handleModalExited = () => setSelectedRole(null);
 
-  if (loading) {
+  if (initialError) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 3 }}>
           Roles & Permissions
         </Typography>
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress />
-        </Box>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 3 }}>
-          Roles & Permissions
-        </Typography>
-        <Alert severity="error">Error: {error}</Alert>
+        <Alert severity="error">Error: {initialError}</Alert>
       </Box>
     );
   }
@@ -127,6 +103,13 @@ export default function Roles() {
       <Typography variant="h4" sx={{ mb: 3 }}>
         Roles & Permissions
       </Typography>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       {/* Search Bar */}
       <Box sx={{ mb: 3 }}>
@@ -226,6 +209,7 @@ export default function Roles() {
         onClose={handleCloseModal}
         onExited={handleModalExited}
         onUpdate={handleUpdateRole}
+        loading={loading}
       />
     </Box>
   );
