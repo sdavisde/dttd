@@ -3,7 +3,7 @@ import { getUrl } from '@/lib/url'
 import { Body, Container, Head, Heading, Html, Preview, Section, Text, Hr, Button } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
 
-export default function CandidateFormsEmail(candidate: Tables<'candidates'>) {
+export default function CandidateFormsEmail(candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>) {
   return (
     <Html>
       <Head />
@@ -20,7 +20,9 @@ export default function CandidateFormsEmail(candidate: Tables<'candidates'>) {
 
             {/* Main Content */}
             <Section className='mb-8'>
-              <Heading className='text-xl font-semibold text-gray-900 mb-4'>Welcome {candidate.name}!</Heading>
+              <Heading className='text-xl font-semibold text-gray-900 mb-4'>
+                Welcome {candidateSponsorshipInfo.candidate_name}!
+              </Heading>
 
               <Text className='text-gray-700 mb-4'>
                 We are excited that you will be joining us for an upcoming Tres Dias weekend! To help prepare for your
@@ -35,7 +37,7 @@ export default function CandidateFormsEmail(candidate: Tables<'candidates'>) {
               <Section className='text-center mb-8'>
                 <Button
                   className='bg-blue-600 text-white px-6 py-3 rounded-md font-medium'
-                  href={getUrl(`/candidate/${candidate.id}/forms`)}
+                  href={getUrl(`/candidate/${candidateSponsorshipInfo.candidate_id}/forms`)}
                 >
                   Complete Your Forms
                 </Button>

@@ -9,36 +9,168 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      candidate_info: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          id: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_info_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_payments: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          id: number
+          payment_amount: number | null
+          payment_owner: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: number
+          payment_amount?: number | null
+          payment_owner: string
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: number
+          payment_amount?: number | null
+          payment_owner?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_payments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_sponsorship_info: {
+        Row: {
+          attends_secuela: string | null
+          candidate_email: string | null
+          candidate_id: string | null
+          candidate_name: string | null
+          church_environment: string | null
+          contact_frequency: string | null
+          created_at: string
+          god_evidence: string | null
+          home_environment: string | null
+          id: string
+          payment_owner: string | null
+          prayer_request: string | null
+          reunion_group: string | null
+          social_environment: string | null
+          sponsor_address: string | null
+          sponsor_church: string | null
+          sponsor_email: string | null
+          sponsor_name: string | null
+          sponsor_phone: string | null
+          sponsor_weekend: string | null
+          support_plan: string | null
+          updated_at: string | null
+          work_environment: string | null
+        }
+        Insert: {
+          attends_secuela?: string | null
+          candidate_email?: string | null
+          candidate_id?: string | null
+          candidate_name?: string | null
+          church_environment?: string | null
+          contact_frequency?: string | null
+          created_at?: string
+          god_evidence?: string | null
+          home_environment?: string | null
+          id?: string
+          payment_owner?: string | null
+          prayer_request?: string | null
+          reunion_group?: string | null
+          social_environment?: string | null
+          sponsor_address?: string | null
+          sponsor_church?: string | null
+          sponsor_email?: string | null
+          sponsor_name?: string | null
+          sponsor_phone?: string | null
+          sponsor_weekend?: string | null
+          support_plan?: string | null
+          updated_at?: string | null
+          work_environment?: string | null
+        }
+        Update: {
+          attends_secuela?: string | null
+          candidate_email?: string | null
+          candidate_id?: string | null
+          candidate_name?: string | null
+          church_environment?: string | null
+          contact_frequency?: string | null
+          created_at?: string
+          god_evidence?: string | null
+          home_environment?: string | null
+          id?: string
+          payment_owner?: string | null
+          prayer_request?: string | null
+          reunion_group?: string | null
+          social_environment?: string | null
+          sponsor_address?: string | null
+          sponsor_church?: string | null
+          sponsor_email?: string | null
+          sponsor_name?: string | null
+          sponsor_phone?: string | null
+          sponsor_weekend?: string | null
+          support_plan?: string | null
+          updated_at?: string | null
+          work_environment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_sponsorship_info_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           created_at: string
-          email: string | null
           id: string
-          name: string | null
-          sponsor_email: string | null
-          sponsor_name: string | null
           status: Database["public"]["Enums"]["candidate_status"]
           updated_at: string
           weekend_id: string | null
         }
         Insert: {
           created_at?: string
-          email?: string | null
           id?: string
-          name?: string | null
-          sponsor_email?: string | null
-          sponsor_name?: string | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string
           weekend_id?: string | null
         }
         Update: {
           created_at?: string
-          email?: string | null
           id?: string
-          name?: string | null
-          sponsor_email?: string | null
-          sponsor_name?: string | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string
           weekend_id?: string | null
@@ -89,75 +221,6 @@ export type Database = {
           id?: string
           label?: string
           permissions?: string[]
-        }
-        Relationships: []
-      }
-      sponsorship_request: {
-        Row: {
-          attends_secuela: string | null
-          candidate_email: string | null
-          candidate_name: string | null
-          church_environment: string | null
-          contact_frequency: string | null
-          created_at: string
-          god_evidence: string | null
-          home_environment: string | null
-          id: number
-          payment_owner: string | null
-          prayer_request: string | null
-          reunion_group: string | null
-          social_environment: string | null
-          sponsor_address: string | null
-          sponsor_church: string | null
-          sponsor_name: string | null
-          sponsor_phone: string | null
-          sponsor_weekend: string | null
-          support_plan: string | null
-          work_environment: string | null
-        }
-        Insert: {
-          attends_secuela?: string | null
-          candidate_email?: string | null
-          candidate_name?: string | null
-          church_environment?: string | null
-          contact_frequency?: string | null
-          created_at?: string
-          god_evidence?: string | null
-          home_environment?: string | null
-          id?: number
-          payment_owner?: string | null
-          prayer_request?: string | null
-          reunion_group?: string | null
-          social_environment?: string | null
-          sponsor_address?: string | null
-          sponsor_church?: string | null
-          sponsor_name?: string | null
-          sponsor_phone?: string | null
-          sponsor_weekend?: string | null
-          support_plan?: string | null
-          work_environment?: string | null
-        }
-        Update: {
-          attends_secuela?: string | null
-          candidate_email?: string | null
-          candidate_name?: string | null
-          church_environment?: string | null
-          contact_frequency?: string | null
-          created_at?: string
-          god_evidence?: string | null
-          home_environment?: string | null
-          id?: number
-          payment_owner?: string | null
-          prayer_request?: string | null
-          reunion_group?: string | null
-          social_environment?: string | null
-          sponsor_address?: string | null
-          sponsor_church?: string | null
-          sponsor_name?: string | null
-          sponsor_phone?: string | null
-          sponsor_weekend?: string | null
-          support_plan?: string | null
-          work_environment?: string | null
         }
         Relationships: []
       }

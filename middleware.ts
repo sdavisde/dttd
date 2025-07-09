@@ -1,8 +1,15 @@
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from './lib/supabase/middleware'
 import { logger } from './lib/logger'
 
 export async function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname
+
+  // Exclude specific routes
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next() // Allow the request to proceed without middleware logic
+  }
+
   logger.info('running middleware', req.nextUrl.pathname)
   return await updateSession(req)
 }
