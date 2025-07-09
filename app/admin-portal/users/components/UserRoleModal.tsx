@@ -43,7 +43,7 @@ export function UserRoleModal({
 
   // Update selected role when user changes
   useEffect(() => {
-    setSelectedRoleId(user?.role?.id || null);
+    setSelectedRoleId(user?.role?.id ?? "No role");
     setError(null);
   }, [user]);
 
@@ -54,26 +54,11 @@ export function UserRoleModal({
     setError(null);
 
     try {
-      await onUpdate(user.id, selectedRoleId);
+      const newRole = selectedRoleId === "No role" ? "" : selectedRoleId;
+      await onUpdate(user.id, newRole);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user role');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemoveRole = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      await onUpdate(user.id, null);
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove user role');
     } finally {
       setLoading(false);
     }
@@ -126,7 +111,7 @@ export function UserRoleModal({
             label="Select Role"
             disabled={loading}
           >
-            <MenuItem value="">
+            <MenuItem value="No role">
               <em>No role</em>
             </MenuItem>
             {roles.map((role) => (
@@ -136,20 +121,6 @@ export function UserRoleModal({
             ))}
           </Select>
         </FormControl>
-
-        {user?.role && (
-          <Box sx={{ mt: 2 }}>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleRemoveRole}
-              disabled={loading}
-              size="small"
-            >
-              Remove Current Role
-            </Button>
-          </Box>
-        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>

@@ -177,21 +177,14 @@ export default function Users({ initialUsers, roles, error }: UsersProps) {
                         gap: 1,
                       }}
                     >
-                      {user.role ? (
+                      {user.role &&
                         <Chip
                           label={user.role.label}
                           size="small"
                           color="primary"
                           variant="outlined"
                         />
-                      ) : (
-                        <Chip
-                          label="No role"
-                          size="small"
-                          color="default"
-                          variant="outlined"
-                        />
-                      )}
+                      }
                       <ChevronRightIcon color="action" />
                     </Box>
                   }

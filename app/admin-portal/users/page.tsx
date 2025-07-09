@@ -1,4 +1,4 @@
-import { Container, Box } from '@mui/material'
+import { Container, Box, Paper } from '@mui/material'
 import { permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getUser } from '@/lib/supabase/user'
@@ -30,7 +30,7 @@ export default async function UsersPage() {
   // Handle the case where users can't be fetched (e.g., missing service role key)
   if (isErr(usersResult)) {
     return (
-      <Container maxWidth='xl'>
+      <Container maxWidth="md" sx={{ py: 8 }}>
         <Box sx={{ my: 4 }}>
           <Users 
             initialUsers={[]} 
@@ -43,13 +43,13 @@ export default async function UsersPage() {
   }
 
   return (
-    <Container maxWidth='xl'>
-      <Box sx={{ my: 4 }}>
+    <Container maxWidth="md" sx={{ py: 8 }}>
+      <Paper elevation={3}>
         <Users 
           initialUsers={usersResult.data} 
           roles={rolesResult.data} 
         />
-      </Box>
+      </Paper>
     </Container>
   )
 }
