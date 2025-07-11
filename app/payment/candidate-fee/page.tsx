@@ -64,7 +64,7 @@ export default async function CandidateFeesPaymentPage({ searchParams }: Candida
       <Checkout
         priceId={candidateFeePriceId}
         metadata={{ candidate_id, payment_owner: candidate.candidate_sponsorship_info?.payment_owner ?? '' }}
-        returnUrl={getUrl('/candidate-fee-payment/success?session_id={CHECKOUT_SESSION_ID}')}
+        returnUrl={getUrl('/payment/candidate-fee/success?session_id={CHECKOUT_SESSION_ID}')}
       />
     </div>
   )

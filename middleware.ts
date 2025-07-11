@@ -10,6 +10,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next() // Allow the request to proceed without middleware logic
   }
 
+  console.log('pathname', pathname)
+  if (pathname === '/payment/candidate-fee') {
+    return NextResponse.next()
+  }
+
   logger.info('running middleware', req.nextUrl.pathname)
   return await updateSession(req)
 }

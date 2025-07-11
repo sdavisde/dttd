@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+import { Result, ok, err, isErr } from '@/lib/results'
+import Stripe from 'stripe'
+import { Tables } from '@/database.types'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -28,70 +31,64 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
-    logger.info('Received webhook event:', { type: event.type, id: event.id })
+    console.log('Received webhook event:', event)
 
     // Handle checkout.session.completed event
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object
+      const checkoutCompletedEvent = event as Stripe.CheckoutSessionCompletedEvent
+      const session = checkoutCompletedEvent.data.object
 
-      logger.info(`Processing completed checkout session: ${session.id}`)
+      console.log(`Processing completed checkout session:`, session)
+
+      const priceId = session.metadata?.price_id
 
       // Check if this is a candidate payment
-      if (session.metadata?.candidate_id) {
-        const candidateId = session.metadata.candidate_id
+      switch (priceId) {
+        case process.env.CANDIDATE_FEE_PRICE_ID:
+          const candidateId = session.metadata?.candidate_id ?? null
+          logger.info(`Processing candidate payment for candidate: ${candidateId}`)
 
-        logger.info(`Processing candidate payment for candidate: ${candidateId}`)
+          const candidateIsAwaitingPaymentResult = await candidateIsAwaitingPayment(candidateId)
+          if (isErr(candidateIsAwaitingPaymentResult)) {
+            logger.error(candidateIsAwaitingPaymentResult.error)
+            return NextResponse.json({ error: candidateIsAwaitingPaymentResult.error }, { status: 400 })
+          }
 
-        const supabase = await createClient()
+          logger.info(`✅ Found candidate tied to payment, and they are awaiting payment`)
 
-        // Verify the candidate exists and is in awaiting_payment status
-        const { data: candidate, error: fetchError } = await supabase
-          .from('candidates')
-          .select('*')
-          .eq('id', candidateId)
-          .single()
+          // This non-null assertion is safe because we check for id existance in the function above
+          const recordCandidatePaymentResult = await recordCandidatePayment(candidateId!, session)
+          if (isErr(recordCandidatePaymentResult)) {
+            logger.error(recordCandidatePaymentResult.error)
+            return NextResponse.json({ error: recordCandidatePaymentResult.error }, { status: 400 })
+          }
 
-        if (fetchError || !candidate || candidate.status !== 'awaiting_payment') {
-          logger.error('Candidate not found or not in awaiting_payment status:')
-          logger.error({
-            candidateId,
-            error: fetchError,
-          })
-          return NextResponse.json({ error: 'Candidate not found or invalid status' }, { status: 400 })
-        }
+          logger.info(
+            `✅ Successfully recorded candidate_payment ${recordCandidatePaymentResult.data.id} for candidate id ${candidateId}`
+          )
 
-        // Record payment in candidate_payments table first
-        const { data: paymentRecord, error: paymentRecordError } = await supabase.from('candidate_payments').insert({
-          candidate_id: candidateId,
-          payment_amount: session.amount_total ? session.amount_total / 100 : null, // Convert from cents
-          payment_owner: session.metadata.payment_owner || 'candidate',
-        })
+          const confirmCandidateResult = await confirmCandidate(candidateId!)
+          if (isErr(confirmCandidateResult)) {
+            logger.error(confirmCandidateResult.error)
+            return NextResponse.json({ error: confirmCandidateResult.error }, { status: 400 })
+          }
 
-        if (paymentRecordError || !paymentRecord) {
-          logger.error('Failed to record payment:', paymentRecordError)
-          return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 })
-        }
+          logger.info(`✅ Successfully confirmed candidate ${candidateId}`)
+          break
+        case process.env.TEAM_FEE_PRICE_ID:
+          const teamUserId = session.metadata?.user_id
+          logger.info(`Processing team payment for team: ${teamUserId}`)
 
-        logger.info(`Successfully recorded payment for candidate: ${candidateId}`, {
-          paymentRecord,
-        })
+          // const teamIsAwaitingPayment = await teamIsAwaitingPayment(teamUserId)
+          // if (isErr(teamIsAwaitingPayment)) {
+          //   logger.error(teamIsAwaitingPayment.error)
+          //   return NextResponse.json({ error: teamIsAwaitingPayment.error }, { status: 400 })
+          // }
 
-        // Update candidate status to confirmed
-        const { data: updatedCandidate, error: updateError } = await supabase
-          .from('candidates')
-          .update({ status: 'confirmed' })
-          .eq('id', candidateId)
-
-        if (updateError || !updatedCandidate) {
-          logger.error('Failed to update candidate status:', updateError)
-          return NextResponse.json({ error: 'Failed to update candidate status' }, { status: 500 })
-        }
-
-        logger.info(`Successfully updated candidate status to confirmed: ${candidateId}`, {
-          updatedCandidate,
-        })
-      } else {
-        logger.info('Checkout completed but no candidate_id in metadata')
+          break
+        default:
+          logger.error(`Unknown price id: ${priceId}`)
+          break
       }
     }
 
@@ -100,4 +97,82 @@ export async function POST(request: NextRequest) {
     logger.error('Webhook processing error:', error)
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
   }
+}
+
+/**
+ * Checks if a candidate is in the awaiting_payment status
+ */
+async function candidateIsAwaitingPayment(candidateId: string | null): Promise<Result<string, true>> {
+  if (!candidateId) {
+    return err('💢 Candidate ID is null')
+  }
+
+  const supabase = await createClient()
+
+  // Verify the candidate exists and is in awaiting_payment status
+  const { data: candidate, error: fetchError } = await supabase
+    .from('candidates')
+    .select('*')
+    .eq('id', candidateId)
+    .single()
+
+  if (fetchError) {
+    return err(fetchError.message)
+  }
+
+  if (!candidate) {
+    return err(`💢 Candidate not found with id: ${candidateId}`)
+  }
+
+  if (candidate.status !== 'awaiting_payment') {
+    return err('💢 Candidate not in awaiting_payment status')
+  }
+
+  return ok(true)
+}
+
+/**
+ * Records a candidate payment in the candidate_payments table
+ */
+async function recordCandidatePayment(
+  candidateId: string,
+  session: Stripe.Checkout.Session
+): Promise<Result<string, Tables<'candidate_payments'>>> {
+  const supabase = await createClient()
+
+  const { data: paymentRecord, error: paymentRecordError } = await supabase
+    .from('candidate_payments')
+    .insert({
+      candidate_id: candidateId,
+      payment_amount: session.amount_total ? session.amount_total / 100 : null, // Convert from cents
+      payment_owner: session.metadata?.payment_owner ?? 'unknown',
+    })
+    .select()
+    .single()
+
+  if (paymentRecordError) {
+    return err(paymentRecordError.message)
+  }
+
+  if (!paymentRecord) {
+    return err('💢 Failed to record payment')
+  }
+
+  return ok(paymentRecord)
+}
+
+/**
+ * Confirms a candidate by updating their status to confirmed
+ */
+async function confirmCandidate(candidateId: string): Promise<Result<string, true>> {
+  const supabase = await createClient()
+
+  // Update candidate status to confirmed
+  const { error: updateError } = await supabase.from('candidates').update({ status: 'confirmed' }).eq('id', candidateId)
+
+  if (updateError) {
+    return err(`💢 Failed to update candidate status to confirmed: ${updateError.message}`)
+  }
+
+  return ok(true)
 }
