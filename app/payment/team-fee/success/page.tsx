@@ -26,10 +26,6 @@ export default async function TeamFeePaymentSuccessPage({ searchParams }: { sear
     return redirect('/')
   }
 
-  if (!metadata?.weekendId) {
-    return redirect('/')
-  }
-
   return (
     <Container maxWidth='md'>
       <Stack

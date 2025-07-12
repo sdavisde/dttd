@@ -22,13 +22,6 @@ interface CheckoutProps {
 export default function Checkout({ priceId, metadata, returnUrl }: CheckoutProps) {
   const { user, loading: loadingUser } = useSession()
 
-  const checkoutMetadata = {
-    ...metadata,
-    user_id: user?.id ?? '',
-    user_email: user?.email ?? '',
-  }
-  const fetchClientSecret = async () => beginCheckout(priceId, returnUrl, checkoutMetadata)
-
   if (loadingUser) {
     return (
       <div className='h-screen w-screen flex items-center justify-center'>
@@ -36,6 +29,13 @@ export default function Checkout({ priceId, metadata, returnUrl }: CheckoutProps
       </div>
     )
   }
+
+  const checkoutMetadata = {
+    ...metadata,
+    user_id: user?.id ?? '',
+    user_email: user?.email ?? '',
+  }
+  const fetchClientSecret = async () => beginCheckout(priceId, returnUrl, checkoutMetadata)
 
   return (
     <div id='checkout'>
