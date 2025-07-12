@@ -5,6 +5,7 @@ import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { BookOpen, Calendar, Clock, DollarSign, File } from 'lucide-react'
 import Link from 'next/link'
 import { TeamMember } from '@/lib/weekend/types'
+import { AssignmentAdd } from '@mui/icons-material'
 
 interface DashboardProps {
   /** Information about the current user's place on the weekend roster */
@@ -78,6 +79,18 @@ export function Dashboard({ rosterInfo }: DashboardProps) {
               </Button>
             </Link>
           )}
+          <Link
+            href='/sponsor'
+            className='w-full h-full'
+          >
+            <Button
+              variant='outlined'
+              className='w-full h-52 flex flex-col items-center justify-center gap-2'
+            >
+              <AssignmentAdd className='w-10 h-10' />
+              <Typography variant='h6'>Sponsor a Candidate</Typography>
+            </Button>
+          </Link>
           <Link
             href='/job-description'
             className='w-full h-full pointer-events-none'

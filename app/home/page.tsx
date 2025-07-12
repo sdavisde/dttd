@@ -29,7 +29,8 @@ async function getUserRosterInfo(): Promise<TeamMember | null> {
         end_date,
         status,
         type
-      )
+      ),
+      users!inner(*)
     `
     )
     .eq('user_id', user.id)
