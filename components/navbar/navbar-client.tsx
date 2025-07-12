@@ -255,11 +255,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
                 >
                   <MenuItem onClick={handleCloseUserMenu}>
                     <Link href='/profile'>
-                      <Typography textAlign='center'>
-                        {user.user_metadata?.first_name && user.user_metadata?.last_name
-                          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-                          : user.email}
-                      </Typography>
+                      <Typography textAlign='center'>View Profile</Typography>
                     </Link>
                   </MenuItem>
                   <MenuItem onClick={handleLogout}>

@@ -3,20 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Container,
-  Typography,
-  Box,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-  CircularProgress,
-  Paper,
-} from '@mui/material'
+import { Container, Typography, Box, TextField, Button, Alert, CircularProgress, Paper } from '@mui/material'
 import { useRouter } from 'next/navigation'
 
 export default function ProfilePage() {
@@ -24,7 +11,6 @@ export default function ProfilePage() {
   const router = useRouter()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [gender, setGender] = useState('')
   const [email, setEmail] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -39,7 +25,6 @@ export default function ProfilePage() {
     if (user) {
       setFirstName(user.user_metadata?.first_name || '')
       setLastName(user.user_metadata?.last_name || '')
-      setGender(user.user_metadata?.gender || '')
       setEmail(user.email || '')
     }
   }, [user, loading, isAuthenticated, router])
@@ -57,7 +42,6 @@ export default function ProfilePage() {
         data: {
           first_name: firstName,
           last_name: lastName,
-          gender: gender,
         },
       })
 
@@ -153,23 +137,6 @@ export default function ProfilePage() {
               required
               fullWidth
             />
-
-            <FormControl
-              fullWidth
-              required
-            >
-              <InputLabel>Gender</InputLabel>
-              <Select
-                value={gender}
-                label='Gender'
-                onChange={(e) => setGender(e.target.value)}
-              >
-                <MenuItem value='male'>Male</MenuItem>
-                <MenuItem value='female'>Female</MenuItem>
-                <MenuItem value='other'>Other</MenuItem>
-                <MenuItem value='prefer-not-to-say'>Prefer not to say</MenuItem>
-              </Select>
-            </FormControl>
 
             <Button
               type='submit'

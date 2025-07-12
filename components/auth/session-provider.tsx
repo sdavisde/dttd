@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePathname } from 'next/navigation'
 import { User } from '@/lib/supabase/types'
+import { isErr } from '@/lib/supabase/utils'
 
 type Session = {
   user: User | null
@@ -63,9 +64,26 @@ export function SessionProvider({ children }: SessionProviderProps) {
         permissions = uniquePermissions
       }
 
+      // Fetch user data from public.users table
+      const { data: userData, error: userDataError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (isErr(userDataError)) {
+        console.error('Error fetching user data:', userDataError)
+      }
+
       setUser({
         ...user,
         permissions,
+        user_metadata: {
+          ...user.user_metadata,
+          first_name: userData?.first_name || user.user_metadata?.first_name,
+          last_name: userData?.last_name || user.user_metadata?.last_name,
+          gender: userData?.gender || user.user_metadata?.gender,
+        },
       })
       setIsAuthenticated(!!user)
       setLoading(false)

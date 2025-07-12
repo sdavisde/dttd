@@ -1,24 +1,26 @@
 'use client'
 
-import { useState } from 'react'
 import { useSession } from '@/components/auth/session-provider'
-import { Box, Button, Stack, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { BookOpen, Calendar, Clock, DollarSign, File } from 'lucide-react'
 import Link from 'next/link'
-import { SelectWeekendModal } from '@/components/SelectWeekendModal'
-import { Weekend } from '@/lib/weekend/types'
-import { useRouter } from 'next/navigation'
+import { TeamMember } from '@/lib/weekend/types'
 
 interface DashboardProps {
-  weekends: Array<Weekend>
+  /** Information about the current user's place on the weekend roster */
+  rosterInfo: TeamMember | null
 }
 
-export function Dashboard({ weekends }: DashboardProps) {
-  const { user } = useSession()
-  const [isWeekendModalOpen, setIsWeekendModalOpen] = useState(false)
-  const router = useRouter()
+export function Dashboard({ rosterInfo }: DashboardProps) {
+  const { user, loading: sessionLoading } = useSession()
 
-  const handleWeekendSubmit = (weekendId: string) => router.push(`/payment/team-fee?weekend_id=${weekendId}`)
+  if (sessionLoading) {
+    return (
+      <div className='flex justify-center items-center h-[80vh]'>
+        <CircularProgress size={75} />
+      </div>
+    )
+  }
 
   return (
     <Box sx={{ my: 4 }}>
@@ -29,7 +31,7 @@ export function Dashboard({ weekends }: DashboardProps) {
             component='h1'
             gutterBottom
           >
-            Hi {user?.email}
+            Hi {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
           </Typography>
           <Typography variant='body1'>This is your personal space in the Dusty Trails Tres Dias community.</Typography>
           <Typography variant='body1'>Here you'll find important information, updates, and resources.</Typography>
@@ -62,14 +64,20 @@ export function Dashboard({ weekends }: DashboardProps) {
         {/* Dynamic Action Section */}
 
         <div className='w-full h-full grid grid-cols-3 gap-4'>
-          <Button
-            variant='outlined'
-            className='w-full h-52 flex flex-col items-center justify-center gap-2'
-            onClick={() => setIsWeekendModalOpen(true)}
-          >
-            <DollarSign className='w-10 h-10' />
-            <Typography variant='h6'>Pay Team Fees</Typography>
-          </Button>
+          {rosterInfo && rosterInfo.status !== 'paid' && (
+            <Link
+              href={`/payment/team-fee?weekend_id=${rosterInfo.weekend_id}`}
+              className='w-full h-full'
+            >
+              <Button
+                variant='outlined'
+                className='w-full h-52 flex flex-col items-center justify-center gap-2'
+              >
+                <DollarSign className='w-10 h-10' />
+                <Typography variant='h6'>Pay Team Fees</Typography>
+              </Button>
+            </Link>
+          )}
           <Link
             href='/job-description'
             className='w-full h-full pointer-events-none'
@@ -100,15 +108,6 @@ export function Dashboard({ weekends }: DashboardProps) {
           </Link>
         </div>
       </Stack>
-
-      <SelectWeekendModal
-        open={isWeekendModalOpen}
-        onClose={() => setIsWeekendModalOpen(false)}
-        weekends={weekends}
-        onSubmit={handleWeekendSubmit}
-        title='Select Weekend for Team Fees'
-        submitButtonText='Continue to Payment'
-      />
     </Box>
   )
 }

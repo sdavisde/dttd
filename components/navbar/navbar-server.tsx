@@ -58,6 +58,11 @@ async function getNavElements() {
       slug: 'settings',
       permissions_needed: ['FULL_ACCESS'],
     },
+    {
+      name: 'Roster',
+      slug: 'roster',
+      permissions_needed: ['FULL_ACCESS'],
+    },
   ]
 
   return [...bucketStructure, ...staticNavElements]
