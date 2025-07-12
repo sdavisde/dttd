@@ -30,14 +30,9 @@ export default async function CandidateFormsPage({ params }: { params: Promise<{
           component='h1'
           gutterBottom
         >
-          Candidate Forms
-        </Typography>
-        <Typography
-          variant='h6'
-          color='text.secondary'
-        >
           Hello {candidate.candidate_sponsorship_info?.candidate_name}!
         </Typography>
+
         <Typography>
           You have been sponsored by {candidate.candidate_sponsorship_info?.sponsor_name} to attend Dusty Trails Tres
           Dias.
