@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger'
 import { Result, ok, err, isErr } from '@/lib/results'
 import Stripe from 'stripe'
 import { Tables } from '@/database.types'
+import { getWeekendRosterRecord } from '@/actions/weekend'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -31,70 +32,96 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
-    console.log('Received webhook event:', event)
+    // This route should only accept checkout.session.completed events
+    if (event.type !== 'checkout.session.completed') {
+      logger.info(`💢 Ignoring webhook event: ${event.type} - Event type not supported`)
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
 
-    // Handle checkout.session.completed event
-    if (event.type === 'checkout.session.completed') {
-      const checkoutCompletedEvent = event as Stripe.CheckoutSessionCompletedEvent
-      const session = checkoutCompletedEvent.data.object
+    const checkoutCompletedEvent = event as Stripe.CheckoutSessionCompletedEvent
+    const session = checkoutCompletedEvent.data.object
 
-      console.log(`Processing completed checkout session:`, session)
+    if (!session.payment_intent || typeof session.payment_intent !== 'string') {
+      logger.error(session.payment_intent, '💢 Missing payment intent in session')
+      return NextResponse.json({ error: 'Missing payment intent' }, { status: 400 })
+    }
 
-      const priceId = session.metadata?.price_id
+    console.log(`Processing completed checkout session:`, session)
 
-      // Check if this is a candidate payment
-      switch (priceId) {
-        case process.env.CANDIDATE_FEE_PRICE_ID:
-          const candidateId = session.metadata?.candidate_id ?? null
-          logger.info(`Processing candidate payment for candidate: ${candidateId}`)
+    const priceId = session.metadata?.price_id
 
-          const candidateIsAwaitingPaymentResult = await candidateIsAwaitingPayment(candidateId)
-          if (isErr(candidateIsAwaitingPaymentResult)) {
-            logger.error(candidateIsAwaitingPaymentResult.error)
-            return NextResponse.json({ error: candidateIsAwaitingPaymentResult.error }, { status: 400 })
-          }
+    // Check if this is a candidate payment
+    switch (priceId) {
+      case process.env.CANDIDATE_FEE_PRICE_ID:
+        const candidateId = session.metadata?.candidate_id ?? null
+        logger.info(`Processing candidate payment for candidate: ${candidateId}`)
 
-          logger.info(`✅ Found candidate tied to payment, and they are awaiting payment`)
+        const candidateIsAwaitingPaymentResult = await candidateIsAwaitingPayment(candidateId)
+        if (isErr(candidateIsAwaitingPaymentResult)) {
+          logger.error(candidateIsAwaitingPaymentResult.error, '💢 Candidate is not awaiting payment')
+          return NextResponse.json({ error: candidateIsAwaitingPaymentResult.error }, { status: 400 })
+        }
 
-          // This non-null assertion is safe because we check for id existance in the function above
-          const recordCandidatePaymentResult = await recordCandidatePayment(candidateId!, session)
-          if (isErr(recordCandidatePaymentResult)) {
-            logger.error(recordCandidatePaymentResult.error)
-            return NextResponse.json({ error: recordCandidatePaymentResult.error }, { status: 400 })
-          }
+        logger.info(`✅ Found candidate tied to payment, and they are awaiting payment`)
 
-          logger.info(
-            `✅ Successfully recorded candidate_payment ${recordCandidatePaymentResult.data.id} for candidate id ${candidateId}`
-          )
+        // This non-null assertion is safe because we check for id existance in the function above
+        const recordCandidatePaymentResult = await recordCandidatePayment(candidateId!, session)
+        if (isErr(recordCandidatePaymentResult)) {
+          logger.error(recordCandidatePaymentResult.error, '💢 Failed to record candidate payment')
+          return NextResponse.json({ error: recordCandidatePaymentResult.error }, { status: 400 })
+        }
 
-          const confirmCandidateResult = await confirmCandidate(candidateId!)
-          if (isErr(confirmCandidateResult)) {
-            logger.error(confirmCandidateResult.error)
-            return NextResponse.json({ error: confirmCandidateResult.error }, { status: 400 })
-          }
+        logger.info(
+          `✅ Successfully recorded candidate_payment ${recordCandidatePaymentResult.data.id} for candidate id ${candidateId}`
+        )
 
-          logger.info(`✅ Successfully confirmed candidate ${candidateId}`)
-          break
-        case process.env.TEAM_FEE_PRICE_ID:
-          const teamUserId = session.metadata?.user_id
-          logger.info(`Processing team payment for team: ${teamUserId}`)
+        const confirmCandidateResult = await confirmCandidate(candidateId!)
+        if (isErr(confirmCandidateResult)) {
+          logger.error(confirmCandidateResult.error, '💢 Failed to confirm candidate')
+          return NextResponse.json({ error: confirmCandidateResult.error }, { status: 400 })
+        }
 
-          // const teamIsAwaitingPayment = await teamIsAwaitingPayment(teamUserId)
-          // if (isErr(teamIsAwaitingPayment)) {
-          //   logger.error(teamIsAwaitingPayment.error)
-          //   return NextResponse.json({ error: teamIsAwaitingPayment.error }, { status: 400 })
-          // }
+        logger.info(`✅ Successfully confirmed candidate ${candidateId}`)
+        break
+      case process.env.TEAM_FEE_PRICE_ID:
+        const teamUserId = session.metadata?.user_id ?? null
+        const weekendId = session.metadata?.weekend_id ?? null
+        logger.info(`Processing team payment for team: ${teamUserId}`)
 
-          break
-        default:
-          logger.error(`Unknown price id: ${priceId}`)
-          break
-      }
+        const weekendRosterRecord = await getWeekendRosterRecord(teamUserId, weekendId)
+        if (isErr(weekendRosterRecord)) {
+          logger.error(weekendRosterRecord.error, '💢 Failed to get weekend_roster record')
+          return NextResponse.json({ error: weekendRosterRecord.error }, { status: 400 })
+        }
+
+        logger.info(`✅ Found weekend_roster record for team member: ${teamUserId}`)
+
+        const weekendRosterPaymentRecord = await recordWeekendRosterPayment(weekendRosterRecord.data.id!, session)
+        if (isErr(weekendRosterPaymentRecord)) {
+          logger.error(weekendRosterPaymentRecord.error, '💢 Failed to record weekend_roster_payment')
+          return NextResponse.json({ error: weekendRosterPaymentRecord.error }, { status: 400 })
+        }
+
+        logger.info(
+          `✅ Successfully recorded weekend_roster_payment ${weekendRosterPaymentRecord.data.id} for weekend_roster_id ${weekendRosterRecord.data.id}`
+        )
+
+        const markTeamMemberAsPaidResult = await markTeamMemberAsPaid(weekendRosterRecord.data.id)
+        if (isErr(markTeamMemberAsPaidResult)) {
+          logger.error(markTeamMemberAsPaidResult.error, '💢 Failed to mark team member as paid')
+          return NextResponse.json({ error: markTeamMemberAsPaidResult.error }, { status: 400 })
+        }
+
+        logger.info(`✅ Successfully marked team member as paid`)
+        break
+      default:
+        logger.error(`💢 Error during webhook processing: Unknown price id: ${priceId}`)
+        break
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    logger.error('Webhook processing error:', error)
+    logger.error('💢 Webhook processing error:', error)
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
   }
 }
@@ -146,6 +173,7 @@ async function recordCandidatePayment(
       candidate_id: candidateId,
       payment_amount: session.amount_total ? session.amount_total / 100 : null, // Convert from cents
       payment_owner: session.metadata?.payment_owner ?? 'unknown',
+      payment_intent_id: session.payment_intent as string, // This type assertion is safe because we check payment_intent in the webhook route
     })
     .select()
     .single()
@@ -172,6 +200,44 @@ async function confirmCandidate(candidateId: string): Promise<Result<string, tru
 
   if (updateError) {
     return err(`💢 Failed to update candidate status to confirmed: ${updateError.message}`)
+  }
+
+  return ok(true)
+}
+
+async function recordWeekendRosterPayment(
+  weekendRosterRecordId: string,
+  session: Stripe.Checkout.Session
+): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
+  const supabase = await createClient()
+
+  const { data: weekendRosterPaymentRecord, error: paymentRecordError } = await supabase
+    .from('weekend_roster_payments')
+    .insert({
+      weekend_roster_id: weekendRosterRecordId,
+      payment_amount: session.amount_total ? session.amount_total / 100 : null,
+      payment_intent_id: session.payment_intent as string,
+    })
+    .select()
+    .single()
+
+  if (paymentRecordError) {
+    return err(paymentRecordError.message)
+  }
+
+  return ok(weekendRosterPaymentRecord)
+}
+
+async function markTeamMemberAsPaid(weekendRosterId: string): Promise<Result<string, true>> {
+  const supabase = await createClient()
+
+  const { error: updateError } = await supabase
+    .from('weekend_roster')
+    .update({ status: 'paid' })
+    .eq('id', weekendRosterId)
+
+  if (updateError) {
+    return err(`💢 Failed to update weekend_roster record to paid: ${updateError.message}`)
   }
 
   return ok(true)

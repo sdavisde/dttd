@@ -1,14 +1,24 @@
 'use client'
 
+import { useState } from 'react'
 import { useSession } from '@/components/auth/session-provider'
-import { Money } from '@mui/icons-material'
-import { Box, Button, Grid, Stack, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { BookOpen, Calendar, Clock, DollarSign, File } from 'lucide-react'
-
 import Link from 'next/link'
+import { SelectWeekendModal } from '@/components/SelectWeekendModal'
+import { Weekend } from '@/lib/weekend/types'
+import { useRouter } from 'next/navigation'
 
-export function Dashboard() {
+interface DashboardProps {
+  weekends: Array<Weekend>
+}
+
+export function Dashboard({ weekends }: DashboardProps) {
   const { user } = useSession()
+  const [isWeekendModalOpen, setIsWeekendModalOpen] = useState(false)
+  const router = useRouter()
+
+  const handleWeekendSubmit = (weekendId: string) => router.push(`/payment/team-fee?weekend_id=${weekendId}`)
 
   return (
     <Box sx={{ my: 4 }}>
@@ -52,20 +62,16 @@ export function Dashboard() {
         {/* Dynamic Action Section */}
 
         <div className='w-full h-full grid grid-cols-3 gap-4'>
-          <Link
-            href='/payment/team-fee'
-            className='w-full h-full'
+          <Button
+            variant='outlined'
+            className='w-full h-52 flex flex-col items-center justify-center gap-2'
+            onClick={() => setIsWeekendModalOpen(true)}
           >
-            <Button
-              variant='outlined'
-              className='w-full h-52 flex flex-col items-center justify-center gap-2'
-            >
-              <DollarSign className='w-10 h-10' />
-              <Typography variant='h6'>Pay Team Fees</Typography>
-            </Button>
-          </Link>
+            <DollarSign className='w-10 h-10' />
+            <Typography variant='h6'>Pay Team Fees</Typography>
+          </Button>
           <Link
-            href='/payment/team-fee'
+            href='/job-description'
             className='w-full h-full pointer-events-none'
           >
             <Button
@@ -79,7 +85,7 @@ export function Dashboard() {
             </Button>
           </Link>
           <Link
-            href='/payment/team-fee'
+            href='/prayer-wheel-signup'
             className='w-full h-full pointer-events-none'
           >
             <Button
@@ -94,6 +100,15 @@ export function Dashboard() {
           </Link>
         </div>
       </Stack>
+
+      <SelectWeekendModal
+        open={isWeekendModalOpen}
+        onClose={() => setIsWeekendModalOpen(false)}
+        weekends={weekends}
+        onSubmit={handleWeekendSubmit}
+        title='Select Weekend for Team Fees'
+        submitButtonText='Continue to Payment'
+      />
     </Box>
   )
 }

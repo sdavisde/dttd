@@ -1,34 +1,67 @@
-import { getHydratedCandidate } from '@/actions/candidates'
 import Checkout from '@/components/checkout'
-import { redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
-import * as Results from '@/lib/results'
 import { getUrl } from '@/lib/url'
+import { getWeekendRosterRecord } from '@/actions/weekend'
+import { getUser } from '@/lib/supabase/user'
+import { isErr } from '@/lib/results'
+import { Stack, Typography } from '@mui/material'
+import { Error } from '@mui/icons-material'
 
-interface TeamFeesPaymentPageProps {}
+interface TeamFeesPaymentPageProps {
+  searchParams: Promise<{
+    weekend_id: string
+  }>
+}
 
-/**
- * This page renders a stripe checkout page.
- * Since we accept payment for either candidate fees or team fees,
- * we need to pass the candidate_id to the page.
- *
- * The page will then validate that the candidate exists and is awaiting payment.
- * If the candidate is not awaiting payment, the page will redirect to the payment success page.
- *
- * If the candidate is awaiting payment, the page will render a stripe checkout page.
- *
- */
-export default async function TeamFeesPaymentPage({}: TeamFeesPaymentPageProps) {
+export default async function TeamFeesPaymentPage({ searchParams }: TeamFeesPaymentPageProps) {
   const teamFeePriceId = process.env.TEAM_FEE_PRICE_ID
   if (!teamFeePriceId) {
-    throw new Error('Missing team fee price id')
+    logger.error('Missing team fee price id')
+    return notFound()
+  }
+
+  const weekend_id = (await searchParams).weekend_id
+
+  if (!weekend_id) {
+    logger.error('Missing weekend id query parameter')
+    return notFound()
+  }
+
+  const user = await getUser()
+  if (!user) {
+    logger.error('User not found')
+    return notFound()
+  }
+
+  const weekendRosterRecord = await getWeekendRosterRecord(user.id, weekend_id)
+  if (isErr(weekendRosterRecord)) {
+    logger.error('Error fetching weekend roster record', weekendRosterRecord.error)
+    return (
+      <Stack className='h-[80vh] w-screen flex items-center justify-center'>
+        <Error sx={{ fontSize: 75, color: '#940c0a', marginBottom: 2 }} />
+        <Typography variant='h6'>It doesn&apos;t look like you&apos;re registered for the weekend yet.</Typography>
+        <Typography variant='body1'>Please contact your Rector to ensure you&apos;re on the roster.</Typography>
+        <Typography
+          variant='body1'
+          mt={2}
+          display='flex'
+          flexDirection='column'
+          alignItems='center'
+        >
+          If this issue persists, please contact Sean Davis at 214-799-7708 or sdavisde@gmail.com
+          <br />
+          <span>for assistance in paying your team fees.</span>
+        </Typography>
+      </Stack>
+    )
   }
 
   return (
     <div className='payment-page'>
       <Checkout
         priceId={teamFeePriceId}
-        metadata={{}}
+        metadata={{ weekend_id }}
         returnUrl={getUrl('/payment/team-fee/success?session_id={CHECKOUT_SESSION_ID}')}
       />
     </div>

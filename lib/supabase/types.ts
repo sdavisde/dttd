@@ -3,6 +3,9 @@ import { Database } from '@/database.types'
 
 export type User = SupabaseUser & {
   permissions: string[]
+  first_name?: string
+  last_name?: string
+  gender?: string
 }
 
 export type SupabaseClient = RawSupabaseClient<Database, 'public'>

@@ -7,7 +7,7 @@ import {
   Typography,
   Button,
   Box,
-  Link,
+  Link as MuiLink,
   Container,
   IconButton,
   Menu,
@@ -23,6 +23,7 @@ import {
 import MenuIcon from '@mui/icons-material/Menu'
 import CloseIcon from '@mui/icons-material/Close'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Person, Logout, ExpandLess, ExpandMore } from '@mui/icons-material'
 import { MouseEvent, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -112,7 +113,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
           {allowedNavElements.map((element) => (
             <ListItemButton
               key={element.name}
-              component={Link}
+              component={MuiLink}
               href={`/${element.slug}`}
               sx={{ textTransform: 'capitalize' }}
             >
@@ -135,7 +136,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
           <Typography
             variant='h6'
             noWrap
-            component={Link}
+            component={MuiLink}
             href='/'
             sx={{
               mr: 2,
@@ -181,7 +182,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
           <Typography
             variant='h5'
             noWrap
-            component={Link}
+            component={MuiLink}
             href='/'
             sx={{
               mr: 2,
@@ -202,7 +203,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
                 {allowedNavElements.map((element) => (
                   <Button
                     key={element.name}
-                    component={Link}
+                    component={MuiLink}
                     href={`/${element.slug}`}
                     sx={{
                       color: 'white',
@@ -233,7 +234,7 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
                   sx={{ p: 0 }}
                 >
                   <Avatar sx={{ bgcolor: 'white', color: 'primary.main' }}>
-                    {user.email?.[0]?.toUpperCase() || <Person />}
+                    {user.user_metadata?.first_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || <Person />}
                   </Avatar>
                 </IconButton>
                 <Menu
@@ -252,11 +253,15 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  {/* <MenuItem onClick={handleCloseUserMenu}>
+                  <MenuItem onClick={handleCloseUserMenu}>
                     <Link href='/profile'>
-                      <Typography textAlign='center'>Profile</Typography>
+                      <Typography textAlign='center'>
+                        {user.user_metadata?.first_name && user.user_metadata?.last_name
+                          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+                          : user.email}
+                      </Typography>
                     </Link>
-                  </MenuItem> */}
+                  </MenuItem>
                   <MenuItem onClick={handleLogout}>
                     <Typography
                       textAlign='center'
@@ -269,27 +274,16 @@ export function NavbarClient({ navElements }: NavbarClientProps) {
                 </Menu>
               </>
             ) : (
-              <>
-                <Button
-                  component={Link}
-                  variant='outlined'
-                  sx={{ color: 'white', borderColor: 'white' }}
-                  href='/login'
-                >
-                  Sign In
-                </Button>
-
-                <Button
-                  component={Link}
-                  variant='contained'
-                  sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
-                  href='/join'
-                  className='flex gap-2'
-                >
-                  <Person />
-                  <span>Join Community</span>
-                </Button>
-              </>
+              <Button
+                component={MuiLink}
+                variant='contained'
+                sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
+                href='/login'
+                className='flex gap-2'
+              >
+                <Person />
+                <span>Sign In</span>
+              </Button>
             )}
           </Box>
         </Toolbar>
