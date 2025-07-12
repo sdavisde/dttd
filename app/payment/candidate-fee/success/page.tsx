@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { Container, Paper, Typography, Button } from '@mui/material'
+import { Container, Typography, Button, Stack } from '@mui/material'
 
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
@@ -23,107 +23,54 @@ export default async function CandidateFeePaymentSuccessPage({ searchParams }: {
 
   const customerEmail = customer_details.email
 
-  if (status === 'open') {
+  if (status !== 'complete') {
     return redirect('/')
   }
 
-  if (status === 'complete') {
-    // If this is a candidate payment, update the candidate status
-    if (metadata?.candidateId) {
-      const supabase = await createClient()
-
-      // Update candidate status to confirmed
-      const { error: updateError } = await supabase
-        .from('candidates')
-        .update({ status: 'confirmed' })
-        .eq('id', metadata.candidateId)
-
-      if (updateError) {
-        console.error('Failed to update candidate status:', updateError)
-      }
-
-      return (
-        <Container maxWidth='md'>
-          <Paper
-            elevation={3}
-            sx={{ p: 4, my: 4, textAlign: 'center' }}
-          >
-            <Typography
-              variant='h4'
-              component='h1'
-              gutterBottom
-            >
-              Payment Successful!
-            </Typography>
-            <Typography
-              variant='body1'
-              paragraph
-            >
-              Thank you for your payment. Your spot for the Dusty Trails Tres Dias weekend has been confirmed.
-            </Typography>
-            <Typography
-              variant='body1'
-              paragraph
-            >
-              A confirmation email will be sent to {customerEmail} with additional details about the weekend.
-            </Typography>
-            <Typography
-              variant='body1'
-              paragraph
-            >
-              If you have any questions, please contact the pre-weekend couple or email{' '}
-              <a href='mailto:admin@dustytrailstresdias.org'>admin@dustytrailstresdias.org</a>
-            </Typography>
-            <Button
-              href='/home'
-              variant='contained'
-              sx={{ mt: 2 }}
-            >
-              Return to Home
-            </Button>
-          </Paper>
-        </Container>
-      )
-    }
-
-    // Default success message for non-candidate payments
-    return (
-      <Container maxWidth='md'>
-        <Paper
-          elevation={3}
-          sx={{ p: 4, my: 4, textAlign: 'center' }}
-        >
-          <Typography
-            variant='h4'
-            component='h1'
-            gutterBottom
-          >
-            Payment Successful!
-          </Typography>
-          <Typography
-            variant='body1'
-            paragraph
-          >
-            We appreciate your business! A confirmation email will be sent to {customerEmail}.
-          </Typography>
-          <Typography
-            variant='body1'
-            paragraph
-          >
-            If you have any questions, please email{' '}
-            <a href='mailto:admin@dustytrailstresdias.org'>admin@dustytrailstresdias.org</a>
-          </Typography>
-          <Button
-            href='/home'
-            variant='contained'
-            sx={{ mt: 2 }}
-          >
-            Return to Home
-          </Button>
-        </Paper>
-      </Container>
-    )
+  if (!metadata?.candidateId) {
+    return redirect('/')
   }
 
-  return null
+  // If this is a candidate payment, update the candidate status
+  const supabase = await createClient()
+
+  // Update candidate status to confirmed
+  const { error: updateError } = await supabase
+    .from('candidates')
+    .update({ status: 'confirmed' })
+    .eq('id', metadata.candidateId)
+
+  if (updateError) {
+    console.error('Failed to update candidate status:', updateError)
+  }
+
+  return (
+    <Container maxWidth='md'>
+      <Stack
+        spacing={2}
+        sx={{ p: 4, my: 4, textAlign: 'center' }}
+      >
+        <Typography
+          variant='h4'
+          component='h1'
+          gutterBottom
+        >
+          Payment Successful!
+        </Typography>
+        <Typography variant='body1'>
+          Thank you for your payment. Your spot for the Dusty Trails Tres Dias weekend has been confirmed.
+        </Typography>
+        <Typography variant='body1'>
+          A confirmation email will be sent to {customerEmail} with additional details about the weekend.
+        </Typography>
+        <Button
+          href='/home'
+          variant='contained'
+          sx={{ mt: 2 }}
+        >
+          Return to Home
+        </Button>
+      </Stack>
+    </Container>
+  )
 }

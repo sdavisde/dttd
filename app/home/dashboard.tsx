@@ -41,7 +41,7 @@ export function Dashboard({ rosterInfo }: DashboardProps) {
         <div className='w-full p-4'>
           <Typography variant='h6'>Upcoming Events</Typography>
         </div>
-        <div className='w-full h-full grid grid-cols-3 gap-4'>
+        <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
           <div className='w-full h-full bg-gray-100 rounded-lg p-4 flex flex-col gap-2'>
             <Typography variant='h6'>Team Meeting #1</Typography>
             <Typography
@@ -63,7 +63,7 @@ export function Dashboard({ rosterInfo }: DashboardProps) {
 
         {/* Dynamic Action Section */}
 
-        <div className='w-full h-full grid grid-cols-3 gap-4'>
+        <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
           {rosterInfo && rosterInfo.status !== 'paid' && (
             <Link
               href={`/payment/team-fee?weekend_id=${rosterInfo.weekend_id}`}
