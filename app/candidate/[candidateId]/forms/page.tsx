@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import { getHydratedCandidate } from '@/actions/candidates'
 import * as Results from '@/lib/results'
+import { CandidateForms } from './candidate-forms'
 
 export default async function CandidateFormsPage({ params }: { params: Promise<{ candidateId: string }> }) {
   const { candidateId } = await params
@@ -29,28 +30,18 @@ export default async function CandidateFormsPage({ params }: { params: Promise<{
           component='h1'
           gutterBottom
         >
-          Candidate Forms
+          Hello {candidate.candidate_sponsorship_info?.candidate_name}!
         </Typography>
-        <Typography
-          variant='h6'
-          color='text.secondary'
-        >
-          {candidate.candidate_sponsorship_info?.candidate_name}
+
+        <Typography>
+          You have been sponsored by {candidate.candidate_sponsorship_info?.sponsor_name} to attend Dusty Trails Tres
+          Dias.
+          <br />
+          Please fill out the this form to complete your registration.
         </Typography>
       </Paper>
 
-      <Box>
-        <Typography variant='body1'>
-          Forms page for candidate: {candidate.candidate_sponsorship_info?.candidate_name}
-        </Typography>
-        <Typography
-          variant='body2'
-          color='text.secondary'
-          sx={{ mt: 1 }}
-        >
-          Candidate ID: {candidate.id}
-        </Typography>
-      </Box>
+      <CandidateForms />
     </Container>
   )
 }

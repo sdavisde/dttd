@@ -14,7 +14,7 @@ export default function CandidateFeePaymentRequestEmail({
   paymentOwner,
   paymentOwnerName,
 }: CandidateFeePaymentRequestEmailProps) {
-  const paymentUrl = getUrl(`/candidate-fee-payment?candidate_id=${candidate.id}&payment_owner=${paymentOwner}`)
+  const paymentUrl = getUrl(`/payment/candidate-fee?candidate_id=${candidate.id}&payment_owner=${paymentOwner}`)
 
   return (
     <Html>

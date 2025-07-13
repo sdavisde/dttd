@@ -2,19 +2,38 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Box, Button, TextField, Typography, Divider, Alert, CircularProgress } from '@mui/material'
-import { Google as GoogleIcon } from '@mui/icons-material'
-import { logger } from '@/lib/logger'
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Divider,
+  Alert,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tabs,
+  Tab,
+  FormLabel,
+  FormControlLabel,
+  RadioGroup,
+  Radio,
+} from '@mui/material'
 import { createClient } from '@/lib/supabase/client'
 
 interface AuthFormProps {
-  mode: 'login' | 'register'
   onSuccess?: () => void
 }
 
-export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
+export default function AuthForm({ onSuccess }: AuthFormProps) {
+  const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [gender, setGender] = useState<'male' | 'female'>('male')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -40,6 +59,13 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+              gender,
+            },
+          },
         })
 
         if (error) throw error
@@ -90,14 +116,23 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         p: 3,
       }}
     >
-      <Typography
-        variant='h5'
-        component='h1'
-        textAlign='center'
-        gutterBottom
-      >
-        {mode === 'login' ? 'Sign In' : 'Create Account'}
-      </Typography>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs
+          value={mode}
+          onChange={(_, newValue) => setMode(newValue)}
+          aria-label='basic tabs example'
+          variant='fullWidth'
+        >
+          <Tab
+            label='Sign In'
+            value='login'
+          />
+          <Tab
+            label='Create Account'
+            value='register'
+          />
+        </Tabs>
+      </Box>
 
       {error && (
         <Alert
@@ -115,6 +150,47 @@ export default function AuthForm({ mode, onSuccess }: AuthFormProps) {
         >
           {message}
         </Alert>
+      )}
+
+      {mode === 'register' && (
+        <>
+          <TextField
+            label='First Name'
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+            fullWidth
+          />
+
+          <TextField
+            label='Last Name'
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+            fullWidth
+          />
+
+          <FormControl fullWidth>
+            <FormLabel id='demo-controlled-radio-buttons-group'>Gender</FormLabel>
+            <RadioGroup
+              aria-labelledby='demo-controlled-radio-buttons-group'
+              name='controlled-radio-buttons-group'
+              value={gender}
+              onChange={(e) => setGender(e.target.value as 'male' | 'female')}
+            >
+              <FormControlLabel
+                value='male'
+                control={<Radio />}
+                label='Male'
+              />
+              <FormControlLabel
+                value='female'
+                control={<Radio />}
+                label='Female'
+              />
+            </RadioGroup>
+          </FormControl>
+        </>
       )}
 
       <TextField

@@ -30,6 +30,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.4",
+    "react-select": "^5.10.2",
     "resend": "^4.6.0",
     "stripe": "^18.2.0",
     "supabase": "^2.24.3",

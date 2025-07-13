@@ -30,7 +30,6 @@ export default async function ReviewCandidatePage() {
         >
           Review Candidates
         </Typography>
-        <StatusFlow />
         <CandidateReviewTable candidates={candidates} />
       </Box>
     </Container>
