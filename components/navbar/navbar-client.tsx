@@ -30,6 +30,10 @@ type NavbarClientProps = {
 export function Navbar({ navElements }: NavbarClientProps) {
   const [isOpen, setIsOpen] = useState(false)
 
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+    return <></>
+  }
+
   return (
     <nav className='bg-primary text-white px-4 py-3'>
       <div className='flex items-center justify-between'>
