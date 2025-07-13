@@ -274,18 +274,21 @@ export type Database = {
           gender: string | null
           id: string
           last_name: string | null
+          phone_number: string | null
         }
         Insert: {
           first_name?: string | null
           gender?: string | null
           id: string
           last_name?: string | null
+          phone_number?: string | null
         }
         Update: {
           first_name?: string | null
           gender?: string | null
           id?: string
           last_name?: string | null
+          phone_number?: string | null
         }
         Relationships: []
       }

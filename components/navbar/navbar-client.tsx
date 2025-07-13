@@ -1,33 +1,20 @@
 'use client'
 
-import * as React from 'react'
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
-  Link as MuiLink,
-  Container,
-  IconButton,
-  Menu,
-  MenuItem,
-  Avatar,
-  CircularProgress,
-  Collapse,
-  List,
-  ListItemButton,
-  ListItemText,
-  SwipeableDrawer,
-} from '@mui/material'
-import MenuIcon from '@mui/icons-material/Menu'
-import CloseIcon from '@mui/icons-material/Close'
-import { useRouter } from 'next/navigation'
+import { Menu } from 'lucide-react'
 import Link from 'next/link'
-import { Person, Logout, ExpandLess, ExpandMore } from '@mui/icons-material'
-import { MouseEvent, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useSession } from '../auth/session-provider'
+import { useState } from 'react'
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 type NavElement = {
   name: string
@@ -40,250 +27,91 @@ type NavbarClientProps = {
   navElements: NavElement[]
 }
 
-export function NavbarClient({ navElements }: NavbarClientProps) {
-  const router = useRouter()
-  const supabase = createClient()
-  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const { user, isAuthenticated, loading } = useSession()
-  const allowedNavElements = navElements.filter((element) => {
-    if (element.permissions_needed.length === 0) {
-      return true
-    }
-    return element.permissions_needed.some((permission) => user?.permissions.includes(permission))
-  })
-
-  const handleOpenUserMenu = (event: MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget)
-  }
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null)
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.refresh()
-    handleCloseUserMenu()
-  }
-
-  const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
-    if (
-      event &&
-      event.type === 'keydown' &&
-      ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')
-    ) {
-      return
-    }
-    setMobileOpen(open)
-  }
-
-  const mobileNavContent = (
-    <Box
-      sx={{ width: 'auto', height: '100%' }}
-      role='presentation'
-      onKeyDown={toggleDrawer(false)}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          p: 2,
-          borderBottom: 1,
-          borderColor: 'divider',
-        }}
-      >
-        <Typography
-          variant='h6'
-          component='h2'
-        >
-          Dusty Trails Tres Dias
-        </Typography>
-        <IconButton
-          onClick={toggleDrawer(false)}
-          edge='end'
-          aria-label='close navigation'
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
-      {isAuthenticated && (
-        <List sx={{ width: '100%', pt: 2 }}>
-          {allowedNavElements.map((element) => (
-            <ListItemButton
-              key={element.name}
-              component={MuiLink}
-              href={`/${element.slug}`}
-              sx={{ textTransform: 'capitalize' }}
-            >
-              <ListItemText primary={element.name} />
-            </ListItemButton>
-          ))}
-        </List>
-      )}
-    </Box>
-  )
+export function Navbar({ navElements }: NavbarClientProps) {
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <AppBar
-      position='static'
-      sx={{ bgcolor: 'primary.main', boxShadow: 2 }}
-    >
-      <Container maxWidth='xl'>
-        <Toolbar disableGutters>
-          {/* Logo - Desktop */}
-          <Typography
-            variant='h6'
-            noWrap
-            component={MuiLink}
-            href='/'
-            sx={{
-              mr: 2,
-              display: { xs: 'none', md: 'flex' },
-              fontWeight: 700,
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
+    <nav className='bg-primary text-white px-4 py-3'>
+      <div className='flex items-center justify-between'>
+        {/* Mobile Menu Button */}
+        <div className='md:hidden'>
+          <Sheet
+            open={isOpen}
+            onOpenChange={setIsOpen}
           >
-            Dusty Trails Tres Dias
-          </Typography>
-
-          {/* Mobile Menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size='large'
-              aria-label='menu'
-              aria-controls='menu-appbar'
-              aria-haspopup='true'
-              onClick={toggleDrawer(true)}
-              color='inherit'
-            >
-              <MenuIcon />
-            </IconButton>
-            <SwipeableDrawer
-              anchor='left'
-              open={mobileOpen}
-              onClose={toggleDrawer(false)}
-              onOpen={toggleDrawer(true)}
-              sx={{
-                '& .MuiDrawer-paper': {
-                  width: '85%',
-                  maxWidth: '400px',
-                  boxSizing: 'border-box',
-                },
-              }}
-            >
-              {mobileNavContent}
-            </SwipeableDrawer>
-          </Box>
-
-          {/* Logo - Mobile */}
-          <Typography
-            variant='h5'
-            noWrap
-            component={MuiLink}
-            href='/'
-            sx={{
-              mr: 2,
-              display: { xs: 'flex', md: 'none' },
-              flexGrow: 1,
-              fontWeight: 700,
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-            DTTD
-          </Typography>
-
-          {/* Desktop Navigation */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {isAuthenticated && (
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                {allowedNavElements.map((element) => (
-                  <Button
-                    key={element.name}
-                    component={MuiLink}
-                    href={`/${element.slug}`}
-                    sx={{
-                      color: 'white',
-                      textTransform: 'capitalize',
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                    }}
-                  >
-                    {element.name}
-                  </Button>
-                ))}
-              </Box>
-            )}
-          </Box>
-
-          {/* Auth Buttons or Profile Menu */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            {loading ? (
-              <CircularProgress
-                size={24}
-                sx={{ color: 'white' }}
-              />
-            ) : user ? (
-              <>
-                <IconButton
-                  onClick={handleOpenUserMenu}
-                  sx={{ p: 0 }}
-                >
-                  <Avatar sx={{ bgcolor: 'white', color: 'primary.main' }}>
-                    {user.user_metadata?.first_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || <Person />}
-                  </Avatar>
-                </IconButton>
-                <Menu
-                  sx={{ mt: '45px' }}
-                  id='menu-appbar'
-                  anchorEl={anchorElUser}
-                  anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorElUser)}
-                  onClose={handleCloseUserMenu}
-                >
-                  <MenuItem onClick={handleCloseUserMenu}>
-                    <Link href='/profile'>
-                      <Typography textAlign='center'>View Profile</Typography>
-                    </Link>
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>
-                    <Typography
-                      textAlign='center'
-                      className='flex items-center gap-2'
-                    >
-                      <Logout fontSize='small' />
-                      Logout
-                    </Typography>
-                  </MenuItem>
-                </Menu>
-              </>
-            ) : (
+            <SheetTrigger asChild>
               <Button
-                component={MuiLink}
-                variant='contained'
-                sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
-                href='/login'
-                className='flex gap-2'
+                variant='ghost'
+                size='icon'
               >
-                <Person />
-                <span>Sign In</span>
+                <Menu className='h-6 w-6' />
+                <span className='sr-only'>Toggle menu</span>
               </Button>
-            )}
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+            </SheetTrigger>
+            <SheetContent
+              side='left'
+              className='bg-amber-900 text-white border-amber-800'
+            >
+              <div className='flex flex-col space-y-4 mt-8'>
+                {navElements.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={`/${item.slug}`}
+                    className='text-lg font-medium hover:text-amber-200 transition-colors'
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Logo/Title */}
+        <div className='flex-1 md:flex-none flex items-center justify-center'>
+          <Link
+            href='/'
+            className='font-bold text-xl md:text-2xl'
+          >
+            <span className='hidden md:inline'>Dusty Trails Tres Dias</span>
+            <span className='md:hidden'>DTTD</span>
+          </Link>
+        </div>
+
+        {/* Desktop Navigation */}
+        <div className='hidden md:flex items-center space-x-8 flex-1 justify-center'>
+          {navElements.map((item) => (
+            <Link
+              key={item.name}
+              href={`/${item.slug}`}
+              className='text-white hover:text-amber-200 transition-colors font-medium'
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+
+        {/* Avatar */}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <div className='flex-shrink-0'>
+              <Avatar className='h-10 w-10 bg-white'>
+                <AvatarFallback className='bg-white text-amber-900 font-bold text-lg'>S</AvatarFallback>
+              </Avatar>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href='/profile'>Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className='text-destructive hover:text-destructive'>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </nav>
   )
 }

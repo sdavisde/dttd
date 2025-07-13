@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { NavbarClient } from './navbar-client'
+import { Navbar } from './navbar-client'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
 
@@ -71,5 +71,5 @@ async function getNavElements() {
 export async function NavbarServer() {
   const navElements = await getNavElements()
 
-  return <NavbarClient navElements={navElements} />
+  return <Navbar navElements={navElements} />
 }

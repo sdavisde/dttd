@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Noto_Serif } from 'next/font/google'
+import { Noto_Sans } from 'next/font/google'
 import Navbar from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import './globals.css'
@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
 
-const notoSerif = Noto_Serif({
+const notoSerif = Noto_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
 })

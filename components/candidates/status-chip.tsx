@@ -1,4 +1,4 @@
-import { Chip } from '@mui/material'
+import { Badge } from '@/components/ui/badge'
 import { CandidateStatus } from '@/lib/candidates/types'
 
 interface StatusChipProps {
@@ -17,10 +17,11 @@ export function StatusChip({ status }: StatusChipProps) {
 
   const config = statusConfig[status] ?? { color: 'default', label: 'Unknown' }
   return (
-    <Chip
-      label={config.label}
-      color={config.color as any}
-      size='small'
-    />
+    <Badge
+      variant={config.color as 'default' | 'secondary' | 'destructive' | 'outline'}
+      className='text-xs'
+    >
+      {config.label}
+    </Badge>
   )
 }

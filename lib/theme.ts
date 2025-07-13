@@ -10,7 +10,7 @@ export const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'var(--font-geist-sans)',
+    fontFamily: 'var(--font-noto-sans)',
     h1: {
       fontWeight: 700,
     },

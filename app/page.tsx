@@ -231,54 +231,6 @@ export default function Home() {
           </div>
         </section> */}
       </main>
-      <footer className='border-t bg-gray-50'>
-        <div className='flex flex-col gap-4 py-10 md:flex-row md:gap-8 md:py-12 px-4 md:px-6'>
-          <div className='flex-1 space-y-4'>
-            <div className='font-semibold text-xl'>Dusty Trails Tres Dias</div>
-            <p className='text-sm text-gray-500'>
-              Being like-minded, having the same love, being one in spirit and of one mind. Phil 2:2
-            </p>
-          </div>
-          {/* <div className='flex flex-col gap-2 md:gap-4'>
-            <div className='font-medium'>Links</div>
-            <nav className='flex flex-col gap-2 text-sm'>
-              <Link
-                href='/events'
-                className='hover:underline'
-              >
-                Events
-              </Link>
-              <Link
-                href='/sponsor'
-                className='hover:underline'
-              >
-                Sponsor
-              </Link>
-              <Link
-                href='/resources'
-                className='hover:underline'
-              >
-                Resources
-              </Link>
-              <Link
-                href='/about'
-                className='hover:underline'
-              >
-                About
-              </Link>
-            </nav>
-          </div> */}
-          <div className='flex flex-col gap-2 md:gap-4'>
-            <div className='font-medium'>Contact</div>
-            <div className='text-sm'>
-              <p>admin@dustytrailstresdias.org</p>
-            </div>
-          </div>
-        </div>
-        <div className='border-t py-6 text-center text-sm text-gray-500'>
-          <p>© 2025 Dusty Trails Tres Dias. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   )
 }

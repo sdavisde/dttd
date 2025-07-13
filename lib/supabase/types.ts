@@ -7,6 +7,7 @@ export type User = SupabaseUser & {
     first_name?: string
     last_name?: string
     gender?: string
+    phone_number?: string
   }
 }
 

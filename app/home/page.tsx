@@ -1,4 +1,3 @@
-import { Container } from '@mui/material'
 import { Dashboard } from './dashboard'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/supabase/user'
@@ -49,8 +48,8 @@ export default async function Home() {
   const rosterInfo = await getUserRosterInfo()
 
   return (
-    <Container maxWidth='lg'>
+    <div className='container mx-auto p-4 md:p-0'>
       <Dashboard rosterInfo={rosterInfo} />
-    </Container>
+    </div>
   )
 }

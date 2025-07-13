@@ -1,6 +1,5 @@
-import { Container, Typography, Box } from '@mui/material'
+import { Typography } from '@/components/ui/typography'
 import { CandidateReviewTable } from './components/CandidateReviewTable'
-import { StatusFlow } from './components/StatusFlow'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { getAllCandidatesWithDetails } from '@/actions/candidates'
 import * as Results from '@/lib/results'
@@ -21,17 +20,17 @@ export default async function ReviewCandidatePage() {
   const candidates = await getCandidates()
 
   return (
-    <Container maxWidth='xl'>
-      <Box sx={{ my: 4 }}>
+    <div className='container mx-auto p-4'>
+      <div className='my-4'>
+        <Typography variant='h1'>Review Candidates</Typography>
         <Typography
-          variant='h4'
-          component='h1'
-          gutterBottom
+          variant='p'
+          className='mb-4'
         >
-          Review Candidates
+          A list of candidates for the upcoming weekends.
         </Typography>
         <CandidateReviewTable candidates={candidates} />
-      </Box>
-    </Container>
+      </div>
+    </div>
   )
 }
