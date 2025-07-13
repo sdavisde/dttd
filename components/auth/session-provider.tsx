@@ -80,9 +80,10 @@ export function SessionProvider({ children }: SessionProviderProps) {
         permissions,
         user_metadata: {
           ...user.user_metadata,
-          first_name: userData?.first_name || user.user_metadata?.first_name,
-          last_name: userData?.last_name || user.user_metadata?.last_name,
-          gender: userData?.gender || user.user_metadata?.gender,
+          first_name: userData?.first_name ?? user.user_metadata?.first_name,
+          last_name: userData?.last_name ?? user.user_metadata?.last_name,
+          gender: userData?.gender ?? user.user_metadata?.gender,
+          phone_number: userData?.phone_number ?? user.user_metadata?.phone_number,
         },
       })
       setIsAuthenticated(!!user)
