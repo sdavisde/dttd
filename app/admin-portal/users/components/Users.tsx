@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { UserWithRole, assignUserRole, removeUserRole } from "@/actions/users";
-import { Tables } from "@/database.types";
+import { useState, useMemo } from "react";
+import { UserWithRole } from "@/actions/users";
 import {
   TextField,
   Chip,
@@ -15,6 +14,7 @@ import {
   InputAdornment,
   Paper,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -22,35 +22,25 @@ import {
   Person as PersonIcon,
 } from "@mui/icons-material";
 import { UserRoleModal } from "./UserRoleModal";
-import { isErr } from "@/lib/results";
+import { useUsers } from "../hooks/useUsers";
 
-interface UsersProps {
-  initialUsers: UserWithRole[];
-  roles: Tables<'roles'>[];
-  error?: string;
-}
-
-export default function Users({ initialUsers, roles, error }: UsersProps) {
-  const [users, setUsers] = useState<UserWithRole[]>(initialUsers);
-  const [filteredUsers, setFilteredUsers] = useState<UserWithRole[]>(initialUsers);
+export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
-  
-  // Use prop error or local error
-  const displayError = error || localError;
+
+  const { data: users = [], isLoading, isError, error } = useUsers();
 
   // Filter users based on search term
-  useEffect(() => {
-    const filtered = searchTerm != ""? users.filter((user) => {
-      // const emailMatch = user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const roleMatch = user.role?.label.toLowerCase().includes(searchTerm.toLowerCase());
-      return roleMatch;
-    }) : users;
-
-    setFilteredUsers(filtered);
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return users;
+    return users.filter((user) => {
+      const searchLower = searchTerm.toLowerCase();
+      const firstNameMatch = user.first_name?.toLowerCase().includes(searchLower);
+      const lastNameMatch = user.last_name?.toLowerCase().includes(searchLower);
+      const roleMatch = user.role?.label.toLowerCase().includes(searchLower);
+      return firstNameMatch || lastNameMatch || roleMatch;
+    });
   }, [searchTerm, users]);
 
   const handleUserClick = (user: UserWithRole) => {
@@ -58,68 +48,23 @@ export default function Users({ initialUsers, roles, error }: UsersProps) {
     setIsModalOpen(true);
   };
 
-  const handleUpdateUserRole = async (userId: string, roleId: string | null) => {
-    setLoading(true);
-    setLocalError(null);
-
-    try {
-      let result;
-      if (roleId) {
-        result = await assignUserRole(userId, roleId);
-      } else {
-        result = await removeUserRole(userId);
-      }
-
-      if (isErr(result)) {
-        throw new Error(result.error.message);
-      }
-
-      // Update local state
-      setUsers(users.map(user => {
-        if (user.id === userId) {
-          const newRole = roleId ? roles.find(r => r.id === roleId) || null : null;
-          return { ...user, role: newRole };
-        }
-        return user;
-      }));
-
-    } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Failed to update user role');
-      throw err; // Re-throw to let modal handle it
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setLocalError(null);
   };
 
   const handleModalExited = () => {
     setSelectedUser(null);
-    setLocalError(null);
   };
 
-  if (displayError) {
+  if (isError) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 3 }}>
           User Management
         </Typography>
         <Alert severity="error">
-          <Typography variant="h6" gutterBottom>
-            Error: {displayError}
-          </Typography>
-          {displayError.includes('SUPABASE_SERVICE_ROLE_KEY') && (
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              To use the user management feature, you need to add your Supabase service role key to your environment variables:
-              <br />
-              <code>SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here</code>
-              <br />
-              You can find this key in your Supabase dashboard under Settings → API.
-            </Typography>
-          )}
+          Error: {error instanceof Error ? error.message : "Failed to load data"}
         </Alert>
       </Box>
     );
@@ -139,9 +84,10 @@ export default function Users({ initialUsers, roles, error }: UsersProps) {
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
-          placeholder="Search users by email or role..."
+          placeholder="Search users by name or role..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          disabled={isLoading}
           slotProps={{
             input: {
               startAdornment: (
@@ -157,7 +103,14 @@ export default function Users({ initialUsers, roles, error }: UsersProps) {
 
       {/* Users List */}
       <Paper elevation={1}>
-        {filteredUsers.length > 0 ? (
+        {isLoading ? (
+          <Box sx={{ p: 4, textAlign: "center" }}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Loading users...
+            </Typography>
+          </Box>
+        ) : filteredUsers.length > 0 ? (
           <List sx={{ paddingY: 0 }}>
             {filteredUsers.map((user, index) => (
               <Box key={user.id}>
@@ -193,15 +146,27 @@ export default function Users({ initialUsers, roles, error }: UsersProps) {
                     primary={
                       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                         <PersonIcon color="action" />
-                        <Typography variant="h6" component="div">
-                          {"sample@gmail.com"}
-                        </Typography>
+                        <Box>
+                          <Typography variant="h6" component="div">
+                            {user.first_name || user.last_name 
+                              ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+                              : 'Unknown User'
+                            }
+                          </Typography>
+                        </Box>
                       </Box>
                     }
                     secondary={
-                      <Typography variant="body2" color="text.secondary">
-                        User ID: {user.id.slice(0, 8)}...
-                      </Typography>
+                      <Box>
+                        {user.gender && (
+                          <Typography variant="body2" color="text.secondary">
+                            Gender: {user.gender}
+                          </Typography>
+                        )}
+                        <Typography variant="body2" color="text.secondary">
+                          User ID: {user.id.slice(0, 8)}...
+                        </Typography>
+                      </Box>
                     }
                   />
                 </ListItem>
@@ -223,11 +188,9 @@ export default function Users({ initialUsers, roles, error }: UsersProps) {
       {/* User Role Modal */}
       <UserRoleModal
         user={selectedUser}
-        roles={roles}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onExited={handleModalExited}
-        onUpdate={handleUpdateUserRole}
       />
     </Box>
   );

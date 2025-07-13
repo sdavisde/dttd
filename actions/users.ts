@@ -6,6 +6,9 @@ import { Tables } from '@/database.types'
 
 export type UserWithRole = {
   id: string
+  first_name: string | null
+  last_name: string | null
+  gender: string | null
   role: Tables<'roles'> | null
 }
 
@@ -13,14 +16,7 @@ export async function getUsersWithRoles(): Promise<Result<Error, UserWithRole[]>
   try {
     const supabase = await createClient()
 
-    // Get all users from auth.users using admin client
-    const { data: users, error: authError } = await supabase.from('users').select('*')
-
-    if (authError) {
-      return err(new Error(`Failed to fetch users: ${authError.message}`))
-    }
-
-    // Get all user roles with role details
+    // 1. Get all user roles with role details
     const { data: userRoles, error: userRolesError } = await supabase
       .from('user_roles')
       .select('user_id, roles(*)')
@@ -29,12 +25,24 @@ export async function getUsersWithRoles(): Promise<Result<Error, UserWithRole[]>
       return err(new Error(`Failed to fetch user roles: ${userRolesError.message}`))
     }
 
-    // Combine auth users with their roles
-    const usersWithRoles: UserWithRole[] = users.map(user => {
+    // 2. Get user profile data from public.users table
+    const { data: publicUsers, error: publicUsersError } = await supabase
+      .from('users')
+      .select('id, first_name, last_name, gender')
+
+    if (publicUsersError) {
+      return err(new Error(`Failed to fetch users: ${publicUsersError.message}`))
+    }
+
+    // 3. Combine users with their roles
+    const usersWithRoles: UserWithRole[] = publicUsers.map(user => {
       const userRole = userRoles.find(ur => ur.user_id === user.id)
+      
       return {
         id: user.id,
-        // email: user.email || '',
+        first_name: user.first_name,
+        last_name: user.last_name,
+        gender: user.gender,
         role: userRole?.roles || null
       }
     })

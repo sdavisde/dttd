@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tables } from "@/database.types";
 import {
   Dialog,
   DialogTitle,
@@ -19,50 +18,57 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { UserWithRole } from "@/actions/users";
+import { useRoles, useAssignUserRole, useRemoveUserRole } from "../hooks/useUsers";
 
 interface UserRoleModalProps {
   user: UserWithRole | null;
-  roles: Tables<'roles'>[];
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (userId: string, roleId: string | null) => Promise<void>;
   onExited?: () => void;
 }
 
 export function UserRoleModal({
   user,
-  roles,
   isOpen,
   onClose,
-  onUpdate,
   onExited,
 }: UserRoleModalProps) {
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { data: roles = [] } = useRoles();
+  const assignUserRoleMutation = useAssignUserRole();
+  const removeUserRoleMutation = useRemoveUserRole();
 
   // Update selected role when user changes
   useEffect(() => {
     setSelectedRoleId(user?.role?.id ?? "No role");
-    setError(null);
   }, [user]);
+
+  // Reset mutation state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      assignUserRoleMutation.reset();
+      removeUserRoleMutation.reset();
+    }
+  }, [isOpen]);
 
   const handleSave = async () => {
     if (!user) return;
 
-    setLoading(true);
-    setError(null);
-
     try {
-      const newRole = selectedRoleId === "No role" ? "" : selectedRoleId;
-      await onUpdate(user.id, newRole);
+      if (selectedRoleId === "No role") {
+        await removeUserRoleMutation.mutateAsync({ userId: user.id });
+      } else if (selectedRoleId) {
+        await assignUserRoleMutation.mutateAsync({ userId: user.id, roleId: selectedRoleId });
+      }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user role');
-    } finally {
-      setLoading(false);
+      // Error is handled by the mutation hooks
     }
   };
+
+  const isLoading = assignUserRoleMutation.isPending || removeUserRoleMutation.isPending;
+  const error: any = assignUserRoleMutation.error || removeUserRoleMutation.error;
 
   return (
     <Dialog
@@ -90,18 +96,26 @@ export function UserRoleModal({
       <DialogContent>
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" color="text.secondary">
-            User Email
+            User Information
           </Typography>
           <Typography variant="body1" sx={{ fontWeight: 500 }}>
-            {'sample@gmail.com'}
+            {user?.first_name || user?.last_name
+              ? `${user?.first_name || ''} ${user?.last_name || ''}`.trim()
+              : 'Unknown User'
+            }
           </Typography>
+          {user?.gender && (
+            <Typography variant="body2" color="text.secondary">
+              Gender: {user.gender}
+            </Typography>
+          )}
         </Box>
 
-        {error && (
+        {error &&
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+            {error instanceof Error ? error.message : "Failed to update user role"}
           </Alert>
-        )}
+        }
 
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel>Select Role</InputLabel>
@@ -109,7 +123,7 @@ export function UserRoleModal({
             value={selectedRoleId || ""}
             onChange={(e) => setSelectedRoleId(e.target.value || null)}
             label="Select Role"
-            disabled={loading}
+            disabled={isLoading}
           >
             <MenuItem value="No role">
               <em>No role</em>
@@ -123,16 +137,16 @@ export function UserRoleModal({
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+        <Button onClick={onClose} disabled={isLoading}>
           Cancel
         </Button>
         <Button
           onClick={handleSave}
           variant="contained"
-          disabled={loading || selectedRoleId === (user?.role?.id || null)}
-          startIcon={loading ? <CircularProgress size={16} /> : null}
+          disabled={isLoading || selectedRoleId === (user?.role?.id || null)}
+          startIcon={isLoading ? <CircularProgress size={16} /> : null}
         >
-          {loading ? "Updating..." : "Update Role"}
+          {isLoading ? "Updating..." : "Update Role"}
         </Button>
       </DialogActions>
     </Dialog>
