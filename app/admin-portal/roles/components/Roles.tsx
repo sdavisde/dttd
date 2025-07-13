@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { updateRolePermissions } from "@/actions/roles";
-import { isErr } from "@/lib/results";
+import { useState, useMemo } from "react";
 import {
   TextField,
   Chip,
@@ -15,43 +13,30 @@ import {
   InputAdornment,
   Paper,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
-import { Role, RoleModal } from "./RolesModal";
+import { Role, RolesModal } from "./RolesModal";
+import { useRoles } from "../hooks/useRoles";
 
-interface RolesProps {
-  initialRoles: Role[];
-  error?: string;
-}
-
-export default function Roles({ initialRoles, error: initialError }: RolesProps) {
-  const [roles, setRoles] = useState<Role[]>(initialRoles);
-  const [filteredRoles, setFilteredRoles] = useState<Role[]>(initialRoles);
+export default function Roles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(initialError || null);
 
-  // Update filtered roles when roles or search term changes
-  useEffect(() => {
-    setRoles(initialRoles);
-    setFilteredRoles(initialRoles);
-  }, [initialRoles]);
+  const { data: roles = [], isLoading, isError, error } = useRoles();
 
   // Filter roles based on search term
-  useEffect(() => {
-    const filtered = roles.filter((role) => {
+  const filteredRoles = useMemo(() => {
+    return roles.filter((role) => {
       const matches = role.label
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       return matches;
     });
-
-    setFilteredRoles(filtered);
   }, [searchTerm, roles]);
 
   const handleRoleClick = (role: Role) => {
@@ -59,41 +44,19 @@ export default function Roles({ initialRoles, error: initialError }: RolesProps)
     setIsModalOpen(true);
   };
 
-  const handleUpdateRole = async (roleId: string, permissions: string[]) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await updateRolePermissions(roleId, permissions);
-      
-      if (isErr(result)) {
-        setError(result.error.message);
-        return;
-      }
-
-      // Update local state on success
-      setRoles(
-        roles.map((role) =>
-          role.id === roleId ? { ...role, permissions } : role
-        )
-      );
-    } catch (err) {
-      setError("Failed to update role permissions");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCloseModal = () => setIsModalOpen(false);
   const handleModalExited = () => setSelectedRole(null);
 
-  if (initialError) {
+  if (isError) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 3 }}>
           Roles & Permissions
         </Typography>
-        <Alert severity="error">Error: {initialError}</Alert>
+        <Alert severity="error">
+          Error: {error instanceof Error ? error.message : "Failed to load roles"}
+        </Alert>
       </Box>
     );
   }
@@ -104,13 +67,6 @@ export default function Roles({ initialRoles, error: initialError }: RolesProps)
         Roles & Permissions
       </Typography>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
       {/* Search Bar */}
       <Box sx={{ mb: 3 }}>
         <TextField
@@ -118,6 +74,7 @@ export default function Roles({ initialRoles, error: initialError }: RolesProps)
           placeholder="Search roles..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          disabled={isLoading}
           slotProps={{
             input: {
               startAdornment: (
@@ -133,7 +90,14 @@ export default function Roles({ initialRoles, error: initialError }: RolesProps)
 
       {/* Role List */}
       <Paper elevation={1}>
-        {filteredRoles.length > 0 ? (
+        {isLoading ? (
+          <Box sx={{ p: 4, textAlign: "center" }}>
+            <CircularProgress />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Loading roles...
+            </Typography>
+          </Box>
+        ) : filteredRoles.length > 0 ? (
           <List sx={{ paddingY: 0 }}>
             {filteredRoles.map((role, index) => (
               <Box key={role.id}>
@@ -203,13 +167,11 @@ export default function Roles({ initialRoles, error: initialError }: RolesProps)
       </Paper>
 
       {/* Role Modal */}
-      <RoleModal
+      <RolesModal
         role={selectedRole}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onExited={handleModalExited}
-        onUpdate={handleUpdateRole}
-        loading={loading}
       />
     </Box>
   );
