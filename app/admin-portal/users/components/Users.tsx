@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { UserWithRole } from "@/actions/users";
 import {
   TextField,
@@ -22,14 +22,14 @@ import {
   Person as PersonIcon,
 } from "@mui/icons-material";
 import { UserRoleModal } from "./UserRoleModal";
-import { useUsers } from "../hooks/useUsers";
+import { useUsersWithRoles } from "../../shared/hooks/useUsers";
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: users = [], isLoading, isError, error } = useUsers();
+  const { data: users = [], isLoading, isError, error } = useUsersWithRoles();
 
   // Filter users based on search term
   const filteredUsers = useMemo(() => {
@@ -113,11 +113,12 @@ export default function Users() {
         ) : filteredUsers.length > 0 ? (
           <List sx={{ paddingY: 0 }}>
             {filteredUsers.map((user, index) => (
-              <Box key={user.id}>
+              <Fragment key={user.id}>
                 <ListItem
                   component="button"
                   onClick={() => handleUserClick(user)}
                   sx={{
+                    cursor: "pointer",
                     "&:hover": {
                       backgroundColor: "action.hover",
                     },
@@ -148,7 +149,7 @@ export default function Users() {
                         <PersonIcon color="action" />
                         <Box>
                           <Typography variant="h6" component="div">
-                            {user.first_name || user.last_name 
+                            {user.first_name || user.last_name
                               ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
                               : 'Unknown User'
                             }
@@ -171,7 +172,7 @@ export default function Users() {
                   />
                 </ListItem>
                 {index < filteredUsers.length - 1 && <Divider />}
-              </Box>
+              </Fragment>
             ))}
           </List>
         ) : (

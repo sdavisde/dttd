@@ -18,7 +18,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { UserWithRole } from "@/actions/users";
-import { useRoles, useAssignUserRole, useRemoveUserRole } from "../hooks/useUsers";
+import { useRoles } from "../../shared/hooks/useRoles";
+import { useAssignUserRole, useRemoveUserRole } from "../../shared/hooks/useUsers";
 
 interface UserRoleModalProps {
   user: UserWithRole | null;

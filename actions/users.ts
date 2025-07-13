@@ -129,25 +129,3 @@ export async function removeUserRole(userId: string): Promise<Result<Error, { su
   }
 }
 
-export async function getAllRoles(): Promise<Result<Error, Tables<'roles'>[]>> {
-  try {
-    const supabase = await createClient()
-
-    const { data, error } = await supabase
-      .from('roles')
-      .select('*')
-      .order('label')
-
-    if (error) {
-      return err(new Error(`Failed to fetch roles: ${error.message}`))
-    }
-
-    return ok(data || [])
-  } catch (error) {
-    return err(
-      new Error(
-        `Error while fetching roles: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
-    )
-  }
-}

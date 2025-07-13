@@ -1,30 +1,16 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsersWithRoles, getAllRoles, assignUserRole, removeUserRole } from "@/actions/users";
+import { getUsersWithRoles, assignUserRole, removeUserRole } from "@/actions/users";
 import { isErr } from "@/lib/results";
 
 const USERS_QUERY_KEY = "users";
-const ROLES_QUERY_KEY = "roles";
 
-export function useUsers() {
+export function useUsersWithRoles() {
   return useQuery({
     queryKey: [USERS_QUERY_KEY],
     queryFn: async () => {
       const result = await getUsersWithRoles();
-      if (isErr(result)) {
-        throw new Error(result.error.message);
-      }
-      return result.data;
-    },
-  });
-}
-
-export function useRoles() {
-  return useQuery({
-    queryKey: [ROLES_QUERY_KEY],
-    queryFn: async () => {
-      const result = await getAllRoles();
       if (isErr(result)) {
         throw new Error(result.error.message);
       }
