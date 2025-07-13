@@ -13,37 +13,46 @@ import {
   IconButton,
   Typography,
   Box,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { useUpdateRolePermissions } from "../hooks/useRoles";
+import { logger } from "@/lib/logger";
 
 export type Role = Database["public"]["Tables"]["roles"]["Row"];
 
-interface RoleModalProps {
+interface RolesModal {
   role: Role | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (roleId: string, permissions: string[]) => Promise<void>;
   onExited?: () => void;
-  loading?: boolean;
 }
 
-export function RoleModal({
+export function RolesModal({
   role,
   isOpen,
   onClose,
-  onUpdate,
   onExited,
-  loading = false,
-}: RoleModalProps) {
+}: RolesModal) {
   const [permissions, setPermissions] = useState<string[]>(
     role?.permissions || []
   );
   const [newPermission, setNewPermission] = useState("");
 
+  const updateRolePermissions = useUpdateRolePermissions();
+
   // Update permissions when role changes
   useEffect(() => {
     setPermissions(role?.permissions || []);
   }, [role]);
+
+  // Reset mutation state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      updateRolePermissions.reset();
+    }
+  }, [isOpen, updateRolePermissions]);
 
   const handleAddPermission = () => {
     if (newPermission.trim() && !permissions.includes(newPermission.trim())) {
@@ -57,10 +66,23 @@ export function RoleModal({
     setPermissions(permissions.filter((p) => p !== permissionToRemove));
   };
 
+  const resetForm = () => setNewPermission("")
+
   const handleSave = async () => {
     if (!role) return;
-    await onUpdate(role.id, permissions);
-    onClose();
+
+    try {
+      await updateRolePermissions.mutateAsync({
+        roleId: role.id,
+        permissions
+      })
+      onClose
+    } catch (e) {
+      logger.error(e)
+    } finally {
+      onClose()
+      resetForm()
+    }
   };
 
   return (
@@ -87,6 +109,14 @@ export function RoleModal({
         </IconButton>
       </DialogTitle>
       <DialogContent>
+        {updateRolePermissions.isError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {updateRolePermissions.error instanceof Error
+              ? updateRolePermissions.error.message
+              : "Failed to update role permissions"}
+          </Alert>
+        )}
+
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
           Permissions
         </Typography>
@@ -97,6 +127,7 @@ export function RoleModal({
               label={permission}
               onDelete={() => handleRemovePermission(permission)}
               deleteIcon={<DeleteIcon />}
+              disabled={updateRolePermissions.isPending}
               sx={{ mr: 1, mb: 1 }}
             />
           ))}
@@ -109,25 +140,29 @@ export function RoleModal({
             onChange={(e) => setNewPermission(e.target.value)}
             placeholder="Add new permission..."
             onKeyDown={(e) => e.key === "Enter" && handleAddPermission()}
+            disabled={updateRolePermissions.isPending}
           />
           <Button
             variant="contained"
             onClick={handleAddPermission}
             startIcon={<AddIcon />}
-            disabled={!newPermission.trim()}
+            disabled={!newPermission.trim() || updateRolePermissions.isPending}
           >
             Add
           </Button>
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button 
-          onClick={handleSave} 
+        <Button onClick={onClose} disabled={updateRolePermissions.isPending}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSave}
           variant="contained"
-          disabled={loading}
+          disabled={updateRolePermissions.isPending}
+          startIcon={updateRolePermissions.isPending ? <CircularProgress size={16} /> : undefined}
         >
-          {loading ? 'Saving...' : 'Save Changes'}
+          {updateRolePermissions.isPending ? 'Saving...' : 'Save Changes'}
         </Button>
       </DialogActions>
     </Dialog>
