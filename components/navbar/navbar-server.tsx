@@ -49,8 +49,18 @@ async function getNavElements() {
       permissions_needed: [] as string[],
     },
     {
+      name: 'Candidates',
+      slug: 'review-candidate',
+      permissions_needed: ['FULL_ACCESS'],
+    },
+    {
       name: 'Settings',
       slug: 'settings',
+      permissions_needed: ['FULL_ACCESS'],
+    },
+    {
+      name: 'Roster',
+      slug: 'roster',
       permissions_needed: ['FULL_ACCESS'],
     },
   ]

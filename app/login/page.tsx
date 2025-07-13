@@ -8,7 +8,7 @@ export default function LoginPage() {
       sx={{ py: 8 }}
     >
       <Paper elevation={3}>
-        <AuthForm mode='login' />
+        <AuthForm />
       </Paper>
     </Container>
   )

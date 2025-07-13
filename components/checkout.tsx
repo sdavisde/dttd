@@ -5,6 +5,7 @@ import { loadStripe } from '@stripe/stripe-js'
 
 import { beginCheckout } from '@/actions/checkout'
 import { useSession } from './auth/session-provider'
+import { CircularProgress } from '@mui/material'
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
   throw new Error('Missing Stripe publishable key')
@@ -19,7 +20,16 @@ interface CheckoutProps {
 }
 
 export default function Checkout({ priceId, metadata, returnUrl }: CheckoutProps) {
-  const { user } = useSession()
+  const { user, loading: loadingUser } = useSession()
+
+  if (loadingUser) {
+    return (
+      <div className='h-screen w-screen flex items-center justify-center'>
+        <CircularProgress size={100} />
+      </div>
+    )
+  }
+
   const checkoutMetadata = {
     ...metadata,
     user_id: user?.id ?? '',

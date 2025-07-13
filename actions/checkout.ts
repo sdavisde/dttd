@@ -25,7 +25,13 @@ export async function beginCheckout(
       },
     ],
     mode: 'payment',
-    metadata,
+    metadata: {
+      price_id: priceId,
+      ...metadata,
+    },
+    payment_intent_data: {
+      metadata,
+    },
     return_url: returnUrl,
   })
 
