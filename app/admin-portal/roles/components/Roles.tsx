@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import {
   TextField,
   Chip,
@@ -20,7 +20,7 @@ import {
   ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
 import { Role, RolesModal } from "./RolesModal";
-import { useRoles } from "../hooks/useRoles";
+import { useRoles } from "../../shared/hooks/useRoles";
 
 export default function Roles() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,11 +100,12 @@ export default function Roles() {
         ) : filteredRoles.length > 0 ? (
           <List sx={{ paddingY: 0 }}>
             {filteredRoles.map((role, index) => (
-              <Box key={role.id}>
+              <Fragment key={role.id}>
                 <ListItem
                   component="button"
                   onClick={() => handleRoleClick(role)}
                   sx={{
+                    cursor: "pointer",
                     "&:hover": {
                       backgroundColor: "action.hover",
                     },
@@ -152,7 +153,7 @@ export default function Roles() {
                   />
                 </ListItem>
                 {index < filteredRoles.length - 1 && <Divider />}
-              </Box>
+              </Fragment>
             ))}
           </List>
         ) : (

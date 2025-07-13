@@ -17,7 +17,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { useUpdateRolePermissions } from "../hooks/useRoles";
+import { useUpdateRolePermissions } from "../../shared/hooks/useRoles";
 import { logger } from "@/lib/logger";
 
 export type Role = Database["public"]["Tables"]["roles"]["Row"];

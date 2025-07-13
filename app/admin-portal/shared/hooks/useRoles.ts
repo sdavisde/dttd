@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRoles, updateRolePermissions } from "@/actions/roles";
 import { isErr } from "@/lib/results";
 
-const QUERY_KEY = "roles"
+const ROLES_QUERY_KEY = "roles";
 
 export function useRoles() {
   return useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: [ROLES_QUERY_KEY],
     queryFn: async () => {
       const result = await getRoles();
       if (isErr(result)) {
@@ -32,7 +32,7 @@ export function useUpdateRolePermissions() {
     },
     onSuccess: (_, { roleId, permissions }) => {
       // Update the cached roles data
-      queryClient.setQueryData([QUERY_KEY], (oldData: any) => {
+      queryClient.setQueryData([ROLES_QUERY_KEY], (oldData: any) => {
         if (!oldData) return oldData;
         return oldData.map((role: any) =>
           role.id === roleId ? { ...role, permissions } : role
