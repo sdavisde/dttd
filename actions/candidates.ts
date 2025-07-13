@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { Result, err, ok } from '@/lib/results'
-import { SponsorFormSchema } from '@/app/sponsor/SponsorForm'
+import { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
 import { CandidateStatus, HydratedCandidate } from '@/lib/candidates/types'
 
 /**

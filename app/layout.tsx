@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
 import { Noto_Sans } from 'next/font/google'
-import Navbar from '@/components/navbar'
-import { Footer } from '@/components/footer'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import Head from 'next/head'
@@ -32,13 +30,7 @@ export default function RootLayout({
       </Head>
       <body className={`${notoSerif.className} antialiased`}>
         <SessionProvider>
-          <ThemeProvider>
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-              <Navbar />
-              <main style={{ flex: 1 }}>{children}</main>
-              <Footer />
-            </div>
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
         </SessionProvider>
       </body>
     </html>
