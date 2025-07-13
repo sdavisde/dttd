@@ -4,6 +4,7 @@ import { permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { ContactInformationTable } from './components/ContactInformationTable'
 import { getUser } from '@/lib/supabase/user'
+import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 
 async function getContactInformation() {
   const supabase = await createClient()
@@ -32,41 +33,47 @@ export default async function SettingsPage() {
   const contactInformation = await getContactInformation()
 
   return (
-    <Container maxWidth='xl'>
-      <Box sx={{ my: 4 }}>
-        <Typography
-          variant='h4'
-          component='h1'
-          gutterBottom
-        >
-          Settings
-        </Typography>
-        <Typography
-          variant='subtitle1'
-          color='text.secondary'
-          sx={{ mb: 4 }}
-        >
-          Manage system settings and configurations.
-        </Typography>
-
-        <Box sx={{ mb: 4 }}>
+    <>
+      <AdminBreadcrumbs
+        title='Settings'
+        breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
+      />
+      <Container maxWidth='xl'>
+        <Box sx={{ my: 4 }}>
           <Typography
-            variant='h5'
-            component='h2'
+            variant='h4'
+            component='h1'
             gutterBottom
           >
-            Contact Information
+            Settings
           </Typography>
           <Typography
-            variant='body2'
+            variant='subtitle1'
             color='text.secondary'
-            sx={{ mb: 2 }}
+            sx={{ mb: 4 }}
           >
-            Manage contact information used throughout the system.
+            Manage system settings and configurations.
           </Typography>
-          <ContactInformationTable contactInformation={contactInformation} />
+
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant='h5'
+              component='h2'
+              gutterBottom
+            >
+              Contact Information
+            </Typography>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ mb: 2 }}
+            >
+              Manage contact information used throughout the system.
+            </Typography>
+            <ContactInformationTable contactInformation={contactInformation} />
+          </Box>
         </Box>
-      </Box>
-    </Container>
+      </Container>
+    </>
   )
 }
