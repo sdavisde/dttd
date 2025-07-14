@@ -102,7 +102,7 @@ export default async function FilesPage() {
               <ListItem
                 key={folder.slug}
                 component={Link}
-                href={`/files/${folder.slug}`}
+                href={`/admin/files/${folder.slug}`}
                 sx={{
                   '&:hover': {
                     backgroundColor: 'action.hover',

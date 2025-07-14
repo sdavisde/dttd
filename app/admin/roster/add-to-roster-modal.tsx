@@ -72,7 +72,7 @@ export function AddToRosterModal({ open, handleClose, type, users, weekendId }: 
       logger.error(error, '💢 failed to add user to roster')
     }
 
-    router.push('/roster')
+    router.refresh()
     onClose()
   }
 

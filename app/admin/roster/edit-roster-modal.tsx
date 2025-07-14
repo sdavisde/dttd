@@ -87,7 +87,7 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
       return
     }
 
-    router.push('/roster')
+    router.refresh()
     onClose()
   }
 
@@ -107,7 +107,7 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
       return
     }
 
-    router.push('/roster')
+    router.refresh()
     onClose()
   }
 

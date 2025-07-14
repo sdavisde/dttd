@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Box, Container, Paper, Typography, Button } from '@mui/material'
 import { notFound } from 'next/navigation'
-import { FileTable } from '@/app/files/[folder]/file-table'
+import { FileTable } from '@/app/admin/files/[folder]/file-table'
 import { FileObject } from '@supabase/storage-js'
 import FolderIcon from '@mui/icons-material/Folder'
 import { FileUpload } from '@/components/file-upload'
