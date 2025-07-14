@@ -13,6 +13,7 @@ export type User = {
 }
 
 export type UserRoleInfo = {
+  id: string
   label: string
   permissions: Array<string>
 }

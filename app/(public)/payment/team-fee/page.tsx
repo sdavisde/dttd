@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import { getUrl } from '@/lib/url'
 import { getWeekendRosterRecord } from '@/actions/weekend'
-import { getUser } from '@/lib/supabase/user'
+import { getLoggedInUser } from '@/actions/users'
 import { isErr } from '@/lib/results'
 import { Stack, Typography } from '@mui/material'
 import { Error } from '@mui/icons-material'
@@ -28,8 +28,9 @@ export default async function TeamFeesPaymentPage({ searchParams }: TeamFeesPaym
     return notFound()
   }
 
-  const user = await getUser()
-  if (!user) {
+  const userResult = await getLoggedInUser()
+  const user = userResult?.data
+  if (isErr(userResult) || !user) {
     logger.error('User not found')
     return notFound()
   }

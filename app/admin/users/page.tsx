@@ -1,14 +1,16 @@
 import { Container, Paper } from '@mui/material'
 import { permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/supabase/user'
+import { getLoggedInUser } from '@/actions/users'
 import Users from './components/Users'
+import { isErr } from '@/lib/results'
 
 export default async function UsersPage() {
-  const user = await getUser()
+  const userResult = await getLoggedInUser()
+  const user = userResult?.data
 
   try {
-    if (!user) {
+    if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
     permissionLock(['USER_MANAGEMENT'])(user)
@@ -17,7 +19,10 @@ export default async function UsersPage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 8 }}>
+    <Container
+      maxWidth='md'
+      sx={{ py: 8 }}
+    >
       <Paper elevation={3}>
         <Users />
       </Paper>

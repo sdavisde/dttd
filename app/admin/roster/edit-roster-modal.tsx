@@ -3,16 +3,15 @@
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material'
 import Select from 'react-select'
 import { CHARole } from '@/lib/weekend/types'
-import { Tables } from '@/database.types'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/client'
-import { isErr } from '@/lib/supabase/utils'
+import { isSupabaseError } from '@/lib/supabase/utils'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
-import { TeamMember } from '@/lib/weekend/types'
 import React from 'react'
+import { User } from '@/lib/users/types'
 
 const editRosterFormSchema = z.object({
   status: z.string().min(1, { message: 'Status is required' }),
@@ -24,7 +23,7 @@ type EditRosterFormValues = z.infer<typeof editRosterFormSchema>
 type EditRosterModalProps = {
   open: boolean
   handleClose: () => void
-  rosterMember: TeamMember | null
+  user: User | null
 }
 
 const statusOptions = [
@@ -34,7 +33,8 @@ const statusOptions = [
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
-export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterModalProps) {
+export function EditRosterModal({ open, handleClose, user }: EditRosterModalProps) {
+  const teamMember = user?.team_member_info
   const router = useRouter()
   const {
     reset,
@@ -45,19 +45,19 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
     watch,
   } = useForm({
     defaultValues: {
-      status: rosterMember?.status || '',
-      cha_role: rosterMember?.cha_role || '',
+      status: teamMember?.status || '',
+      cha_role: teamMember?.cha_role || '',
     },
     resolver: zodResolver(editRosterFormSchema),
   })
 
   // Update form values when rosterMember changes
   React.useEffect(() => {
-    if (rosterMember) {
-      setValue('status', rosterMember.status || '')
-      setValue('cha_role', rosterMember.cha_role || '')
+    if (teamMember) {
+      setValue('status', teamMember.status || '')
+      setValue('cha_role', teamMember.cha_role || '')
     }
-  }, [rosterMember, setValue])
+  }, [teamMember, setValue])
 
   const onClose = () => {
     reset()
@@ -65,7 +65,7 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
   }
 
   const onSubmit: SubmitHandler<EditRosterFormValues> = async ({ status, cha_role }) => {
-    if (!rosterMember) {
+    if (!teamMember) {
       setError('root', { message: 'No roster member selected' })
       return
     }
@@ -78,10 +78,10 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
         status,
         cha_role,
       })
-      .eq('id', rosterMember.id)
+      .eq('id', teamMember.id)
       .select()
 
-    if (isErr(error)) {
+    if (isSupabaseError(error)) {
       logger.error(error, '💢 failed to update roster member')
       setError('root', { message: 'Failed to update roster member' })
       return
@@ -92,16 +92,16 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
   }
 
   const handleDelete = async () => {
-    if (!rosterMember) {
+    if (!teamMember) {
       setError('root', { message: 'No roster member selected' })
       return
     }
 
     const client = createClient()
 
-    const { error } = await client.from('weekend_roster').delete().eq('id', rosterMember.id)
+    const { error } = await client.from('weekend_roster').delete().eq('id', teamMember.id)
 
-    if (isErr(error)) {
+    if (isSupabaseError(error)) {
       logger.error(error, '💢 failed to delete roster member')
       setError('root', { message: 'Failed to delete roster member' })
       return
@@ -111,7 +111,7 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
     onClose()
   }
 
-  if (!rosterMember) {
+  if (!teamMember) {
     return null
   }
 
@@ -125,7 +125,7 @@ export function EditRosterModal({ open, handleClose, rosterMember }: EditRosterM
       <DialogTitle>Edit Roster Member</DialogTitle>
       <DialogContent sx={{ paddingBottom: 2 }}>
         <DialogContentText>
-          Edit {rosterMember.users.first_name} {rosterMember.users.last_name}'s roster information.
+          Edit {user.first_name} {user.last_name}'s roster information.
         </DialogContentText>
         <form className='space-y-4 my-4'>
           <div>

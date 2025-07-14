@@ -1,5 +1,3 @@
-import { Database } from '@/database.types'
-
 export type TeamMemberInfo = {
   id: string
   cha_role: string | null
@@ -14,8 +12,10 @@ export type Weekend = {
   number: number | null
   status: string | null
   title: string | null
-  type: Database['public']['Enums']['weekend_type']
+  type: WeekendType
 }
+
+export type WeekendType = 'MENS' | 'WOMENS'
 
 export enum CHARole {
   RECTOR = 'RECTOR',

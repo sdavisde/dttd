@@ -80,7 +80,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
         </div>
 
         {/* Desktop Navigation */}
-        <div className='hidden md:flex items-center space-x-8 flex-1 justify-center'>
+        <div className='hidden md:flex items-center space-x-8 flex-1 justify-end me-8'>
           {navElements.map((item) => (
             <Link
               key={item.name}

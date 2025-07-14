@@ -30,18 +30,18 @@ export function NavUser() {
           className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
         >
           <Avatar className='h-8 w-8 rounded-lg'>
-            <AvatarImage
+            {/* <AvatarImage
               src={user.user_metadata.avatar_url}
               alt={user.user_metadata.first_name}
-            />
+            /> */}
             <AvatarFallback className='rounded-lg'>
-              {user.user_metadata.first_name?.charAt(0)}
-              {user.user_metadata.last_name?.charAt(0)}
+              {user.first_name?.charAt(0)}
+              {user.last_name?.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className='grid flex-1 text-left text-sm leading-tight'>
             <span className='truncate font-medium'>
-              {user.user_metadata.first_name} {user.user_metadata.last_name}
+              {user.first_name} {user.last_name}
             </span>
             <span className='truncate text-xs'>{user.email}</span>
           </div>

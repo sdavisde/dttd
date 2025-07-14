@@ -21,6 +21,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
         phone_number,
         user_roles:user_roles (
           roles (
+            id,
             label,
             permissions
           )
@@ -50,6 +51,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
         const roleRow = u.user_roles?.[0]?.roles ?? null
         const role = roleRow
           ? {
+              id: roleRow.id,
               label: roleRow.label,
               permissions: roleRow.permissions ?? [],
             }
@@ -106,6 +108,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
           phone_number,
           user_roles:user_roles (
             roles (
+              id,
               label,
               permissions
             )
@@ -135,6 +138,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
     const roleRow = user.user_roles?.[0]?.roles ?? null
     const role = roleRow
       ? {
+          id: roleRow.id,
           label: roleRow.label,
           permissions: roleRow.permissions ?? [],
         }

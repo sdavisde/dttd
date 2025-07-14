@@ -1,7 +1,6 @@
-"use client";
+'use client'
 
-import { useState, useMemo, Fragment } from "react";
-import { UserWithRole } from "@/actions/users";
+import { useState, useMemo, Fragment } from 'react'
 import {
   TextField,
   Chip,
@@ -15,68 +14,72 @@ import {
   Paper,
   Divider,
   CircularProgress,
-} from "@mui/material";
-import {
-  Search as SearchIcon,
-  ChevronRight as ChevronRightIcon,
-  Person as PersonIcon,
-} from "@mui/icons-material";
-import { UserRoleModal } from "./UserRoleModal";
-import { useUsersWithRoles } from "../../shared/hooks/useUsers";
+} from '@mui/material'
+import { Search as SearchIcon, ChevronRight as ChevronRightIcon, Person as PersonIcon } from '@mui/icons-material'
+import { UserRoleModal } from './UserRoleModal'
+import { useUsers } from '@/hooks/use-users'
+import { User } from '@/lib/users/types'
 
 export default function Users() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const { data: users = [], isLoading, isError, error } = useUsersWithRoles();
+  const { data: users = [], isLoading, isError, error } = useUsers()
 
   // Filter users based on search term
   const filteredUsers = useMemo(() => {
-    if (!searchTerm) return users;
+    if (!searchTerm) return users
     return users.filter((user) => {
-      const searchLower = searchTerm.toLowerCase();
-      const firstNameMatch = user.first_name?.toLowerCase().includes(searchLower);
-      const lastNameMatch = user.last_name?.toLowerCase().includes(searchLower);
-      const roleMatch = user.role?.label.toLowerCase().includes(searchLower);
-      return firstNameMatch || lastNameMatch || roleMatch;
-    });
-  }, [searchTerm, users]);
+      const searchLower = searchTerm.toLowerCase()
+      const firstNameMatch = user.first_name?.toLowerCase().includes(searchLower)
+      const lastNameMatch = user.last_name?.toLowerCase().includes(searchLower)
+      const roleMatch = user.role?.label.toLowerCase().includes(searchLower)
+      return firstNameMatch || lastNameMatch || roleMatch
+    })
+  }, [searchTerm, users])
 
-  const handleUserClick = (user: UserWithRole) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
-
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user)
+    setIsModalOpen(true)
+  }
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+    setIsModalOpen(false)
+  }
 
   const handleModalExited = () => {
-    setSelectedUser(null);
-  };
+    setSelectedUser(null)
+  }
 
   if (isError) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 3 }}>
+        <Typography
+          variant='h4'
+          sx={{ mb: 3 }}
+        >
           User Management
         </Typography>
-        <Alert severity="error">
-          Error: {error instanceof Error ? error.message : "Failed to load data"}
-        </Alert>
+        <Alert severity='error'>Error: {error instanceof Error ? error.message : 'Failed to load data'}</Alert>
       </Box>
-    );
+    )
   }
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography
+        variant='h4'
+        sx={{ mb: 3 }}
+      >
         User Management
       </Typography>
 
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography
+        variant='body1'
+        color='text.secondary'
+        sx={{ mb: 3 }}
+      >
         Manage user roles and permissions. Click on a user to assign or change their role.
       </Typography>
 
@@ -84,29 +87,33 @@ export default function Users() {
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
-          placeholder="Search users by name or role..."
+          placeholder='Search users by name or role...'
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           disabled={isLoading}
           slotProps={{
             input: {
               startAdornment: (
-                <InputAdornment position="start">
+                <InputAdornment position='start'>
                   <SearchIcon />
                 </InputAdornment>
               ),
             },
           }}
-          size="medium"
+          size='medium'
         />
       </Box>
 
       {/* Users List */}
       <Paper elevation={1}>
         {isLoading ? (
-          <Box sx={{ p: 4, textAlign: "center" }}>
+          <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ mt: 2 }}
+            >
               Loading users...
             </Typography>
           </Box>
@@ -115,44 +122,46 @@ export default function Users() {
             {filteredUsers.map((user, index) => (
               <Fragment key={user.id}>
                 <ListItem
-                  component="button"
+                  component='button'
                   onClick={() => handleUserClick(user)}
                   sx={{
-                    cursor: "pointer",
-                    "&:hover": {
-                      backgroundColor: "action.hover",
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
                     },
                   }}
                   secondaryAction={
                     <Box
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: 1,
                       }}
                     >
-                      {user.role &&
+                      {user.role && (
                         <Chip
                           label={user.role.label}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
+                          size='small'
+                          color='primary'
+                          variant='outlined'
                         />
-                      }
-                      <ChevronRightIcon color="action" />
+                      )}
+                      <ChevronRightIcon color='action' />
                     </Box>
                   }
                 >
                   <ListItemText
                     primary={
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <PersonIcon color="action" />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PersonIcon color='action' />
                         <Box>
-                          <Typography variant="h6" component="div">
+                          <Typography
+                            variant='h6'
+                            component='div'
+                          >
                             {user.first_name || user.last_name
                               ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
-                              : 'Unknown User'
-                            }
+                              : 'Unknown User'}
                           </Typography>
                         </Box>
                       </Box>
@@ -160,11 +169,17 @@ export default function Users() {
                     secondary={
                       <Box>
                         {user.gender && (
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                          >
                             Gender: {user.gender}
                           </Typography>
                         )}
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography
+                          variant='body2'
+                          color='text.secondary'
+                        >
                           User ID: {user.id.slice(0, 8)}...
                         </Typography>
                       </Box>
@@ -176,11 +191,9 @@ export default function Users() {
             ))}
           </List>
         ) : (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <Typography color="text.secondary">
-              {searchTerm
-                ? "No users found matching your search."
-                : "No users found in the system."}
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color='text.secondary'>
+              {searchTerm ? 'No users found matching your search.' : 'No users found in the system.'}
             </Typography>
           </Box>
         )}
@@ -194,5 +207,5 @@ export default function Users() {
         onExited={handleModalExited}
       />
     </Box>
-  );
+  )
 }

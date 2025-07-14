@@ -4,15 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { Tables } from '@/database.types'
 import { logger } from '@/lib/logger'
 import { Result, err, ok } from '@/lib/results'
-import { isErr } from '@/lib/supabase/utils'
-import { Weekend } from '@/lib/weekend/types'
+import { isSupabaseError } from '@/lib/supabase/utils'
+import { Weekend, WeekendType } from '@/lib/weekend/types'
 
-export async function getActiveWeekend(): Promise<Result<Error, Weekend>> {
+export async function getActiveWeekends(): Promise<Result<Error, Record<WeekendType, Weekend | null>>> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('weekends').select('*').eq('status', 'active').single()
+  const { data, error } = await supabase.from('weekends').select('*').eq('status', 'active')
 
-  if (isErr(error)) {
+  if (isSupabaseError(error)) {
     return err(new Error(error?.message))
   }
 
@@ -20,7 +20,10 @@ export async function getActiveWeekend(): Promise<Result<Error, Weekend>> {
     return err(new Error('No active weekend found'))
   }
 
-  return ok(data)
+  return ok({
+    MENS: data.find((weekend) => weekend.type === 'MENS') ?? null,
+    WOMENS: data.find((weekend) => weekend.type === 'WOMENS') ?? null,
+  })
 }
 
 /**

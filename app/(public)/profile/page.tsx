@@ -31,9 +31,9 @@ export default function ProfilePage() {
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       email: user?.email ?? '',
-      firstName: user?.user_metadata?.first_name ?? '',
-      lastName: user?.user_metadata?.last_name ?? '',
-      phoneNumber: user?.user_metadata?.phone_number ?? '',
+      firstName: user?.first_name ?? '',
+      lastName: user?.last_name ?? '',
+      phoneNumber: user?.phone_number ?? '',
     },
   })
 
@@ -45,9 +45,9 @@ export default function ProfilePage() {
 
     if (user) {
       form.setValue('email', user.email ?? '')
-      form.setValue('firstName', user.user_metadata?.first_name ?? '')
-      form.setValue('lastName', user.user_metadata?.last_name ?? '')
-      form.setValue('phoneNumber', user.user_metadata?.phone_number ?? '')
+      form.setValue('firstName', user.first_name ?? '')
+      form.setValue('lastName', user.last_name ?? '')
+      form.setValue('phoneNumber', user.phone_number ?? '')
     }
   }, [user, sessionLoading, isAuthenticated, router, form])
 

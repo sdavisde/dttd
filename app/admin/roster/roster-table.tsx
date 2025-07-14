@@ -1,32 +1,33 @@
 'use client'
 
-import { Tables } from '@/database.types'
-import { TeamMember } from '@/lib/weekend/types'
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip } from '@mui/material'
 import { AddToRosterModal } from './add-to-roster-modal'
 import { EditRosterModal } from './edit-roster-modal'
 import { RosterStatusChip } from '@/components/roster/status-chip'
 import { useState } from 'react'
+import { User } from '@/lib/users/types'
+import { useUsers } from '@/hooks/use-users'
+import { genderMatchesWeekend } from '@/lib/weekend'
 
 type RosterTableProps = {
-  roster: Array<TeamMember>
+  roster: Array<User>
   type: 'mens' | 'womens'
-  users: Array<Tables<'users'> | null>
   weekendId: string
 }
-export function RosterTable({ roster, type, users, weekendId }: RosterTableProps) {
+export function RosterTable({ roster, type, weekendId }: RosterTableProps) {
+  const { data: users, isLoading: loadingUsers } = useUsers()
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const [selectedRosterMember, setSelectedRosterMember] = useState<TeamMember | null>(null)
+  const [selectedRosterMember, setSelectedRosterMember] = useState<User | null>(null)
 
-  const unassignedUsers = users.filter((user) => {
+  const availableUsers = users?.filter((user) => {
     if (!user) return false
-    const userOnRoster = !roster?.some((roster) => roster.user_id === user?.id)
-    const sameGender = (type === 'mens' && user?.gender === 'male') || (type === 'womens' && user?.gender === 'female')
+    const userOnRoster = !roster?.some((team_member) => team_member.id === user?.id)
+    const sameGender = genderMatchesWeekend(user?.gender ?? null, type)
     return userOnRoster && sameGender
   })
 
-  const handleEditRosterMember = (rosterMember: TeamMember) => {
+  const handleEditRosterMember = (rosterMember: User) => {
     setSelectedRosterMember(rosterMember)
     setEditModalOpen(true)
   }
@@ -59,11 +60,11 @@ export function RosterTable({ roster, type, users, weekendId }: RosterTableProps
                 onClick={() => handleEditRosterMember(rosterMember)}
               >
                 <TableCell>
-                  {rosterMember.users.first_name} {rosterMember.users.last_name}
+                  {rosterMember.first_name} {rosterMember.last_name}
                 </TableCell>
-                <TableCell>{rosterMember.cha_role}</TableCell>
+                <TableCell>{rosterMember.team_member_info?.cha_role}</TableCell>
                 <TableCell>
-                  <RosterStatusChip status={rosterMember.status as any} />
+                  <RosterStatusChip status={rosterMember.team_member_info?.status as any} />
                 </TableCell>
               </TableRow>
             </Tooltip>
@@ -85,14 +86,14 @@ export function RosterTable({ roster, type, users, weekendId }: RosterTableProps
           open={addModalOpen}
           handleClose={() => setAddModalOpen(false)}
           type={type}
-          users={unassignedUsers}
+          users={availableUsers ?? []}
           weekendId={weekendId}
         />
       )}
       <EditRosterModal
         open={editModalOpen}
         handleClose={handleCloseEditModal}
-        rosterMember={selectedRosterMember}
+        user={selectedRosterMember}
       />
     </TableContainer>
   )

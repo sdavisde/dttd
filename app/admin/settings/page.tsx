@@ -2,9 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { ContactInformationTable } from './components/ContactInformationTable'
-import { getUser } from '@/lib/supabase/user'
+import { getLoggedInUser } from '@/actions/users'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
+import { isErr } from '@/lib/results'
 
 async function getContactInformation() {
   const supabase = await createClient()
@@ -19,13 +20,14 @@ async function getContactInformation() {
 }
 
 export default async function SettingsPage() {
-  const user = await getUser()
+  const userResult = await getLoggedInUser()
+  const user = userResult?.data
 
   try {
-    if (!user) {
+    if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
-    permissionLock(['FULL_ACCESS'])(user)
+    permissionLock(['ADMIN'])(user)
   } catch (error) {
     redirect('/')
   }

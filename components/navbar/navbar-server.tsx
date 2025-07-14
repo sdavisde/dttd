@@ -44,8 +44,8 @@ async function getNavElements() {
   // Add static navigation elements
   const staticNavElements = [
     {
-      name: 'Sponsorship',
-      slug: 'sponsor',
+      name: 'Home',
+      slug: 'home',
       permissions_needed: [] as string[],
     },
     {
@@ -54,13 +54,8 @@ async function getNavElements() {
       permissions_needed: ['FULL_ACCESS'],
     },
     {
-      name: 'Settings',
-      slug: 'settings',
-      permissions_needed: ['FULL_ACCESS'],
-    },
-    {
       name: 'Roster',
-      slug: 'roster',
+      slug: 'admin/roster',
       permissions_needed: ['FULL_ACCESS'],
     },
     {
@@ -70,7 +65,10 @@ async function getNavElements() {
     },
   ]
 
-  return [...bucketStructure, ...staticNavElements]
+  return [
+    // ...bucketStructure,
+    ...staticNavElements,
+  ]
 }
 
 export async function NavbarServer() {

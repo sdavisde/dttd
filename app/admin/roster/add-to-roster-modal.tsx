@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { FormEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { isErr } from '@/lib/supabase/utils'
+import { isSupabaseError } from '@/lib/supabase/utils'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 
@@ -68,7 +68,7 @@ export function AddToRosterModal({ open, handleClose, type, users, weekendId }: 
       })
       .select()
 
-    if (isErr(error)) {
+    if (isSupabaseError(error)) {
       logger.error(error, '💢 failed to add user to roster')
     }
 

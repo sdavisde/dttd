@@ -1,14 +1,16 @@
 import { Container, Paper } from '@mui/material'
 import { permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getUser } from '@/lib/supabase/user'
+import { getLoggedInUser } from '@/actions/users'
 import Roles from '@/app/admin/roles/components/Roles'
+import { isErr } from '@/lib/results'
 
 export default async function RolesPage() {
-  const user = await getUser()
+  const userResult = await getLoggedInUser()
+  const user = userResult?.data
 
   try {
-    if (!user) {
+    if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
     permissionLock(['ROLES_MANAGEMENT'])(user)

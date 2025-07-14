@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useState, useMemo, Fragment } from "react";
+import { useState, useMemo, Fragment } from 'react'
 import {
   TextField,
   Chip,
@@ -14,56 +14,54 @@ import {
   Paper,
   Divider,
   CircularProgress,
-} from "@mui/material";
-import {
-  Search as SearchIcon,
-  ChevronRight as ChevronRightIcon,
-} from "@mui/icons-material";
-import { Role, RolesModal } from "./RolesModal";
-import { useRoles } from "../../shared/hooks/useRoles";
+} from '@mui/material'
+import { Search as SearchIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material'
+import { Role, RolesModal } from './RolesModal'
+import { useRoles } from '@/hooks/use-roles'
 
 export default function Roles() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const { data: roles = [], isLoading, isError, error } = useRoles();
+  const { data: roles = [], isLoading, isError, error } = useRoles()
 
   // Filter roles based on search term
   const filteredRoles = useMemo(() => {
     return roles.filter((role) => {
-      const matches = role.label
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      return matches;
-    });
-  }, [searchTerm, roles]);
+      const matches = role.label.toLowerCase().includes(searchTerm.toLowerCase())
+      return matches
+    })
+  }, [searchTerm, roles])
 
   const handleRoleClick = (role: Role) => {
-    setSelectedRole(role);
-    setIsModalOpen(true);
-  };
+    setSelectedRole(role)
+    setIsModalOpen(true)
+  }
 
-
-  const handleCloseModal = () => setIsModalOpen(false);
-  const handleModalExited = () => setSelectedRole(null);
+  const handleCloseModal = () => setIsModalOpen(false)
+  const handleModalExited = () => setSelectedRole(null)
 
   if (isError) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 3 }}>
+        <Typography
+          variant='h4'
+          sx={{ mb: 3 }}
+        >
           Roles & Permissions
         </Typography>
-        <Alert severity="error">
-          Error: {error instanceof Error ? error.message : "Failed to load roles"}
-        </Alert>
+        <Alert severity='error'>Error: {error instanceof Error ? error.message : 'Failed to load roles'}</Alert>
       </Box>
-    );
+    )
   }
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography
+        variant='h4'
+        sx={{ mb: 3 }}
+      >
         Roles & Permissions
       </Typography>
 
@@ -71,29 +69,33 @@ export default function Roles() {
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
-          placeholder="Search roles..."
+          placeholder='Search roles...'
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           disabled={isLoading}
           slotProps={{
             input: {
               startAdornment: (
-                <InputAdornment position="start">
+                <InputAdornment position='start'>
                   <SearchIcon />
                 </InputAdornment>
               ),
             },
           }}
-          size="medium"
+          size='medium'
         />
       </Box>
 
       {/* Role List */}
       <Paper elevation={1}>
         {isLoading ? (
-          <Box sx={{ p: 4, textAlign: "center" }}>
+          <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ mt: 2 }}
+            >
               Loading roles...
             </Typography>
           </Box>
@@ -102,52 +104,59 @@ export default function Roles() {
             {filteredRoles.map((role, index) => (
               <Fragment key={role.id}>
                 <ListItem
-                  component="button"
+                  component='button'
                   onClick={() => handleRoleClick(role)}
                   sx={{
-                    cursor: "pointer",
-                    "&:hover": {
-                      backgroundColor: "action.hover",
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
                     },
                   }}
                   secondaryAction={
                     <Box
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: 1,
                       }}
                     >
-                      {role.permissions
-                        ?.slice(0, 3)
-                        .map((permission, permIndex) => (
-                          <Chip
-                            key={permIndex}
-                            label={permission}
-                            size="small"
-                            color="primary"
-                            variant="outlined"
-                          />
-                        ))}
+                      {role.permissions?.slice(0, 3).map((permission, permIndex) => (
+                        <Chip
+                          key={permIndex}
+                          label={permission}
+                          size='small'
+                          color='primary'
+                          variant='outlined'
+                        />
+                      ))}
                       {role.permissions && role.permissions.length > 3 && (
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography
+                          variant='body2'
+                          color='text.secondary'
+                        >
                           +{role.permissions.length - 3} more
                         </Typography>
                       )}
-                      <ChevronRightIcon color="action" />
+                      <ChevronRightIcon color='action' />
                     </Box>
                   }
                 >
                   <ListItemText
                     primary={
-                      <Typography variant="h6" component="div">
+                      <Typography
+                        variant='h6'
+                        component='div'
+                      >
                         {role.label}
                       </Typography>
                     }
                     secondary={
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                      >
                         {role.permissions?.length || 0} permission
-                        {role.permissions?.length !== 1 ? "s" : ""}
+                        {role.permissions?.length !== 1 ? 's' : ''}
                       </Typography>
                     }
                   />
@@ -157,11 +166,9 @@ export default function Roles() {
             ))}
           </List>
         ) : (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <Typography color="text.secondary">
-              {searchTerm
-                ? "No roles found matching your search."
-                : "No roles found in the database."}
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color='text.secondary'>
+              {searchTerm ? 'No roles found matching your search.' : 'No roles found in the database.'}
             </Typography>
           </Box>
         )}
@@ -175,5 +182,5 @@ export default function Roles() {
         onExited={handleModalExited}
       />
     </Box>
-  );
+  )
 }
