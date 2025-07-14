@@ -30,7 +30,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup className='flex-1'>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel>Tres Dias</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           if (!item.items || item.items.length === 0) {

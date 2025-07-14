@@ -10,10 +10,10 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-export function LowerNav() {
+export function SystemLinks() {
   return (
     <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
-      <SidebarGroupLabel>Admin</SidebarGroupLabel>
+      <SidebarGroupLabel>System</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>

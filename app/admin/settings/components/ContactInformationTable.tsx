@@ -1,30 +1,15 @@
 'use client'
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Typography,
-  Box,
-  Alert,
-  Snackbar,
-} from '@mui/material'
 import { useState } from 'react'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
+import { Edit, Trash2 } from 'lucide-react'
 import { Tables } from '@/database.types'
 import { createClient } from '@/lib/supabase/client'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
+import { Card, CardContent } from '@/components/ui/card'
 
 type ContactInformation = Tables<'contact_information'>
 
@@ -135,120 +120,120 @@ export function ContactInformationTable({ contactInformation }: ContactInformati
 
   return (
     <>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Label</TableCell>
-              <TableCell>Email Address</TableCell>
-              <TableCell>Created</TableCell>
-              <TableCell align='right'>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {contacts.map((contact, index) => (
-              <TableRow
-                key={contact.id}
-                sx={{
-                  backgroundColor: index % 2 === 0 ? 'inherit' : 'rgba(0, 0, 0, 0.04)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                  },
-                }}
-              >
-                <TableCell sx={{ fontWeight: 'bold' }}>{contact.label}</TableCell>
-                <TableCell>{contact.email_address}</TableCell>
-                <TableCell>{new Date(contact.created_at).toLocaleDateString()}</TableCell>
-                <TableCell align='right'>
-                  <IconButton
-                    size='small'
-                    onClick={() => handleEdit(contact)}
-                    title='Edit'
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    size='small'
-                    color='error'
-                    onClick={() => handleDelete(contact.id)}
-                    title='Delete'
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {contacts.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  align='center'
-                  sx={{ py: 4 }}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className='font-bold'>Label</TableHead>
+            <TableHead>Email Address</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead className='text-right'>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {contacts.map((contact, index) => (
+            <TableRow
+              key={contact.id}
+              className={index % 2 === 0 ? '' : 'bg-muted/50'}
+            >
+              <TableCell className='font-bold'>{contact.label}</TableCell>
+              <TableCell>{contact.email_address}</TableCell>
+              <TableCell>{new Date(contact.created_at).toLocaleDateString()}</TableCell>
+              <TableCell className='text-right'>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => handleEdit(contact)}
+                  className='h-8 w-8 p-0'
                 >
-                  <Typography color='text.secondary'>
-                    No contact information found. Click "Add Contact" to create one.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Dialog
+                  <Edit className='h-4 w-4' />
+                  <span className='sr-only'>Edit</span>
+                </Button>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={() => handleDelete(contact.id)}
+                  className='h-8 w-8 p-0 text-destructive hover:text-destructive'
+                >
+                  <Trash2 className='h-4 w-4' />
+                  <span className='sr-only'>Delete</span>
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+          {contacts.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={4}
+                className='text-center py-8'
+              >
+                <p className='text-muted-foreground'>
+                  No contact information found. Click "Add Contact" to create one.
+                </p>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <Sheet
         open={isDialogOpen}
-        onClose={handleCloseDialog}
-        maxWidth='sm'
-        fullWidth
+        onOpenChange={setIsDialogOpen}
       >
-        <DialogTitle>{editingContact ? 'Edit Contact' : 'Add Contact'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
-            <TextField
-              fullWidth
-              label='Label'
-              value={formData.label}
-              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-              margin='normal'
-              required
-              placeholder='e.g., General Inquiries, Support'
-            />
-            <TextField
-              fullWidth
-              label='Email Address'
-              type='email'
-              value={formData.email_address}
-              onChange={(e) => setFormData({ ...formData, email_address: e.target.value })}
-              margin='normal'
-              required
-              placeholder='contact@example.com'
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleSubmit}
-            variant='contained'
-          >
-            {editingContact ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>{editingContact ? 'Edit Contact' : 'Add Contact'}</SheetTitle>
+          </SheetHeader>
+          <div className='space-y-4 p-4'>
+            <div className='space-y-2'>
+              <label
+                htmlFor='label'
+                className='text-sm font-medium'
+              >
+                Label
+              </label>
+              <Input
+                id='label'
+                value={formData.label}
+                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                placeholder='e.g., General Inquiries, Support'
+                required
+              />
+            </div>
+            <div className='space-y-2'>
+              <label
+                htmlFor='email'
+                className='text-sm font-medium'
+              >
+                Email Address
+              </label>
+              <Input
+                id='email'
+                type='email'
+                value={formData.email_address}
+                onChange={(e) => setFormData({ ...formData, email_address: e.target.value })}
+                placeholder='contact@example.com'
+                required
+              />
+            </div>
+          </div>
+          <SheetFooter>
+            <Button
+              variant='outline'
+              onClick={handleCloseDialog}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>{editingContact ? 'Update' : 'Create'}</Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      {snackbar.open && (
+        <div className='fixed bottom-4 right-4 z-50'>
+          <Alert variant={snackbar.severity === 'error' ? 'destructive' : 'default'}>
+            <AlertDescription>{snackbar.message}</AlertDescription>
+          </Alert>
+        </div>
+      )}
     </>
   )
 }

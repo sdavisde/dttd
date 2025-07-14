@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 
 import { NavMain } from '@/components/admin/sidebar/nav-main'
-import { LowerNav } from '@/components/admin/sidebar/lower-nav'
+import { SystemLinks } from '@/components/admin/sidebar/system-links'
 import { NavUser } from '@/components/admin/sidebar/nav-user'
 import { TeamSwitcher } from '@/components/admin/sidebar/team-switcher'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
@@ -82,7 +82,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <LowerNav />
+        <SystemLinks />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
