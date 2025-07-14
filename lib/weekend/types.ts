@@ -1,10 +1,21 @@
 import { Database } from '@/database.types'
 
-export type TeamMember = Database['public']['Tables']['weekend_roster']['Row'] & {
-  users: Database['public']['Tables']['users']['Row']
+export type TeamMemberInfo = {
+  id: string
+  cha_role: string | null
+  status: string | null
+  weekend_id: string | null
 }
 
-export type Weekend = Database['public']['Tables']['weekends']['Row']
+export type Weekend = {
+  id: string
+  start_date: string
+  end_date: string
+  number: number | null
+  status: string | null
+  title: string | null
+  type: Database['public']['Enums']['weekend_type']
+}
 
 export enum CHARole {
   RECTOR = 'RECTOR',

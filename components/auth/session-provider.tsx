@@ -1,10 +1,12 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createContext, useContext, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
-import { User } from '@/lib/supabase/types'
-import { isErr } from '@/lib/supabase/utils'
+import { useQuery } from '@tanstack/react-query'
+import { getLoggedInUser } from '@/actions/users'
+import { User } from '@/lib/users/types'
+import { Result, isErr } from '@/lib/results'
+import { logger } from '@/lib/logger'
 
 type Session = {
   user: User | null
@@ -19,87 +21,25 @@ type SessionProviderProps = {
 }
 
 export function SessionProvider({ children }: SessionProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
   const pathname = usePathname()
 
-  useEffect(() => {
-    async function getUser() {
-      setLoading(true)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+  const { data: userResult, isLoading } = useQuery<Result<Error, User>>({
+    queryKey: ['user', pathname],
+    queryFn: getLoggedInUser,
+  })
 
-      if (!user) {
-        setUser(null)
-        setIsAuthenticated(false)
-        setLoading(false)
-        return
-      }
-
-      // Fetch user's roles and permissions
-      const { data: userRoles, error: userRolesError } = await supabase
-        .from('user_roles')
-        .select(
-          `
-            roles (
-              permissions
-            )
-          `
-        )
-        .eq('user_id', user.id)
-
-      let permissions: string[] = []
-      if (userRolesError) {
-        console.error('Error fetching user roles:', userRolesError)
-      } else {
-        // Extract unique permissions from all roles
-        const allPermissions = userRoles
-          ?.map((ur) => ur.roles.permissions)
-          .flat()
-          .filter((p): p is string => p !== null)
-        const uniquePermissions = [...new Set(allPermissions)]
-        permissions = uniquePermissions
-      }
-
-      // Fetch user data from public.users table
-      const { data: userData, error: userDataError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (isErr(userDataError)) {
-        console.error('Error fetching user data:', userDataError)
-      }
-
-      setUser({
-        ...user,
-        permissions,
-        user_metadata: {
-          ...user.user_metadata,
-          first_name: userData?.first_name ?? user.user_metadata?.first_name,
-          last_name: userData?.last_name ?? user.user_metadata?.last_name,
-          gender: userData?.gender ?? user.user_metadata?.gender,
-          phone_number: userData?.phone_number ?? user.user_metadata?.phone_number,
-        },
-      })
-      setIsAuthenticated(!!user)
-      setLoading(false)
-    }
-
-    getUser()
-  }, [pathname])
+  const user = userResult?.data ?? null
+  if (userResult && isErr(userResult)) {
+    logger.error('Error fetching user', { error: userResult.error })
+  }
 
   const value = useMemo(
     () => ({
       user,
-      isAuthenticated,
-      loading,
+      isAuthenticated: !!user,
+      loading: isLoading,
     }),
-    [user, isAuthenticated, loading]
+    [user, isLoading]
   )
 
   return <sessionContext.Provider value={value}>{children}</sessionContext.Provider>

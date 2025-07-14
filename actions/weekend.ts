@@ -4,6 +4,24 @@ import { createClient } from '@/lib/supabase/server'
 import { Tables } from '@/database.types'
 import { logger } from '@/lib/logger'
 import { Result, err, ok } from '@/lib/results'
+import { isErr } from '@/lib/supabase/utils'
+import { Weekend } from '@/lib/weekend/types'
+
+export async function getActiveWeekend(): Promise<Result<Error, Weekend>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.from('weekends').select('*').eq('status', 'active').single()
+
+  if (isErr(error)) {
+    return err(new Error(error?.message))
+  }
+
+  if (!data) {
+    return err(new Error('No active weekend found'))
+  }
+
+  return ok(data)
+}
 
 /**
  * Fetches a team member's weekend roster record, unless it is already paid for.

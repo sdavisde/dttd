@@ -4,6 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
+import ReactQueryProvider from '@/components/react-query-provider'
 
 const notoSerif = Noto_Sans({
   subsets: ['latin'],
@@ -29,9 +30,11 @@ export default function RootLayout({
         />
       </Head>
       <body className={`${notoSerif.className} antialiased`}>
-        <SessionProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </SessionProvider>
+        <ReactQueryProvider>
+          <SessionProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </SessionProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   )

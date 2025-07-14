@@ -3,7 +3,7 @@
 import { useSession } from '@/components/auth/session-provider'
 import { BookOpen, Calendar, Clock, DollarSign, File, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { TeamMember } from '@/lib/weekend/types'
+import { User } from '@/lib/users/types'
 import { AssignmentAdd } from '@mui/icons-material'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
@@ -11,26 +11,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 interface DashboardProps {
   /** Information about the current user's place on the weekend roster */
-  rosterInfo: TeamMember | null
+  user: User | null
 }
 
-export function Dashboard({ rosterInfo }: DashboardProps) {
-  const { user, loading: sessionLoading } = useSession()
-
-  if (sessionLoading) {
-    return (
-      <div className='flex justify-center items-center h-[80vh]'>
-        <Loader2 className='w-10 h-10 animate-spin' />
-      </div>
-    )
-  }
-
+export function Dashboard({ user }: DashboardProps) {
   return (
     <div className='my-4'>
       <div className='flex flex-col gap-2'>
         <div className='flex flex-col gap-2'>
           <Typography variant='h1'>
-            Hi {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
+            Hi {user?.first_name} {user?.last_name}
           </Typography>
           <Typography>This is your personal space in the Dusty Trails Tres Dias community.</Typography>
           <Typography variant='muted'>Here you'll find important information, updates, and resources.</Typography>
@@ -59,9 +49,9 @@ export function Dashboard({ rosterInfo }: DashboardProps) {
         </div>
 
         <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
-          {rosterInfo && rosterInfo.status !== 'paid' && (
+          {user?.team_member_info && user.team_member_info.status !== 'paid' && (
             <Link
-              href={`/payment/team-fee?weekend_id=${rosterInfo.weekend_id}`}
+              href={`/payment/team-fee?weekend_id=${user.team_member_info.weekend_id}`}
               className='w-full h-full'
             >
               <Button

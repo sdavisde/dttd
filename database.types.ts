@@ -270,6 +270,7 @@ export type Database = {
       }
       users: {
         Row: {
+          email: string | null
           first_name: string | null
           gender: string | null
           id: string
@@ -277,6 +278,7 @@ export type Database = {
           phone_number: string | null
         }
         Insert: {
+          email?: string | null
           first_name?: string | null
           gender?: string | null
           id: string
@@ -284,6 +286,7 @@ export type Database = {
           phone_number?: string | null
         }
         Update: {
+          email?: string | null
           first_name?: string | null
           gender?: string | null
           id?: string
