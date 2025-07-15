@@ -6,7 +6,7 @@ import { useState } from 'react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,16 +48,16 @@ export function Navbar({ navElements }: NavbarClientProps) {
                 <span className='sr-only'>Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent
-              side='left'
-              className='bg-amber-900 text-white border-amber-800'
-            >
-              <div className='flex flex-col space-y-4 mt-8'>
+            <SheetContent side='left'>
+              <SheetHeader>
+                <SheetTitle>DTTD</SheetTitle>
+              </SheetHeader>
+              <div className='flex flex-col space-y-4 px-4'>
                 {navElements.map((item) => (
                   <Link
                     key={item.name}
                     href={`/${item.slug}`}
-                    className='text-lg font-medium hover:text-amber-200 transition-colors'
+                    className='text-lg font-medium hover:underline transition-colors'
                     onClick={() => setIsOpen(false)}
                   >
                     {item.name}

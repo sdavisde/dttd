@@ -8,12 +8,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <SidebarProvider>
       <AdminSidebar />
       <SidebarInset>
-        <div className='w-full h-12 bg-primary grid grid-cols-3'>
-          <span className='col-span-1' />
-          <span className='col-span-1 flex items-center justify-center'>
+        <div className='w-full min-h-12 bg-primary flex md:grid grid-cols-6 p-2'>
+          <span className='col-span-1 ' />
+          <span className='col-span-4 flex items-center justify-center'>
             <Typography
               variant='h4'
-              className='text-white'
+              className='text-white text-base md:text-center'
             >
               You are editing the Dusty Trails Tres Dias site.
             </Typography>
