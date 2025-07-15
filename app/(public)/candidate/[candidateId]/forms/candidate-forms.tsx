@@ -1,31 +1,26 @@
 'use client'
 
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import {
-  Box,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Checkbox,
-  Typography,
-  Paper,
-  Grid,
-  Button,
-  FormHelperText,
-} from '@mui/material'
 import { useState } from 'react'
 import { YesNoField } from '@/components/form/YesNoField'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Textarea } from '@/components/ui/textarea'
+import { DatePicker } from '@/components/ui/date-picker'
+import { WaiverDialog } from '@/components/ui/waiver-dialog'
 
 const formSchema = z.object({
-  _: z.boolean().optional(),
   /** Personal Info */
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   age: z.number().min(1, 'Age is required'),
   shirtSize: z.string().min(1, 'Shirt size is required'),
@@ -34,6 +29,11 @@ const formSchema = z.object({
   hasSpouseAttendedWeekend: z.boolean().optional(),
   spouseWeekendLocation: z.string().optional(),
   spouseName: z.string().optional(),
+  hasFriendsAttendingWeekend: z.boolean().optional(),
+  isChristian: z.boolean().optional(),
+  church: z.string().optional(),
+  memberOfClergy: z.boolean().optional(),
+  reasonForAttending: z.string().optional(),
   /** Address*/
   addressLine1: z.string().min(1, 'Address Line 1 is required'),
   addressLine2: z.string().optional(),
@@ -42,6 +42,8 @@ const formSchema = z.object({
   zip: z.string().min(1, 'ZIP code is required'),
   phone: z.string().min(1, 'Phone number is required'),
   /** Health section */
+  requireSpecialAssistance: z.boolean(),
+  specialNeeds: z.string().optional(),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
   coveredByInsurance: z.boolean(),
@@ -61,18 +63,19 @@ const formSchema = z.object({
   /** Smoking section */
   smokeOrVape: z.boolean().optional(),
   acknowledgedSmokeRules: z.boolean(),
-  requireSpecialAssistance: z.boolean(),
-  /** Church section */
-  church: z.string().min(1, 'Church is required'),
+  acknolwedgedCampRules: z.boolean(),
+  /** Medical permissions */
+  medicalPermission: z.boolean(),
+  emergencyContactPermission: z.boolean(),
 })
 type FormValues = z.infer<typeof formSchema>
 
 export function CandidateForms() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [waiverOpen, setWaiverOpen] = useState(false)
 
   const form = useForm<FormValues>({
     defaultValues: {
-      _: true,
       addressLine1: '',
       addressLine2: '',
       city: '',
@@ -81,6 +84,7 @@ export function CandidateForms() {
       phone: '',
       firstName: '',
       lastName: '',
+      email: '',
       dateOfBirth: '',
       age: 0,
       shirtSize: '',
@@ -88,6 +92,13 @@ export function CandidateForms() {
       hasSpouseAttendedWeekend: false,
       spouseWeekendLocation: '',
       spouseName: '',
+      hasFriendsAttendingWeekend: false,
+      isChristian: false,
+      church: '',
+      memberOfClergy: false,
+      reasonForAttending: '',
+      requireSpecialAssistance: false,
+      specialNeeds: '',
       emergencyContactName: '',
       emergencyContactPhone: '',
       coveredByInsurance: false,
@@ -104,22 +115,12 @@ export function CandidateForms() {
       dentistPhone: '',
       smokeOrVape: false,
       acknowledgedSmokeRules: false,
-      requireSpecialAssistance: false,
-      church: '',
+      acknolwedgedCampRules: false,
+      medicalPermission: false,
+      emergencyContactPermission: false,
     },
     resolver: zodResolver(formSchema),
   })
-
-  const {
-    control,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = form
-
-  const maritalStatus = watch('maritalStatus')
-  const coveredByInsurance = watch('coveredByInsurance')
-  const hasMedication = watch('hasMedication')
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
@@ -134,621 +135,840 @@ export function CandidateForms() {
   }
 
   return (
-    <Box
-      component='form'
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <Paper
-        elevation={1}
-        sx={{ p: 3, mb: 3 }}
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className='space-y-6'
       >
-        <Typography
-          variant='h6'
-          gutterBottom
-        >
-          Personal Information
-        </Typography>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
-          <Grid>
-            <Controller
-              name='firstName'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='First Name'
-                  fullWidth
-                  error={!!errors.firstName}
-                  helperText={errors.firstName?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='lastName'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Last Name'
-                  fullWidth
-                  error={!!errors.lastName}
-                  helperText={errors.lastName?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='church'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Church Name'
-                  fullWidth
-                  error={!!errors.church}
-                  helperText={errors.church?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='shirtSize'
-              control={control}
-              render={({ field }) => (
-                <FormControl
-                  fullWidth
-                  error={!!errors.shirtSize}
-                >
-                  <InputLabel>Shirt Size</InputLabel>
-                  <Select
-                    {...field}
-                    label='Shirt Size'
-                  >
-                    <MenuItem value='XS'>XS</MenuItem>
-                    <MenuItem value='S'>S</MenuItem>
-                    <MenuItem value='M'>M</MenuItem>
-                    <MenuItem value='L'>L</MenuItem>
-                    <MenuItem value='XL'>XL</MenuItem>
-                    <MenuItem value='XXL'>XXL</MenuItem>
-                    <MenuItem value='XXXL'>XXXL</MenuItem>
-                  </Select>
-                  {errors.shirtSize && <FormHelperText>{errors.shirtSize.message}</FormHelperText>}
-                </FormControl>
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='maritalStatus'
-              control={control}
-              render={({ field }) => (
-                <FormControl
-                  fullWidth
-                  error={!!errors.maritalStatus}
-                >
-                  <InputLabel>Marital Status</InputLabel>
-                  <Select
-                    {...field}
-                    label='Marital Status'
-                  >
-                    <MenuItem value='single'>Single</MenuItem>
-                    <MenuItem value='married'>Married</MenuItem>
-                    <MenuItem value='widowed'>Widowed</MenuItem>
-                    <MenuItem value='divorced'>Divorced</MenuItem>
-                    <MenuItem value='separated'>Separated</MenuItem>
-                  </Select>
-                  {errors.maritalStatus && <FormHelperText>{errors.maritalStatus.message}</FormHelperText>}
-                </FormControl>
-              )}
-            />
-          </Grid>
-
-          {/* Conditional spouse fields */}
-          {maritalStatus === 'married' && (
-            <>
-              <Grid>
-                <Controller
-                  name='spouseName'
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label='Spouse Name'
-                      fullWidth
-                      error={!!errors.spouseName}
-                      helperText={errors.spouseName?.message}
-                    />
-                  )}
-                />
-              </Grid>
-
-              <Grid>
-                <YesNoField
-                  name='hasSpouseAttendedWeekend'
-                  control={control}
-                  label='Has your spouse attended a Tres Dias weekend?'
-                  error={errors.hasSpouseAttendedWeekend?.message}
-                />
-              </Grid>
-
-              <Grid>
-                <Controller
-                  name='spouseWeekendLocation'
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label='Spouse Weekend Location'
-                      fullWidth
-                      error={!!errors.spouseWeekendLocation}
-                      helperText={errors.spouseWeekendLocation?.message}
-                    />
-                  )}
-                />
-              </Grid>
-            </>
-          )}
-        </div>
-      </Paper>
-      {/* Address Section */}
-      <Paper
-        elevation={1}
-        sx={{ p: 3, mb: 3 }}
-      >
-        <Typography
-          variant='h6'
-          gutterBottom
-        >
-          Address
-        </Typography>
-
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
-          <Grid>
-            <Controller
-              name='addressLine1'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Address Line 1'
-                  fullWidth
-                  error={!!errors.addressLine1}
-                  helperText={errors.addressLine1?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='addressLine2'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Address Line 2 (Optional)'
-                  fullWidth
-                  error={!!errors.addressLine2}
-                  helperText={errors.addressLine2?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='city'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='City'
-                  fullWidth
-                  error={!!errors.city}
-                  helperText={errors.city?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='state'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='State'
-                  fullWidth
-                  error={!!errors.state}
-                  helperText={errors.state?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='zip'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='ZIP Code'
-                  fullWidth
-                  error={!!errors.zip}
-                  helperText={errors.zip?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='phone'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Phone Number'
-                  fullWidth
-                  error={!!errors.phone}
-                  helperText={errors.phone?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='dateOfBirth'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Date of Birth'
-                  type='date'
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors.dateOfBirth}
-                  helperText={errors.dateOfBirth?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='age'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Age'
-                  type='number'
-                  fullWidth
-                  error={!!errors.age}
-                  helperText={errors.age?.message}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                />
-              )}
-            />
-          </Grid>
-        </div>
-      </Paper>
-
-      {/* Emergency Contact & Health Section */}
-      <Paper
-        elevation={1}
-        sx={{ p: 3, mb: 3 }}
-      >
-        <Typography
-          variant='h6'
-          gutterBottom
-        >
-          Emergency Contact & Health Information
-        </Typography>
-
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
-          <Grid>
-            <Controller
-              name='emergencyContactName'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Emergency Contact Name'
-                  fullWidth
-                  error={!!errors.emergencyContactName}
-                  helperText={errors.emergencyContactName?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='emergencyContactPhone'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Emergency Contact Phone'
-                  fullWidth
-                  error={!!errors.emergencyContactPhone}
-                  helperText={errors.emergencyContactPhone?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <YesNoField
-              name='coveredByInsurance'
-              control={control}
-              label='Are you covered by insurance?'
-              error={errors.coveredByInsurance?.message}
-            />
-          </Grid>
-
-          {coveredByInsurance && (
-            <Grid>
-              <Controller
-                name='insuranceInformation'
-                control={control}
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <FormField
+                control={form.control}
+                name='firstName'
                 render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label='Insurance Information'
-                    fullWidth
-                    multiline
-                    rows={3}
-                    error={!!errors.insuranceInformation}
-                    helperText={errors.insuranceInformation?.message}
-                  />
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-            </Grid>
-          )}
 
-          <Grid>
-            <Controller
-              name='allergies'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Allergies (Optional)'
-                  fullWidth
-                  multiline
-                  rows={2}
-                  error={!!errors.allergies}
-                  helperText={errors.allergies?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <Controller
-              name='allergyManagement'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Allergy Management (Optional)'
-                  fullWidth
-                  multiline
-                  rows={2}
-                  error={!!errors.allergyManagement}
-                  helperText={errors.allergyManagement?.message}
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <YesNoField
-              name='hasMedication'
-              control={control}
-              label='Do you take any medications?'
-              error={errors.hasMedication?.message}
-            />
-          </Grid>
-
-          {hasMedication && (
-            <Grid>
-              <Controller
-                name='medicationInformation'
-                control={control}
+              <FormField
+                control={form.control}
+                name='lastName'
                 render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label='Medication Information'
-                    fullWidth
-                    multiline
-                    rows={3}
-                    error={!!errors.medicationInformation}
-                    helperText={errors.medicationInformation?.message}
-                  />
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-            </Grid>
-          )}
 
-          <Grid>
-            <Controller
-              name='activityRestrictions'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Activity Restrictions (Optional)'
-                  fullWidth
-                  multiline
-                  rows={2}
-                  error={!!errors.activityRestrictions}
-                  helperText={errors.activityRestrictions?.message}
+              <FormField
+                control={form.control}
+                name='email'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='dateOfBirth'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date of Birth</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        date={field.value ? new Date(field.value) : undefined}
+                        onDateChange={field.onChange}
+                        className='w-full'
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='shirtSize'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Shirt Size</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Select shirt size' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value='XS'>XS</SelectItem>
+                        <SelectItem value='S'>S</SelectItem>
+                        <SelectItem value='M'>M</SelectItem>
+                        <SelectItem value='L'>L</SelectItem>
+                        <SelectItem value='XL'>XL</SelectItem>
+                        <SelectItem value='XXL'>XXL</SelectItem>
+                        <SelectItem value='XXXL'>XXXL</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='maritalStatus'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Marital Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Select marital status' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value='single'>Single</SelectItem>
+                        <SelectItem value='married'>Married</SelectItem>
+                        <SelectItem value='widowed'>Widowed</SelectItem>
+                        <SelectItem value='divorced'>Divorced</SelectItem>
+                        <SelectItem value='separated'>Separated</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Conditional spouse fields */}
+              {form.watch('maritalStatus') === 'married' && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='hasSpouseAttendedWeekend'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Has your spouse attended a Tres Dias weekend?</FormLabel>
+                        <FormControl>
+                          <div className='flex items-center space-x-2'>
+                            <Checkbox
+                              id='hasSpouseAttendedWeekend'
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                            <Label htmlFor='hasSpouseAttendedWeekend'>Yes</Label>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='spouseWeekendLocation'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          If spouse has already attended a Tres Dias, please state below which community/location they
+                          attended.
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='spouseName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          If spouse has submitted an application for next weekend, please print their name below:
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              <FormField
+                control={form.control}
+                name='hasFriendsAttendingWeekend'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Do you have any friends or relatives that will also be attending this weekend?
+                    </FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='hasFriendsAttendingWeekend'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='hasFriendsAttendingWeekend'>Yes</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='isChristian'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Are you a Christian?</FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='isChristian'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='isChristian'>Yes</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='church'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Church Attending</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='memberOfClergy'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Are you a member of the Clergy or Ordained?</FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='memberOfClergy'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='memberOfClergy'>Yes</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='reasonForAttending'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      What is your heartfelt reasoning for wanting to attend this Dusty Trails Tres Dias weekend?
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Address Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Address</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <FormField
+                control={form.control}
+                name='addressLine1'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 1</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='addressLine2'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 2 (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='city'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='state'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='zip'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ZIP Code</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='phone'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Emergency Contact & Health Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Emergency Contact & Health Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4 items-start'>
+              <FormField
+                control={form.control}
+                name='requireSpecialAssistance'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Do you have ANY Special Needs/Assistance? (ex: Sleep Apnea, Diabetes, Walking Assistance, etc)
+                    </FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='requireSpecialAssistance'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='requireSpecialAssistance'>Yes</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch('requireSpecialAssistance') && (
+                <FormField
+                  control={form.control}
+                  name='specialNeeds'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Please state your needs below</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               )}
-            />
-          </Grid>
+            </div>
 
-          <Grid>
-            <Controller
-              name='medicalConditions'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Medical Conditions (Optional)'
-                  fullWidth
-                  multiline
-                  rows={2}
-                  error={!!errors.medicalConditions}
-                  helperText={errors.medicalConditions?.message}
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4 items-start mt-4'>
+              <FormField
+                control={form.control}
+                name='emergencyContactName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Emergency Contact Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='emergencyContactPhone'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Emergency Contact Phone</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='coveredByInsurance'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Are you covered by insurance?</FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='coveredByInsurance'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='coveredByInsurance'>Yes</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch('coveredByInsurance') && (
+                <FormField
+                  control={form.control}
+                  name='insuranceInformation'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Please provide the following Insurance Information below: Insurance Name / Policy #/ Group # /
+                        Subscriber Name/ Relationship to participant
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          rows={3}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               )}
-            />
-          </Grid>
 
-          <Grid>
-            <Controller
-              name='familyPhysician'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Family Physician'
-                  fullWidth
-                  error={!!errors.familyPhysician}
-                  helperText={errors.familyPhysician?.message}
+              <FormField
+                control={form.control}
+                name='allergies'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Any Food/Other Allergies?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={2}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='allergyManagement'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Describe (Allergy) Reaction and Management of Reaction</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={2}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='hasMedication'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Do you take any medications?</FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='hasMedication'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='hasMedication'>Yes</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch('hasMedication') && (
+                <FormField
+                  control={form.control}
+                  name='medicationInformation'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        List ALL Medications below & Reason for taking (ex: Lexapro - Depression/Anxiety)
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          rows={3}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               )}
-            />
-          </Grid>
 
-          <Grid>
-            <Controller
-              name='physicianPhone'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Physician Phone'
-                  fullWidth
-                  error={!!errors.physicianPhone}
-                  helperText={errors.physicianPhone?.message}
-                />
-              )}
-            />
-          </Grid>
+              <FormField
+                control={form.control}
+                name='activityRestrictions'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Please list ANY restrictions that apply to activity</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={2}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Grid>
-            <Controller
-              name='familyDentist'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Family Dentist'
-                  fullWidth
-                  error={!!errors.familyDentist}
-                  helperText={errors.familyDentist?.message}
-                />
-              )}
-            />
-          </Grid>
+              <FormField
+                control={form.control}
+                name='medicalConditions'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Do you have ANY Medical Conditions that staff should know?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={2}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Grid>
-            <Controller
-              name='dentistPhone'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Dentist Phone'
-                  fullWidth
-                  error={!!errors.dentistPhone}
-                  helperText={errors.dentistPhone?.message}
-                />
-              )}
-            />
-          </Grid>
+              <FormField
+                control={form.control}
+                name='familyPhysician'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name of Family Physician</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='physicianPhone'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Physician Phone Number & Address</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='familyDentist'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name of Family Dentist</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='dentistPhone'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dentist Phone Number & Address Phone</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='smokeOrVape'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Do you smoke or vape?</FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='smokeOrVape'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='smokeOrVape'>Yes</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='acknowledgedSmokeRules'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      If you marked &quot;YES&quot; for smoking, please be aware there are only 2-3 breaks per day (in a
+                      specific area &quot;designated for smoking&quot; on camp):
+                    </FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='acknowledgedSmokeRules'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='acknowledgedSmokeRules'>I acknowledge</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Smoking & Special Assistance Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Acknowledgements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <FormField
+                control={form.control}
+                name='acknolwedgedCampRules'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>I acknowledge the camp rules and policies</FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='acknolwedgedCampRules'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='acknolwedgedCampRules'>I acknowledge</Label>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='medicalPermission'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Medical Permission Waiver</FormLabel>
+                    <FormControl>
+                      <div className='space-y-4'>
+                        <div className='flex items-center space-x-2'>
+                          <Checkbox
+                            id='medicalPermission'
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <Label htmlFor='medicalPermission'>
+                            I have read, acknowledged and agree to give permission to selected personnel for medical
+                            purposes
+                          </Label>
+                        </div>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={() => setWaiverOpen(true)}
+                        >
+                          Read Full Medical Permission Waiver
+                        </Button>
+                        <div className='text-sm text-muted-foreground'>
+                          I acknowledge that the Dusty Trails Tres Dias nurse will attempt to contact the emergency
+                          contact listed at the top of this waiver as soon as possible and will keep them up-to-date
+                          concerning the condition and treatment of the Attendee
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='emergencyContactPermission'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      I acknowledge that the Dusty Trails Tres Dias nurse will attempt to contact the emergency contact
+                      listed at the top of this waiver as soon as possible and will keep them up-to-date concerning the
+                      condition and treatment of the Attendee
+                    </FormLabel>
+                    <FormControl>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox
+                          id='emergencyContactPermission'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor='emergencyContactPermission'>I acknowledge</Label>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Submit Button */}
+        <div className='flex justify-center'>
+          <Button
+            type='submit'
+            size='lg'
+            disabled={isSubmitting}
+            className='min-w-[200px]'
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit Application'}
+          </Button>
         </div>
-      </Paper>
+      </form>
 
-      {/* Smoking & Special Assistance Section */}
-      <Paper
-        elevation={1}
-        sx={{ p: 3, mb: 3 }}
-      >
-        <Typography
-          variant='h6'
-          gutterBottom
-        >
-          Smoking & Special Assistance
-        </Typography>
+      <WaiverDialog
+        open={waiverOpen}
+        onOpenChange={setWaiverOpen}
+        title='Medical Permission Waiver'
+        content={`I hereby give permission to the medical personnel selected by the camp staff to order X-rays, routine tests, treatment; to release any records necessary for insurance purposes; and to provide or arrange necessary related transportation for me. I further, hereby give permission to the physician selected by the camp staff to secure and administer treatment, including hospitalization, anesthesia, surgery, or any other medical decision.
 
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
-          <Grid>
-            <YesNoField
-              name='smokeOrVape'
-              control={control}
-              label='Do you smoke or vape?'
-              error={errors.smokeOrVape?.message}
-            />
-          </Grid>
+I acknowledge that the Dusty Trails Tres Dias nurse will attempt to contact the emergency contact listed at the top of this waiver as soon as possible and will keep them up-to-date concerning the condition and treatment of the Attendee.
 
-          <Grid>
-            <Controller
-              name='acknowledgedSmokeRules'
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={field.value}
-                      onChange={field.onChange}
-                    />
-                  }
-                  label='I acknowledge the smoking rules and policies'
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid>
-            <YesNoField
-              name='requireSpecialAssistance'
-              control={control}
-              label='Do you require special assistance?'
-              error={errors.requireSpecialAssistance?.message}
-            />
-          </Grid>
-        </div>
-      </Paper>
-
-      {/* Submit Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-        <Button
-          type='submit'
-          variant='contained'
-          size='large'
-          disabled={isSubmitting}
-          sx={{ minWidth: 200 }}
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Application'}
-        </Button>
-      </Box>
-    </Box>
+By acknowledging this waiver, I understand and agree to the medical treatment permissions outlined above.`}
+        onAcknowledge={() => {
+          form.setValue('medicalPermission', true)
+        }}
+        acknowledgeText='I have read, understood, and agree to the medical permission terms'
+      />
+    </Form>
   )
 }

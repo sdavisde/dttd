@@ -1,6 +1,8 @@
 import React from 'react'
-import { FormControl, FormControlLabel, Radio, RadioGroup, FormHelperText, FormLabel } from '@mui/material'
 import { Controller, Control, FieldPath, FieldValues } from 'react-hook-form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 
 interface YesNoFieldProps<T extends FieldValues> {
   name: FieldPath<T>
@@ -18,33 +20,36 @@ export function YesNoField<T extends FieldValues>({
   required = false,
 }: YesNoFieldProps<T>) {
   return (
-    <Controller
+    <FormField
       name={name}
       control={control}
       render={({ field }) => (
-        <FormControl
-          error={!!error}
-          required={required}
-        >
+        <FormItem>
           <FormLabel>{label}</FormLabel>
-          <RadioGroup
-            row
-            value={field.value === true ? 'yes' : field.value === false ? 'no' : ''}
-            onChange={(e) => field.onChange(e.target.value === 'yes')}
-          >
-            <FormControlLabel
-              value='yes'
-              control={<Radio />}
-              label='Yes'
-            />
-            <FormControlLabel
-              value='no'
-              control={<Radio />}
-              label='No'
-            />
-          </RadioGroup>
-          {error && <FormHelperText>{error}</FormHelperText>}
-        </FormControl>
+          <FormControl>
+            <RadioGroup
+              onValueChange={(value) => field.onChange(value === 'yes')}
+              value={field.value === true ? 'yes' : field.value === false ? 'no' : ''}
+              className='flex flex-row space-x-4'
+            >
+              <div className='flex items-center space-x-2'>
+                <RadioGroupItem
+                  value='yes'
+                  id={`${name}-yes`}
+                />
+                <Label htmlFor={`${name}-yes`}>Yes</Label>
+              </div>
+              <div className='flex items-center space-x-2'>
+                <RadioGroupItem
+                  value='no'
+                  id={`${name}-no`}
+                />
+                <Label htmlFor={`${name}-no`}>No</Label>
+              </div>
+            </RadioGroup>
+          </FormControl>
+          {error && <FormMessage>{error}</FormMessage>}
+        </FormItem>
       )}
     />
   )

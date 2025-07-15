@@ -6,15 +6,11 @@ import { useState } from 'react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useSession } from '@/components/auth/session-provider'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 type NavElement = {
   name: string
@@ -29,6 +25,14 @@ type NavbarClientProps = {
 
 export function Navbar({ navElements }: NavbarClientProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { isAuthenticated, user } = useSession()
+  const router = useRouter()
+  const filteredNavElements = navElements.filter((item) => {
+    if (item.permissions_needed.length === 0) {
+      return true
+    }
+    return item.permissions_needed.some((permission) => user?.role?.permissions.includes(permission))
+  })
 
   return (
     <nav className='bg-primary text-white px-4 py-3'>
@@ -81,7 +85,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
 
         {/* Desktop Navigation */}
         <div className='hidden md:flex items-center space-x-8 flex-1 justify-end me-8'>
-          {navElements.map((item) => (
+          {filteredNavElements.map((item) => (
             <Link
               key={item.name}
               href={`/${item.slug}`}
@@ -93,24 +97,36 @@ export function Navbar({ navElements }: NavbarClientProps) {
         </div>
 
         {/* Avatar */}
-
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <div className='flex-shrink-0'>
-              <Avatar className='h-10 w-10 bg-white'>
-                <AvatarFallback className='bg-white text-amber-900 font-bold text-lg'>S</AvatarFallback>
-              </Avatar>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href='/profile'>Profile</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem className='text-destructive hover:text-destructive'>Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isAuthenticated ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <div className='flex-shrink-0'>
+                <Avatar className='h-10 w-10 bg-white'>
+                  <AvatarFallback className='bg-white text-amber-900 font-bold text-lg'>
+                    {user?.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link href='/profile'>Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='text-destructive hover:text-destructive'
+                onClick={() => {
+                  const supabase = createClient()
+                  supabase.auth.signOut()
+                  router.refresh()
+                }}
+              >
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link href='/login'>Login</Link>
+        )}
       </div>
     </nav>
   )
