@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Result, err, ok } from '@/lib/results'
 import { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
-import { CandidateStatus, HydratedCandidate } from '@/lib/candidates/types'
+import { CandidateStatus, HydratedCandidate, CandidateFormData } from '@/lib/candidates/types'
 
 /**
  * Create a new candidate with sponsorship information
@@ -174,6 +174,30 @@ export async function updateCandidateStatus(
   } catch (error) {
     return err(
       new Error(`Error while updating candidate status: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    )
+  }
+}
+
+/**
+ * Add Candidate Info when a user submits their candidate forms
+ */
+export async function addCandidateInfo(candidateId: string, data: CandidateFormData): Promise<Result<Error, true>> {
+  try {
+    const supabase = await createClient()
+
+    const { error: candidateInfoError } = await supabase.from('candidate_info').insert({
+      candidate_id: candidateId,
+      ...data,
+    })
+
+    if (candidateInfoError) {
+      return err(new Error(`Failed to add candidate info: ${candidateInfoError.message}`))
+    }
+
+    return ok(true)
+  } catch (error) {
+    return err(
+      new Error(`Error while adding candidate info: ${error instanceof Error ? error.message : 'Unknown error'}`)
     )
   }
 }

@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState } from 'react'
-import { YesNoField } from '@/components/form/YesNoField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,14 +14,17 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/ui/date-picker'
 import { WaiverDialog } from '@/components/ui/waiver-dialog'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { addCandidateInfo } from '@/actions/candidates'
+import { isErr } from '@/lib/results'
+import { calculateAge } from '@/lib/utils'
 
 const formSchema = z.object({
   /** Personal Info */
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
+  email: z.email('Invalid email address'),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
-  age: z.number().min(1, 'Age is required'),
   shirtSize: z.string().min(1, 'Shirt size is required'),
   maritalStatus: z.enum(['single', 'married', 'widowed', 'divorced', 'separated']).optional(),
   /** Make these fields conditionally render only if maritalStatus is married */
@@ -53,7 +55,6 @@ const formSchema = z.object({
   allergyManagement: z.string().optional(),
   hasMedication: z.boolean(),
   medicationInformation: z.string().optional(),
-  //todo:  restrictions (Z) : not sure what this field is for
   activityRestrictions: z.string().optional(),
   medicalConditions: z.string().optional(),
   familyPhysician: z.string().min(1, 'Family physician is required'),
@@ -63,17 +64,21 @@ const formSchema = z.object({
   /** Smoking section */
   smokeOrVape: z.boolean().optional(),
   acknowledgedSmokeRules: z.boolean(),
-  acknolwedgedCampRules: z.boolean(),
+  acknowledgedCampRules: z.boolean(),
   /** Medical permissions */
   medicalPermission: z.boolean(),
   emergencyContactPermission: z.boolean(),
 })
 type FormValues = z.infer<typeof formSchema>
 
-export function CandidateForms() {
+type CandidateFormsProps = {
+  candidateId: string
+}
+
+export function CandidateForms({ candidateId }: CandidateFormsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [waiverOpen, setWaiverOpen] = useState(false)
-
+  const [successMessage, setSuccessMessage] = useState('')
   const form = useForm<FormValues>({
     defaultValues: {
       addressLine1: '',
@@ -86,7 +91,6 @@ export function CandidateForms() {
       lastName: '',
       email: '',
       dateOfBirth: '',
-      age: 0,
       shirtSize: '',
       maritalStatus: undefined,
       hasSpouseAttendedWeekend: false,
@@ -115,7 +119,7 @@ export function CandidateForms() {
       dentistPhone: '',
       smokeOrVape: false,
       acknowledgedSmokeRules: false,
-      acknolwedgedCampRules: false,
+      acknowledgedCampRules: false,
       medicalPermission: false,
       emergencyContactPermission: false,
     },
@@ -124,11 +128,65 @@ export function CandidateForms() {
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
+
     try {
       console.log('Form data:', data)
-      // TODO: Implement form submission logic
+
+      // Calculate age from date of birth
+      const age = calculateAge(data.dateOfBirth)
+
+      const result = await addCandidateInfo(candidateId, {
+        address_line_1: data.addressLine1,
+        address_line_2: data.addressLine2 ?? null,
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+        phone: data.phone,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        date_of_birth: data.dateOfBirth,
+        shirt_size: data.shirtSize,
+        marital_status: data.maritalStatus ?? null,
+        has_spouse_attended_weekend: data.hasSpouseAttendedWeekend ?? null,
+        spouse_weekend_location: data.spouseWeekendLocation ?? null,
+        spouse_name: data.spouseName ?? null,
+        has_friends_attending_weekend: data.hasFriendsAttendingWeekend ?? null,
+        is_christian: data.isChristian ?? null,
+        church: data.church ?? null,
+        member_of_clergy: data.memberOfClergy ?? null,
+        reason_for_attending: data.reasonForAttending ?? null,
+        require_special_assistance: data.requireSpecialAssistance ?? null,
+        special_needs: data.specialNeeds ?? null,
+        emergency_contact_name: data.emergencyContactName ?? null,
+        emergency_contact_phone: data.emergencyContactPhone ?? null,
+        covered_by_insurance: data.coveredByInsurance ?? null,
+        insurance_information: data.insuranceInformation ?? null,
+        allergies: data.allergies ?? null,
+        allergy_management: data.allergyManagement ?? null,
+        has_medication: data.hasMedication ?? null,
+        medication_information: data.medicationInformation ?? null,
+        activity_restrictions: data.activityRestrictions ?? null,
+        medical_conditions: data.medicalConditions ?? null,
+        family_physician: data.familyPhysician ?? null,
+        physician_phone: data.physicianPhone ?? null,
+        family_dentist: data.familyDentist ?? null,
+        dentist_phone: data.dentistPhone ?? null,
+        smoke_or_vape: data.smokeOrVape ?? null,
+        acknowledged_smoke_rules: data.acknowledgedSmokeRules ?? null,
+        acknowledged_camp_rules: data.acknowledgedCampRules ?? null,
+        medical_permission: data.medicalPermission ?? null,
+        emergency_contact_permission: data.emergencyContactPermission ?? null,
+        age,
+      })
+      if (isErr(result)) {
+        form.setError('root', { message: result.error.message })
+        return
+      }
+
+      setSuccessMessage('Form submitted successfully')
     } catch (error) {
-      console.error('Form submission error:', error)
+      form.setError('root', { message: 'An error occurred while submitting the form' })
     } finally {
       setIsSubmitting(false)
     }
@@ -145,7 +203,7 @@ export function CandidateForms() {
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
               <FormField
                 control={form.control}
                 name='firstName'
@@ -197,7 +255,7 @@ export function CandidateForms() {
                     <FormControl>
                       <DatePicker
                         date={field.value ? new Date(field.value) : undefined}
-                        onDateChange={field.onChange}
+                        onDateChange={(date) => field.onChange(date?.toISOString())}
                         className='w-full'
                       />
                     </FormControl>
@@ -427,7 +485,7 @@ export function CandidateForms() {
             <CardTitle>Address</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
               <FormField
                 control={form.control}
                 name='addressLine1'
@@ -521,7 +579,7 @@ export function CandidateForms() {
             <CardTitle>Emergency Contact & Health Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4 items-start'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start'>
               <FormField
                 control={form.control}
                 name='requireSpecialAssistance'
@@ -562,7 +620,7 @@ export function CandidateForms() {
               )}
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4 items-start mt-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start mt-4'>
               <FormField
                 control={form.control}
                 name='emergencyContactName'
@@ -854,21 +912,21 @@ export function CandidateForms() {
             <CardTitle>Acknowledgements</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
               <FormField
                 control={form.control}
-                name='acknolwedgedCampRules'
+                name='acknowledgedCampRules'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>I acknowledge the camp rules and policies</FormLabel>
                     <FormControl>
                       <div className='flex items-center space-x-2'>
                         <Checkbox
-                          id='acknolwedgedCampRules'
+                          id='acknowledgedCampRules'
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='acknolwedgedCampRules'>I acknowledge</Label>
+                        <Label htmlFor='acknowledgedCampRules'>I acknowledge</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -881,7 +939,13 @@ export function CandidateForms() {
                 name='medicalPermission'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Medical Permission Waiver</FormLabel>
+                    <FormLabel>
+                      I hereby give permission to the medical personnel selected by the camp staff to order X-rays,
+                      routine tests, treatment; to release any records necessary for insurance purposes; and to provide
+                      or arrange necessary related transportation for me. I further, hereby give permission to the
+                      physician selected by the camp staff to secure and administer treatment, including
+                      hospitalization, anesthesia, surgery, or any other medical decision.{' '}
+                    </FormLabel>
                     <FormControl>
                       <div className='space-y-4'>
                         <div className='flex items-center space-x-2'>
@@ -901,13 +965,8 @@ export function CandidateForms() {
                           size='sm'
                           onClick={() => setWaiverOpen(true)}
                         >
-                          Read Full Medical Permission Waiver
+                          Read Tanglewood Christian Camp Waiver
                         </Button>
-                        <div className='text-sm text-muted-foreground'>
-                          I acknowledge that the Dusty Trails Tres Dias nurse will attempt to contact the emergency
-                          contact listed at the top of this waiver as soon as possible and will keep them up-to-date
-                          concerning the condition and treatment of the Attendee
-                        </div>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -942,6 +1001,24 @@ export function CandidateForms() {
           </CardContent>
         </Card>
 
+        {successMessage && (
+          <Alert variant='success'>
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
+        )}
+
+        {Object.values(form.formState.errors).length > 0 && (
+          <Alert variant='destructive'>
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {Object.values(form.formState.errors)
+                .map((error) => error.message)
+                .join(', ')}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Submit Button */}
         <div className='flex justify-center'>
           <Button
@@ -958,15 +1035,19 @@ export function CandidateForms() {
       <WaiverDialog
         open={waiverOpen}
         onOpenChange={setWaiverOpen}
-        title='Medical Permission Waiver'
-        content={`I hereby give permission to the medical personnel selected by the camp staff to order X-rays, routine tests, treatment; to release any records necessary for insurance purposes; and to provide or arrange necessary related transportation for me. I further, hereby give permission to the physician selected by the camp staff to secure and administer treatment, including hospitalization, anesthesia, surgery, or any other medical decision.
+        title='Tanglewood Christian Camp Waiver'
+        content={`
+WAIVER OF CLAIM TANGLEWOOD CHRISTIAN CAMP
 
-I acknowledge that the Dusty Trails Tres Dias nurse will attempt to contact the emergency contact listed at the top of this waiver as soon as possible and will keep them up-to-date concerning the condition and treatment of the Attendee.
+This Waiver of Claim (the "Waiver") is given for the following purposes:
 
-By acknowledging this waiver, I understand and agree to the medical treatment permissions outlined above.`}
-        onAcknowledge={() => {
-          form.setValue('medicalPermission', true)
-        }}
+1. I hereby desire to participate in various activities while on or about the premises Of Tanglewood Christian Camp in Tanglewood. TX without any supervision supplied by Tanglewood Christian Camp.
+2. I recognize that although the odds of serious injury or death is low, nevertheless, a body that slips-or falls may have a reaction to the immediate injury or the treatment for such injury that results in a medical condition that could lead to serious injury or death.
+3. I agree that in exchange for Tanglewood Christian Camp allowing me to participate in the activities on the premises that Im aware my individual capacities will not assert or pursue a claim for personal injury against Tanglewood Christian Camp or any person or entity or fellow participant that conducts or participates in any activity on the premises. More specifically, I hereby WAIVE and RENOUNCE and RELEASE any claim for personal injury suffered by me during activities regardless of the cause of the injury, that is, regardless of whether the injury is caused by participating in the/a planned activity or injury caused by movement on the premises or the mere going to and from the site where the activity takes place and regardless of whether the injury is caused by the negligence of any person or entity involved in the activity or the condition of the premises where the activity takes place SAVE and EXCEPT injury caused by gross negligence of Tanglewood Christian Camp acting through its agents, servants, employees, officers, directors or owners.
+4. I agree that if any claim is brought by any participant against Tanglewood Christian Camp or any employee, agent, owner, director or officer of Tanglewood Christian Camp because of my actions or omissions while participating in activities on the premises of Tanglewood Christian Camp, I shall INDEMNIFY and HOLD HARMLESS Tanglewood Christian Camp, its employees, agents, owners, officers and directors from and against any such claim including the duty to investigate, defend and pay on the part of Tanglewood Christian Camp.
+5. Texas law governs the interpretation and enforcement of this Waiver. Venue of any dispute will be ni the county where Tanglewood Christian Camp is located. Any claim shall be first discussed among the claimants) and Tanglewood Christian Camp before any suit if filed by way of face-to-face meeting on the premises, and thereafter, by way of non-binding mediation BEFORE suit to interpret or enforce is filed
+        `}
+        onAcknowledge={() => setWaiverOpen(false)}
         acknowledgeText='I have read, understood, and agree to the medical permission terms'
       />
     </Form>

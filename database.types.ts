@@ -16,19 +16,145 @@ export type Database = {
     Tables: {
       candidate_info: {
         Row: {
+          acknowledged_camp_rules: boolean | null
+          acknowledged_smoke_rules: boolean | null
+          activity_restrictions: string | null
+          address_line_1: string
+          address_line_2: string | null
+          age: number | null
+          allergies: string | null
+          allergy_management: string | null
           candidate_id: string | null
+          church: string | null
+          city: string
+          covered_by_insurance: boolean | null
           created_at: string
+          date_of_birth: string
+          dentist_phone: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_permission: boolean | null
+          emergency_contact_phone: string
+          family_dentist: string
+          family_physician: string
+          first_name: string
+          has_friends_attending_weekend: boolean | null
+          has_medication: boolean | null
+          has_spouse_attended_weekend: boolean | null
           id: string
+          insurance_information: string | null
+          is_christian: boolean | null
+          last_name: string
+          marital_status: string | null
+          medical_conditions: string | null
+          medical_permission: boolean | null
+          medication_information: string | null
+          member_of_clergy: boolean | null
+          phone: string
+          physician_phone: string
+          reason_for_attending: string | null
+          require_special_assistance: boolean | null
+          shirt_size: string
+          smoke_or_vape: boolean | null
+          special_needs: string | null
+          spouse_name: string | null
+          spouse_weekend_location: string | null
+          state: string
+          zip: string
         }
         Insert: {
+          acknowledged_camp_rules?: boolean | null
+          acknowledged_smoke_rules?: boolean | null
+          activity_restrictions?: string | null
+          address_line_1: string
+          address_line_2?: string | null
+          age?: number | null
+          allergies?: string | null
+          allergy_management?: string | null
           candidate_id?: string | null
+          church?: string | null
+          city: string
+          covered_by_insurance?: boolean | null
           created_at?: string
+          date_of_birth: string
+          dentist_phone: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_permission?: boolean | null
+          emergency_contact_phone: string
+          family_dentist: string
+          family_physician: string
+          first_name: string
+          has_friends_attending_weekend?: boolean | null
+          has_medication?: boolean | null
+          has_spouse_attended_weekend?: boolean | null
           id?: string
+          insurance_information?: string | null
+          is_christian?: boolean | null
+          last_name: string
+          marital_status?: string | null
+          medical_conditions?: string | null
+          medical_permission?: boolean | null
+          medication_information?: string | null
+          member_of_clergy?: boolean | null
+          phone: string
+          physician_phone: string
+          reason_for_attending?: string | null
+          require_special_assistance?: boolean | null
+          shirt_size: string
+          smoke_or_vape?: boolean | null
+          special_needs?: string | null
+          spouse_name?: string | null
+          spouse_weekend_location?: string | null
+          state: string
+          zip: string
         }
         Update: {
+          acknowledged_camp_rules?: boolean | null
+          acknowledged_smoke_rules?: boolean | null
+          activity_restrictions?: string | null
+          address_line_1?: string
+          address_line_2?: string | null
+          age?: number | null
+          allergies?: string | null
+          allergy_management?: string | null
           candidate_id?: string | null
+          church?: string | null
+          city?: string
+          covered_by_insurance?: boolean | null
           created_at?: string
+          date_of_birth?: string
+          dentist_phone?: string
+          email?: string
+          emergency_contact_name?: string
+          emergency_contact_permission?: boolean | null
+          emergency_contact_phone?: string
+          family_dentist?: string
+          family_physician?: string
+          first_name?: string
+          has_friends_attending_weekend?: boolean | null
+          has_medication?: boolean | null
+          has_spouse_attended_weekend?: boolean | null
           id?: string
+          insurance_information?: string | null
+          is_christian?: boolean | null
+          last_name?: string
+          marital_status?: string | null
+          medical_conditions?: string | null
+          medical_permission?: boolean | null
+          medication_information?: string | null
+          member_of_clergy?: boolean | null
+          phone?: string
+          physician_phone?: string
+          reason_for_attending?: string | null
+          require_special_assistance?: boolean | null
+          shirt_size?: string
+          smoke_or_vape?: boolean | null
+          special_needs?: string | null
+          spouse_name?: string | null
+          spouse_weekend_location?: string | null
+          state?: string
+          zip?: string
         }
         Relationships: [
           {
