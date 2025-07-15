@@ -1,7 +1,4 @@
-'use client'
-
-import { useSession } from '@/components/auth/session-provider'
-import { BookOpen, Calendar, Clock, DollarSign, File, Loader2 } from 'lucide-react'
+import { BookOpen, Calendar, DollarSign, File } from 'lucide-react'
 import Link from 'next/link'
 import { User } from '@/lib/users/types'
 import { AssignmentAdd } from '@mui/icons-material'
@@ -94,7 +91,7 @@ export function Dashboard({ user }: DashboardProps) {
             className='w-full h-full pointer-events-none'
           >
             <Button
-              variant='secondary'
+              variant='outline'
               className='w-full h-52 flex flex-col items-center justify-center gap-2'
               disabled
             >

@@ -3,7 +3,9 @@
 import { getHydratedCandidate } from '@/actions/candidates'
 import * as Results from '@/lib/results'
 import { logger } from '@/lib/logger'
-import { Button, Container, Paper, Typography } from '@mui/material'
+import { Card, CardHeader, CardContent, CardTitle, CardFooter } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default async function SubmittedPage({ searchParams }: { searchParams: Promise<{ id: string }> }) {
   const { id } = await searchParams
@@ -22,22 +24,18 @@ export default async function SubmittedPage({ searchParams }: { searchParams: Pr
   }
 
   return (
-    <Container maxWidth='md'>
-      <Paper
-        elevation={3}
-        sx={{ p: 4, my: 4 }}
-      >
-        <Typography
-          variant='h5'
-          component='h1'
-        >
-          Thank you for wanting to sponsor {candidate.candidate_sponsorship_info?.candidate_name}!
-        </Typography>
-        <Typography variant='body1'>
-          The pre-weekend couple will review your request and get back to you soon.
-        </Typography>
-      </Paper>
-      <Button href='/home'>Back to Home</Button>
-    </Container>
+    <div className='container mx-auto p-4 md:p-8'>
+      <Card className='border-0 md:border-[1px] shadow-none md:shadow-sm'>
+        <CardHeader>
+          <CardTitle className='text-lg'>
+            Thank you for wanting to sponsor {candidate.candidate_sponsorship_info?.candidate_name}!
+          </CardTitle>
+        </CardHeader>
+        <CardContent>The pre-weekend couple will review your request and get back to you soon.</CardContent>
+        <CardFooter>
+          <Button href='/home'>Back to Home</Button>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }

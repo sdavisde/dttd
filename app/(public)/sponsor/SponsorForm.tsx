@@ -1,16 +1,23 @@
 'use client'
 
-import { Container, Typography, Button, Paper, TextField, Grid, Alert } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { FormRadioGroup } from '@/components/form/FormRadioGroup'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import { sendSponsorshipNotificationEmail } from '@/actions/emails'
 import * as Results from '@/lib/results'
 import { useSession } from '@/components/auth/session-provider'
 import { createCandidateWithSponsorshipInfo } from '@/actions/candidates'
+import { Typography } from '@/components/ui/typography'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 
 /**
  * This should match 1:1 with the candidate_sponsorship_info table
@@ -42,13 +49,7 @@ export type SponsorFormSchema = z.infer<typeof sponsorFormSchema>
 export function SponsorForm() {
   const router = useRouter()
   const { user } = useSession()
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors, isSubmitting },
-    setError,
-  } = useForm<SponsorFormSchema>({
+  const form = useForm<SponsorFormSchema>({
     resolver: zodResolver(sponsorFormSchema),
     defaultValues: {
       candidate_name: '',
@@ -101,328 +102,371 @@ export function SponsorForm() {
       router.push(`/sponsor/submitted?id=${candidateResult.data.id}`)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setError('root', { message: errorMessage })
+      form.setError('root', { message: errorMessage })
       logger.error('Error submitting form:', error)
     }
   }
 
   // Check if there are any form validation errors
-  const hasFormErrors = Object.keys(errors).length > 0
+  const hasFormErrors = Object.keys(form.formState.errors).length > 0
 
   return (
-    <Container maxWidth='md'>
-      <Paper
-        elevation={3}
-        sx={{ p: 4, my: 4 }}
-      >
-        <Typography
-          variant='h4'
-          component='h1'
-          gutterBottom
-        >
-          Sponsor a Candidate
-        </Typography>
+    <div className='container mx-auto p-4'>
+      <Card className='border-0 md:border-[1px] shadow-none md:shadow-sm'>
+        <CardHeader>
+          <CardTitle>
+            <Typography variant='h1'>Sponsor a Candidate</Typography>
+          </CardTitle>
+          <CardDescription>
+            <Typography variant='muted'>Please fill out the following information to sponsor a candidate.</Typography>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='px-2 md:px-6'>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <div className='flex flex-col gap-2'>
+                <Typography variant='h6'>Basic Information</Typography>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
+                  <FormField
+                    control={form.control}
+                    name='candidate_name'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Candidate Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid
-            container
-            direction='column'
-            spacing={2}
-          >
-            <Grid>
-              <Typography
-                variant='h6'
-                gutterBottom
-              >
-                Basic Information
-              </Typography>
-            </Grid>
+                  <FormField
+                    control={form.control}
+                    name='candidate_email'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Candidate Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-            <Grid>
-              <TextField
-                {...register('candidate_name')}
-                label='Candidate Name'
-                required
-                fullWidth
-                error={!!errors.candidate_name}
-                helperText={errors.candidate_name?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('candidate_email')}
-                label='Candidate Email'
-                type='email'
-                required
-                fullWidth
-                error={!!errors.candidate_email}
-                helperText={errors.candidate_email?.message}
-              />
-            </Grid>
-
-            {/* Sponsor Information */}
-            <Grid>
-              <Typography
-                variant='h6'
-                gutterBottom
-                sx={{ mt: 2 }}
-              >
-                Sponsor Information
-              </Typography>
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('sponsor_name')}
-                label="Sponsor's Name"
-                required
-                fullWidth
-                error={!!errors.sponsor_name}
-                helperText={errors.sponsor_name?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('sponsor_phone')}
-                label="Sponsor's Phone #"
-                required
-                fullWidth
-                error={!!errors.sponsor_phone}
-                helperText={errors.sponsor_phone?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('sponsor_address')}
-                label="Sponsor's Address"
-                required
-                fullWidth
-                error={!!errors.sponsor_address}
-                helperText={errors.sponsor_address?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('sponsor_church')}
-                label="Sponsor's Church"
-                required
-                fullWidth
-                error={!!errors.sponsor_church}
-                helperText={errors.sponsor_church?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('sponsor_weekend')}
-                label="Sponsor's Weekend Attended & Where"
-                required
-                fullWidth
-                error={!!errors.sponsor_weekend}
-                helperText={errors.sponsor_weekend?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('reunion_group')}
-                label="Sponsor's Reunion Group Name & Location"
-                required
-                fullWidth
-                error={!!errors.reunion_group}
-                helperText={errors.reunion_group?.message}
-              />
-            </Grid>
-
-            {/* Additional Questions */}
-            <Grid>
-              <Typography
-                variant='h6'
-                gutterBottom
-                sx={{ mt: 2 }}
-              >
-                Additional Questions
-              </Typography>
-            </Grid>
-
-            <Grid>
-              <FormRadioGroup
-                name='attends_secuela'
-                control={control}
-                label='Do you attend Secuela regularly?'
-                options={[
-                  { value: 'yes', label: 'Yes' },
-                  { value: 'no', label: 'No' },
-                ]}
-                required
-                error={!!errors.attends_secuela}
-                helperText={errors.attends_secuela?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('contact_frequency')}
-                label='How often do you have contact with candidate?'
-                required
-                fullWidth
-                error={!!errors.contact_frequency}
-                helperText={errors.contact_frequency?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <Typography
-                variant='subtitle1'
-                gutterBottom
-              >
-                Describe the environment (situations) of EACH below regarding the candidate:
-              </Typography>
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('church_environment')}
-                label='Church'
-                multiline
-                rows={3}
-                required
-                fullWidth
-                error={!!errors.church_environment}
-                helperText={errors.church_environment?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('home_environment')}
-                label='Home'
-                multiline
-                rows={3}
-                required
-                fullWidth
-                error={!!errors.home_environment}
-                helperText={errors.home_environment?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('social_environment')}
-                label='Social Environment'
-                multiline
-                rows={3}
-                required
-                fullWidth
-                error={!!errors.social_environment}
-                helperText={errors.social_environment?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('work_environment')}
-                label='Work'
-                multiline
-                rows={3}
-                required
-                fullWidth
-                error={!!errors.work_environment}
-                helperText={errors.work_environment?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('god_evidence')}
-                label='What evidence have you seen that God is leading the candidate to this weekend?'
-                multiline
-                rows={3}
-                required
-                fullWidth
-                error={!!errors.god_evidence}
-                helperText={errors.god_evidence?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('support_plan')}
-                label='How do you intend to support the candidate before, during and after the weekend (4th Day)?'
-                multiline
-                rows={3}
-                required
-                fullWidth
-                error={!!errors.support_plan}
-                helperText={errors.support_plan?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <TextField
-                {...register('prayer_request')}
-                label='Has the candidate asked you to submit a specific prayer request on his/her behalf?'
-                multiline
-                rows={3}
-                fullWidth
-                error={!!errors.prayer_request}
-                helperText={errors.prayer_request?.message}
-              />
-            </Grid>
-
-            <Grid>
-              <FormRadioGroup
-                name='payment_owner'
-                control={control}
-                label='Who is paying for the candidate?'
-                options={[
-                  { value: 'sponsor', label: 'Sponsor' },
-                  { value: 'candidate', label: 'Candidate' },
-                ]}
-                required
-                error={!!errors.payment_owner}
-                helperText={errors.payment_owner?.message}
-              />
-            </Grid>
-
-            {/* Error Display */}
-            {hasFormErrors && (
-              <Grid>
-                <Alert
-                  severity='error'
-                  sx={{ mt: 2 }}
+                {/* Sponsor Information */}
+                <Typography
+                  variant='h6'
+                  className='mt-4'
                 >
-                  {Object.entries(errors).map(([key, value]) => (
-                    <Typography
-                      key={key}
-                      variant='body2'
-                    >
-                      {value.message}
-                    </Typography>
-                  ))}
-                </Alert>
-              </Grid>
-            )}
+                  Sponsor Information
+                </Typography>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
+                  <FormField
+                    control={form.control}
+                    name='sponsor_name'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sponsor's Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            <Grid>
-              <Button
-                type='submit'
-                variant='contained'
-                color='primary'
-                size='large'
-                sx={{ mt: 2 }}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Paper>
-    </Container>
+                  <FormField
+                    control={form.control}
+                    name='sponsor_phone'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sponsor's Phone #</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='sponsor_address'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sponsor's Address</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='sponsor_church'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sponsor's Church</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='sponsor_weekend'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sponsor's Weekend Attended & Where</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='reunion_group'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sponsor's Reunion Group Name & Location</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='attends_secuela'
+                    render={({ field }) => (
+                      <FormItem className='space-y-3'>
+                        <FormLabel>Do you attend Secuela regularly?</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className='flex flex-col'
+                          >
+                            <FormItem className='flex items-center gap-3'>
+                              <FormControl>
+                                <RadioGroupItem value='yes' />
+                              </FormControl>
+                              <FormLabel className='font-normal'>Yes</FormLabel>
+                            </FormItem>
+                            <FormItem className='flex items-center gap-3'>
+                              <FormControl>
+                                <RadioGroupItem value='no' />
+                              </FormControl>
+                              <FormLabel className='font-normal'>No</FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='contact_frequency'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>How often do you have contact with candidate?</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Typography
+                  variant='h6'
+                  className='mt-4'
+                >
+                  Describe the environment (situations) of EACH below regarding the candidate:
+                </Typography>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
+                  <FormField
+                    control={form.control}
+                    name='church_environment'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Church</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='home_environment'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Home</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='social_environment'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Social Environment</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='work_environment'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Work</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='god_evidence'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          What evidence have you seen that God is leading the candidate to this weekend?
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='support_plan'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          How do you intend to support the candidate before, during and after the weekend (4th Day)?
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='prayer_request'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Has the candidate asked you to submit a specific prayer request on his/her behalf?
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='payment_owner'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Who is paying for the candidate?</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className='flex flex-col'
+                          >
+                            <FormItem className='flex items-center gap-3'>
+                              <FormControl>
+                                <RadioGroupItem value='sponsor' />
+                              </FormControl>
+                              <FormLabel className='font-normal'>Sponsor</FormLabel>
+                            </FormItem>
+                            <FormItem className='flex items-center gap-3'>
+                              <FormControl>
+                                <RadioGroupItem value='candidate' />
+                              </FormControl>
+                              <FormLabel className='font-normal'>Candidate</FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Error Display */}
+                {hasFormErrors && (
+                  <Alert variant='destructive'>
+                    <AlertCircle />
+                    <AlertTitle>Error Submitting Form</AlertTitle>
+                    <AlertDescription>
+                      {Object.entries(form.formState.errors).map(([key, value]) => (
+                        <Typography
+                          key={key}
+                          variant='small'
+                        >
+                          {value.message}
+                        </Typography>
+                      ))}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+              <div className='flex justify-end pt-4'>
+                <Button
+                  type='submit'
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? 'Submitting...' : 'Submit Application'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

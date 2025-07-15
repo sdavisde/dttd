@@ -1,11 +1,8 @@
 'use client'
 
-import { Button, Box } from '@mui/material'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import CancelIcon from '@mui/icons-material/Cancel'
-import DeleteIcon from '@mui/icons-material/Delete'
-import PaymentIcon from '@mui/icons-material/Payment'
+import { Button } from '@/components/ui/button'
 import { HydratedCandidate } from '@/lib/candidates/types'
+import { CheckCircleIcon, SendIcon, Trash2Icon, XIcon, CreditCardIcon } from 'lucide-react'
 
 interface CandidateActionsProps {
   candidate: HydratedCandidate
@@ -27,54 +24,53 @@ export function CandidateActions({
   onClose,
 }: CandidateActionsProps) {
   return (
-    <>
+    <div className='w-full flex items-center justify-between gap-1'>
       <Button
-        color='error'
-        startIcon={<DeleteIcon />}
+        variant='destructive'
         onClick={onDelete}
       >
+        <Trash2Icon />
         Delete
       </Button>
-      <Box sx={{ display: 'flex', gap: 1 }}>
+      <div className='flex gap-1'>
         {candidate.status === 'pending_approval' && (
           <>
             <Button
-              color='success'
-              startIcon={<CheckCircleIcon />}
+              variant='default'
               onClick={() => onApprove(candidate.id)}
             >
+              <CheckCircleIcon />
               Approve
             </Button>
             <Button
-              color='error'
-              startIcon={<CancelIcon />}
+              variant='destructive'
               onClick={() => onReject(candidate.id)}
             >
+              <XIcon />
               Reject
             </Button>
           </>
         )}
         {candidate.status === 'sponsored' && (
           <Button
-            color='primary'
-            variant='contained'
+            variant='default'
             onClick={() => onSendForms(candidate.id)}
           >
+            <SendIcon />
             Send Candidate Forms
           </Button>
         )}
         {(candidate.status === 'awaiting_forms' || candidate.status === 'awaiting_payment') && (
           <Button
-            color='primary'
-            variant='contained'
-            startIcon={<PaymentIcon />}
+            variant='default'
             onClick={() => onSendPaymentRequest(candidate.id)}
           >
+            <SendIcon />
             Send Payment Request
           </Button>
         )}
         <Button onClick={onClose}>Close</Button>
-      </Box>
-    </>
+      </div>
+    </div>
   )
 }
