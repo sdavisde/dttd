@@ -57,7 +57,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
                 <SheetTitle>DTTD</SheetTitle>
               </SheetHeader>
               <div className='flex flex-col space-y-4 px-4'>
-                {navElements.map((item) => (
+                {filteredNavElements.map((item) => (
                   <Link
                     key={item.name}
                     href={`/${item.slug}`}
