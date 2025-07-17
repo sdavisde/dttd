@@ -1,4 +1,4 @@
-import { Chip } from '@mui/material'
+import { Badge } from '@/components/ui/badge'
 
 type RosterStatus = 'awaiting_payment' | 'paid' | 'confirmed' | 'cancelled'
 
@@ -7,7 +7,7 @@ interface RosterStatusChipProps {
 }
 
 export function RosterStatusChip({ status }: RosterStatusChipProps) {
-  const statusConfig: Record<RosterStatus, { color: string; label: string }> = {
+  const statusConfig: Record<RosterStatus, { color: 'warning' | 'success' | 'info' | 'error'; label: string }> = {
     awaiting_payment: { color: 'warning', label: 'Awaiting Payment' },
     paid: { color: 'success', label: 'Paid' },
     confirmed: { color: 'info', label: 'Confirmed' },
@@ -16,20 +16,16 @@ export function RosterStatusChip({ status }: RosterStatusChipProps) {
 
   if (!status) {
     return (
-      <Chip
-        label='No Status'
-        color='default'
-        size='small'
-      />
+      <Badge variant="outline">
+        No Status
+      </Badge>
     )
   }
 
-  const config = statusConfig[status] ?? { color: 'default', label: 'Unknown' }
+  const config = statusConfig[status] ?? { color: 'secondary' as const, label: 'Unknown' }
   return (
-    <Chip
-      label={config.label}
-      color={config.color as any}
-      size='small'
-    />
+    <Badge color={config.color}>
+      {config.label}
+    </Badge>
   )
 }

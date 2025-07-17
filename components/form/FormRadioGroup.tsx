@@ -1,5 +1,7 @@
-import { FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup } from '@mui/material'
-import { Control, FieldValues, Path, Controller } from 'react-hook-form'
+import { Control, FieldValues, Path } from 'react-hook-form'
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 
 interface Option {
   value: string
@@ -12,8 +14,6 @@ interface FormRadioGroupProps<T extends FieldValues> {
   label: string
   options: Option[]
   required?: boolean
-  error?: boolean
-  helperText?: string
 }
 
 export function FormRadioGroup<T extends FieldValues>({
@@ -22,35 +22,44 @@ export function FormRadioGroup<T extends FieldValues>({
   label,
   options,
   required = false,
-  error = false,
-  helperText,
 }: FormRadioGroupProps<T>) {
   return (
-    <Controller
-      name={name}
+    <FormField
       control={control}
+      name={name}
       render={({ field }) => (
-        <FormControl
-          required={required}
-          component='fieldset'
-          error={error}
-        >
-          <FormLabel component='legend'>{label}</FormLabel>
-          <RadioGroup
-            {...field}
-            value={field.value || ''}
-          >
-            {options.map((option) => (
-              <FormControlLabel
-                key={option.value}
-                value={option.value}
-                control={<Radio />}
-                label={option.label}
-              />
-            ))}
-          </RadioGroup>
-          {helperText && <FormHelperText>{helperText}</FormHelperText>}
-        </FormControl>
+        <FormItem>
+          <FormLabel>
+            {label}
+            {required && <span className='text-destructive ml-1'>*</span>}
+          </FormLabel>
+          <FormControl>
+            <RadioGroup
+              onValueChange={field.onChange}
+              value={field.value}
+              className='flex flex-col space-y-2'
+            >
+              {options.map((option) => (
+                <div
+                  key={option.value}
+                  className='flex items-center space-x-2'
+                >
+                  <RadioGroupItem
+                    value={option.value}
+                    id={`${name}-${option.value}`}
+                  />
+                  <Label
+                    htmlFor={`${name}-${option.value}`}
+                    className='text-sm font-normal cursor-pointer'
+                  >
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
       )}
     />
   )

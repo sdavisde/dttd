@@ -1,235 +1,113 @@
-import Link from 'next/link'
+import { Calendar, Mail, Phone } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from '@/components/ui/card'
 import Image from 'next/image'
-import { ArrowRight, Calendar, Heart, Users } from 'lucide-react'
-
-import { Button, Card, CardActions, CardContent, CardHeader, Typography } from '@mui/material'
+import { Typography } from '@/components/ui/typography'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function Home() {
   return (
-    <div className='flex flex-col min-h-screen'>
-      <main className='flex-1'>
-        <section className='w-full py-12 md:py-24 lg:py-32 bg-gray-50'>
-          <div className='px-4 md:px-6'>
-            <div className='grid gap-6 lg:grid-cols-2 lg:gap-12 items-center'>
-              <div className='space-y-4'>
-                <h1 className='text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl'>
-                  Strengthen Your Walk with Christ
-                </h1>
-                <p className='max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'>
-                  Dusty Trails Tres Dias is a Christian community dedicated to helping people pursue a stronger
-                  relationship with God through spiritual renewal weekends and ongoing fellowship.
-                </p>
-                <div className='flex flex-col gap-2 min-[400px]:flex-row'>
-                  <Link href='/events'>
-                    <Button
-                      className='flex gap-1'
-                      variant='contained'
-                    >
-                      Upcoming Events
-                      <ArrowRight className='h-4 w-4' />
-                    </Button>
-                  </Link>
-                  <Link href='/about'>
-                    <Button>Learn More</Button>
-                  </Link>
-                </div>
-              </div>
-              <div className='flex justify-center'>
-                <div className='relative w-full max-w-[500px] aspect-video rounded-xl overflow-hidden bg-gray-200'>
-                  <Image
-                    src='/2025-weekend-schedule.png'
-                    alt='Community gathering'
-                    className='object-cover w-full h-full'
-                    width={600}
-                    height={400}
-                  />
-                </div>
-              </div>
+    <div className="flex flex-col min-h-screen">
+      {/* Main Content */}
+      <main className="container mx-auto p-0 md:px-6 md:py-8 max-w-4xl">
+        {/* Hero Section with Background Image */}
+        <div className="relative md:rounded-lg overflow-hidden mb-12 min-h-[500px] flex items-center justify-center shadow-md">
+          <Image
+            src="/tanglewood.jpg"
+            alt="Community gathering"
+            className="absolute inset-0 object-cover w-full h-full"
+            width={1200}
+            height={500}
+            priority
+          />
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/50"></div>
+
+          {/* Hero Content */}
+          <div className="relative z-10 text-center px-6 py-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Welcome Friends
+            </h2>
+            <p className="text-xl text-white font-bold mb-8 leading-relaxed max-w-2xl mx-auto">
+              Dusty Trails is our local Tres Dias community - a place where
+              Christians gather for spiritual renewal, fellowship, and
+              encouragement in faith.
+            </p>
+
+            {/* Scripture */}
+            <Card className="bg-white/20 border-none p-6 max-w-2xl mx-auto backdrop-blur-sm">
+              <CardTitle>
+                <Typography className="text-background text-lg italic leading-relaxed text-center">
+                  "For in Christ all the fullness of the Deity lives in bodily
+                  form, and in Christ you have been brought to fullness. He is
+                  the head over every power and authority."
+                </Typography>
+              </CardTitle>
+              <CardDescription>
+                <Typography className="text-background text-base font-medium text-center">
+                  - Colossians 2:9-10
+                </Typography>
+              </CardDescription>
+            </Card>
+          </div>
+        </div>
+
+        {/* What We Do & Upcoming Weekends */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12 px-4">
+          {/* About Tres Dias */}
+          <div>
+            <Typography variant="h2" className="text-gray-800 mb-4">
+              What is Tres Dias?
+            </Typography>
+            <p className="text-gray-600 leading-relaxed">
+              Tres Dias is an international movement designed to create an
+              environment for strengthening your walk with Christ. It's a time
+              of worship, fellowship, learning, and personal reflection in a
+              supportive Christian community.
+            </p>
+          </div>
+
+          {/* Upcoming Weekends */}
+          <div className="flex flex-col gap-4">
+            <Typography variant="h2" className="text-gray-800">
+              Upcoming Weekends
+            </Typography>
+
+            <Alert>
+              <Calendar />
+              <AlertTitle className="font-bold">DTTD #10 Mens</AlertTitle>
+              <AlertDescription>Weekend: September 4-7, 2025</AlertDescription>
+            </Alert>
+
+            <Alert>
+              <Calendar />
+              <AlertTitle className="font-bold">DTTD #10 Womens</AlertTitle>
+              <AlertDescription>
+                Weekend: September 11-14, 2025
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div className="bg-gray-50 rounded-lg pb-6 text-center">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">
+            Reach Out To The Community
+          </h3>
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6">
+            <div className="flex items-center space-x-2">
+              <Mail className="h-4 w-4 text-secondary-foreground" />
+              <span className="text-secondary-foreground">
+                admin@dustytrailstresdias.org
+              </span>
             </div>
           </div>
-        </section>
-        {/* <section className='w-full py-12 md:py-24 lg:py-32'>
-          <div className='px-4 md:px-6'>
-            <div className='flex flex-col items-center justify-center space-y-4 text-center'>
-              <div className='space-y-2'>
-                <h2 className='text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl'>Our Community Portal</h2>
-                <p className='max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'>
-                  Connect with our community, register for events, and sponsor new candidates through our online portal.
-                </p>
-              </div>
-            </div>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-12'>
-              <Card>
-                <CardHeader>
-                  <Calendar className='w-10 h-10 text-gray-800 mb-2' />
-                  <Typography variant='h6'>Register for Events</Typography>
-                  <Typography variant='body1'>
-                    Sign up and pay for upcoming Tres Dias weekends and community gatherings.
-                  </Typography>
-                </CardHeader>
-                <CardContent>
-                  <p className='text-sm text-gray-500'>
-                    Our events are designed to deepen your faith and connect you with fellow believers in Christ.
-                  </p>
-                </CardContent>
-                <CardActions>
-                  <Link
-                    href='/events'
-                    className='w-full'
-                  >
-                    <Button className='w-full'>View Events</Button>
-                  </Link>
-                </CardActions>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <Heart className='w-10 h-10 text-gray-800 mb-2' />
-                  <Typography variant='h6'>Sponsor a Candidate</Typography>
-                  <Typography variant='body1'>
-                    Help others experience the blessing of Tres Dias by sponsoring new candidates.
-                  </Typography>
-                </CardHeader>
-                <CardContent>
-                  <p className='text-sm text-gray-500'>
-                    Sponsorship is a meaningful way to share the gift of Tres Dias with friends and family.
-                  </p>
-                </CardContent>
-                <CardActions>
-                  <Link
-                    href='/sponsor'
-                    className='w-full'
-                  >
-                    <Button className='w-full'>Sponsor Now</Button>
-                  </Link>
-                </CardActions>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <Users className='w-10 h-10 text-gray-800 mb-2' />
-                  <Typography variant='h6'>Prepare for Weekends</Typography>
-                  <Typography variant='body1'>
-                    Access resources and information to prepare for your Tres Dias experience.
-                  </Typography>
-                </CardHeader>
-                <CardContent>
-                  <p className='text-sm text-gray-500'>
-                    Find packing lists, schedules, and spiritual preparation materials for your upcoming weekend.
-                  </p>
-                </CardContent>
-                <CardActions>
-                  <Link
-                    href='/resources'
-                    className='w-full'
-                  >
-                    <Button className='w-full'>View Resources</Button>
-                  </Link>
-                </CardActions>
-              </Card>
-            </div>
-          </div>
-        </section>
-        <section className='w-full py-12 md:py-24 lg:py-32 bg-gray-50'>
-          <div className='px-4 md:px-6'>
-            <div className='flex flex-col items-center justify-center space-y-4 text-center'>
-              <div className='space-y-2'>
-                <h2 className='text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl'>Upcoming Events</h2>
-                <p className='max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'>
-                  Join us for our next Tres Dias weekend or community gathering.
-                </p>
-              </div>
-            </div>
-            <div className='grid gap-6 mt-12 md:grid-cols-2 lg:grid-cols-3'>
-              {[
-                {
-                  title: "Men's Weekend #42",
-                  date: 'June 15-18, 2023',
-                  description: 'A spiritual renewal weekend for men to deepen their relationship with Christ.',
-                },
-                {
-                  title: "Women's Weekend #42",
-                  date: 'July 20-23, 2023',
-                  description: 'A spiritual renewal weekend for women to deepen their relationship with Christ.',
-                },
-                {
-                  title: 'Community Reunion',
-                  date: 'August 5, 2023',
-                  description: 'A time of fellowship, worship, and celebration for all Tres Dias members.',
-                },
-              ].map((event, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <Typography variant='h6'>{event.title}</Typography>
-                    <Typography variant='body1'>{event.date}</Typography>
-                  </CardHeader>
-                  <CardContent>
-                    <p className='text-sm text-gray-500'>{event.description}</p>
-                  </CardContent>
-                  <CardActions>
-                    <Link
-                      href={`/events/${index + 1}`}
-                      className='w-full'
-                    >
-                      <Button
-                        variant='outlined'
-                        className='w-full'
-                      >
-                        Learn More
-                      </Button>
-                    </Link>
-                  </CardActions>
-                </Card>
-              ))}
-            </div>
-            <div className='flex justify-center mt-8'>
-              <Link href='/events'>
-                <Button variant='outlined'>View All Events</Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-        <section className='w-full py-12 md:py-24 lg:py-32'>
-          <div className='px-4 md:px-6'>
-            <div className='flex flex-col items-center justify-center space-y-4 text-center'>
-              <div className='space-y-2'>
-                <h2 className='text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl'>Testimonials</h2>
-                <p className='max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'>
-                  Hear from members of our community about how Tres Dias has impacted their lives.
-                </p>
-              </div>
-            </div>
-            <div className='grid gap-6 mt-12 md:grid-cols-2 lg:grid-cols-3'>
-              {[
-                {
-                  name: 'John D.',
-                  quote:
-                    "Tres Dias changed my life. I experienced God's love in a way I never had before, and I've grown so much in my faith since then.",
-                },
-                {
-                  name: 'Sarah M.',
-                  quote:
-                    "The community I found through Tres Dias has been such a blessing. I've made lifelong friends who encourage me in my walk with Christ.",
-                },
-                {
-                  name: 'Michael R.',
-                  quote:
-                    "Sponsoring candidates has been one of the most rewarding experiences of my life. Seeing others encounter God's grace is incredible.",
-                },
-              ].map((testimonial, index) => (
-                <Card
-                  key={index}
-                  className='text-center'
-                >
-                  <CardHeader>
-                    <Typography variant='h6'>{testimonial.name}</Typography>
-                  </CardHeader>
-                  <CardContent>
-                    <p className='italic text-gray-500'>"{testimonial.quote}"</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section> */}
+        </div>
       </main>
     </div>
   )

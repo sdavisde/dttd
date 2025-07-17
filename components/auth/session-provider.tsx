@@ -29,8 +29,12 @@ export function SessionProvider({ children }: SessionProviderProps) {
   })
 
   const user = userResult?.data ?? null
-  if (userResult && isErr(userResult)) {
-    logger.error('Error fetching user', { error: userResult.error })
+
+  const pathIsPublic = pathname === '/' || pathname === '/login'
+  if (userResult && isErr(userResult) && !pathIsPublic) {
+    logger.error(`Error fetching user at path ${pathname}`, {
+      error: userResult.error,
+    })
   }
 
   const value = useMemo(
@@ -42,7 +46,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
     [user, isLoading]
   )
 
-  return <sessionContext.Provider value={value}>{children}</sessionContext.Provider>
+  return (
+    <sessionContext.Provider value={value}>{children}</sessionContext.Provider>
+  )
 }
 
 export function useSession() {

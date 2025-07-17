@@ -1,13 +1,34 @@
 'use client'
 
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material'
-import Select from 'react-select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { CHARole } from '@/lib/weekend/types'
 import { Tables } from '@/database.types'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { FormEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { logger } from '@/lib/logger'
@@ -29,19 +50,20 @@ type AddToRosterModalProps = {
 }
 export function AddToRosterModal({ open, handleClose, type, users, weekendId }: AddToRosterModalProps) {
   const router = useRouter()
-  const {
-    reset,
-    handleSubmit,
-    formState: { isSubmitting, errors },
-    setError,
-    setValue,
-  } = useForm({
+  const form = useForm<AddToRosterFormValues>({
     defaultValues: {
       userId: '',
       role: '',
     },
     resolver: zodResolver(addToRosterFormSchema),
   })
+
+  const {
+    handleSubmit,
+    formState: { isSubmitting },
+    setError,
+    reset,
+  } = form
 
   const onClose = () => {
     reset()
@@ -77,99 +99,78 @@ export function AddToRosterModal({ open, handleClose, type, users, weekendId }: 
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-    >
-      <DialogTitle className='capitalize'>Add to {type} Roster</DialogTitle>
-      <DialogContent sx={{ paddingBottom: 2 }}>
-        <DialogContentText>
-          Choose a member of the DTTD community and their role on the weekend to add them to the {type} roster.
-        </DialogContentText>
-        <form className='space-y-4 my-4'>
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>User *</label>
-            <Select
-              options={users.map((user) => ({
-                value: user?.id,
-                label: `${user?.first_name} ${user?.last_name}`,
-              }))}
-              placeholder='Select a user'
-              onChange={(option) => setValue('userId', option?.value || '')}
-              isClearable
-              isSearchable
-              className='w-full'
-              menuPortalTarget={document?.body}
-              menuPosition='fixed'
-              styles={{
-                menuPortal: (base) => ({
-                  ...base,
-                  zIndex: 9999,
-                }),
-              }}
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent className='w-[400px] sm:w-[540px]'>
+        <SheetHeader>
+          <SheetTitle className='capitalize'>Add to {type} Roster</SheetTitle>
+          <SheetDescription>
+            Choose a member of the DTTD community and their role on the weekend to add them to the {type} roster.
+          </SheetDescription>
+        </SheetHeader>
+        
+        <Form {...form}>
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 py-4'>
+            <FormField
+              control={form.control}
+              name='userId'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>User *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='Select a user' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {users.map((user) => (
+                        <SelectItem key={user?.id} value={user?.id || ''}>
+                          {user?.first_name} {user?.last_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.userId && (
-              <Typography
-                variant='body1'
-                color='error'
-              >
-                {errors.userId.message}
-              </Typography>
-            )}
-          </div>
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>Role *</label>
-            <Select
-              options={Object.values(CHARole).map((role) => ({
-                value: role,
-                label: role.replaceAll('_', ' '),
-              }))}
-              placeholder='Select a role'
-              onChange={(option) => setValue('role', option?.value || '')}
-              isClearable
-              isSearchable
-              className='w-full'
-              formatOptionLabel={(option) => <span className='capitalize'>{option.label}</span>}
-              menuPortalTarget={document?.body}
-              menuPosition='fixed'
-              styles={{
-                menuPortal: (base) => ({
-                  ...base,
-                  zIndex: 9999,
-                }),
-              }}
+            
+            <FormField
+              control={form.control}
+              name='role'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='Select a role' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(CHARole).map((role) => (
+                        <SelectItem key={role} value={role}>
+                          <span className='capitalize'>{role.replaceAll('_', ' ')}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.role && (
-              <Typography
-                variant='body1'
-                color='error'
-              >
-                {errors.role.message}
-              </Typography>
-            )}
-          </div>
-
-          {errors.root && (
-            <Typography
-              key={errors.root.message}
-              variant='body1'
-              color='error'
-            >
-              {errors.root.message}
-            </Typography>
-          )}
-        </form>
-        <DialogActions className='w-full flex items-center !justify-between'>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={handleSubmit(onSubmit)}
-            loading={isSubmitting}
-            variant='contained'
-          >
-            Add to Roster
-          </Button>
-        </DialogActions>
-      </DialogContent>
-    </Dialog>
+            
+            <SheetFooter className='flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2'>
+              <Button type='button' variant='outline' onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type='submit' disabled={isSubmitting}>
+                {isSubmitting ? 'Adding...' : 'Add to Roster'}
+              </Button>
+            </SheetFooter>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
   )
 }

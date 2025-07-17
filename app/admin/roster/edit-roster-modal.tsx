@@ -1,7 +1,29 @@
 'use client'
 
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Typography } from '@mui/material'
-import Select from 'react-select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { CHARole } from '@/lib/weekend/types'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -36,14 +58,7 @@ const statusOptions = [
 export function EditRosterModal({ open, handleClose, user }: EditRosterModalProps) {
   const teamMember = user?.team_member_info
   const router = useRouter()
-  const {
-    reset,
-    handleSubmit,
-    formState: { isSubmitting, errors },
-    setError,
-    setValue,
-    watch,
-  } = useForm({
+  const form = useForm<EditRosterFormValues>({
     defaultValues: {
       status: teamMember?.status || '',
       cha_role: teamMember?.cha_role || '',
@@ -51,13 +66,20 @@ export function EditRosterModal({ open, handleClose, user }: EditRosterModalProp
     resolver: zodResolver(editRosterFormSchema),
   })
 
+  const {
+    handleSubmit,
+    formState: { isSubmitting },
+    setError,
+    reset,
+  } = form
+
   // Update form values when rosterMember changes
   React.useEffect(() => {
     if (teamMember) {
-      setValue('status', teamMember.status || '')
-      setValue('cha_role', teamMember.cha_role || '')
+      form.setValue('status', teamMember.status || '')
+      form.setValue('cha_role', teamMember.cha_role || '')
     }
-  }, [teamMember, setValue])
+  }, [teamMember, form])
 
   const onClose = () => {
     reset()
@@ -116,114 +138,87 @@ export function EditRosterModal({ open, handleClose, user }: EditRosterModalProp
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth='sm'
-      fullWidth
-    >
-      <DialogTitle>Edit Roster Member</DialogTitle>
-      <DialogContent sx={{ paddingBottom: 2 }}>
-        <DialogContentText>
-          Edit {user.first_name} {user.last_name}'s roster information.
-        </DialogContentText>
-        <form className='space-y-4 my-4'>
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>Status *</label>
-            <Select
-              options={statusOptions}
-              placeholder='Select a status'
-              onChange={(option) => setValue('status', option?.value || '')}
-              value={statusOptions.find((option) => option.value === watch('status'))}
-              isClearable
-              isSearchable
-              className='w-full'
-              menuPortalTarget={document.body}
-              menuPosition='fixed'
-              styles={{
-                menuPortal: (base) => ({
-                  ...base,
-                  zIndex: 9999,
-                }),
-              }}
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent className='w-[400px] sm:w-[540px]'>
+        <SheetHeader>
+          <SheetTitle>Edit Roster Member</SheetTitle>
+          <SheetDescription>
+            Edit {user?.first_name} {user?.last_name}'s roster information.
+          </SheetDescription>
+        </SheetHeader>
+        
+        <Form {...form}>
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 py-4'>
+            <FormField
+              control={form.control}
+              name='status'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='Select a status' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.status && (
-              <Typography
-                variant='body1'
-                color='error'
-              >
-                {errors.status.message}
-              </Typography>
-            )}
-          </div>
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>CHA Role *</label>
-            <Select
-              options={Object.values(CHARole).map((role) => ({
-                value: role,
-                label: role.replaceAll('_', ' '),
-              }))}
-              placeholder='Select a role'
-              onChange={(option) => setValue('cha_role', option?.value || '')}
-              value={Object.values(CHARole)
-                .map((role) => ({
-                  value: role,
-                  label: role.replaceAll('_', ' '),
-                }))
-                .find((option) => option.value === watch('cha_role'))}
-              isClearable
-              isSearchable
-              className='w-full'
-              formatOptionLabel={(option) => <span className='capitalize'>{option.label}</span>}
-              menuPortalTarget={document.body}
-              menuPosition='fixed'
-              styles={{
-                menuPortal: (base) => ({
-                  ...base,
-                  zIndex: 9999,
-                }),
-              }}
+            
+            <FormField
+              control={form.control}
+              name='cha_role'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CHA Role *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='Select a role' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(CHARole).map((role) => (
+                        <SelectItem key={role} value={role}>
+                          <span className='capitalize'>{role.replaceAll('_', ' ')}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.cha_role && (
-              <Typography
-                variant='body1'
-                color='error'
+            
+            <SheetFooter className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-between'>
+              <Button
+                type='button'
+                variant='destructive'
+                onClick={handleDelete}
               >
-                {errors.cha_role.message}
-              </Typography>
-            )}
-          </div>
-
-          {errors.root && (
-            <Typography
-              key={errors.root.message}
-              variant='body1'
-              color='error'
-            >
-              {errors.root.message}
-            </Typography>
-          )}
-        </form>
-        <DialogActions className='w-full flex items-center !justify-between'>
-          <Button
-            onClick={handleDelete}
-            color='error'
-            variant='outlined'
-          >
-            Remove from Roster
-          </Button>
-          <div className='flex gap-2'>
-            <Button onClick={onClose}>Cancel</Button>
-            <Button
-              onClick={handleSubmit(onSubmit)}
-              loading={isSubmitting}
-              variant='contained'
-            >
-              Update Roster Member
-            </Button>
-          </div>
-        </DialogActions>
-      </DialogContent>
-    </Dialog>
+                Remove from Roster
+              </Button>
+              <div className='flex flex-col-reverse gap-2 sm:flex-row'>
+                <Button type='button' variant='outline' onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type='submit' disabled={isSubmitting}>
+                  {isSubmitting ? 'Updating...' : 'Update Roster Member'}
+                </Button>
+              </div>
+            </SheetFooter>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
   )
 }

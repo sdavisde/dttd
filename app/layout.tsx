@@ -1,19 +1,20 @@
 import type { Metadata } from 'next'
-import { Noto_Sans } from 'next/font/google'
+import { Nunito } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
 import ReactQueryProvider from '@/components/react-query-provider'
 
-const notoSerif = Noto_Sans({
+const nunito = Nunito({
   subsets: ['latin'],
   weight: ['400', '700'],
 })
 
 export const metadata: Metadata = {
   title: 'Dusty Trails Tres Dias',
-  description: 'Being like-minded, having the same love, being one in spirit and of one mind. Phil 2:2',
+  description:
+    'Being like-minded, having the same love, being one in spirit and of one mind. Phil 2:2',
 }
 
 export default function RootLayout({
@@ -22,14 +23,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang='en'>
+    <html lang="en">
       <Head>
-        <meta
-          name='apple-mobile-web-app-title'
-          content='DTTD'
-        />
+        <meta name="apple-mobile-web-app-title" content="DTTD" />
       </Head>
-      <body className={`${notoSerif.className} antialiased`}>
+      <body className={`font-sans antialiased ${nunito.className}`}>
         <ReactQueryProvider>
           <SessionProvider>
             <ThemeProvider>{children}</ThemeProvider>
