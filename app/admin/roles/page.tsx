@@ -1,9 +1,9 @@
-import { Container, Paper } from '@mui/material'
 import { permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
 import Roles from '@/app/admin/roles/components/Roles'
 import { isErr } from '@/lib/results'
+import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 
 export default async function RolesPage() {
   const userResult = await getLoggedInUser()
@@ -19,13 +19,14 @@ export default async function RolesPage() {
   }
 
   return (
-    <Container
-      maxWidth='md'
-      sx={{ py: 8 }}
-    >
-      <Paper elevation={3}>
+    <>
+      <AdminBreadcrumbs
+        title='Roles'
+        breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
+      />
+      <div className='container mx-auto px-8'>
         <Roles />
-      </Paper>
-    </Container>
+      </div>
+    </>
   )
 }
