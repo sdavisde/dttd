@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
@@ -27,14 +27,12 @@ interface UserRoleSidebarProps {
   user: User | null
   isOpen: boolean
   onClose: () => void
-  onExited?: () => void
 }
 
 export function UserRoleSidebar({
   user,
   isOpen,
   onClose,
-  onExited,
 }: UserRoleSidebarProps) {
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
 
@@ -44,22 +42,25 @@ export function UserRoleSidebar({
 
   // Update selected role when user changes
   useEffect(() => {
-    setSelectedRoleId(user?.role?.id ?? 'No role')
+    setSelectedRoleId(user?.role?.id ?? null)
   }, [user])
 
-  // Reset mutation state when modal opens
+  // Reset mutation state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
       assignUserRoleMutation.reset()
       removeUserRoleMutation.reset()
+    } else {
+      // Reset form state when modal closes
+      setSelectedRoleId(user?.role?.id ?? null)
     }
-  }, [isOpen])
+  }, [isOpen, user])
 
   const handleSave = async () => {
     if (!user) return
 
     try {
-      if (selectedRoleId === 'No role') {
+      if (selectedRoleId === null) {
         await removeUserRoleMutation.mutateAsync({ userId: user.id })
       } else if (selectedRoleId) {
         await assignUserRoleMutation.mutateAsync({
@@ -219,6 +220,7 @@ export function UserRoleSidebar({
 
           {error && (
             <Alert variant="destructive">
+              <AlertTitle>Error</AlertTitle>
               <AlertDescription>
                 {error instanceof Error
                   ? error.message

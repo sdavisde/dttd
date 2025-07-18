@@ -17,28 +17,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-
-// Format phone number to xxx-xxx-xxxx format
-const formatPhoneNumber = (phoneNumber: string | null): string => {
-  if (!phoneNumber) return '-'
-  
-  // Remove all non-digit characters
-  const cleaned = phoneNumber.replace(/\D/g, '')
-  
-  // Check if it's a valid US phone number (10 digits)
-  if (cleaned.length === 10) {
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
-  }
-  
-  // If it's 11 digits and starts with 1, format as US number
-  if (cleaned.length === 11 && cleaned.startsWith('1')) {
-    return `${cleaned.slice(1, 4)}-${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
-  }
-  
-  // Otherwise, return the original
-  return phoneNumber
-}
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { formatPhoneNumber } from '@/lib/utils'
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -84,11 +64,8 @@ export default function Users() {
   }
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
-  }
-
-  const handleModalExited = () => {
     setSelectedUser(null)
+    setIsModalOpen(false)
   }
 
   if (isError) {
@@ -98,9 +75,11 @@ export default function Users() {
           User Management
         </Typography>
         <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>
-            Error:{' '}
-            {error instanceof Error ? error.message : 'Failed to load data'}
+            {error instanceof Error
+              ? error.message
+              : 'Failed to load user data'}
           </AlertDescription>
         </Alert>
       </div>
@@ -123,7 +102,7 @@ export default function Users() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search users by name or role..."
+            placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             disabled={isLoading}
@@ -178,7 +157,9 @@ export default function Users() {
                       </div>
                     </TableCell>
                     <TableCell>{user.email || '-'}</TableCell>
-                    <TableCell>{formatPhoneNumber(user.phone_number)}</TableCell>
+                    <TableCell>
+                      {formatPhoneNumber(user.phone_number)}
+                    </TableCell>
                     <TableCell>{user.gender || '-'}</TableCell>
                     <TableCell>
                       {user.role ? (
@@ -249,7 +230,6 @@ export default function Users() {
         user={selectedUser}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onExited={handleModalExited}
       />
     </div>
   )

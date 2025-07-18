@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function Roles() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -68,9 +68,11 @@ export default function Roles() {
           Roles & Permissions
         </Typography>
         <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>
-            Error:{' '}
-            {error instanceof Error ? error.message : 'Failed to load roles'}
+            {error instanceof Error
+              ? error.message
+              : 'Failed to load roles data'}
           </AlertDescription>
         </Alert>
       </div>
@@ -124,10 +126,16 @@ export default function Roles() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="font-bold min-w-[150px]">Role</TableHead>
+                  <TableHead className="font-bold min-w-[150px]">
+                    Role
+                  </TableHead>
                   <TableHead className="min-w-[200px]">Permissions</TableHead>
-                  <TableHead className="min-w-[120px]">Permission Count</TableHead>
-                  <TableHead className="sticky right-0 bg-background text-right min-w-[120px] border-l">Actions</TableHead>
+                  <TableHead className="min-w-[120px]">
+                    Permission Count
+                  </TableHead>
+                  <TableHead className="sticky right-0 bg-background text-right min-w-[120px] border-l">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
