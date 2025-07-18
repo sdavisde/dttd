@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Search, Edit, Settings, Trash2, Plus } from 'lucide-react'
 import { Role, RolesSidebar } from './RolesSidebar'
 import { useRoles, useDeleteRole } from '@/hooks/use-roles'
+import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import {
   Table,
   TableBody,
@@ -22,6 +23,8 @@ export default function Roles() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null)
 
   const { data: roles = [], isLoading, isError, error } = useRoles()
   const deleteRoleMutation = useDeleteRole()
@@ -46,16 +49,26 @@ export default function Roles() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteRole = async (roleId: string) => {
-    if (!confirm('Are you sure you want to delete this role?')) {
-      return
-    }
+  const handleDeleteRole = (role: Role) => {
+    setRoleToDelete(role)
+    setDeleteConfirmOpen(true)
+  }
+
+  const confirmDeleteRole = async () => {
+    if (!roleToDelete) return
 
     try {
-      await deleteRoleMutation.mutateAsync(roleId)
+      await deleteRoleMutation.mutateAsync(roleToDelete.id)
+      setDeleteConfirmOpen(false)
+      setRoleToDelete(null)
     } catch (error) {
       console.error('Error deleting role:', error)
     }
+  }
+
+  const cancelDeleteRole = () => {
+    setDeleteConfirmOpen(false)
+    setRoleToDelete(null)
   }
 
   const handleCloseModal = () => setIsModalOpen(false)
@@ -193,7 +206,7 @@ export default function Roles() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleDeleteRole(role.id)
+                          handleDeleteRole(role)
                         }}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         disabled={deleteRoleMutation.isPending}
@@ -227,6 +240,17 @@ export default function Roles() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onExited={handleModalExited}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={deleteConfirmOpen}
+        title="Delete Role"
+        itemName={roleToDelete?.label}
+        isDeleting={deleteRoleMutation.isPending}
+        onCancel={cancelDeleteRole}
+        onConfirm={confirmDeleteRole}
+        confirmText="Delete Role"
       />
     </div>
   )
