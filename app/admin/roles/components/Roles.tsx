@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Edit, Settings } from 'lucide-react'
-import { Role, RolesModal } from './RolesModal'
-import { useRoles } from '@/hooks/use-roles'
+import { Search, Edit, Settings, Trash2, Plus } from 'lucide-react'
+import { Role, RolesSidebar } from './RolesSidebar'
+import { useRoles, useDeleteRole } from '@/hooks/use-roles'
 import {
   Table,
   TableBody,
@@ -24,11 +24,14 @@ export default function Roles() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { data: roles = [], isLoading, isError, error } = useRoles()
+  const deleteRoleMutation = useDeleteRole()
 
   // Filter roles based on search term
   const filteredRoles = useMemo(() => {
     return roles.filter((role) => {
-      const matches = role.label.toLowerCase().includes(searchTerm.toLowerCase())
+      const matches = role.label
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
       return matches
     })
   }, [searchTerm, roles])
@@ -36,6 +39,23 @@ export default function Roles() {
   const handleRoleClick = (role: Role) => {
     setSelectedRole(role)
     setIsModalOpen(true)
+  }
+
+  const handleCreateRole = () => {
+    setSelectedRole(null)
+    setIsModalOpen(true)
+  }
+
+  const handleDeleteRole = async (roleId: string) => {
+    if (!confirm('Are you sure you want to delete this role?')) {
+      return
+    }
+
+    try {
+      await deleteRoleMutation.mutateAsync(roleId)
+    } catch (error) {
+      console.error('Error deleting role:', error)
+    }
   }
 
   const handleCloseModal = () => setIsModalOpen(false)
@@ -49,7 +69,8 @@ export default function Roles() {
         </Typography>
         <Alert variant="destructive">
           <AlertDescription>
-            Error: {error instanceof Error ? error.message : 'Failed to load roles'}
+            Error:{' '}
+            {error instanceof Error ? error.message : 'Failed to load roles'}
           </AlertDescription>
         </Alert>
       </div>
@@ -58,13 +79,20 @@ export default function Roles() {
 
   return (
     <div className="my-4">
-      <Typography variant="h4" className="mb-4">
-        Roles & Permissions
-      </Typography>
-
-      <Typography variant="muted" className="mb-4">
-        Manage system roles and their associated permissions.
-      </Typography>
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <Typography variant="h4" className="mb-2">
+            Roles & Permissions
+          </Typography>
+          <Typography variant="muted">
+            Manage system roles and their associated permissions.
+          </Typography>
+        </div>
+        <Button onClick={handleCreateRole} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Add Role
+        </Button>
+      </div>
 
       {/* Search Bar */}
       <div className="mb-4">
@@ -82,11 +110,13 @@ export default function Roles() {
 
       {/* Roles Table */}
       {isLoading ? (
-        <div className="p-8 text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-          <Typography variant="muted" className="mt-2">
-            Loading roles...
-          </Typography>
+        <div className="flex justify-center p-8 text-center">
+          <div className="flex flex-col justify-center items-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+            <Typography variant="muted" className="mt-2">
+              Loading roles...
+            </Typography>
+          </div>
         </div>
       ) : (
         <Table>
@@ -113,11 +143,17 @@ export default function Roles() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {role.permissions?.slice(0, 3).map((permission, permIndex) => (
-                      <Badge key={permIndex} variant="outline" className="text-xs">
-                        {permission}
-                      </Badge>
-                    ))}
+                    {role.permissions
+                      ?.slice(0, 3)
+                      .map((permission, permIndex) => (
+                        <Badge
+                          key={permIndex}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {permission}
+                        </Badge>
+                      ))}
                     {role.permissions && role.permissions.length > 3 && (
                       <span className="text-muted-foreground text-sm">
                         +{role.permissions.length - 3} more
@@ -126,7 +162,8 @@ export default function Roles() {
                   </div>
                 </TableCell>
                 <TableCell className="text-sm">
-                  {role.permissions?.length || 0} permission{role.permissions?.length !== 1 ? 's' : ''}
+                  {role.permissions?.length || 0} permission
+                  {role.permissions?.length !== 1 ? 's' : ''}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
@@ -141,17 +178,29 @@ export default function Roles() {
                     <Edit className="h-4 w-4" />
                     <span className="sr-only">Edit role</span>
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteRole(role.id)
+                    }}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    disabled={deleteRoleMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete role</span>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
             {filteredRoles.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center py-8"
-                >
+                <TableCell colSpan={4} className="text-center py-8">
                   <p className="text-muted-foreground">
-                    {searchTerm ? 'No roles found matching your search.' : 'No roles found in the database.'}
+                    {searchTerm
+                      ? 'No roles found matching your search.'
+                      : 'No roles found in the database.'}
                   </p>
                 </TableCell>
               </TableRow>
@@ -160,8 +209,8 @@ export default function Roles() {
         </Table>
       )}
 
-      {/* Role Modal */}
-      <RolesModal
+      {/* Role Sidebar */}
+      <RolesSidebar
         role={selectedRole}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
