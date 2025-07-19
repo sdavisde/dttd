@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger'
 import { deleteCandidate, updateCandidateStatus } from '@/actions/candidates'
 import { CandidateTable } from './CandidateTable'
 import { CandidateDetailDialog } from './CandidateDetailDialog'
-import { DeleteConfirmationDialog } from './DeleteConfirmationDialog'
+import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { StatusInfoDialog } from './StatusInfoDialog'
 import * as Results from '@/lib/results'
 import { sendCandidateForms } from '@/actions/emails'
@@ -16,8 +16,11 @@ interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
 }
 
-export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) {
-  const [selectedCandidate, setSelectedCandidate] = useState<HydratedCandidate | null>(null)
+export function CandidateReviewTable({
+  candidates,
+}: CandidateReviewTableProps) {
+  const [selectedCandidate, setSelectedCandidate] =
+    useState<HydratedCandidate | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -74,22 +77,31 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
   const onSendForms = async () => {
     logger.info('Sending candidate forms:', selectedCandidate?.id)
 
-    const candidateSponsorshipInfo = selectedCandidate?.candidate_sponsorship_info
+    const candidateSponsorshipInfo =
+      selectedCandidate?.candidate_sponsorship_info
     if (!candidateSponsorshipInfo) {
       logger.error('Candidate sponsorship info not found')
       return
     }
 
     // Set the candidate status to awaiting_forms
-    const result = await updateCandidateStatus(selectedCandidate.id, 'awaiting_forms')
+    const result = await updateCandidateStatus(
+      selectedCandidate.id,
+      'awaiting_forms'
+    )
     if (Results.isErr(result)) {
       logger.error('Failed to update candidate status:', result.error)
       return
     }
 
-    const candidateFormsResult = await sendCandidateForms(candidateSponsorshipInfo)
+    const candidateFormsResult = await sendCandidateForms(
+      candidateSponsorshipInfo
+    )
     if (Results.isErr(candidateFormsResult)) {
-      logger.error('Failed to send candidate forms:', candidateFormsResult.error)
+      logger.error(
+        'Failed to send candidate forms:',
+        candidateFormsResult.error
+      )
       return
     }
   }
@@ -136,10 +148,12 @@ export function CandidateReviewTable({ candidates }: CandidateReviewTableProps) 
 
       <DeleteConfirmationDialog
         isOpen={isDeleteDialogOpen}
-        candidateName={selectedCandidate?.candidate_sponsorship_info?.candidate_name}
+        title="Delete Candidate"
+        itemName={selectedCandidate?.candidate_sponsorship_info?.candidate_name}
         isDeleting={isDeleting}
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
+        confirmText="Delete Candidate"
       />
 
       <StatusInfoDialog

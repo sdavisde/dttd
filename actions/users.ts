@@ -170,13 +170,23 @@ export async function assignUserRole(userId: string, roleId: string): Promise<Re
   try {
     const supabase = await createClient()
 
-    // Upsert the user role in a single call (insert if missing, update if exists)
-    const { error } = await supabase
+    // Remove any existing role first (one role per user business logic)
+    const { error: deleteError } = await supabase
       .from('user_roles')
-      .upsert({ user_id: userId, role_id: roleId }, { onConflict: 'user_id' })
+      .delete()
+      .eq('user_id', userId)
 
-    if (error) {
-      return err(new Error(`Failed to assign user role: ${error.message}`))
+    if (deleteError) {
+      return err(new Error(`Failed to remove existing user role: ${deleteError.message}`))
+    }
+
+    // Insert the new role
+    const { error: insertError } = await supabase
+      .from('user_roles')
+      .insert({ user_id: userId, role_id: roleId })
+
+    if (insertError) {
+      return err(new Error(`Failed to assign user role: ${insertError.message}`))
     }
 
     return ok(true)

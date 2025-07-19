@@ -18,7 +18,13 @@ import { NavMain } from '@/components/admin/sidebar/nav-main'
 import { SystemLinks } from '@/components/admin/sidebar/system-links'
 import { NavUser } from '@/components/admin/sidebar/nav-user'
 import { TeamSwitcher } from '@/components/admin/sidebar/team-switcher'
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 
 // This is sample data.
 const data = {
@@ -50,7 +56,7 @@ const data = {
     },
     {
       title: 'Community',
-      url: '/admin/community',
+      url: '/admin/users',
       icon: Bot,
     },
     {
@@ -71,12 +77,11 @@ const data = {
   ],
 }
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AdminSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar
-      collapsible='icon'
-      {...props}
-    >
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={[]} />
       </SidebarHeader>
