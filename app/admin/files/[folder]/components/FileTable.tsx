@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FileObject } from '@supabase/storage-js'
 import { logger } from '@/lib/logger'
@@ -15,17 +16,33 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Download, FileText } from 'lucide-react'
 import { DeleteFileButton } from './DeleteFileButton'
+import { toast } from 'sonner'
 
 type FileTableProps = {
   files: FileObject[]
   folderName: string
 }
 
-export function FileTable({ files, folderName }: FileTableProps) {
+export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
+  const [files, setFiles] = useState<FileObject[]>(initialFiles)
+
+  // Update files when initialFiles prop changes (e.g., after upload)
+  useEffect(() => {
+    setFiles(initialFiles)
+  }, [initialFiles])
+
   const handlePreview = async (file: FileObject) => {
     const supabase = createClient()
     const { data } = await supabase.storage.from('files').getPublicUrl(`${folderName}/${file.name}`)
     window.open(data.publicUrl, '_blank')
+  }
+
+  const handleDeleteFile = (deletedFile: FileObject) => {
+    // Remove the file from the local state immediately for responsive UI
+    setFiles(prevFiles => prevFiles.filter(file => file.name !== deletedFile.name))
+    
+    // Show success toast
+    toast.success(`File "${deletedFile.name}" deleted successfully`)
   }
 
   const handleDownload = async (file: FileObject) => {
@@ -116,6 +133,7 @@ export function FileTable({ files, folderName }: FileTableProps) {
                       file={file}
                       folderName={folderName}
                       totalFiles={files.length}
+                      onDelete={handleDeleteFile}
                     />
                   </div>
                 </TableCell>
