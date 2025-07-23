@@ -34,6 +34,7 @@ import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { User } from '@/lib/users/types'
+import { Trash } from 'lucide-react'
 
 const editRosterFormSchema = z.object({
   status: z.string().min(1, { message: 'Status is required' }),
@@ -55,7 +56,11 @@ const statusOptions = [
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
-export function EditRosterModal({ open, handleClose, user }: EditRosterModalProps) {
+export function EditRosterModal({
+  open,
+  handleClose,
+  user,
+}: EditRosterModalProps) {
   const teamMember = user?.team_member_info
   const router = useRouter()
   const form = useForm<EditRosterFormValues>({
@@ -86,7 +91,10 @@ export function EditRosterModal({ open, handleClose, user }: EditRosterModalProp
     handleClose()
   }
 
-  const onSubmit: SubmitHandler<EditRosterFormValues> = async ({ status, cha_role }) => {
+  const onSubmit: SubmitHandler<EditRosterFormValues> = async ({
+    status,
+    cha_role,
+  }) => {
     if (!teamMember) {
       setError('root', { message: 'No roster member selected' })
       return
@@ -121,7 +129,10 @@ export function EditRosterModal({ open, handleClose, user }: EditRosterModalProp
 
     const client = createClient()
 
-    const { error } = await client.from('weekend_roster').delete().eq('id', teamMember.id)
+    const { error } = await client
+      .from('weekend_roster')
+      .delete()
+      .eq('id', teamMember.id)
 
     if (isSupabaseError(error)) {
       logger.error(error, '💢 failed to delete roster member')
@@ -139,26 +150,26 @@ export function EditRosterModal({ open, handleClose, user }: EditRosterModalProp
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className='w-[400px] sm:w-[540px]'>
+      <SheetContent className="w-[400px] sm:w-[540px]">
         <SheetHeader>
           <SheetTitle>Edit Roster Member</SheetTitle>
           <SheetDescription>
             Edit {user?.first_name} {user?.last_name}'s roster information.
           </SheetDescription>
         </SheetHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 py-4'>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 px-4">
             <FormField
               control={form.control}
-              name='status'
+              name="status"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Select a status' />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a status" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -173,23 +184,25 @@ export function EditRosterModal({ open, handleClose, user }: EditRosterModalProp
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
-              name='cha_role'
+              name="cha_role"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>CHA Role *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Select a role' />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {Object.values(CHARole).map((role) => (
                         <SelectItem key={role} value={role}>
-                          <span className='capitalize'>{role.replaceAll('_', ' ')}</span>
+                          <span className="capitalize">
+                            {role.replaceAll('_', ' ')}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -198,26 +211,32 @@ export function EditRosterModal({ open, handleClose, user }: EditRosterModalProp
                 </FormItem>
               )}
             />
-            
-            <SheetFooter className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-between'>
-              <Button
-                type='button'
-                variant='destructive'
-                onClick={handleDelete}
-              >
-                Remove from Roster
-              </Button>
-              <div className='flex flex-col-reverse gap-2 sm:flex-row'>
-                <Button type='button' variant='outline' onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                  {isSubmitting ? 'Updating...' : 'Update Roster Member'}
-                </Button>
-              </div>
-            </SheetFooter>
+
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              className="w-full"
+            >
+              <Trash className="" />
+              Remove from Roster
+            </Button>
           </form>
         </Form>
+
+        <SheetFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Updating...' : 'Update Roster Member'}
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   )

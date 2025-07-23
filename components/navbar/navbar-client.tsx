@@ -22,6 +22,7 @@ import {
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { permissionLock } from '@/lib/security'
 
 type NavElement = {
   name: string
@@ -39,12 +40,16 @@ export function Navbar({ navElements }: NavbarClientProps) {
   const { isAuthenticated, user } = useSession()
   const router = useRouter()
   const filteredNavElements = navElements.filter((item) => {
-    if (item.permissions_needed.length === 0) {
+    try {
+      if (item.permissions_needed.length === 0) {
+        return true
+      }
+
+      permissionLock(item.permissions_needed)(user)
       return true
+    } catch (e) {
+      return false
     }
-    return item.permissions_needed.some((permission) =>
-      user?.role?.permissions.includes(permission)
-    )
   })
 
   return (
@@ -118,9 +123,9 @@ export function Navbar({ navElements }: NavbarClientProps) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive hover:text-destructive"
-                onClick={() => {
+                onClick={async () => {
                   const supabase = createClient()
-                  supabase.auth.signOut()
+                  await supabase.auth.signOut()
                   router.refresh()
                 }}
               >

@@ -2,25 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Divider,
-  Alert,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Tabs,
-  Tab,
-  FormLabel,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
-} from '@mui/material'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface AuthFormProps {
@@ -103,165 +91,161 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   }
 
   return (
-    <Box
-      component='form'
+    <form
       onSubmit={handleEmailAuth}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        width: '100%',
-        maxWidth: 400,
-        mx: 'auto',
-        p: 3,
-      }}
+      className="flex flex-col gap-4 w-full max-w-md mx-auto p-6"
     >
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={mode}
-          onChange={(_, newValue) => setMode(newValue)}
-          aria-label='basic tabs example'
-          variant='fullWidth'
+      <div className="flex w-full border-b">
+        <Button
+          type="button"
+          variant={mode === 'login' ? 'default' : 'ghost'}
+          onClick={() => setMode('login')}
+          className="flex-1 rounded-b-none"
         >
-          <Tab
-            label='Sign In'
-            value='login'
-          />
-          <Tab
-            label='Create Account'
-            value='register'
-          />
-        </Tabs>
-      </Box>
+          Sign In
+        </Button>
+        <Button
+          type="button"
+          variant={mode === 'register' ? 'default' : 'ghost'}
+          onClick={() => setMode('register')}
+          className="flex-1 rounded-b-none"
+        >
+          Create Account
+        </Button>
+      </div>
 
       {error && (
-        <Alert
-          severity='error'
-          onClose={() => setError(null)}
-        >
-          {error}
+        <Alert>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {message && (
-        <Alert
-          severity='success'
-          onClose={() => setMessage(null)}
-        >
-          {message}
+        <Alert>
+          <AlertDescription>{message}</AlertDescription>
         </Alert>
       )}
 
       {mode === 'register' && (
         <>
-          <TextField
-            label='First Name'
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-            fullWidth
-          />
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name</Label>
+            <Input
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+          </div>
 
-          <TextField
-            label='Last Name'
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-            fullWidth
-          />
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </div>
 
-          <FormControl fullWidth>
-            <FormLabel id='demo-controlled-radio-buttons-group'>Gender</FormLabel>
+          <div className="space-y-3">
+            <Label>Gender</Label>
             <RadioGroup
-              aria-labelledby='demo-controlled-radio-buttons-group'
-              name='controlled-radio-buttons-group'
               value={gender}
-              onChange={(e) => setGender(e.target.value as 'male' | 'female')}
+              onValueChange={(value) => setGender(value as 'male' | 'female')}
+              className="flex flex-row space-x-6"
             >
-              <FormControlLabel
-                value='male'
-                control={<Radio />}
-                label='Male'
-              />
-              <FormControlLabel
-                value='female'
-                control={<Radio />}
-                label='Female'
-              />
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="male" id="male" />
+                <Label htmlFor="male">Male</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="female" id="female" />
+                <Label htmlFor="female">Female</Label>
+              </div>
             </RadioGroup>
-          </FormControl>
+          </div>
         </>
       )}
 
-      <TextField
-        label='Email'
-        type='email'
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        fullWidth
-      />
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
 
-      <TextField
-        label='Password'
-        type='password'
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        fullWidth
-        helperText={mode === 'register' ? 'Password must be at least 6 characters' : undefined}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {mode === 'register' && (
+          <p className="text-sm text-gray-500">Password must be at least 6 characters</p>
+        )}
+      </div>
 
       <Button
-        type='submit'
-        variant='contained'
-        fullWidth
+        type="submit"
+        className="w-full mt-4"
         disabled={loading}
-        sx={{ mt: 2 }}
       >
-        {loading ? <CircularProgress size={24} /> : mode === 'login' ? 'Sign In' : 'Create Account'}
+        {loading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : null}
+        {mode === 'login' ? 'Sign In' : 'Create Account'}
       </Button>
 
-      {/* <Divider sx={{ my: 2 }}>OR</Divider>
+      {/* <div className="relative my-4">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">OR</span>
+        </div>
+      </div>
 
       <Button
-        variant='outlined'
-        startIcon={<GoogleIcon />}
+        variant="outline"
         onClick={handleGoogleAuth}
-        fullWidth
+        className="w-full"
       >
         Continue with Google
       </Button> */}
 
-      <Typography
-        variant='body2'
-        textAlign='center'
-        sx={{ mt: 2 }}
-      >
+      <p className="text-center text-sm text-gray-600 mt-4">
         {mode === 'login' ? (
           <>
             Don't have an account?{' '}
             <Button
-              component='a'
-              href='/join'
-              sx={{ textTransform: 'none', p: 0 }}
+              variant="link"
+              asChild
+              className="p-0 h-auto text-sm"
             >
-              Create one
+              <a href="/join">Create one</a>
             </Button>
           </>
         ) : (
           <>
             Already have an account?{' '}
             <Button
-              component='a'
-              href='/login'
-              sx={{ textTransform: 'none', p: 0 }}
+              variant="link"
+              asChild
+              className="p-0 h-auto text-sm"
             >
-              Sign in
+              <a href="/login">Sign in</a>
             </Button>
           </>
         )}
-      </Typography>
-    </Box>
+      </p>
+    </form>
   )
 }

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
-import { Container, Typography, Button, Stack } from '@mui/material'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 import { stripe } from '@/lib/stripe'
 
@@ -27,34 +28,22 @@ export default async function TeamFeePaymentSuccessPage({ searchParams }: { sear
   }
 
   return (
-    <Container maxWidth='md'>
-      <Stack
-        spacing={2}
-        sx={{ p: 4, my: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-      >
-        <Typography
-          variant='h4'
-          component='h1'
-          gutterBottom
-          align='center'
-        >
-          Payment Successful!
-        </Typography>
-        <Typography
-          variant='body1'
-          align='center'
-          gutterBottom
-        >
-          A confirmation email will be sent to {customerEmail}
-        </Typography>
-        <Button
-          href='/home'
-          variant='contained'
-          sx={{ mt: 2 }}
-        >
-          Return to Home
-        </Button>
-      </Stack>
-    </Container>
+    <div className="container max-w-2xl mx-auto py-8">
+      <Card>
+        <CardContent className="p-8 text-center space-y-4">
+          <h1 className="text-3xl font-bold text-green-600">
+            Payment Successful!
+          </h1>
+          <p className="text-lg">
+            A confirmation email will be sent to {customerEmail}
+          </p>
+          <div className="pt-4">
+            <Button asChild>
+              <a href='/home'>Return to Home</a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

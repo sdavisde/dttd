@@ -1,7 +1,6 @@
-import { BookOpen, Calendar, DollarSign, File } from 'lucide-react'
+import { BookOpen, Calendar, DollarSign, File, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import { User } from '@/lib/users/types'
-import { AssignmentAdd } from '@mui/icons-material'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -68,7 +67,7 @@ export function Dashboard({ user }: DashboardProps) {
               variant='outline'
               className='w-full h-52 flex flex-col items-center justify-center gap-2'
             >
-              <AssignmentAdd className='w-10 h-10' />
+              <UserPlus className='w-10 h-10' />
               <span className='text-lg font-semibold'>Sponsor a Candidate</span>
             </Button>
           </Link>

@@ -5,8 +5,8 @@ import { getUrl } from '@/lib/url'
 import { getWeekendRosterRecord } from '@/actions/weekend'
 import { getLoggedInUser } from '@/actions/users'
 import { isErr } from '@/lib/results'
-import { Stack, Typography } from '@mui/material'
-import { Error } from '@mui/icons-material'
+import { AlertTriangle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 interface TeamFeesPaymentPageProps {
   searchParams: Promise<{
@@ -39,22 +39,19 @@ export default async function TeamFeesPaymentPage({ searchParams }: TeamFeesPaym
   if (isErr(weekendRosterRecord)) {
     logger.error('Error fetching weekend roster record', weekendRosterRecord.error)
     return (
-      <Stack className='h-[80vh] w-screen flex items-center justify-center'>
-        <Error sx={{ fontSize: 75, color: '#940c0a', marginBottom: 2 }} />
-        <Typography variant='h6'>It doesn&apos;t look like you&apos;re registered for the weekend yet.</Typography>
-        <Typography variant='body1'>Please contact your Rector to ensure you&apos;re on the roster.</Typography>
-        <Typography
-          variant='body1'
-          mt={2}
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
-        >
-          If this issue persists, please contact Sean Davis at 214-799-7708 or sdavisde@gmail.com
-          <br />
-          <span>for assistance in paying your team fees.</span>
-        </Typography>
-      </Stack>
+      <div className='h-[80vh] w-screen flex items-center justify-center p-4'>
+        <Alert className="max-w-md text-center">
+          <AlertTriangle className="h-6 w-6 text-red-600" />
+          <AlertTitle className="text-lg font-semibold">Registration Issue</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>It doesn't look like you're registered for the weekend yet.</p>
+            <p>Please contact your Rector to ensure you're on the roster.</p>
+            <p className="text-sm mt-4">
+              If this issue persists, please contact Sean Davis at 214-799-7708 or sdavisde@gmail.com for assistance in paying your team fees.
+            </p>
+          </AlertDescription>
+        </Alert>
+      </div>
     )
   }
 

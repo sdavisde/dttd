@@ -1,16 +1,15 @@
 'use client'
 
-import { Box, Chip, useTheme, useMediaQuery } from '@mui/material'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
+import { Badge } from '@/components/ui/badge'
+import { ArrowRight, ArrowDown } from 'lucide-react'
 import { CandidateStatus } from '@/lib/candidates/types'
 
-const STATUSES: Array<{ id: CandidateStatus; label: string; color: string }> = [
-  { id: 'sponsored', label: 'Sponsored', color: 'default' },
-  { id: 'awaiting_forms', label: 'Awaiting Forms', color: 'warning' },
-  { id: 'pending_approval', label: 'Pending Approval', color: 'info' },
-  { id: 'awaiting_payment', label: 'Awaiting Payment', color: 'secondary' },
-  { id: 'confirmed', label: 'Confirmed', color: 'success' },
+const STATUSES: Array<{ id: CandidateStatus; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = [
+  { id: 'sponsored', label: 'Sponsored', variant: 'default' },
+  { id: 'awaiting_forms', label: 'Awaiting Forms', variant: 'outline' },
+  { id: 'pending_approval', label: 'Pending Approval', variant: 'secondary' },
+  { id: 'awaiting_payment', label: 'Awaiting Payment', variant: 'outline' },
+  { id: 'confirmed', label: 'Confirmed', variant: 'default' },
 ]
 
 interface StatusFlowProps {
@@ -18,51 +17,29 @@ interface StatusFlowProps {
 }
 
 export function StatusFlow({ currentStatus }: StatusFlowProps) {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        alignItems: 'center',
-        gap: 0.5,
-        my: 2,
-      }}
-    >
+    <div className="flex flex-col sm:flex-row items-center gap-2 my-4">
       {STATUSES.map((status, index) => (
-        <Box
+        <div
           key={status.id}
-          sx={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            alignItems: 'center',
-          }}
+          className="flex flex-col sm:flex-row items-center"
         >
-          <Chip
-            label={status.label}
-            color={status.color as any}
-            variant={currentStatus === status.id ? 'filled' : 'outlined'}
-            sx={{
-              minWidth: 100,
-              fontWeight: currentStatus === status.id ? 'bold' : 'normal',
-            }}
-          />
+          <Badge
+            variant={currentStatus === status.id ? 'default' : 'outline'}
+            className={`min-w-[100px] text-center ${
+              currentStatus === status.id ? 'font-bold' : 'font-normal'
+            }`}
+          >
+            {status.label}
+          </Badge>
           {index < STATUSES.length - 1 && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                mx: 1,
-                color: 'text.secondary',
-              }}
-            >
-              {isMobile ? <ArrowDownwardIcon /> : <ArrowForwardIcon />}
-            </Box>
+            <div className="flex items-center mx-2 text-gray-400">
+              <ArrowDown className="sm:hidden h-4 w-4" />
+              <ArrowRight className="hidden sm:block h-4 w-4" />
+            </div>
           )}
-        </Box>
+        </div>
       ))}
-    </Box>
+    </div>
   )
 }

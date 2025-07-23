@@ -1,7 +1,8 @@
 'use client'
 
-import { Dialog, DialogTitle, DialogContent, DialogActions, Typography, Box, IconButton, Button } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { X } from 'lucide-react'
 import { CandidateStatus } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 
@@ -30,56 +31,31 @@ export function StatusInfoDialog({ isOpen, onClose }: StatusInfoDialogProps) {
   ]
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={onClose}
-      maxWidth='md'
-      fullWidth
-    >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span>Status Information</span>
-        <IconButton
-          size='small'
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent>
-        <Typography
-          variant='body1'
-          sx={{ mb: 3 }}
-        >
-          Below are all possible candidate statuses and what they mean:
-        </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Status Information</DialogTitle>
+          <DialogDescription>
+            Below are all possible candidate statuses and what they mean:
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
           {allStatuses.map((status) => (
-            <Box
+            <div
               key={status}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                p: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-              }}
+              className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg"
             >
               <StatusChip status={status} />
-              <Typography
-                variant='body2'
-                sx={{ flex: 1 }}
-              >
+              <p className="flex-1 text-sm text-gray-600">
                 {statusDescriptions[status]}
-              </Typography>
-            </Box>
+              </p>
+            </div>
           ))}
-        </Box>
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Close</Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
     </Dialog>
   )
 }

@@ -1,15 +1,12 @@
-import { Container, Paper } from '@mui/material'
+import { Card } from '@/components/ui/card'
 import AuthForm from '@/components/auth/AuthForm'
 
 export default function LoginPage() {
   return (
-    <Container
-      maxWidth='sm'
-      sx={{ py: 8 }}
-    >
-      <Paper elevation={3}>
+    <div className="container max-w-sm mx-auto py-8">
+      <Card className="shadow-lg">
         <AuthForm />
-      </Paper>
-    </Container>
+      </Card>
+    </div>
   )
 }
