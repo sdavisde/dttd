@@ -5,7 +5,8 @@ import { slugify } from '@/util/url'
 
 async function getNavElements() {
   const supabase = await createClient()
-  const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets()
+  const { data: buckets, error: bucketsError } =
+    await supabase.storage.listBuckets()
 
   if (bucketsError) {
     logger.error('Error fetching buckets:', bucketsError)
@@ -14,10 +15,15 @@ async function getNavElements() {
 
   const bucketStructure = await Promise.all(
     buckets.map(async (bucket) => {
-      const { data: folders, error: foldersError } = await supabase.storage.from(bucket.name).list()
+      const { data: folders, error: foldersError } = await supabase.storage
+        .from(bucket.name)
+        .list()
 
       if (foldersError) {
-        logger.error(`Error fetching folders for bucket ${bucket.name}:`, foldersError)
+        logger.error(
+          `Error fetching folders for bucket ${bucket.name}:`,
+          foldersError
+        )
         return {
           name: bucket.name,
           slug: slugify(bucket.name),
@@ -51,17 +57,17 @@ async function getNavElements() {
     {
       name: 'Candidates',
       slug: 'review-candidate',
-      permissions_needed: ['FULL_ACCESS'],
+      permissions_needed: ['READ_CANDIDATES'],
     },
     {
       name: 'Roster',
       slug: 'admin/roster',
-      permissions_needed: ['FULL_ACCESS'],
+      permissions_needed: ['READ_ROSTER'],
     },
     {
       name: 'Admin',
       slug: 'admin',
-      permissions_needed: ['FULL_ACCESS'],
+      permissions_needed: ['ADMIN'],
     },
   ]
 

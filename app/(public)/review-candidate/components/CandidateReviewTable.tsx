@@ -5,9 +5,9 @@ import { HydratedCandidate } from '@/lib/candidates/types'
 import { logger } from '@/lib/logger'
 import { deleteCandidate, updateCandidateStatus } from '@/actions/candidates'
 import { CandidateTable } from './CandidateTable'
-import { CandidateDetailDialog } from './CandidateDetailDialog'
+import { CandidateDetailSheet } from './CandidateDetailSheet'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
-import { StatusInfoDialog } from './StatusInfoDialog'
+import { StatusInfoSheet } from './StatusInfoSheet'
 import * as Results from '@/lib/results'
 import { sendCandidateForms } from '@/actions/emails'
 import { sendPaymentRequestEmail } from '@/actions/emails'
@@ -21,14 +21,14 @@ export function CandidateReviewTable({
 }: CandidateReviewTableProps) {
   const [selectedCandidate, setSelectedCandidate] =
     useState<HydratedCandidate | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isStatusInfoOpen, setIsStatusInfoOpen] = useState(false)
 
   const handleRowClick = (candidate: HydratedCandidate) => {
     setSelectedCandidate(candidate)
-    setIsDialogOpen(true)
+    setIsSheetOpen(true)
   }
 
   const handleDeleteClick = () => {
@@ -45,7 +45,7 @@ export function CandidateReviewTable({
       if (Results.isOk(result)) {
         // Close both dialogs and refresh the page to update the table
         setIsDeleteDialogOpen(false)
-        setIsDialogOpen(false)
+        setIsSheetOpen(false)
         setSelectedCandidate(null)
         window.location.reload()
       } else {
@@ -121,8 +121,8 @@ export function CandidateReviewTable({
       alert(`Failed to send payment request email: ${result.error.message}`)
     }
 
-    // Close the dialog and refresh the page to update the status
-    setIsDialogOpen(false)
+    // Close the sheet and refresh the page to update the status
+    setIsSheetOpen(false)
     setSelectedCandidate(null)
     window.location.reload()
   }
@@ -135,10 +135,10 @@ export function CandidateReviewTable({
         onStatusInfoClick={() => setIsStatusInfoOpen(true)}
       />
 
-      <CandidateDetailDialog
+      <CandidateDetailSheet
         candidate={selectedCandidate}
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
         onDelete={handleDeleteClick}
         onApprove={handleApprove}
         onReject={handleReject}
@@ -156,7 +156,7 @@ export function CandidateReviewTable({
         confirmText="Delete Candidate"
       />
 
-      <StatusInfoDialog
+      <StatusInfoSheet
         isOpen={isStatusInfoOpen}
         onClose={() => setIsStatusInfoOpen(false)}
       />

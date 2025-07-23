@@ -20,13 +20,10 @@ export default async function ReviewCandidatePage() {
   const candidates = await getCandidates()
 
   return (
-    <div className='container mx-auto p-4'>
-      <div className='my-4'>
-        <Typography variant='h1'>Review Candidates</Typography>
-        <Typography
-          variant='p'
-          className='mb-4'
-        >
+    <div className="container mx-auto p-4 min-h-[80vh]">
+      <div className="my-4">
+        <Typography variant="h1">Review Candidates</Typography>
+        <Typography variant="p" className="mb-4">
           A list of candidates for the upcoming weekends.
         </Typography>
         <CandidateReviewTable candidates={candidates} />

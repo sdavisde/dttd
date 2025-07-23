@@ -2,7 +2,13 @@
 
 import { Button } from '@/components/ui/button'
 import { HydratedCandidate } from '@/lib/candidates/types'
-import { CheckCircleIcon, SendIcon, Trash2Icon, XIcon, CreditCardIcon } from 'lucide-react'
+import {
+  CheckCircleIcon,
+  SendIcon,
+  Trash2Icon,
+  XIcon,
+  CreditCardIcon,
+} from 'lucide-react'
 
 interface CandidateActionsProps {
   candidate: HydratedCandidate
@@ -24,26 +30,23 @@ export function CandidateActions({
   onClose,
 }: CandidateActionsProps) {
   return (
-    <div className='w-full flex items-center justify-between gap-1'>
-      <Button
+    <div className="w-full flex items-center justify-between gap-1">
+      {/* <Button
         variant='destructive'
         onClick={onDelete}
       >
         <Trash2Icon />
         Delete
-      </Button>
-      <div className='flex gap-1'>
+      </Button> */}
+      <div className="flex gap-1 w-full">
         {candidate.status === 'pending_approval' && (
           <>
-            <Button
-              variant='default'
-              onClick={() => onApprove(candidate.id)}
-            >
+            <Button variant="default" onClick={() => onApprove(candidate.id)}>
               <CheckCircleIcon />
               Approve
             </Button>
             <Button
-              variant='destructive'
+              variant="destructive"
               onClick={() => onReject(candidate.id)}
             >
               <XIcon />
@@ -52,24 +55,24 @@ export function CandidateActions({
           </>
         )}
         {candidate.status === 'sponsored' && (
-          <Button
-            variant='default'
-            onClick={() => onSendForms(candidate.id)}
-          >
+          <Button variant="outline" onClick={() => onSendForms(candidate.id)}>
             <SendIcon />
             Send Candidate Forms
           </Button>
         )}
-        {(candidate.status === 'awaiting_forms' || candidate.status === 'awaiting_payment') && (
+        {(candidate.status === 'awaiting_forms' ||
+          candidate.status === 'awaiting_payment') && (
           <Button
-            variant='default'
+            variant="default"
             onClick={() => onSendPaymentRequest(candidate.id)}
           >
             <SendIcon />
             Send Payment Request
           </Button>
         )}
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose} className="flex-1">
+          Close
+        </Button>
       </div>
     </div>
   )
