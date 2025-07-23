@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useSession } from '@/components/auth/session-provider'
 import { permissionLock } from '@/lib/security'
 import { logger } from '@/lib/logger'
 import {
@@ -18,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
+import { useSession } from '@/components/auth/session-provider'
 
 interface FolderSidebarProps {
   bucketName: string

@@ -7,7 +7,7 @@ import { useSession } from '@/components/auth/session-provider'
 import { permissionLock } from '@/lib/security'
 import { Button } from '@/components/ui/button'
 import { Upload, Loader2 } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { toast } from 'sonner'
 
 type FileUploadProps = {
   folder: string
@@ -23,7 +23,6 @@ const ALLOWED_FILE_TYPES = [
 
 export function FileUpload({ folder }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { user } = useSession()
@@ -39,18 +38,17 @@ export function FileUpload({ folder }: FileUploadProps) {
 
       // Validate file type
       if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        setError('Only PDF and image files are allowed')
+        toast.error('Only PDF and image files are allowed')
         return
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB')
+        toast.error('File size must be less than 10MB')
         return
       }
 
       setUploading(true)
-      setError(null)
 
       const supabase = createClient()
       const { error: uploadError } = await supabase.storage
@@ -64,10 +62,12 @@ export function FileUpload({ folder }: FileUploadProps) {
         throw uploadError
       }
 
+      toast.success(`File "${file.name}" uploaded successfully`)
+      
       // Refresh the page to show the new file
       router.refresh()
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : 'An error occurred while uploading'
       )
     } finally {
@@ -80,7 +80,7 @@ export function FileUpload({ folder }: FileUploadProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <>
       <input
         type="file"
         ref={fileInputRef}
@@ -100,13 +100,6 @@ export function FileUpload({ folder }: FileUploadProps) {
         )}
         {uploading ? 'Uploading...' : 'Upload File'}
       </Button>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertTitle>Upload Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-    </div>
+    </>
   )
 }

@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
 import ReactQueryProvider from '@/components/react-query-provider'
+import { Toaster } from '@/components/ui/sonner'
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -30,7 +31,10 @@ export default function RootLayout({
       <body className={`font-sans antialiased ${nunito.className}`}>
         <ReactQueryProvider>
           <SessionProvider>
-            <ThemeProvider>{children}</ThemeProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster position="bottom-left" richColors />
+            </ThemeProvider>
           </SessionProvider>
         </ReactQueryProvider>
       </body>
