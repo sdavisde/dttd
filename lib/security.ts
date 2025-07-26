@@ -1,4 +1,5 @@
 import { User } from '@/lib/users/types'
+import { Errors } from './error'
 
 /**
  * Builds a callback to check user permissions. Will throw an error if the user does not have the required permissions.
@@ -8,11 +9,11 @@ import { User } from '@/lib/users/types'
 export function permissionLock(permissions: string[]) {
   return (user: User | null): true => {
     if (!user) {
-      throw new Error('Attempting to check permissions without a user')
+      throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
 
     if (!userHasPermission(user, permissions)) {
-      throw new Error(`User ${user.email} does not have the required permissions: ${permissions.join(', ')}`)
+      throw new Error(Errors.INSUFFICIENT_PERMISSIONS.toString())
     }
 
     return true
@@ -24,5 +25,7 @@ function userHasPermission(user: User, permissions: string[]): boolean {
     return true
   }
 
-  return permissions.some((permission) => user.role?.permissions.includes(permission))
+  return permissions.some((permission) =>
+    user.role?.permissions.includes(permission)
+  )
 }

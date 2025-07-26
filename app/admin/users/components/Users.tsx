@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Edit, User as UserIcon } from 'lucide-react'
+import { Search, Edit, User as UserIcon, Trash2 } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import { useUsers } from '@/hooks/use-users'
 import { User } from '@/lib/users/types'
@@ -38,23 +38,8 @@ export default function Users() {
       const lastNameMatch = user.last_name?.toLowerCase().includes(searchLower)
       const emailMatch = user.email?.toLowerCase().includes(searchLower)
       const phoneMatch = user.phone_number?.toLowerCase().includes(searchLower)
-      const roleMatch = user.role?.label.toLowerCase().includes(searchLower)
-      const chaRoleMatch = user.team_member_info?.cha_role
-        ?.toLowerCase()
-        .includes(searchLower)
-      const statusMatch = user.team_member_info?.status
-        ?.toLowerCase()
-        .includes(searchLower)
 
-      return (
-        firstNameMatch ||
-        lastNameMatch ||
-        emailMatch ||
-        phoneMatch ||
-        roleMatch ||
-        chaRoleMatch ||
-        statusMatch
-      )
+      return firstNameMatch || lastNameMatch || emailMatch || phoneMatch
     })
   }, [searchTerm, users])
 
@@ -62,6 +47,8 @@ export default function Users() {
     setSelectedUser(user)
     setIsModalOpen(true)
   }
+
+  const handleDeleteUser = (user: User) => {}
 
   const handleCloseModal = () => {
     setSelectedUser(null)
@@ -132,10 +119,6 @@ export default function Users() {
                   </TableHead>
                   <TableHead className="min-w-[100px]">Email</TableHead>
                   <TableHead className="min-w-[120px]">Phone</TableHead>
-                  <TableHead className="min-w-[80px]">Gender</TableHead>
-                  <TableHead className="min-w-[120px]">Role</TableHead>
-                  <TableHead className="min-w-[120px]">CHA Role</TableHead>
-                  <TableHead className="min-w-[80px]">Status</TableHead>
                   <TableHead className="sticky right-0 bg-background text-right min-w-[80px] border-l">
                     Actions
                   </TableHead>
@@ -160,38 +143,6 @@ export default function Users() {
                     <TableCell>
                       {formatPhoneNumber(user.phone_number)}
                     </TableCell>
-                    <TableCell>{user.gender || '-'}</TableCell>
-                    <TableCell>
-                      {user.role ? (
-                        <Badge variant="outline">{user.role.label}</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">No role</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {user.team_member_info?.cha_role ? (
-                        <Badge variant="secondary">
-                          {user.team_member_info.cha_role.replace('_', ' ')}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {user.team_member_info?.status ? (
-                        <Badge
-                          variant={
-                            user.team_member_info.status === 'ACTIVE'
-                              ? 'default'
-                              : 'outline'
-                          }
-                        >
-                          {user.team_member_info.status}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
                     <TableCell className="sticky right-0 bg-background text-right border-l">
                       <Button
                         variant="ghost"
@@ -204,6 +155,18 @@ export default function Users() {
                       >
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Edit user role</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleUserClick(user)
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-700" />
+                        <span className="sr-only">Delete user</span>
                       </Button>
                     </TableCell>
                   </TableRow>

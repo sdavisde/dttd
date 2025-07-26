@@ -23,6 +23,7 @@ import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { permissionLock } from '@/lib/security'
+import { useToastListener } from '../toastbox'
 
 type NavElement = {
   name: string
@@ -36,6 +37,7 @@ type NavbarClientProps = {
 }
 
 export function Navbar({ navElements }: NavbarClientProps) {
+  useToastListener()
   const [isOpen, setIsOpen] = useState(false)
   const { isAuthenticated, user } = useSession()
   const router = useRouter()

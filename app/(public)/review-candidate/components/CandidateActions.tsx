@@ -38,7 +38,7 @@ export function CandidateActions({
         <Trash2Icon />
         Delete
       </Button> */}
-      <div className="flex gap-1 w-full">
+      <div className="flex gap-1 w-full justify-between">
         {candidate.status === 'pending_approval' && (
           <>
             <Button variant="default" onClick={() => onApprove(candidate.id)}>
@@ -70,7 +70,7 @@ export function CandidateActions({
             Send Payment Request
           </Button>
         )}
-        <Button onClick={onClose} className="flex-1">
+        <Button onClick={onClose} className="flex-1 max-w-40">
           Close
         </Button>
       </div>

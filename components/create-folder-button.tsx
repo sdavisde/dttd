@@ -1,18 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Snackbar, Alert } from '@mui/material'
+import { FolderPlusIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useSession } from './auth/session-provider'
 import { permissionLock } from '@/lib/security'
 import { logger } from '@/lib/logger'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 type CreateFolderButtonProps = {
   bucketName: string
+  currentPath?: string
 }
 
-export function CreateFolderButton({ bucketName }: CreateFolderButtonProps) {
+export function CreateFolderButton({ bucketName, currentPath = '' }: CreateFolderButtonProps) {
   const [open, setOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -20,7 +26,6 @@ export function CreateFolderButton({ bucketName }: CreateFolderButtonProps) {
   const router = useRouter()
   const { user } = useSession()
 
-  const handleOpen = () => setOpen(true)
   const handleClose = () => {
     setOpen(false)
     setFolderName('')
@@ -40,9 +45,10 @@ export function CreateFolderButton({ bucketName }: CreateFolderButtonProps) {
       setError(null)
 
       const supabase = createClient()
+      const folderPath = currentPath ? `${currentPath}/${folderName}` : folderName
       const { error: createError } = await supabase.storage
         .from(bucketName)
-        .upload(`${folderName}/.placeholder`, new Blob(['']), {
+        .upload(`${folderPath}/.placeholder`, new Blob(['']), {
           cacheControl: '3600',
           upsert: false,
         })
@@ -63,73 +69,55 @@ export function CreateFolderButton({ bucketName }: CreateFolderButtonProps) {
   }
 
   return (
-    <>
-      <Button
-        variant='contained'
-        onClick={handleOpen}
-        sx={{
-          bgcolor: 'white',
-          color: 'primary.main',
-          '&:hover': {
-            bgcolor: 'grey.100',
-          },
-        }}
-      >
-        Create Folder
-      </Button>
-
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        maxWidth='sm'
-        fullWidth
-      >
-        <DialogTitle>Create New Folder</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin='dense'
-            label='Folder Name'
-            type='text'
-            fullWidth
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            error={!!error}
-            helperText={error}
-            disabled={loading}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleClose}
-            disabled={loading}
-          >
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="secondary" size="sm" className="gap-2">
+          <FolderPlusIcon className="w-4 h-4" />
+          Create Folder
+        </Button>
+      </DialogTrigger>
+      
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Folder</DialogTitle>
+          <DialogDescription>
+            Enter a name for the new folder in {currentPath || 'root'}.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="folderName">Folder Name</Label>
+            <Input
+              id="folderName"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              disabled={loading}
+              placeholder="Enter folder name"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !loading && folderName.trim()) {
+                  handleCreate()
+                }
+              }}
+            />
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
-          <Button
-            onClick={handleCreate}
-            variant='contained'
-            disabled={loading || !folderName.trim()}
-          >
-            Create
+          <Button onClick={handleCreate} disabled={loading || !folderName.trim()}>
+            {loading ? 'Creating...' : 'Create Folder'}
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setError(null)}
-          severity='error'
-          sx={{ width: '100%' }}
-        >
-          {error}
-        </Alert>
-      </Snackbar>
-    </>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
