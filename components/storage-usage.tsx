@@ -13,11 +13,11 @@ export function StorageUsage({ usedBytes, totalBytes }: StorageUsageProps) {
   const percentage = (usedBytes / totalBytes) * 100
 
   return (
-    <Card className="mb-4">
+    <Card className="mb-4 gap-2">
       <CardHeader>
         <CardTitle className="text-lg">Storage Usage</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent>
         <div className="flex items-center space-x-3">
           <div className="flex-1 bg-gray-200 rounded-full h-3">
             <div
