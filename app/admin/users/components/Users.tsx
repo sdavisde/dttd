@@ -77,15 +77,16 @@ export default function Users() {
 
   return (
     <div className="my-4">
-      <Typography variant="h4" className="mb-4">
-        User Management
-      </Typography>
+      <div className="mb-4">
+        <Typography variant="h4" className="mb-2">
+          User Management
+        </Typography>
 
-      <Typography variant="muted" className="mb-4">
-        Manage user roles and permissions. Click on a user to assign or change
-        their role.
-      </Typography>
-
+        <Typography variant="muted">
+          Manage user roles and permissions. Click on a user to assign or change
+          their role.
+        </Typography>
+      </div>
       {/* Search Bar */}
       <div className="mb-4">
         <div className="relative">

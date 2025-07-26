@@ -2,12 +2,12 @@
 
 import { Errors, getErrorMessage } from '@/lib/error'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { Toaster } from './ui/sonner'
 
 export function Toastbox() {
-  return <Toaster position="top-center" />
+  return <Toaster position="top-center" richColors />
 }
 
 export function useToastListener() {

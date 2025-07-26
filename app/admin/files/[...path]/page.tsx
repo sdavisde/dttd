@@ -1,36 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { logger } from '@/lib/logger'
 import { getStorageUsage } from '@/lib/storage'
-import { StorageUsage } from '@/components/storage-usage'
-import { FileUpload } from '@/components/file-upload'
-import { FileList } from '@/components/file-list'
-import { CreateFolderButton } from '@/components/create-folder-button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { HomeIcon } from 'lucide-react'
 import { err, isErr, ok, Result } from '@/lib/results'
 import { unslugify } from '@/util/url'
-
-type FileSystemItem = {
-  name: string
-  isFolder: boolean
-  size?: number
-  updated_at?: string
-  metadata?: any
-}
+import FilesFolderContent from '../[folder]/components/FilesFolderContent'
+import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { FileObject } from '@supabase/storage-js'
 
 async function getFileSystemItems(
   bucket: string = 'files',
   path: string = ''
-): Promise<Result<string, FileSystemItem[]>> {
+): Promise<Result<string, FileObject[]>> {
   const supabase = await createClient()
   const { data: items, error } = await supabase.storage.from(bucket).list(path)
 
@@ -41,17 +21,17 @@ async function getFileSystemItems(
   return ok(
     items
       .filter((item) => item.name !== '.placeholder') // Filter out placeholder files
-      .map((item) => ({
-        name: item.name,
-        isFolder: item.metadata === null,
-        size: item.metadata?.size,
-        updated_at: item.updated_at,
-        metadata: item.metadata,
-      }))
+      // .map((item) => ({
+      //   name: item.name,
+      //   isFolder: item.metadata === null,
+      //   size: item.metadata?.size,
+      //   updated_at: item.updated_at,
+      //   metadata: item.metadata,
+      // }))
       .sort((a, b) => {
         // Folders first, then files, both alphabetically
-        if (a.isFolder && !b.isFolder) return -1
-        if (!a.isFolder && b.isFolder) return 1
+        // if (a.isFolder && !b.isFolder) return -1
+        // if (!a.isFolder && b.isFolder) return 1
         return a.name.localeCompare(b.name)
       })
   )
@@ -59,7 +39,7 @@ async function getFileSystemItems(
 
 async function fetchFolderContents(
   pathSegments: string[]
-): Promise<Result<string, Array<FileSystemItem>>> {
+): Promise<Result<string, Array<FileObject>>> {
   if (pathSegments.length === 0) return ok([])
   const folderPath = pathSegments.map(unslugify)
 
@@ -122,69 +102,20 @@ export default async function FilesNestedPage({
   ]
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Storage Usage */}
-      <StorageUsage usedBytes={usedBytes} totalBytes={totalBytes} />
-
-      {/* File Vault */}
-      <Card>
-        <CardHeader className="bg-primary text-primary-foreground">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">File Vault</h1>
-              <span className="text-sm opacity-90">{currentBucket} bucket</span>
-            </div>
-            <div className="flex gap-2">
-              <FileUpload folder={currentPathname} />
-              <CreateFolderButton
-                bucketName={currentBucket}
-                currentPath={currentPathname}
-              />
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-0">
-          {/* Breadcrumb Navigation */}
-          <div className="p-4 border-b">
-            <Breadcrumb>
-              <BreadcrumbList>
-                {breadcrumbs.map((crumb, index) => (
-                  <div key={index} className="flex items-center">
-                    {index > 0 && <BreadcrumbSeparator />}
-                    <BreadcrumbItem>
-                      {index === 0 && <HomeIcon className="w-4 h-4 mr-1" />}
-                      {index === breadcrumbs.length - 1 ? (
-                        <BreadcrumbPage className="font-medium">
-                          {crumb.name}
-                        </BreadcrumbPage>
-                      ) : (
-                        <BreadcrumbLink
-                          href={
-                            crumb.path === ''
-                              ? '/admin/files'
-                              : `/admin/files/${crumb.path}`
-                          }
-                          className="hover:text-primary"
-                        >
-                          {crumb.name}
-                        </BreadcrumbLink>
-                      )}
-                    </BreadcrumbItem>
-                  </div>
-                ))}
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-
-          {/* File/Folder List */}
-          <FileList
-            items={contentsResult.data}
-            currentBucket={currentBucket}
-            currentPath={currentPathname}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <AdminBreadcrumbs
+        title={pathSegments.at(-1) ?? 'Files'}
+        breadcrumbs={[
+          { label: 'Admin', href: '/admin' },
+          { label: 'Files', href: '/admin/files' },
+        ]}
+      />
+      <div className="container mx-auto px-8">
+        <FilesFolderContent
+          files={contentsResult.data}
+          folderName={pathSegments.at(-1) ?? 'Files'}
+        />
+      </div>
+    </>
   )
 }
