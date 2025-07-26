@@ -48,7 +48,9 @@ export default function Users() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteUser = (user: User) => {}
+  const handleDeleteUser = (user: User) => {
+    // todo: create delete user action
+  }
 
   const handleCloseModal = () => {
     setSelectedUser(null)
