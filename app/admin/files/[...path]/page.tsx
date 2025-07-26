@@ -76,7 +76,7 @@ export default async function FilesNestedPage({
   const folderName = unslugify(pathSegments.at(-1) ?? 'Files')
 
   return (
-    <>
+    <div className="min-h-[80vh]">
       <AdminBreadcrumbs
         title={folderName}
         breadcrumbs={[
@@ -90,6 +90,6 @@ export default async function FilesNestedPage({
           folderName={folderName}
         />
       </div>
-    </>
+    </div>
   )
 }
