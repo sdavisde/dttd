@@ -1,22 +1,28 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Button, CircularProgress, Snackbar, Alert } from '@mui/material'
-import UploadIcon from '@mui/icons-material/Upload'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useSession } from './auth/session-provider'
+import { useSession } from '@/components/auth/session-provider'
 import { permissionLock } from '@/lib/security'
+import { Button } from '@/components/ui/button'
+import { Upload, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 type FileUploadProps = {
   folder: string
 }
 
-const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+]
 
 export function FileUpload({ folder }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { user } = useSession()
@@ -32,33 +38,38 @@ export function FileUpload({ folder }: FileUploadProps) {
 
       // Validate file type
       if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        setError('Only PDF and image files are allowed')
+        toast.error('Only PDF and image files are allowed')
         return
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        setError('File size must be less than 10MB')
+        toast.error('File size must be less than 10MB')
         return
       }
 
       setUploading(true)
-      setError(null)
 
       const supabase = createClient()
-      const { error: uploadError } = await supabase.storage.from('files').upload(`${folder}/${file.name}`, file, {
-        cacheControl: '3600',
-        upsert: false,
-      })
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(`${folder}/${file.name}`, file, {
+          cacheControl: '3600',
+          upsert: false,
+        })
 
       if (uploadError) {
         throw uploadError
       }
 
+      toast.success(`File "${file.name}" uploaded successfully`)
+      
       // Refresh the page to show the new file
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while uploading')
+      toast.error(
+        err instanceof Error ? err.message : 'An error occurred while uploading'
+      )
     } finally {
       setUploading(false)
       // Reset the file input
@@ -71,51 +82,24 @@ export function FileUpload({ folder }: FileUploadProps) {
   return (
     <>
       <input
-        type='file'
+        type="file"
         ref={fileInputRef}
         onChange={handleUpload}
         accept={ALLOWED_FILE_TYPES.join(',')}
         style={{ display: 'none' }}
       />
       <Button
-        variant='contained'
-        startIcon={
-          uploading ? (
-            <CircularProgress
-              size={20}
-              color='inherit'
-            />
-          ) : (
-            <UploadIcon />
-          )
-        }
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
-        sx={{
-          bgcolor: 'white',
-          color: 'primary.main',
-          '&:hover': {
-            bgcolor: 'grey.100',
-          },
-        }}
+        className="flex items-center gap-2"
       >
+        {uploading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Upload className="h-4 w-4" />
+        )}
         {uploading ? 'Uploading...' : 'Upload File'}
       </Button>
-
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setError(null)}
-          severity='error'
-          sx={{ width: '100%' }}
-        >
-          {error}
-        </Alert>
-      </Snackbar>
     </>
   )
 }

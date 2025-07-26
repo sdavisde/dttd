@@ -1,15 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
-import { Box, Container, Paper, Typography, Button } from '@mui/material'
-import { notFound } from 'next/navigation'
-import { FileTable } from '@/app/admin/files/[folder]/file-table'
+import { notFound, redirect } from 'next/navigation'
 import { FileObject } from '@supabase/storage-js'
-import FolderIcon from '@mui/icons-material/Folder'
-import { FileUpload } from '@/components/file-upload'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
-import { CreateFolderButton } from '@/components/create-folder-button'
-import { StorageUsage } from '@/components/storage-usage'
-import { getStorageUsage } from '@/lib/storage'
+import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { permissionLock } from '@/lib/security'
+import { getLoggedInUser } from '@/actions/users'
+import { isErr } from '@/lib/results'
+import FilesFolderContent from './components/FilesFolderContent'
 
 async function getValidFolders() {
   const supabase = await createClient()
@@ -28,6 +26,18 @@ async function getValidFolders() {
 }
 
 export default async function FilesFolderPage({ params }: { params: Promise<{ folder: string }> }) {
+  const userResult = await getLoggedInUser()
+  const user = userResult?.data
+
+  try {
+    if (isErr(userResult) || !user) {
+      throw new Error('User not found')
+    }
+    permissionLock(['FILES_UPLOAD', 'FILES_DELETE'])(user)
+  } catch (error) {
+    redirect('/')
+  }
+
   const { folder } = await params
   const validFolders = await getValidFolders()
   const availableSlugs = validFolders.map((folder) => folder.slug)
@@ -46,41 +56,20 @@ export default async function FilesFolderPage({ params }: { params: Promise<{ fo
   }
 
   return (
-    <Container
-      maxWidth='lg'
-      sx={{ py: 4 }}
-    >
-      <Paper
-        elevation={0}
-        sx={{
-          p: 2,
-          mb: 4,
-          backgroundColor: 'primary.light',
-          color: 'white',
-          borderRadius: 2,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <FolderIcon sx={{ fontSize: 40 }} />
-          <Typography
-            variant='h5'
-            component='h1'
-            sx={{ fontWeight: 'bold' }}
-          >
-            {folderName}
-          </Typography>
-        </Box>
-      </Paper>
-
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <FileUpload folder={folderName} />
-        <CreateFolderButton bucketName='files' />
-      </Box>
-
-      <FileTable
-        files={data as FileObject[]}
-        folderName={folderName}
+    <>
+      <AdminBreadcrumbs
+        title={folderName}
+        breadcrumbs={[
+          { label: 'Admin', href: '/admin' },
+          { label: 'Files', href: '/admin/files' }
+        ]}
       />
-    </Container>
+      <div className='container mx-auto px-8'>
+        <FilesFolderContent
+          files={data as FileObject[]}
+          folderName={folderName}
+        />
+      </div>
+    </>
   )
 }
