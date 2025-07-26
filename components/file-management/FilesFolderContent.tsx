@@ -29,19 +29,8 @@ export default function FilesFolderContent({
   }
 
   return (
-    <div className="my-4">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Folder className="h-8 w-8 text-primary" />
-            <Typography variant="h4" className="capitalize">
-              {folderName}
-            </Typography>
-          </div>
-          <Typography variant="muted">
-            Manage files in the {folderName} folder.
-          </Typography>
-        </div>
+    <div>
+      <div className="flex justify-end items-center">
         <div className="flex items-center gap-2">
           <FileUpload folder={folderName} />
           <CreateFolderButton onClick={handleCreateFolder} />

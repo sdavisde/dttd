@@ -12,6 +12,8 @@ export function CreateFolderButton({ onClick }: CreateFolderButtonProps) {
     <Button
       onClick={onClick}
       className="flex items-center gap-2"
+      size="sm"
+      variant="ghost"
     >
       <FolderPlus className="h-4 w-4" />
       Create Folder

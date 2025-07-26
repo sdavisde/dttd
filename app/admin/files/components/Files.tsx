@@ -3,11 +3,23 @@
 import { useState } from 'react'
 import { StorageUsage } from '@/components/storage-usage'
 import { Typography } from '@/components/ui/typography'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Folder } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Folder, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { CreateFolderButton } from '../[folder]/components/CreateFolderButton'
-import { FolderSidebar } from '../[folder]/components/FolderSidebar'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { CreateFolderSidebar } from '@/components/file-management/CreateFolderSidebar'
+import { deleteFolder } from '@/actions/file-management'
+import { isErr } from '@/lib/results'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 type Bucket = {
   name: string
@@ -25,16 +37,27 @@ type FilesProps = {
 
 export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isCreateSidebarOpen, setIsCreateSidebarOpen] = useState(false)
+  const router = useRouter()
 
   const handleCreateFolder = (bucketName: string) => {
     setSelectedBucket(bucketName)
-    setIsSidebarOpen(true)
+    setIsCreateSidebarOpen(true)
   }
 
   const handleCloseSidebar = () => {
     setSelectedBucket(null)
-    setIsSidebarOpen(false)
+    setIsCreateSidebarOpen(false)
+  }
+
+  const handleDeleteFolder = async (bucketName: string, folderName: string) => {
+    const res = await deleteFolder(bucketName, folderName)
+    if (isErr(res)) {
+      toast.error(res.error)
+    } else {
+      toast.success(`Folder ${folderName} deleted successfully`)
+      router.refresh()
+    }
   }
 
   return (
@@ -50,11 +73,8 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
         </div>
       </div>
 
-      <div className='mb-6'>
-        <StorageUsage
-          usedBytes={usedBytes}
-          totalBytes={totalBytes}
-        />
+      <div className="mb-6">
+        <StorageUsage usedBytes={usedBytes} totalBytes={totalBytes} />
       </div>
 
       {buckets.length === 0 ? (
@@ -68,18 +88,16 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
       ) : (
         <div className="space-y-6">
           {buckets.map((bucket) => (
-            <Card key={bucket.name}>
-              <CardHeader className="bg-primary text-primary-foreground">
-                <div className="flex items-center justify-between">
-                  <Typography variant="h6" className="capitalize">
-                    {bucket.name}
-                  </Typography>
-                  <CreateFolderButton 
-                    onClick={() => handleCreateFolder(bucket.name)} 
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
+            <Table key={bucket.name}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{bucket.name}</TableHead>
+                  <TableHead className="sticky right-0 bg-background text-right border-l">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {bucket.folders.length === 0 ? (
                   <div className="p-4 text-center">
                     <Typography variant="muted" className="italic">
@@ -87,28 +105,56 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
                     </Typography>
                   </div>
                 ) : (
-                  <div className="divide-y">
-                    {bucket.folders.map((folder) => (
-                      <Link
-                        key={folder.slug}
-                        href={`/admin/files/${folder.slug}`}
-                        className="flex items-center gap-3 p-4 hover:bg-muted/50 transition-colors"
-                      >
-                        <Folder className="h-5 w-5 text-muted-foreground" />
-                        <span className="capitalize font-medium">{folder.name}</span>
-                      </Link>
-                    ))}
-                  </div>
+                  bucket.folders.map((folder) => (
+                    <TableRow key={folder.slug}>
+                      <TableCell>
+                        <Link
+                          key={folder.slug}
+                          href={`/admin/files/${folder.slug}`}
+                          className="flex items-center gap-3 hover:bg-muted/50 transition-colors"
+                        >
+                          <Folder className="h-5 w-5 text-muted-foreground" />
+                          <span className="capitalize font-medium">
+                            {folder.name}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="sticky right-0 bg-background text-right border-l">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            handleDeleteFolder(bucket.name, folder.name)
+                          }
+                        >
+                          <Trash2 className="h-4 w-4 text-red-700" />
+                          <span className="sr-only">Delete folder</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
-              </CardContent>
-            </Card>
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCreateFolder(bucket.name)}
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create folder
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           ))}
         </div>
       )}
 
-      <FolderSidebar
+      <CreateFolderSidebar
         bucketName={selectedBucket || ''}
-        isOpen={isSidebarOpen}
+        isOpen={isCreateSidebarOpen}
         onClose={handleCloseSidebar}
       />
     </div>

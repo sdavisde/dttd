@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { getStorageUsage } from '@/lib/storage'
 import { err, isErr, ok, Result } from '@/lib/results'
 import { unslugify } from '@/util/url'
-import FilesFolderContent from '../[folder]/components/FilesFolderContent'
+import FilesFolderContent from '@/components/file-management/FilesFolderContent'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { FileObject } from '@supabase/storage-js'
 
@@ -21,19 +21,7 @@ async function getFileSystemItems(
   return ok(
     items
       .filter((item) => item.name !== '.placeholder') // Filter out placeholder files
-      // .map((item) => ({
-      //   name: item.name,
-      //   isFolder: item.metadata === null,
-      //   size: item.metadata?.size,
-      //   updated_at: item.updated_at,
-      //   metadata: item.metadata,
-      // }))
-      .sort((a, b) => {
-        // Folders first, then files, both alphabetically
-        // if (a.isFolder && !b.isFolder) return -1
-        // if (!a.isFolder && b.isFolder) return 1
-        return a.name.localeCompare(b.name)
-      })
+      .sort((a, b) => a.name.localeCompare(b.name))
   )
 }
 
@@ -78,33 +66,19 @@ export default async function FilesNestedPage({
   let { path: pathSegments } = await params
   pathSegments =
     typeof pathSegments === 'string' ? [pathSegments] : pathSegments
-  const currentBucket = 'files'
 
-  // Validate that the path exists
   const contentsResult = await fetchFolderContents(pathSegments)
   if (isErr(contentsResult)) {
     console.error(contentsResult.error)
     notFound()
   }
 
-  const usedBytes = await getStorageUsage()
-  const totalBytes = 1024 * 1024 * 1024 // 1 GB in bytes
-
-  const currentPathname = pathSegments.join('/')
-
-  // Create breadcrumb path
-  const breadcrumbs = [
-    { name: 'Files', path: '' },
-    ...pathSegments.map((segment, index) => ({
-      name: unslugify(segment),
-      path: pathSegments.slice(0, index + 1).join('/'),
-    })),
-  ]
+  const folderName = unslugify(pathSegments.at(-1) ?? 'Files')
 
   return (
     <>
       <AdminBreadcrumbs
-        title={pathSegments.at(-1) ?? 'Files'}
+        title={folderName}
         breadcrumbs={[
           { label: 'Admin', href: '/admin' },
           { label: 'Files', href: '/admin/files' },
@@ -113,7 +87,7 @@ export default async function FilesNestedPage({
       <div className="container mx-auto px-8">
         <FilesFolderContent
           files={contentsResult.data}
-          folderName={pathSegments.at(-1) ?? 'Files'}
+          folderName={folderName}
         />
       </div>
     </>

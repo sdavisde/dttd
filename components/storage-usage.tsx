@@ -8,11 +8,9 @@ type StorageUsageProps = {
 }
 
 export function StorageUsage({ usedBytes, totalBytes }: StorageUsageProps) {
-  console.log(usedBytes, totalBytes)
   const usedGB = usedBytes / (1024 * 1024 * 1024)
   const totalGB = totalBytes / (1024 * 1024 * 1024)
   const percentage = (usedBytes / totalBytes) * 100
-  console.log(usedGB, totalGB, percentage)
 
   return (
     <Card className="mb-4">
@@ -24,11 +22,11 @@ export function StorageUsage({ usedBytes, totalBytes }: StorageUsageProps) {
           <div className="flex-1 bg-gray-200 rounded-full h-3">
             <div
               className={`h-3 rounded-full transition-all ${
-                percentage > 90 
-                  ? 'bg-red-500' 
-                  : percentage > 75 
-                  ? 'bg-yellow-500' 
-                  : 'bg-blue-500'
+                percentage > 90
+                  ? 'bg-red-500'
+                  : percentage > 75
+                    ? 'bg-yellow-500'
+                    : 'bg-blue-500'
               }`}
               style={{ width: `${percentage}%` }}
             />

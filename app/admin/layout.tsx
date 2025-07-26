@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { redirect } from 'next/navigation'
 import { slugify } from '@/util/url'
+import { Footer } from '@/components/footer'
 
 type AdminLayoutProps = {
   children: React.ReactNode
@@ -28,7 +29,9 @@ async function getFileFolders() {
     return items
       .filter((item) => item.metadata === null) // folders have null metadata
       .map((folder) => ({
-        title: folder.name.charAt(0).toUpperCase() + folder.name.slice(1).replace(/-/g, ' '),
+        title:
+          folder.name.charAt(0).toUpperCase() +
+          folder.name.slice(1).replace(/-/g, ' '),
         url: `/admin/files/${slugify(folder.name)}`,
       }))
       .sort((a, b) => a.title.localeCompare(b.title))
@@ -117,6 +120,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
           </span>
         </div>
         {children}
+        <Footer />
       </SidebarInset>
     </SidebarProvider>
   )

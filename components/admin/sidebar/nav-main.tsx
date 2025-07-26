@@ -52,7 +52,7 @@ export function NavMain({
           }
 
           return (
-            <SidebarMenuItem>
+            <SidebarMenuItem key={item.title}>
               <Link href={item.url}>
                 <SidebarMenuButton
                   tooltip={item.title}

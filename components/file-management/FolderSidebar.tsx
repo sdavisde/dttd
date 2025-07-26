@@ -23,20 +23,17 @@ interface FolderSidebarProps {
   bucketName: string
   isOpen: boolean
   onClose: () => void
+  folderToEdit?: {
+    name: string
+    path: string
+  }
 }
-
-const ALLOWED_FILE_TYPES = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-]
 
 export function FolderSidebar({
   bucketName,
   isOpen,
   onClose,
+  folderToEdit,
 }: FolderSidebarProps) {
   const [folderName, setFolderName] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -44,17 +41,24 @@ export function FolderSidebar({
   const router = useRouter()
   const { user } = useSession()
 
-  // Reset form when sidebar opens/closes
+  const isEditing = !!folderToEdit
+
+  // Reset form when sidebar opens/closes or when editing folder changes
   useEffect(() => {
     if (isOpen) {
       setError(null)
+      if (isEditing && folderToEdit) {
+        setFolderName(folderToEdit.name)
+      } else {
+        setFolderName('')
+      }
     } else {
       setFolderName('')
       setError(null)
     }
-  }, [isOpen])
+  }, [isOpen, isEditing, folderToEdit])
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     try {
       permissionLock(['FILES_UPLOAD'])(user)
 
@@ -76,32 +80,43 @@ export function FolderSidebar({
       setError(null)
 
       const supabase = createClient()
-      const { error: createError } = await supabase.storage
-        .from(bucketName)
-        .upload(`${sanitizedName}/.placeholder`, new Blob(['']), {
-          cacheControl: '3600',
-          upsert: false,
-        })
 
-      if (createError) {
-        if (createError.message.includes('already exists')) {
-          setError('A folder with this name already exists')
-        } else {
-          throw createError
-        }
+      if (isEditing && folderToEdit) {
+        // Handle folder rename - this is a complex operation that requires moving files
+        // For now, we'll show an error indicating this feature needs more implementation
+        setError(
+          'Folder renaming is not yet implemented. Please contact an administrator.'
+        )
         return
+      } else {
+        // Create new folder
+        const { error: createError } = await supabase.storage
+          .from(bucketName)
+          .upload(`${sanitizedName}/.placeholder`, new Blob(['']), {
+            cacheControl: '3600',
+            upsert: false,
+          })
+
+        if (createError) {
+          if (createError.message.includes('already exists')) {
+            setError('A folder with this name already exists')
+          } else {
+            throw createError
+          }
+          return
+        }
       }
 
-      // Refresh the page to show the new folder
+      // Refresh the page to show the changes
       router.refresh()
       onClose()
     } catch (err) {
       const errorMessage =
         err instanceof Error
           ? err.message
-          : 'An error occurred while creating the folder'
+          : 'An error occurred while saving the folder'
       setError(errorMessage)
-      logger.error('Error creating folder:', err)
+      logger.error('Error saving folder:', err)
     } finally {
       setLoading(false)
     }
@@ -113,7 +128,12 @@ export function FolderSidebar({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Create New Folder</SheetTitle>
+          <SheetTitle>
+            {isEditing ? 'Edit Folder' : 'Create New Folder'}
+          </SheetTitle>
+          <Typography variant="muted" className="capitalize">
+            {bucketName}
+          </Typography>
         </SheetHeader>
 
         <div className="space-y-6 px-4">
@@ -132,44 +152,20 @@ export function FolderSidebar({
                   disabled={loading}
                   placeholder="Enter folder name"
                   onKeyDown={(e) =>
-                    e.key === 'Enter' && hasValidName && handleCreate()
+                    e.key === 'Enter' && hasValidName && handleSave()
                   }
                 />
                 <Typography variant="muted" className="text-xs">
-                  Only letters, numbers, spaces, dashes, and underscores are
-                  allowed
+                  Folder names should be in title format (e.g. "My Folder")
                 </Typography>
-              </div>
-
-              <div className="space-y-2">
-                <Typography
-                  variant="muted"
-                  className="text-xs uppercase tracking-wide font-medium"
-                >
-                  Bucket
-                </Typography>
-                <Typography className="text-sm capitalize font-medium">
-                  {bucketName}
-                </Typography>
-              </div>
-
-              <div className="space-y-2">
-                <Typography
-                  variant="muted"
-                  className="text-xs uppercase tracking-wide font-medium"
-                >
-                  Supported File Types
-                </Typography>
-                <div className="flex flex-wrap gap-1">
-                  {['PDF', 'JPEG', 'PNG', 'GIF', 'WebP'].map((type) => (
-                    <span
-                      key={type}
-                      className="text-xs bg-muted px-2 py-1 rounded"
-                    >
-                      {type}
-                    </span>
-                  ))}
-                </div>
+                {isEditing && (
+                  <Typography
+                    variant="muted"
+                    className="text-xs text-amber-600"
+                  >
+                    Note: Folder renaming is not yet implemented
+                  </Typography>
+                )}
               </div>
             </div>
           </div>
@@ -186,8 +182,12 @@ export function FolderSidebar({
           <Button variant="outline" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={loading || !hasValidName}>
-            {loading ? 'Creating...' : 'Create Folder'}
+          <Button onClick={handleSave} disabled={loading || !hasValidName}>
+            {loading
+              ? 'Saving...'
+              : isEditing
+                ? 'Save Changes'
+                : 'Create Folder'}
           </Button>
         </SheetFooter>
       </SheetContent>

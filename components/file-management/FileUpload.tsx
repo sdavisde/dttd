@@ -91,6 +91,8 @@ export function FileUpload({ folder }: FileUploadProps) {
       <Button
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
+        size="sm"
+        variant="ghost"
         className="flex items-center gap-2"
       >
         {uploading ? (
@@ -98,7 +100,7 @@ export function FileUpload({ folder }: FileUploadProps) {
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        {uploading ? 'Uploading...' : 'Upload File'}
+        Upload File
       </Button>
     </>
   )
