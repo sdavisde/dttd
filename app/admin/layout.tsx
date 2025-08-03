@@ -55,14 +55,15 @@ function getSidebarData(fileFolders: Array<{ title: string; url: string }>) {
             url: '/admin/weekends/upcoming',
           },
           {
-            title: 'Meetings',
-            url: '/admin/weekends/meetings',
-          },
-          {
             title: 'Create Weekend',
             url: '/admin/weekends/create',
           },
         ],
+      },
+      {
+        title: 'Meetings',
+        url: '/admin/meetings',
+        icon: 'Calendar',
       },
       {
         title: 'Community',

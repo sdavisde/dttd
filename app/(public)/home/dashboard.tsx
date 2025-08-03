@@ -1,9 +1,9 @@
-import { BookOpen, Calendar, DollarSign, File, UserPlus } from 'lucide-react'
+import { BookOpen, DollarSign, File, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import { User } from '@/lib/users/types'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { UpcomingEvents } from '@/components/events/UpcomingEvents'
 
 interface DashboardProps {
   /** Information about the current user's place on the weekend roster */
@@ -22,21 +22,7 @@ export function Dashboard({ user }: DashboardProps) {
           <Typography variant='muted'>Here you'll find important information, updates, and resources.</Typography>
         </div>
 
-        {/* Information for the upcoming events (Meetings / Weekend) */}
-        <div className='w-full mt-4'>
-          <Typography variant='h2'>Upcoming Events</Typography>
-        </div>
-        {/* // todo: this should be coming from the database */}
-        <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <Alert>
-            <Calendar className='w-6 h-6' />
-            <AlertTitle className='text-lg font-semibold'>Team Meeting #1</AlertTitle>
-            <AlertDescription>
-              <span>Saturday, July 12, 2025</span>
-              <span>9:15 AM - Grace Church in Cameron</span>
-            </AlertDescription>
-          </Alert>
-        </div>
+        <UpcomingEvents />
 
         {/* Dynamic Action Section */}
 

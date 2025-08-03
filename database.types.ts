@@ -340,6 +340,30 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          datetime: string | null
+          id: number
+          location: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          datetime?: string | null
+          id?: number
+          location?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          datetime?: string | null
+          id?: number
+          location?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           id: string
