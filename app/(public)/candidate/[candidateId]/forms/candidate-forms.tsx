@@ -7,10 +7,23 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/ui/date-picker'
 import { WaiverDialog } from '@/components/ui/waiver-dialog'
@@ -18,6 +31,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
 import { calculateAge } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 
 const formSchema = z.object({
   /** Personal Info */
@@ -26,7 +40,9 @@ const formSchema = z.object({
   email: z.email('Invalid email address'),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   shirtSize: z.string().min(1, 'Shirt size is required'),
-  maritalStatus: z.enum(['single', 'married', 'widowed', 'divorced', 'separated']).optional(),
+  maritalStatus: z
+    .enum(['single', 'married', 'widowed', 'divorced', 'separated'])
+    .optional(),
   /** Make these fields conditionally render only if maritalStatus is married */
   hasSpouseAttendedWeekend: z.boolean().optional(),
   spouseWeekendLocation: z.string().optional(),
@@ -47,10 +63,12 @@ const formSchema = z.object({
   requireSpecialAssistance: z.boolean(),
   specialNeeds: z.string().optional(),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
-  emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
-  coveredByInsurance: z.boolean(),
+  emergencyContactPhone: z
+    .string()
+    .min(1, 'Emergency contact phone is required'),
+  coveredByInsurance: z.boolean().optional(),
   /** If covered by insurance, show this field */
-  insuranceInformation: z.string().min(1, 'Insurance information is required'),
+  insuranceInformation: z.string().optional(),
   allergies: z.string().optional(),
   allergyManagement: z.string().optional(),
   hasMedication: z.boolean(),
@@ -79,6 +97,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [waiverOpen, setWaiverOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const router = useRouter()
   const form = useForm<FormValues>({
     defaultValues: {
       addressLine1: '',
@@ -184,9 +203,11 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
         return
       }
 
-      setSuccessMessage('Form submitted successfully')
+      router.push(`/candidate/${candidateId}/forms/success`)
     } catch (error) {
-      form.setError('root', { message: 'An error occurred while submitting the form' })
+      form.setError('root', {
+        message: 'An error occurred while submitting the form',
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -194,19 +215,16 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className='space-y-6'
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name='firstName'
+                name="firstName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
@@ -220,7 +238,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='lastName'
+                name="lastName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
@@ -234,7 +252,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='email'
+                name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
@@ -248,15 +266,17 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='dateOfBirth'
+                name="dateOfBirth"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date of Birth</FormLabel>
                     <FormControl>
                       <DatePicker
                         date={field.value ? new Date(field.value) : undefined}
-                        onDateChange={(date) => field.onChange(date?.toISOString())}
-                        className='w-full'
+                        onDateChange={(date) =>
+                          field.onChange(date?.toISOString())
+                        }
+                        className="w-full"
                       />
                     </FormControl>
                     <FormMessage />
@@ -266,7 +286,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='shirtSize'
+                name="shirtSize"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Shirt Size</FormLabel>
@@ -275,18 +295,18 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Select shirt size' />
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select shirt size" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='XS'>XS</SelectItem>
-                        <SelectItem value='S'>S</SelectItem>
-                        <SelectItem value='M'>M</SelectItem>
-                        <SelectItem value='L'>L</SelectItem>
-                        <SelectItem value='XL'>XL</SelectItem>
-                        <SelectItem value='XXL'>XXL</SelectItem>
-                        <SelectItem value='XXXL'>XXXL</SelectItem>
+                        <SelectItem value="XS">XS</SelectItem>
+                        <SelectItem value="S">S</SelectItem>
+                        <SelectItem value="M">M</SelectItem>
+                        <SelectItem value="L">L</SelectItem>
+                        <SelectItem value="XL">XL</SelectItem>
+                        <SelectItem value="XXL">XXL</SelectItem>
+                        <SelectItem value="XXXL">XXXL</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -296,7 +316,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='maritalStatus'
+                name="maritalStatus"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Marital Status</FormLabel>
@@ -305,16 +325,16 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Select marital status' />
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select marital status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='single'>Single</SelectItem>
-                        <SelectItem value='married'>Married</SelectItem>
-                        <SelectItem value='widowed'>Widowed</SelectItem>
-                        <SelectItem value='divorced'>Divorced</SelectItem>
-                        <SelectItem value='separated'>Separated</SelectItem>
+                        <SelectItem value="single">Single</SelectItem>
+                        <SelectItem value="married">Married</SelectItem>
+                        <SelectItem value="widowed">Widowed</SelectItem>
+                        <SelectItem value="divorced">Divorced</SelectItem>
+                        <SelectItem value="separated">Separated</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -327,18 +347,22 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                 <>
                   <FormField
                     control={form.control}
-                    name='hasSpouseAttendedWeekend'
+                    name="hasSpouseAttendedWeekend"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Has your spouse attended a Tres Dias weekend?</FormLabel>
+                        <FormLabel>
+                          Has your spouse attended a Tres Dias weekend?
+                        </FormLabel>
                         <FormControl>
-                          <div className='flex items-center space-x-2'>
+                          <div className="flex items-center space-x-2">
                             <Checkbox
-                              id='hasSpouseAttendedWeekend'
+                              id="hasSpouseAttendedWeekend"
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
-                            <Label htmlFor='hasSpouseAttendedWeekend'>Yes</Label>
+                            <Label htmlFor="hasSpouseAttendedWeekend">
+                              Yes
+                            </Label>
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -348,12 +372,12 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
                   <FormField
                     control={form.control}
-                    name='spouseWeekendLocation'
+                    name="spouseWeekendLocation"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          If spouse has already attended a Tres Dias, please state below which community/location they
-                          attended.
+                          If spouse has already attended a Tres Dias, please
+                          state below which community/location they attended.
                         </FormLabel>
                         <FormControl>
                           <Input {...field} />
@@ -365,11 +389,12 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
                   <FormField
                     control={form.control}
-                    name='spouseName'
+                    name="spouseName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          If spouse has submitted an application for next weekend, please print their name below:
+                          If spouse has submitted an application for next
+                          weekend, please print their name below:
                         </FormLabel>
                         <FormControl>
                           <Input {...field} />
@@ -383,20 +408,21 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='hasFriendsAttendingWeekend'
+                name="hasFriendsAttendingWeekend"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Do you have any friends or relatives that will also be attending this weekend?
+                      Do you have any friends or relatives that will also be
+                      attending this weekend?
                     </FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='hasFriendsAttendingWeekend'
+                          id="hasFriendsAttendingWeekend"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='hasFriendsAttendingWeekend'>Yes</Label>
+                        <Label htmlFor="hasFriendsAttendingWeekend">Yes</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -406,18 +432,18 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='isChristian'
+                name="isChristian"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Are you a Christian?</FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='isChristian'
+                          id="isChristian"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='isChristian'>Yes</Label>
+                        <Label htmlFor="isChristian">Yes</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -427,7 +453,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='church'
+                name="church"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Church Attending</FormLabel>
@@ -441,18 +467,20 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='memberOfClergy'
+                name="memberOfClergy"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Are you a member of the Clergy or Ordained?</FormLabel>
+                    <FormLabel>
+                      Are you a member of the Clergy or Ordained?
+                    </FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='memberOfClergy'
+                          id="memberOfClergy"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='memberOfClergy'>Yes</Label>
+                        <Label htmlFor="memberOfClergy">Yes</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -462,11 +490,12 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='reasonForAttending'
+                name="reasonForAttending"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      What is your heartfelt reasoning for wanting to attend this Dusty Trails Tres Dias weekend?
+                      What is your heartfelt reasoning for wanting to attend
+                      this Dusty Trails Tres Dias weekend?
                     </FormLabel>
                     <FormControl>
                       <Textarea {...field} />
@@ -485,10 +514,10 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
             <CardTitle>Address</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name='addressLine1'
+                name="addressLine1"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Address Line 1</FormLabel>
@@ -502,7 +531,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='addressLine2'
+                name="addressLine2"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Address Line 2 (Optional)</FormLabel>
@@ -516,7 +545,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='city'
+                name="city"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>City</FormLabel>
@@ -530,7 +559,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='state'
+                name="state"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>State</FormLabel>
@@ -544,7 +573,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='zip'
+                name="zip"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>ZIP Code</FormLabel>
@@ -558,7 +587,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='phone'
+                name="phone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
@@ -579,23 +608,24 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
             <CardTitle>Emergency Contact & Health Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start'>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
               <FormField
                 control={form.control}
-                name='requireSpecialAssistance'
+                name="requireSpecialAssistance"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Do you have ANY Special Needs/Assistance? (ex: Sleep Apnea, Diabetes, Walking Assistance, etc)
+                      Do you have ANY Special Needs/Assistance? (ex: Sleep
+                      Apnea, Diabetes, Walking Assistance, etc)
                     </FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='requireSpecialAssistance'
+                          id="requireSpecialAssistance"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='requireSpecialAssistance'>Yes</Label>
+                        <Label htmlFor="requireSpecialAssistance">Yes</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -606,7 +636,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
               {form.watch('requireSpecialAssistance') && (
                 <FormField
                   control={form.control}
-                  name='specialNeeds'
+                  name="specialNeeds"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Please state your needs below</FormLabel>
@@ -620,10 +650,10 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
               )}
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start mt-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start mt-4">
               <FormField
                 control={form.control}
-                name='emergencyContactName'
+                name="emergencyContactName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Emergency Contact Name</FormLabel>
@@ -637,7 +667,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='emergencyContactPhone'
+                name="emergencyContactPhone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Emergency Contact Phone</FormLabel>
@@ -651,18 +681,18 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='coveredByInsurance'
+                name="coveredByInsurance"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Are you covered by insurance?</FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='coveredByInsurance'
+                          id="coveredByInsurance"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='coveredByInsurance'>Yes</Label>
+                        <Label htmlFor="coveredByInsurance">Yes</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -673,18 +703,16 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
               {form.watch('coveredByInsurance') && (
                 <FormField
                   control={form.control}
-                  name='insuranceInformation'
+                  name="insuranceInformation"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Please provide the following Insurance Information below: Insurance Name / Policy #/ Group # /
-                        Subscriber Name/ Relationship to participant
+                        Please provide the following Insurance Information
+                        below: Insurance Name / Policy #/ Group # / Subscriber
+                        Name/ Relationship to participant
                       </FormLabel>
                       <FormControl>
-                        <Textarea
-                          {...field}
-                          rows={3}
-                        />
+                        <Textarea {...field} rows={3} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -694,15 +722,12 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='allergies'
+                name="allergies"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Any Food/Other Allergies?</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        rows={2}
-                      />
+                      <Textarea {...field} rows={2} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -711,15 +736,14 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='allergyManagement'
+                name="allergyManagement"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Describe (Allergy) Reaction and Management of Reaction</FormLabel>
+                    <FormLabel>
+                      Describe (Allergy) Reaction and Management of Reaction
+                    </FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        rows={2}
-                      />
+                      <Textarea {...field} rows={2} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -728,18 +752,18 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='hasMedication'
+                name="hasMedication"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Do you take any medications?</FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='hasMedication'
+                          id="hasMedication"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='hasMedication'>Yes</Label>
+                        <Label htmlFor="hasMedication">Yes</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -750,17 +774,15 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
               {form.watch('hasMedication') && (
                 <FormField
                   control={form.control}
-                  name='medicationInformation'
+                  name="medicationInformation"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        List ALL Medications below & Reason for taking (ex: Lexapro - Depression/Anxiety)
+                        List ALL Medications below & Reason for taking (ex:
+                        Lexapro - Depression/Anxiety)
                       </FormLabel>
                       <FormControl>
-                        <Textarea
-                          {...field}
-                          rows={3}
-                        />
+                        <Textarea {...field} rows={3} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -770,15 +792,14 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='activityRestrictions'
+                name="activityRestrictions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Please list ANY restrictions that apply to activity</FormLabel>
+                    <FormLabel>
+                      Please list ANY restrictions that apply to activity
+                    </FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        rows={2}
-                      />
+                      <Textarea {...field} rows={2} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -787,15 +808,14 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='medicalConditions'
+                name="medicalConditions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Do you have ANY Medical Conditions that staff should know?</FormLabel>
+                    <FormLabel>
+                      Do you have ANY Medical Conditions that staff should know?
+                    </FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        rows={2}
-                      />
+                      <Textarea {...field} rows={2} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -804,7 +824,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='familyPhysician'
+                name="familyPhysician"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Name of Family Physician</FormLabel>
@@ -818,7 +838,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='physicianPhone'
+                name="physicianPhone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Physician Phone Number & Address</FormLabel>
@@ -832,7 +852,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='familyDentist'
+                name="familyDentist"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Name of Family Dentist</FormLabel>
@@ -846,7 +866,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='dentistPhone'
+                name="dentistPhone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Dentist Phone Number & Address Phone</FormLabel>
@@ -860,18 +880,18 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='smokeOrVape'
+                name="smokeOrVape"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Do you smoke or vape?</FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='smokeOrVape'
+                          id="smokeOrVape"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='smokeOrVape'>Yes</Label>
+                        <Label htmlFor="smokeOrVape">Yes</Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -881,21 +901,24 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='acknowledgedSmokeRules'
+                name="acknowledgedSmokeRules"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      If you marked &quot;YES&quot; for smoking, please be aware there are only 2-3 breaks per day (in a
-                      specific area &quot;designated for smoking&quot; on camp):
+                      If you marked &quot;YES&quot; for smoking, please be aware
+                      there are only 2-3 breaks per day (in a specific area
+                      &quot;designated for smoking&quot; on camp):
                     </FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='acknowledgedSmokeRules'
+                          id="acknowledgedSmokeRules"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='acknowledgedSmokeRules'>I acknowledge</Label>
+                        <Label htmlFor="acknowledgedSmokeRules">
+                          I acknowledge
+                        </Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -912,21 +935,25 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
             <CardTitle>Acknowledgements</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name='acknowledgedCampRules'
+                name="acknowledgedCampRules"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>I acknowledge the camp rules and policies</FormLabel>
+                    <FormLabel>
+                      I acknowledge the camp rules and policies
+                    </FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='acknowledgedCampRules'
+                          id="acknowledgedCampRules"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='acknowledgedCampRules'>I acknowledge</Label>
+                        <Label htmlFor="acknowledgedCampRules">
+                          I acknowledge
+                        </Label>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -936,33 +963,37 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='medicalPermission'
+                name="medicalPermission"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      I hereby give permission to the medical personnel selected by the camp staff to order X-rays,
-                      routine tests, treatment; to release any records necessary for insurance purposes; and to provide
-                      or arrange necessary related transportation for me. I further, hereby give permission to the
-                      physician selected by the camp staff to secure and administer treatment, including
-                      hospitalization, anesthesia, surgery, or any other medical decision.{' '}
+                      I hereby give permission to the medical personnel selected
+                      by the camp staff to order X-rays, routine tests,
+                      treatment; to release any records necessary for insurance
+                      purposes; and to provide or arrange necessary related
+                      transportation for me. I further, hereby give permission
+                      to the physician selected by the camp staff to secure and
+                      administer treatment, including hospitalization,
+                      anesthesia, surgery, or any other medical decision.{' '}
                     </FormLabel>
                     <FormControl>
-                      <div className='space-y-4'>
-                        <div className='flex items-center space-x-2'>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
                           <Checkbox
-                            id='medicalPermission'
+                            id="medicalPermission"
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
-                          <Label htmlFor='medicalPermission'>
-                            I have read, acknowledged and agree to give permission to selected personnel for medical
+                          <Label htmlFor="medicalPermission">
+                            I have read, acknowledged and agree to give
+                            permission to selected personnel for medical
                             purposes
                           </Label>
                         </div>
                         <Button
-                          type='button'
-                          variant='outline'
-                          size='sm'
+                          type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => setWaiverOpen(true)}
                         >
                           Read Tanglewood Christian Camp Waiver
@@ -976,22 +1007,26 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name='emergencyContactPermission'
+                name="emergencyContactPermission"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      I acknowledge that the Dusty Trails Tres Dias nurse will attempt to contact the emergency contact
-                      listed at the top of this waiver as soon as possible and will keep them up-to-date concerning the
-                      condition and treatment of the Attendee
+                      I acknowledge that the Dusty Trails Tres Dias nurse will
+                      attempt to contact the emergency contact listed at the top
+                      of this waiver as soon as possible and will keep them
+                      up-to-date concerning the condition and treatment of the
+                      Attendee
                     </FormLabel>
                     <FormControl>
-                      <div className='flex items-center space-x-2'>
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id='emergencyContactPermission'
+                          id="emergencyContactPermission"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
-                        <Label htmlFor='emergencyContactPermission'>I acknowledge</Label>
+                        <Label htmlFor="emergencyContactPermission">
+                          I acknowledge
+                        </Label>
                       </div>
                     </FormControl>
                   </FormItem>
@@ -1002,14 +1037,14 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
         </Card>
 
         {successMessage && (
-          <Alert variant='success'>
+          <Alert variant="success">
             <AlertTitle>Success</AlertTitle>
             <AlertDescription>{successMessage}</AlertDescription>
           </Alert>
         )}
 
         {Object.values(form.formState.errors).length > 0 && (
-          <Alert variant='destructive'>
+          <Alert variant="destructive">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>
               {Object.values(form.formState.errors)
@@ -1020,12 +1055,12 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
         )}
 
         {/* Submit Button */}
-        <div className='flex justify-center'>
+        <div className="flex justify-center">
           <Button
-            type='submit'
-            size='lg'
+            type="submit"
+            size="lg"
             disabled={isSubmitting}
-            className='min-w-[200px]'
+            className="min-w-[200px]"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Application'}
           </Button>
@@ -1035,7 +1070,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
       <WaiverDialog
         open={waiverOpen}
         onOpenChange={setWaiverOpen}
-        title='Tanglewood Christian Camp Waiver'
+        title="Tanglewood Christian Camp Waiver"
         content={`
 WAIVER OF CLAIM TANGLEWOOD CHRISTIAN CAMP
 
@@ -1048,7 +1083,7 @@ This Waiver of Claim (the "Waiver") is given for the following purposes:
 5. Texas law governs the interpretation and enforcement of this Waiver. Venue of any dispute will be ni the county where Tanglewood Christian Camp is located. Any claim shall be first discussed among the claimants) and Tanglewood Christian Camp before any suit if filed by way of face-to-face meeting on the premises, and thereafter, by way of non-binding mediation BEFORE suit to interpret or enforce is filed
         `}
         onAcknowledge={() => setWaiverOpen(false)}
-        acknowledgeText='I have read, understood, and agree to the medical permission terms'
+        acknowledgeText="I have read, understood, and agree to the medical permission terms"
       />
     </Form>
   )

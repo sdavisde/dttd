@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { SquareTerminal, Bot, BookOpen, type LucideIcon } from 'lucide-react'
+import { SquareTerminal, BookOpen, type LucideIcon, Users } from 'lucide-react'
 import { NavMain } from '@/components/admin/sidebar/nav-main'
 import { SystemLinks } from '@/components/admin/sidebar/system-links'
 import { NavUser } from '@/components/admin/sidebar/nav-user'
@@ -17,7 +17,7 @@ import {
 // Icon mapping for serializable data
 const iconMap: Record<string, LucideIcon> = {
   SquareTerminal,
-  Bot,
+  Users,
   BookOpen,
 }
 
@@ -36,16 +36,13 @@ type AdminSidebarProps = React.ComponentProps<typeof Sidebar> & {
   }
 }
 
-export function AdminSidebar({
-  data,
-  ...props
-}: AdminSidebarProps) {
+export function AdminSidebar({ data, ...props }: AdminSidebarProps) {
   // Transform the data to include actual icon components
   const transformedData = {
-    navMain: data.navMain.map(item => ({
+    navMain: data.navMain.map((item) => ({
       ...item,
       icon: item.icon ? iconMap[item.icon] : undefined,
-    }))
+    })),
   }
 
   return (

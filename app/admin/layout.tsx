@@ -65,9 +65,9 @@ function getSidebarData(fileFolders: Array<{ title: string; url: string }>) {
         ],
       },
       {
-        title: 'Community',
+        title: 'Master Roster',
         url: '/admin/users',
-        icon: 'Bot',
+        icon: 'Users',
       },
       {
         title: 'Files',

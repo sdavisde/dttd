@@ -7,6 +7,7 @@ import { getLoggedInUser } from '@/actions/users'
 import { User } from '@/lib/users/types'
 import { Result, isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
+import { PUBLIC_REGEX_ROUTES, SKIP_REGEX_ROUTES } from '@/middleware'
 
 type Session = {
   user: User | null
@@ -30,7 +31,10 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
   const user = userResult?.data ?? null
 
-  const pathIsPublic = pathname === '/' || pathname === '/login'
+  const pathIsPublic =
+    PUBLIC_REGEX_ROUTES.some((route) => route.test(pathname)) ||
+    SKIP_REGEX_ROUTES.some((route) => route.test(pathname))
+
   if (userResult && isErr(userResult) && !pathIsPublic) {
     logger.error(`Error fetching user at path ${pathname}`, {
       error: userResult.error,
