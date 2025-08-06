@@ -54,6 +54,11 @@ async function getNavElements() {
       slug: 'home',
       permissions_needed: [] as string[],
     },
+    {
+      name: 'Files',
+      slug: 'files',
+      permissions_needed: [] as string[],
+    },
     // {
     //   name: 'Candidates',
     //   slug: 'review-candidate',

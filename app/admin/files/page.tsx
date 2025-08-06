@@ -1,5 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
-import { logger } from '@/lib/logger'
+import { getBuckets } from '@/lib/files'
 import { getStorageUsage } from '@/lib/storage'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { permissionLock } from '@/lib/security'
@@ -7,46 +6,6 @@ import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
 import { isErr } from '@/lib/results'
 import Files from './components/Files'
-import { slugify } from '@/util/url'
-
-async function getBuckets() {
-  const supabase = await createClient()
-  const { data: buckets, error: bucketsError } =
-    await supabase.storage.listBuckets()
-
-  if (bucketsError) {
-    logger.error('Error fetching buckets:', bucketsError)
-    return []
-  }
-
-  const bucketsWithFolders = await Promise.all(
-    buckets.map(async (bucket) => {
-      const { data: folders, error: foldersError } = await supabase.storage
-        .from(bucket.name)
-        .list()
-
-      if (foldersError) {
-        logger.error(
-          `Error fetching folders for bucket ${bucket.name}:`,
-          foldersError
-        )
-        return { name: bucket.name, folders: [] }
-      }
-
-      return {
-        name: bucket.name,
-        folders: folders
-          .filter((item) => item.metadata === null) // folders have null mimetype
-          .map((folder) => ({
-            name: folder.name,
-            slug: slugify(folder.name),
-          })),
-      }
-    })
-  )
-
-  return bucketsWithFolders
-}
 
 export default async function FilesPage() {
   const userResult = await getLoggedInUser()

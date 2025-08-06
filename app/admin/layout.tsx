@@ -6,39 +6,12 @@ import { Typography } from '@/components/ui/typography'
 import { Errors } from '@/lib/error'
 import { isErr } from '@/lib/results'
 import { permissionLock } from '@/lib/security'
-import { createClient } from '@/lib/supabase/server'
-import { logger } from '@/lib/logger'
+import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
-import { slugify } from '@/util/url'
 import { Footer } from '@/components/footer'
 
 type AdminLayoutProps = {
   children: React.ReactNode
-}
-
-async function getFileFolders() {
-  try {
-    const supabase = await createClient()
-    const { data: items, error } = await supabase.storage.from('files').list('')
-
-    if (error) {
-      logger.error('Error fetching root folders:', error)
-      return []
-    }
-
-    return items
-      .filter((item) => item.metadata === null) // folders have null metadata
-      .map((folder) => ({
-        title:
-          folder.name.charAt(0).toUpperCase() +
-          folder.name.slice(1).replace(/-/g, ' '),
-        url: `/admin/files/${slugify(folder.name)}`,
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title))
-  } catch (error) {
-    logger.error('Error in getFileFolders:', error)
-    return []
-  }
 }
 
 function getSidebarData(fileFolders: Array<{ title: string; url: string }>) {
@@ -92,7 +65,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   // Fetch dynamic file folders for navigation
-  const fileFolders = await getFileFolders()
+  const fileFolders = await getFileFolders(true)
   const sidebarData = getSidebarData(fileFolders)
 
   return (
