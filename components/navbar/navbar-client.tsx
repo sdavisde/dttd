@@ -95,17 +95,19 @@ export function Navbar({ navElements }: NavbarClientProps) {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8 flex-1 justify-end me-8">
-          {filteredNavElements.map((item) => (
-            <Link
-              key={item.name}
-              href={`/${item.slug}`}
-              className="text-white hover:text-amber-200 transition-colors font-medium"
-            >
-              {item.name}
-            </Link>
-          ))}
-        </div>
+        {isAuthenticated && (
+          <div className="hidden md:flex items-center space-x-8 flex-1 justify-end me-8">
+            {filteredNavElements.map((item) => (
+              <Link
+                key={item.name}
+                href={`/${item.slug}`}
+                className="text-white hover:text-amber-200 transition-colors font-medium"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Avatar */}
         {isAuthenticated ? (
