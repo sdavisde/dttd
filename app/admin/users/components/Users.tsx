@@ -15,15 +15,28 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { formatPhoneNumber } from '@/lib/utils'
+import { deleteUser } from '@/actions/users'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const router = useRouter()
 
   const { data: users = [], isLoading, isError, error } = useUsers()
 
@@ -48,13 +61,36 @@ export default function Users() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteUser = (user: User) => {
-    // todo: create delete user action
-  }
-
   const handleCloseModal = () => {
     setSelectedUser(null)
     setIsModalOpen(false)
+  }
+
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(user)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleDeleteCancel = () => {
+    setUserToDelete(null)
+    setIsDeleteModalOpen(false)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return
+
+    const res = await deleteUser(userToDelete.id)
+    if (res.error) {
+      toast.error(res.error.message)
+      return
+    }
+
+    toast.success(
+      `Deleted ${userToDelete.first_name} ${userToDelete.last_name} successfully`
+    )
+    setUserToDelete(null)
+    setIsDeleteModalOpen(false)
+    router.refresh()
   }
 
   if (isError) {
@@ -164,7 +200,7 @@ export default function Users() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleUserClick(user)
+                          handleDeleteClick(user)
                         }}
                         className="h-8 w-8 p-0"
                       >
@@ -197,6 +233,30 @@ export default function Users() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{' '}
+              <strong>
+                {userToDelete?.first_name} {userToDelete?.last_name}
+              </strong>
+              ? This action cannot be undone and will permanently remove the user and all associated data.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDeleteCancel}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

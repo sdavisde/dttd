@@ -141,42 +141,6 @@ export function UserRoleSidebar({
                 </div>
               </div>
 
-              {user?.team_member_info && (
-                <div className="pt-3 border-t">
-                  <Typography
-                    variant="muted"
-                    className="text-xs uppercase tracking-wide mb-2 font-bold"
-                  >
-                    Team Member Information
-                  </Typography>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Typography
-                        variant="muted"
-                        className="text-xs uppercase tracking-wide font-medium"
-                      >
-                        CHA Role
-                      </Typography>
-                      <Typography className="text-sm">
-                        {user.team_member_info.cha_role?.replace('_', ' ') ||
-                          '-'}
-                      </Typography>
-                    </div>
-                    <div>
-                      <Typography
-                        variant="muted"
-                        className="text-xs uppercase tracking-wide font-medium"
-                      >
-                        Status
-                      </Typography>
-                      <Typography className="text-sm">
-                        {user.team_member_info.status || '-'}
-                      </Typography>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="pt-3 border-t">
                 <Typography
                   variant="muted"

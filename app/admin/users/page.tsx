@@ -21,10 +21,10 @@ export default async function UsersPage() {
   return (
     <>
       <AdminBreadcrumbs
-        title='Users'
+        title="Master Roster"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
-      <div className='container mx-auto px-8'>
+      <div className="container mx-auto px-8">
         <Users />
       </div>
     </>
