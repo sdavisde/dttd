@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Nunito } from 'next/font/google'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
 import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
 import ReactQueryProvider from '@/components/react-query-provider'
@@ -31,10 +30,8 @@ export default function RootLayout({
       <body className={`font-sans antialiased ${nunito.className}`}>
         <ReactQueryProvider>
           <SessionProvider>
-            <ThemeProvider>
-              {children}
-              <Toastbox />
-            </ThemeProvider>
+            {children}
+            <Toastbox />
           </SessionProvider>
         </ReactQueryProvider>
       </body>
