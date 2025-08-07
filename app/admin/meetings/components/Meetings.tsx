@@ -5,9 +5,9 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { User } from '@/lib/users/types'
-import { AdminUpcomingEvents } from '@/components/events/AdminUpcomingEvents'
-import { AdminPastEvents } from '@/components/events/AdminPastEvents'
+import { AdminEvents } from '@/components/events/AdminEvents'
 import { EventSidebar } from '@/components/events/EventSidebar'
+import { useUpcomingEvents, usePastEvents } from '@/hooks/use-events'
 import { type Event } from '@/actions/events'
 
 interface MeetingsProps {
@@ -19,6 +19,9 @@ export function Meetings({ user }: MeetingsProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const canEdit = user.role?.permissions.includes('FULL_ACCESS') ?? false
+
+  const { data: upcomingEvents, isLoading: upcomingLoading, error: upcomingError } = useUpcomingEvents()
+  const { data: pastEvents, isLoading: pastLoading, error: pastError } = usePastEvents()
 
   const handleEventClick = (event: Event) => {
     if (canEdit) {
@@ -55,15 +58,32 @@ export function Meetings({ user }: MeetingsProps) {
         )}
       </div>
 
-      <AdminUpcomingEvents
-        canEdit={canEdit}
-        onEventClick={handleEventClick}
-      />
+      <div className='w-full'>
+        <div className='w-full mt-4 mb-2'>
+          <Typography variant='h5'>Upcoming Events</Typography>
+        </div>
+        <AdminEvents
+          events={upcomingEvents?.slice(0, 4)}
+          isLoading={upcomingLoading}
+          error={upcomingError as Error | null}
+          canEdit={canEdit}
+          onEventClick={handleEventClick}
+        />
+      </div>
 
-      <AdminPastEvents
-        canEdit={canEdit}
-        onEventClick={handleEventClick}
-      />
+      <div className='w-full'>
+        <div className='w-full mt-8 mb-2'>
+          <Typography variant='h5'>Past Events</Typography>
+        </div>
+        <AdminEvents
+          events={pastEvents}
+          isLoading={pastLoading}
+          error={pastError as Error | null}
+          canEdit={canEdit}
+          onEventClick={handleEventClick}
+          isPast={true}
+        />
+      </div>
 
       <EventSidebar
         isOpen={isSidebarOpen}
