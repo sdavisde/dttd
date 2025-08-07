@@ -66,7 +66,6 @@ export async function getEvents(orderBy: 'datetime' | 'created_at' = 'datetime')
       .select('*')
       .order(orderBy, { ascending: true })
 
-    console.log('All events in database:', events?.map(e => ({ id: e.id, title: e.title, datetime: e.datetime })))
 
     if (error) {
       return err(new Error(`Failed to get events: ${error.message}`))
@@ -86,16 +85,11 @@ export async function getUpcomingEvents(): Promise<Result<Error, Event[]>> {
     const supabase = await createClient()
     const now = new Date().toISOString()
 
-    console.log('Current time (now):', now)
-    console.log('Looking for events with datetime >=', now)
-
     // First, let's see all events in the database
     const { data: allEvents, error: allError } = await supabase
       .from('events')
       .select('*')
       .order('datetime', { ascending: true })
-
-    console.log('ALL events in database:', allEvents?.map(e => ({ id: e.id, title: e.title, datetime: e.datetime })))
 
     if (allError) {
       console.log('Error fetching all events:', allError)
@@ -108,10 +102,8 @@ export async function getUpcomingEvents(): Promise<Result<Error, Event[]>> {
       .gte('datetime', now)
       .order('datetime', { ascending: true })
 
-    console.log('Found upcoming events:', events?.map(e => ({ id: e.id, title: e.title, datetime: e.datetime })))
 
     if (error) {
-      console.log('Error in upcoming events query:', error)
       return err(new Error(`Failed to get upcoming events: ${error.message}`))
     }
 
