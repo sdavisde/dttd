@@ -3,7 +3,7 @@
 import { Calendar } from 'lucide-react'
 import { type Event } from '@/actions/events'
 import { useUpcomingEvents } from '@/hooks/use-events'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { EventCard } from './EventCard'
 import { useMemo } from 'react'
@@ -21,19 +21,21 @@ export function AdminUpcomingEvents({ canEdit, onEventClick }: AdminUpcomingEven
   return (
     <div className='w-full'>
       <div className='w-full mt-4 mb-2'>
-        <Typography variant='h2'>Upcoming Events</Typography>
+        <Typography variant='h5'>Upcoming Events</Typography>
       </div>
 
       {isLoading && (
         <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
           {Array.from({ length: 4 }).map((_, i) => (
-            <Alert key={i} className='animate-pulse'>
-              <Calendar className='w-6 h-6' />
-              <AlertTitle className='text-lg font-semibold'>Loading...</AlertTitle>
-              <AlertDescription>
+            <Alert key={i} className='animate-pulse h-full flex flex-col'>
+              <div className='flex items-start gap-2 mb-2'>
+                <Calendar className='w-5 h-5 mt-0.5 flex-shrink-0' />
+                <Typography variant='h6' className='font-semibold'>Loading...</Typography>
+              </div>
+              <div className='ml-7'>
                 <span className='block h-4 bg-gray-200 rounded mb-1'></span>
                 <span className='block h-4 bg-gray-200 rounded w-3/4'></span>
-              </AlertDescription>
+              </div>
             </Alert>
           ))}
         </div>
@@ -43,28 +45,36 @@ export function AdminUpcomingEvents({ canEdit, onEventClick }: AdminUpcomingEven
         <>
           {error != null && (
             <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
-              <Alert variant='destructive'>
-                <Calendar className='w-6 h-6' />
-                <AlertTitle>Error Loading Events</AlertTitle>
-                <AlertDescription>
-                  Unable to load upcoming events. Please try again later.
-                </AlertDescription>
+              <Alert variant='destructive' className='h-full flex flex-col'>
+                <div className='flex items-start gap-2 mb-2'>
+                  <Calendar className='w-5 h-5 mt-0.5 flex-shrink-0' />
+                  <Typography variant='h6' className='font-semibold'>Error Loading Events</Typography>
+                </div>
+                <div className='ml-7'>
+                  <Typography variant='small' className='text-muted-foreground'>
+                    Unable to load upcoming events. Please try again later.
+                  </Typography>
+                </div>
               </Alert>
             </div>
           )}
 
           {topFour.length === 0 ? (
             <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
-              <Alert>
-                <Calendar className='w-6 h-6' />
-                <AlertTitle>No Upcoming Events</AlertTitle>
-                <AlertDescription>
-                  There are currently no upcoming events scheduled.
-                </AlertDescription>
+              <Alert className='h-full flex flex-col'>
+                <div className='flex items-start gap-2 mb-2'>
+                  <Calendar className='w-5 h-5 mt-0.5 flex-shrink-0' />
+                  <Typography variant='h6' className='font-semibold'>No Upcoming Events</Typography>
+                </div>
+                <div className='ml-7'>
+                  <Typography variant='small' className='text-muted-foreground'>
+                    There are currently no upcoming events scheduled.
+                  </Typography>
+                </div>
               </Alert>
             </div>
           ) : (
-            <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch'>
               {topFour.map((event) => (
                 <EventCard
                   key={event.id}
