@@ -55,10 +55,15 @@ async function getNavElements() {
       permissions_needed: [] as string[],
     },
     {
-      name: 'Candidates',
-      slug: 'review-candidate',
-      permissions_needed: ['READ_CANDIDATES'],
+      name: 'Files',
+      slug: 'files',
+      permissions_needed: [] as string[],
     },
+    // {
+    //   name: 'Candidates',
+    //   slug: 'review-candidate',
+    //   permissions_needed: ['READ_CANDIDATES'],
+    // },
     {
       name: 'Roster',
       slug: 'admin/roster',

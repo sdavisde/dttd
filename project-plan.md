@@ -14,7 +14,7 @@ To strengthen individuals' walk with Christ through spiritual renewal weekends a
 
 - **Framework**: Next.js 15.3.2 (App Router)
 - **Language**: TypeScript
-- **UI Library**: Material-UI (MUI) v7.1.0
+- **UI Library**: ShadCN
 - **Styling**: Tailwind CSS v4
 - **Form Handling**: React Hook Form + Zod validation
 - **State Management**: TanStack React Query v4

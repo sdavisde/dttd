@@ -33,7 +33,6 @@ export default function FilesFolderContent({
       <div className="flex justify-end items-center">
         <div className="flex items-center gap-2">
           <FileUpload folder={folderName} />
-          <CreateFolderButton onClick={handleCreateFolder} />
         </div>
       </div>
 

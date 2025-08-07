@@ -1,4 +1,3 @@
-import { CircularProgress } from '@mui/material'
 
 export default function Loading() {
   return (
@@ -6,7 +5,7 @@ export default function Loading() {
       style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
     >
       <div className="flex justify-center items-center h-[80vh]">
-        <CircularProgress size={75} />
+        <div className="w-16 h-16 animate-spin rounded-full border-4 border-gray-300 border-t-primary"></div>
       </div>
     </div>
   )

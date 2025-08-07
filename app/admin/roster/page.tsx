@@ -1,4 +1,4 @@
-import { Container, Stack, Typography } from '@mui/material'
+import { Typography } from '@/components/ui/typography'
 import { RosterTable } from './roster-table'
 import { logger } from '@/lib/logger'
 import { User } from '@/lib/users/types'
@@ -36,25 +36,13 @@ export default async function RosterPage() {
   const womensRoster = await getRoster(womensWeekend.id)
 
   return (
-    <Container
-      maxWidth='lg'
-      sx={{ marginTop: 4 }}
-    >
+    <div className='container mx-auto max-w-5xl mt-8 px-4'>
       <Typography variant='h3'>Roster</Typography>
-      <Typography variant='body1'>
+      <Typography variant='p'>
         This is the roster page. Here you can view the roster for the current weekend.
       </Typography>
-      <Stack
-        direction='row'
-        spacing={2}
-        className='mt-4'
-        width='100%'
-      >
-        <Stack
-          direction='column'
-          spacing={2}
-          width='100%'
-        >
+      <div className='flex flex-row gap-4 mt-4 w-full'>
+        <div className='flex flex-col gap-4 w-full'>
           <Typography variant='h5'>Mens Roster</Typography>
 
           <RosterTable
@@ -62,12 +50,8 @@ export default async function RosterPage() {
             type='mens'
             weekendId={mensWeekend.id}
           />
-        </Stack>
-        <Stack
-          direction='column'
-          spacing={2}
-          width='100%'
-        >
+        </div>
+        <div className='flex flex-col gap-4 w-full'>
           <Typography variant='h5'>Womens Roster</Typography>
 
           <RosterTable
@@ -75,8 +59,8 @@ export default async function RosterPage() {
             type='womens'
             weekendId={womensWeekend.id}
           />
-        </Stack>
-      </Stack>
-    </Container>
+        </div>
+      </div>
+    </div>
   )
 }

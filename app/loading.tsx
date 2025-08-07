@@ -1,6 +1,5 @@
 import Navbar from '@/components/public-navbar'
 import { Footer } from '@/components/footer'
-import { CircularProgress } from '@mui/material'
 
 export default function Loading() {
   return (
@@ -8,7 +7,7 @@ export default function Loading() {
       <Navbar />
       <main style={{ flex: 1 }}>
         <div className='flex justify-center items-center h-[80vh]'>
-          <CircularProgress size={75} />
+          <div className='w-16 h-16 animate-spin rounded-full border-4 border-gray-300 border-t-primary'></div>
         </div>
       </main>
       <Footer />

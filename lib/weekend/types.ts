@@ -10,12 +10,14 @@ export type Weekend = {
   start_date: string
   end_date: string
   number: number | null
-  status: string | null
+  status: WeekendStatus | null
   title: string | null
   type: WeekendType
 }
 
 export type WeekendType = 'MENS' | 'WOMENS'
+
+export type WeekendStatus = string // 'FINISHED' | 'ACTIVE' | 'PLANNING'
 
 export enum CHARole {
   RECTOR = 'RECTOR',

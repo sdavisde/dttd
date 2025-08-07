@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import AuthModeToggle from './AuthModeToggle'
+import PasswordInput from './PasswordInput'
+import RegistrationFields from './RegistrationFields'
 
 interface AuthFormProps {
   onSuccess?: () => void
@@ -19,6 +20,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [gender, setGender] = useState<'male' | 'female'>('male')
@@ -32,6 +34,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setError(null)
     setMessage(null)
     setLoading(true)
+    
+    // Validate password confirmation for registration
+    if (mode === 'register' && password !== confirmPassword) {
+      setError('Passwords do not match')
+      setLoading(false)
+      return
+    }
+    
     const supabase = createClient()
 
     try {
@@ -95,24 +105,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       onSubmit={handleEmailAuth}
       className="flex flex-col gap-4 w-full max-w-md mx-auto p-6"
     >
-      <div className="flex w-full border-b">
-        <Button
-          type="button"
-          variant={mode === 'login' ? 'default' : 'ghost'}
-          onClick={() => setMode('login')}
-          className="flex-1 rounded-b-none"
-        >
-          Sign In
-        </Button>
-        <Button
-          type="button"
-          variant={mode === 'register' ? 'default' : 'ghost'}
-          onClick={() => setMode('register')}
-          className="flex-1 rounded-b-none"
-        >
-          Create Account
-        </Button>
-      </div>
+      <AuthModeToggle mode={mode} onModeChange={setMode} />
 
       {error && (
         <Alert>
@@ -127,45 +120,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       )}
 
       {mode === 'register' && (
-        <>
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
-            <Input
-              id="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label>Gender</Label>
-            <RadioGroup
-              value={gender}
-              onValueChange={(value) => setGender(value as 'male' | 'female')}
-              className="flex flex-row space-x-6"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="male" id="male" />
-                <Label htmlFor="male">Male</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="female" id="female" />
-                <Label htmlFor="female">Female</Label>
-              </div>
-            </RadioGroup>
-          </div>
-        </>
+        <RegistrationFields
+          firstName={firstName}
+          setFirstName={setFirstName}
+          lastName={lastName}
+          setLastName={setLastName}
+          gender={gender}
+          setGender={setGender}
+        />
       )}
 
       <div className="space-y-2">
@@ -179,19 +141,24 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+      <PasswordInput
+        id="password"
+        label="Password"
+        value={password}
+        onChange={setPassword}
+        required
+        helpText={mode === 'register' ? 'Password must be at least 6 characters' : undefined}
+      />
+
+      {mode === 'register' && (
+        <PasswordInput
+          id="confirmPassword"
+          label="Confirm Password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
           required
         />
-        {mode === 'register' && (
-          <p className="text-sm text-gray-500">Password must be at least 6 characters</p>
-        )}
-      </div>
+      )}
 
       <Button
         type="submit"

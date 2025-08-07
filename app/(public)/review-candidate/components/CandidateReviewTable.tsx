@@ -11,6 +11,7 @@ import { StatusInfoSheet } from './StatusInfoSheet'
 import * as Results from '@/lib/results'
 import { sendCandidateForms } from '@/actions/emails'
 import { sendPaymentRequestEmail } from '@/actions/emails'
+import { useRouter } from 'next/navigation'
 
 interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
@@ -25,6 +26,7 @@ export function CandidateReviewTable({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isStatusInfoOpen, setIsStatusInfoOpen] = useState(false)
+  const router = useRouter()
 
   const handleRowClick = (candidate: HydratedCandidate) => {
     setSelectedCandidate(candidate)
@@ -104,6 +106,11 @@ export function CandidateReviewTable({
       )
       return
     }
+
+    // Close the sheet and refresh the page to update the status
+    setIsSheetOpen(false)
+    setSelectedCandidate(null)
+    router.refresh()
   }
 
   const onSendPaymentRequest = async () => {
@@ -124,7 +131,7 @@ export function CandidateReviewTable({
     // Close the sheet and refresh the page to update the status
     setIsSheetOpen(false)
     setSelectedCandidate(null)
-    window.location.reload()
+    router.refresh()
   }
 
   return (

@@ -16,11 +16,15 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          )
           supabaseResponse = NextResponse.next({
             request,
           })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
         },
       },
     }
@@ -40,14 +44,18 @@ export async function updateSession(request: NextRequest) {
   const redirectToHomeUrls = /^\/(login|join)?$/
 
   if (user && redirectToHomeUrls.test(request.nextUrl.pathname)) {
-    logger.info(`user logged in, redirecting to home from ${request.nextUrl.pathname}`)
+    logger.info(
+      `user logged in, redirecting to home from ${request.nextUrl.pathname}`
+    )
     const url = request.nextUrl.clone()
     url.pathname = '/home'
     return NextResponse.redirect(url)
   }
 
   if (!user && !publicUrls.test(request.nextUrl.pathname)) {
-    logger.info(`no user, redirecting to login from ${request.nextUrl.pathname}`)
+    logger.info(
+      `no user, redirecting to login from ${request.nextUrl.pathname}`
+    )
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -66,7 +74,9 @@ export async function updateSession(request: NextRequest) {
   //    return myNewResponse
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
-  logger.info(`finished updating session while requesting ${request.nextUrl.pathname}. user exists?: ${!!user}`)
+  logger.info(
+    `finished updating session while requesting ${request.nextUrl.pathname}. user exists?: ${!!user}`
+  )
 
   return supabaseResponse
 }

@@ -65,10 +65,6 @@ export default async function CandidateFeePaymentSuccessPage({
             Thank you for your payment. Your spot for the Dusty Trails Tres Dias
             weekend has been confirmed.
           </p>
-          <p className="text-base text-gray-600">
-            A confirmation email will be sent to {customerEmail} with additional
-            details about the weekend.
-          </p>
           <div className="pt-4">
             <Button asChild>
               <a href="/home">Return to Home</a>
