@@ -1,7 +1,8 @@
 'use client'
 
 import { Calendar } from 'lucide-react'
-import { useUpcomingEvents, type Event } from '@/hooks/use-events'
+import { type Event } from '@/actions/events'
+import { useUpcomingEvents } from '@/hooks/use-events'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { EventCard } from './EventCard'
@@ -65,9 +66,9 @@ export function AdminUpcomingEvents({ canEdit, onEventClick }: AdminUpcomingEven
           ) : (
             <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
               {topFour.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
+                <EventCard
+                  key={event.id}
+                  event={event}
                   isEditable={canEdit}
                   onClick={onEventClick}
                 />

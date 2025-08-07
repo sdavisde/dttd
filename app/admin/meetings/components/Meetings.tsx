@@ -7,7 +7,6 @@ import { Typography } from '@/components/ui/typography'
 import { User } from '@/lib/users/types'
 import { AdminUpcomingEvents } from '@/components/events/AdminUpcomingEvents'
 import { AdminPastEvents } from '@/components/events/AdminPastEvents'
-import { EventSidebar } from '@/components/events/EventSidebar'
 import { type Event } from '@/actions/events'
 
 interface MeetingsProps {
@@ -30,7 +29,7 @@ export function Meetings({ user }: MeetingsProps) {
   const handleAddEvent = () => {
     if (canEdit) {
       setSelectedEvent(null)
-      setIsSidebarOpen(true)
+      setIsSidebarOpen(false)
     }
   }
 
@@ -41,10 +40,14 @@ export function Meetings({ user }: MeetingsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Typography variant="h1">Meetings & Events</Typography>
+      <div className="flex items-center justify-between mb-2">
+        <Typography variant="h4">Meetings & Events</Typography>
         {canEdit && (
-          <Button onClick={handleAddEvent} className="flex items-center gap-2">
+          <Button onClick={handleAddEvent}
+            size="sm"
+            variant="ghost"
+            className="flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" />
             Add New Event
           </Button>
@@ -59,12 +62,6 @@ export function Meetings({ user }: MeetingsProps) {
       <AdminPastEvents
         canEdit={canEdit}
         onEventClick={handleEventClick}
-      />
-
-      <EventSidebar
-        event={selectedEvent}
-        isOpen={isSidebarOpen}
-        onClose={handleCloseSidebar}
       />
     </div>
   )

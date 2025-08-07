@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { SquareTerminal, BookOpen, type LucideIcon, Users } from 'lucide-react'
+import { SquareTerminal, BookOpen, type LucideIcon, Users, Calendar } from 'lucide-react'
 import { NavMain } from '@/components/admin/sidebar/nav-main'
 import { SystemLinks } from '@/components/admin/sidebar/system-links'
 import { NavUser } from '@/components/admin/sidebar/nav-user'
@@ -19,6 +19,7 @@ const iconMap: Record<string, LucideIcon> = {
   SquareTerminal,
   Users,
   BookOpen,
+  Calendar
 }
 
 type AdminSidebarProps = React.ComponentProps<typeof Sidebar> & {

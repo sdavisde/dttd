@@ -40,11 +40,6 @@ function getSidebarData(fileFolders: Array<{ title: string; url: string }>) {
       },
       {
         title: 'Master Roster',
-        url: '/admin/meetings',
-        icon: 'Calendar',
-      },
-      {
-        title: 'Master Roster',
         url: '/admin/users',
         icon: 'Users',
       },
