@@ -31,7 +31,7 @@ const CT_TIMEZONE = 'America/Chicago'
 
 const eventFormSchema = z.object({
   title: z.string().min(1, 'Event name is required'),
-  date: z.date({ required_error: 'Date is required' }),
+  date: z.date({ error: 'Date is required' }),
   time: z.string().min(1, 'Time is required'),
   location: z.string().min(1, 'Location is required'),
 })
@@ -129,7 +129,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
 
   const handleDeleteConfirm = async () => {
     if (!event || !isEditing) return
-    
+
     try {
       await deleteEventMutation.mutateAsync(event.id)
       toast.success('Event deleted successfully')
