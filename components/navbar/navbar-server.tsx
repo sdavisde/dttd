@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Navbar } from './navbar-client'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
+import { UserPermissions } from '@/lib/security'
 
 async function getNavElements() {
   const supabase = await createClient()
@@ -62,17 +63,17 @@ async function getNavElements() {
     // {
     //   name: 'Candidates',
     //   slug: 'review-candidate',
-    //   permissions_needed: ['READ_CANDIDATES'],
+    //   permissions_needed: [UserPermissions.READ_CANDIDATES],
     // },
     {
       name: 'Roster',
       slug: 'admin/roster',
-      permissions_needed: ['READ_ROSTER'],
+      permissions_needed: ['READ_ROSTER'], // This isn't in db rn
     },
     {
       name: 'Admin',
       slug: 'admin',
-      permissions_needed: ['ADMIN'],
+      permissions_needed: [UserPermissions.FULL_ACCESS],
     },
   ]
 
