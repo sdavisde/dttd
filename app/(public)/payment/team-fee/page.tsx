@@ -3,10 +3,11 @@ import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import { getUrl } from '@/lib/url'
 import { getWeekendRosterRecord } from '@/actions/weekend'
-import { getLoggedInUser } from '@/actions/users'
 import { isErr } from '@/lib/results'
 import { AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { User } from '@/lib/users/types'
+import { getValidatedUser } from '@/lib/security'
 
 interface TeamFeesPaymentPageProps {
   searchParams: Promise<{
@@ -28,10 +29,12 @@ export default async function TeamFeesPaymentPage({ searchParams }: TeamFeesPaym
     return notFound()
   }
 
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
-  if (isErr(userResult) || !user) {
-    logger.error('User not found')
+  let user: User
+
+  try {
+    user = await getValidatedUser()
+  } catch (e: unknown) {
+    logger.error(e)
     return notFound()
   }
 

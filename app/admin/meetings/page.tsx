@@ -1,25 +1,9 @@
-import { getLoggedInUser } from '@/actions/users'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import Meetings from './components/Meetings'
-import { permissionLock, userHasPermission, UserPermissions } from '@/lib/security'
-import { isErr } from '@/lib/results'
-import { Errors } from '@/lib/error'
-import { redirect } from 'next/navigation'
+import { getValidatedUser, userHasPermission, UserPermissions } from '@/lib/security'
 
 export default async function MeetingsPage() {
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
-
-  try {
-    if (isErr(userResult) || !user) {
-      throw new Error(Errors.NOT_LOGGED_IN.toString())
-    }
-
-    permissionLock([UserPermissions.READ_MEETINGS])(user)
-  } catch (error: unknown) {
-    console.error(error)
-    redirect(`/?error=${(error as Error).message}`)
-  }
+  const user = await getValidatedUser()
 
   const canEdit = userHasPermission(user, [UserPermissions.WRITE_MEETINGS])
 

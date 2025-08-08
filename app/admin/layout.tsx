@@ -1,14 +1,12 @@
-import { getLoggedInUser } from '@/actions/users'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Typography } from '@/components/ui/typography'
-import { Errors } from '@/lib/error'
-import { isErr } from '@/lib/results'
-import { permissionLock, UserPermissions } from '@/lib/security'
+import { getValidatedUserWithPermissions, UserPermissions } from '@/lib/security'
 import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
+import { User } from '@/lib/users/types'
 
 type AdminLayoutProps = {
   children: React.ReactNode
@@ -53,13 +51,9 @@ function getSidebarData(fileFolders: Array<{ title: string; url: string }>) {
   }
 }
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
+  let user: User
   try {
-    if (isErr(userResult) || !user) {
-      throw new Error(Errors.NOT_LOGGED_IN.toString())
-    }
-    permissionLock([UserPermissions.ADMIN])(user)
+    user = await getValidatedUserWithPermissions([UserPermissions.ADMIN])
   } catch (error: unknown) {
     console.log(error)
     redirect(`/?error=${(error as Error).message}`)
