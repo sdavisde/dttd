@@ -5,7 +5,7 @@ import { Calendar, Edit } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { type Event } from '@/actions/events'
-import { cn } from '@/lib/utils'
+import { cn, formatEventDateTime } from '@/lib/utils'
 
 interface EventCardProps {
   event: Event
@@ -16,31 +16,6 @@ interface EventCardProps {
 
 export function EventCard({ event, isEditable = false, onClick, isPast = false }: EventCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-
-  const formatEventDateTime = (datetime: string | null) => {
-    if (!datetime) return 'Date TBD'
-
-    try {
-      const date = new Date(datetime)
-      const dateStr = date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        timeZone: 'America/Chicago',
-      })
-      const timeStr = date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/Chicago',
-      })
-      return { dateStr, timeStr: `${timeStr} CT` }
-    } catch {
-      return 'Invalid Date'
-    }
-  }
-
   const formattedDateTime = formatEventDateTime(event.datetime)
 
   const handleClick = () => {
