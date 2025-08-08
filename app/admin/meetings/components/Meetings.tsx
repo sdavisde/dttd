@@ -8,32 +8,14 @@ import { AdminEvents } from '@/components/events/AdminEvents'
 import { EventSidebar } from '@/components/events/EventSidebar'
 import { useUpcomingEvents, usePastEvents } from '@/hooks/use-events'
 import { type Event } from '@/actions/events'
-import { permissionLock, userHasPermission, UserPermissions } from '@/lib/security'
-import { getLoggedInUser } from '@/actions/users'
-import { isErr } from '@/lib/results'
-import { Errors } from '@/lib/error'
-import { redirect } from 'next/navigation'
 
-export async function Meetings() {
+interface MeetingsProps {
+  canEdit: boolean
+}
+
+export default function Meetings({ canEdit }: MeetingsProps) {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
-  let canEdit = false
-
-  try {
-    if (isErr(userResult) || !user) {
-      throw new Error(Errors.NOT_LOGGED_IN.toString())
-    }
-
-    permissionLock([UserPermissions.READ_MEETINGS])(user)
-
-    canEdit = userHasPermission(user, [UserPermissions.WRITE_MEETINGS])
-  } catch (error: unknown) {
-    console.error(error)
-    redirect(`/?error=${(error as Error).message}`)
-  }
 
   const { data: upcomingEvents, isLoading: upcomingLoading, error: upcomingError } = useUpcomingEvents()
   const { data: pastEvents, isLoading: pastLoading, error: pastError } = usePastEvents()
