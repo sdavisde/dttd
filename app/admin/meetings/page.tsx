@@ -1,18 +1,9 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import Meetings from './components/Meetings'
-import { getValidatedUserWithPermissions, userHasPermission, UserPermissions } from '@/lib/security'
-import { redirect } from 'next/navigation'
-import { User } from '@/lib/users/types'
+import { getValidatedUser, userHasPermission, UserPermissions } from '@/lib/security'
 
 export default async function MeetingsPage() {
-  let user: User
-
-  try {
-    user = await getValidatedUserWithPermissions([UserPermissions.READ_MEETINGS])
-  } catch (error: unknown) {
-    console.error(error)
-    redirect(`/?error=${(error as Error).message}`)
-  }
+  const user = await getValidatedUser()
 
   const canEdit = userHasPermission(user, [UserPermissions.WRITE_MEETINGS])
 

@@ -2,6 +2,7 @@ import { User } from '@/lib/users/types'
 import { Errors } from './error'
 import { isErr, Result } from './results'
 import { getLoggedInUser } from '@/actions/users'
+import { cache } from 'react'
 
 export enum UserPermissions {
   FULL_ACCESS = "FULL_ACCESS",
@@ -50,10 +51,10 @@ export function validateUser(userResult: Result<Error, User>): User {
   return user
 }
 
-export async function getValidatedUser(): Promise<User> {
+export const getValidatedUser = cache(async (): Promise<User> => {
   const userResult = await getLoggedInUser()
   return validateUser(userResult)
-}
+})
 
 export async function getValidatedUserWithPermissions(permissions: string[]): Promise<User> {
   const user = await getValidatedUser()
