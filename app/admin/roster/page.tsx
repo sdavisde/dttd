@@ -35,6 +35,10 @@ export default async function RosterPage() {
   const mensRoster = await getRoster(mensWeekend.id)
   const womensRoster = await getRoster(womensWeekend.id)
 
+  // Get all users for roster management
+  const allUsersResult = await getUsers()
+  const allUsers = isErr(allUsersResult) ? [] : allUsersResult.data
+
   return (
     <div className='container mx-auto max-w-5xl mt-8 px-4'>
       <Typography variant='h3'>Roster</Typography>
@@ -49,6 +53,7 @@ export default async function RosterPage() {
             roster={mensRoster}
             type='mens'
             weekendId={mensWeekend.id}
+            allUsers={allUsers}
           />
         </div>
         <div className='flex flex-col gap-4 w-full'>
@@ -58,6 +63,7 @@ export default async function RosterPage() {
             roster={womensRoster}
             type='womens'
             weekendId={womensWeekend.id}
+            allUsers={allUsers}
           />
         </div>
       </div>

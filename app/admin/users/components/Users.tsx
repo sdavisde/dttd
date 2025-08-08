@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react'
 import { Search, Edit, User as UserIcon, Trash2 } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
-import { useUsers } from '@/hooks/use-users'
 import { User } from '@/lib/users/types'
 import {
   Table,
@@ -16,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { formatPhoneNumber } from '@/lib/utils'
 import { deleteUser } from '@/actions/users'
 import { toast } from 'sonner'
@@ -30,15 +28,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-export default function Users() {
+interface UsersProps {
+  users: User[]
+  roles: Array<{ id: string; label: string; permissions: string[] }>
+}
+
+export default function Users({ users, roles }: UsersProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const router = useRouter()
-
-  const { data: users = [], isLoading, isError, error } = useUsers()
 
   // Filter users based on search term
   const filteredUsers = useMemo(() => {
@@ -93,24 +94,6 @@ export default function Users() {
     router.refresh()
   }
 
-  if (isError) {
-    return (
-      <div className="my-4">
-        <Typography variant="h4" className="mb-4">
-          User Management
-        </Typography>
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error
-              ? error.message
-              : 'Failed to load user data'}
-          </AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
-
   return (
     <div className="my-4">
       <div className="mb-4">
@@ -131,26 +114,15 @@ export default function Users() {
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            disabled={isLoading}
             className="pl-10"
           />
         </div>
       </div>
 
       {/* Users Table */}
-      {isLoading ? (
-        <div className="flex justify-center p-8 text-center">
-          <div className="flex flex-col justify-center items-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-            <Typography variant="muted" className="mt-2">
-              Loading users...
-            </Typography>
-          </div>
-        </div>
-      ) : (
-        <div className="relative">
-          <div className="overflow-x-auto">
-            <Table>
+      <div className="relative">
+        <div className="overflow-x-auto">
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="font-bold min-w-[150px]">
@@ -225,11 +197,11 @@ export default function Users() {
             </Table>
           </div>
         </div>
-      )}
 
       {/* User Role Sidebar */}
       <UserRoleSidebar
         user={selectedUser}
+        roles={roles}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />

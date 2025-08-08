@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Search, Edit, Settings, Trash2, Plus } from 'lucide-react'
 import { Role, RolesSidebar } from './RolesSidebar'
-import { useRoles, useDeleteRole } from '@/hooks/use-roles'
+import { deleteRole } from '@/actions/roles'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import {
   Table,
@@ -17,17 +17,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { isErr } from '@/lib/results'
 
-export default function Roles() {
+interface RolesProps {
+  roles: Array<{ id: string; label: string; permissions: string[] }>
+}
+
+export default function Roles({ roles }: RolesProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null)
-
-  const { data: roles = [], isLoading, isError, error } = useRoles()
-  const deleteRoleMutation = useDeleteRole()
+  const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter()
 
   // Filter roles based on search term
   const filteredRoles = useMemo(() => {
@@ -57,12 +62,24 @@ export default function Roles() {
   const confirmDeleteRole = async () => {
     if (!roleToDelete) return
 
+    setIsDeleting(true)
+
     try {
-      await deleteRoleMutation.mutateAsync(roleToDelete.id)
+      const result = await deleteRole(roleToDelete.id)
+      if (isErr(result)) {
+        toast.error(result.error.message)
+        return
+      }
+
+      toast.success(`Deleted role "${roleToDelete.label}" successfully`)
+      router.refresh()
       setDeleteConfirmOpen(false)
       setRoleToDelete(null)
     } catch (error) {
-      console.error('Error deleting role:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete role'
+      toast.error(errorMessage)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -73,24 +90,6 @@ export default function Roles() {
 
   const handleCloseModal = () => setIsModalOpen(false)
   const handleModalExited = () => setSelectedRole(null)
-
-  if (isError) {
-    return (
-      <div className="my-4">
-        <Typography variant="h4" className="mb-4">
-          Roles & Permissions
-        </Typography>
-        <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error
-              ? error.message
-              : 'Failed to load roles data'}
-          </AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
 
   return (
     <div className="my-4">
@@ -117,26 +116,15 @@ export default function Roles() {
             placeholder="Search roles..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            disabled={isLoading}
             className="pl-10"
           />
         </div>
       </div>
 
       {/* Roles Table */}
-      {isLoading ? (
-        <div className="flex justify-center p-8 text-center">
-          <div className="flex flex-col justify-center items-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-            <Typography variant="muted" className="mt-2">
-              Loading roles...
-            </Typography>
-          </div>
-        </div>
-      ) : (
-        <div className="relative">
-          <div className="overflow-x-auto">
-            <Table>
+      <div className="relative">
+        <div className="overflow-x-auto">
+          <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="font-bold min-w-[150px]">
@@ -209,7 +197,7 @@ export default function Roles() {
                           handleDeleteRole(role)
                         }}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        disabled={deleteRoleMutation.isPending}
+                        disabled={isDeleting}
                       >
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Delete role</span>
@@ -232,7 +220,6 @@ export default function Roles() {
             </Table>
           </div>
         </div>
-      )}
 
       {/* Role Sidebar */}
       <RolesSidebar
@@ -247,7 +234,7 @@ export default function Roles() {
         isOpen={deleteConfirmOpen}
         title="Delete Role"
         itemName={roleToDelete?.label}
-        isDeleting={deleteRoleMutation.isPending}
+        isDeleting={isDeleting}
         onCancel={cancelDeleteRole}
         onConfirm={confirmDeleteRole}
         confirmText="Delete Role"

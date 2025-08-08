@@ -5,7 +5,6 @@ import { EditRosterModal } from './edit-roster-modal'
 import { RosterStatusChip } from '@/components/roster/status-chip'
 import { useState } from 'react'
 import { User } from '@/lib/users/types'
-import { useUsers } from '@/hooks/use-users'
 import { genderMatchesWeekend } from '@/lib/weekend'
 import {
   Table,
@@ -22,16 +21,16 @@ type RosterTableProps = {
   roster: Array<User>
   type: 'mens' | 'womens'
   weekendId: string
+  allUsers: Array<User>
 }
-export function RosterTable({ roster, type, weekendId }: RosterTableProps) {
-  const { data: users, isLoading: loadingUsers } = useUsers()
+export function RosterTable({ roster, type, weekendId, allUsers }: RosterTableProps) {
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedRosterMember, setSelectedRosterMember] = useState<User | null>(
     null
   )
 
-  const availableUsers = users?.filter((user) => {
+  const availableUsers = allUsers?.filter((user) => {
     if (!user) return false
     const userOnRoster = !roster?.some(
       (team_member) => team_member.id === user?.id

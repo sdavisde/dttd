@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRoles } from '@/hooks/use-roles'
-import { useAssignUserRole, useRemoveUserRole } from '@/hooks/use-users'
+import { assignUserRole, removeUserRole } from '@/actions/users'
 import { User } from '@/lib/users/types'
 import {
   Sheet,
@@ -22,62 +21,74 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { formatPhoneNumber } from '@/lib/utils'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { isErr } from '@/lib/results'
 
 interface UserRoleSidebarProps {
   user: User | null
+  roles: Array<{ id: string; label: string; permissions: string[] }>
   isOpen: boolean
   onClose: () => void
 }
 
 export function UserRoleSidebar({
   user,
+  roles,
   isOpen,
   onClose,
 }: UserRoleSidebarProps) {
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
-
-  const { data: roles = [] } = useRoles()
-  const assignUserRoleMutation = useAssignUserRole()
-  const removeUserRoleMutation = useRemoveUserRole()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   // Update selected role when user changes
   useEffect(() => {
     setSelectedRoleId(user?.role?.id ?? null)
   }, [user])
 
-  // Reset mutation state when modal opens/closes
+  // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      assignUserRoleMutation.reset()
-      removeUserRoleMutation.reset()
+      setError(null)
+      setIsLoading(false)
     } else {
       // Reset form state when modal closes
       setSelectedRoleId(user?.role?.id ?? null)
+      setError(null)
     }
   }, [isOpen, user])
 
   const handleSave = async () => {
     if (!user) return
 
+    setIsLoading(true)
+    setError(null)
+
     try {
+      let result
       if (selectedRoleId === null) {
-        await removeUserRoleMutation.mutateAsync({ userId: user.id })
+        result = await removeUserRole(user.id)
       } else if (selectedRoleId) {
-        await assignUserRoleMutation.mutateAsync({
-          userId: user.id,
-          roleId: selectedRoleId,
-        })
+        result = await assignUserRole(user.id, selectedRoleId)
       }
+
+      if (result && isErr(result)) {
+        setError(result.error.message)
+        return
+      }
+
+      toast.success('User role updated successfully')
+      router.refresh()
       onClose()
     } catch (err) {
-      // Error is handled by the mutation hooks
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update user role'
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
     }
   }
-
-  const isLoading =
-    assignUserRoleMutation.isPending || removeUserRoleMutation.isPending
-  const error: any =
-    assignUserRoleMutation.error || removeUserRoleMutation.error
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -186,9 +197,7 @@ export function UserRoleSidebar({
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>
-                {error instanceof Error
-                  ? error.message
-                  : 'Failed to update user role'}
+                {error}
               </AlertDescription>
             </Alert>
           )}

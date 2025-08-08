@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react'
 import { Database } from '@/database.types'
 import { Plus, Trash2 } from 'lucide-react'
-import { useUpdateRolePermissions, useCreateRole } from '@/hooks/use-roles'
+import { updateRolePermissions, createRole } from '@/actions/roles'
 import { logger } from '@/lib/logger'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { isErr } from '@/lib/results'
 import {
   Sheet,
   SheetContent,
@@ -37,9 +40,9 @@ export function RolesSidebar({
   )
   const [newPermission, setNewPermission] = useState('')
   const [roleName, setRoleName] = useState(role?.label || '')
-
-  const updateRolePermissions = useUpdateRolePermissions()
-  const createRole = useCreateRole()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   // Update permissions and role name when role changes
   useEffect(() => {
@@ -47,14 +50,15 @@ export function RolesSidebar({
     setRoleName(role?.label || '')
   }, [role])
 
-  // Reset mutation state when modal opens/closes
+  // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      updateRolePermissions.reset()
-      createRole.reset()
+      setError(null)
+      setIsLoading(false)
     } else {
       // Reset form when modal closes
       setNewPermission('')
+      setError(null)
       if (!role) {
         setRoleName('')
         setPermissions([])
@@ -77,23 +81,35 @@ export function RolesSidebar({
   const handleSave = async () => {
     if (!roleName.trim()) return
 
+    setIsLoading(true)
+    setError(null)
+
     try {
       if (role) {
         // Update existing role
-        await updateRolePermissions.mutateAsync({
-          roleId: role.id,
-          permissions,
-        })
+        const result = await updateRolePermissions(role.id, permissions)
+        if (isErr(result)) {
+          setError(result.error.message)
+          return
+        }
       } else {
         // Create new role
-        await createRole.mutateAsync({
-          label: roleName.trim(),
-          permissions,
-        })
+        const result = await createRole(roleName.trim(), permissions)
+        if (isErr(result)) {
+          setError(result.error.message)
+          return
+        }
       }
+
+      toast.success(role ? 'Role updated successfully' : 'Role created successfully')
+      router.refresh()
       onClose()
     } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to save role'
+      setError(errorMessage)
       logger.error(e)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -113,15 +129,11 @@ export function RolesSidebar({
         </SheetHeader>
 
         <div className="space-y-4 p-4">
-          {(updateRolePermissions.isError || createRole.isError) && (
+          {error && (
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>
-                {updateRolePermissions.error instanceof Error
-                  ? updateRolePermissions.error.message
-                  : createRole.error instanceof Error
-                    ? createRole.error.message
-                    : 'Failed to save role'}
+                {error}
               </AlertDescription>
             </Alert>
           )}
@@ -136,9 +148,7 @@ export function RolesSidebar({
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder="Enter role name..."
-                disabled={
-                  updateRolePermissions.isPending || createRole.isPending
-                }
+                disabled={isLoading}
                 required
               />
             </div>
@@ -156,9 +166,7 @@ export function RolesSidebar({
                   {permission}
                   <button
                     onClick={() => handleRemovePermission(permission)}
-                    disabled={
-                      updateRolePermissions.isPending || createRole.isPending
-                    }
+                    disabled={isLoading}
                     className="ml-1 hover:text-destructive"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -184,16 +192,12 @@ export function RolesSidebar({
                 onChange={(e) => setNewPermission(e.target.value)}
                 placeholder="Add new permission..."
                 onKeyDown={(e) => e.key === 'Enter' && handleAddPermission()}
-                disabled={
-                  updateRolePermissions.isPending || createRole.isPending
-                }
+                disabled={isLoading}
               />
               <Button
                 onClick={handleAddPermission}
                 disabled={
-                  !newPermission.trim() ||
-                  updateRolePermissions.isPending ||
-                  createRole.isPending
+                  !newPermission.trim() || isLoading
                 }
                 className="flex items-center gap-1 h-10"
               >
@@ -208,7 +212,7 @@ export function RolesSidebar({
           <Button
             variant="outline"
             onClick={onClose}
-            disabled={updateRolePermissions.isPending || createRole.isPending}
+            disabled={isLoading}
           >
             Cancel
           </Button>
@@ -216,12 +220,11 @@ export function RolesSidebar({
             onClick={handleSave}
             disabled={
               !roleName.trim() ||
-              updateRolePermissions.isPending ||
-              createRole.isPending ||
+              isLoading ||
               !hasChanges
             }
           >
-            {updateRolePermissions.isPending || createRole.isPending
+            {isLoading
               ? 'Saving...'
               : role
                 ? 'Save Changes'
