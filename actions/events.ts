@@ -85,16 +85,6 @@ export async function getUpcomingEvents(): Promise<Result<Error, Event[]>> {
     const supabase = await createClient()
     const now = new Date().toISOString()
 
-    // First, let's see all events in the database
-    const { data: allEvents, error: allError } = await supabase
-      .from('events')
-      .select('*')
-      .order('datetime', { ascending: true })
-
-    if (allError) {
-      console.log('Error fetching all events:', allError)
-    }
-
     // Now the filtered query
     const { data: events, error } = await supabase
       .from('events')

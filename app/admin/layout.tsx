@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Typography } from '@/components/ui/typography'
 import { Errors } from '@/lib/error'
 import { isErr } from '@/lib/results'
-import { permissionLock } from '@/lib/security'
+import { permissionLock, UserPermissions } from '@/lib/security'
 import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
@@ -59,7 +59,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     if (isErr(userResult) || !user) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
-    permissionLock(['ADMIN'])(user)
+    permissionLock([UserPermissions.ADMIN])(user)
   } catch (error: unknown) {
     console.log(error)
     redirect(`/?error=${(error as Error).message}`)

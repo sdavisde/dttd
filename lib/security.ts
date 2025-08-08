@@ -1,6 +1,15 @@
 import { User } from '@/lib/users/types'
 import { Errors } from './error'
 
+export enum UserPermissions {
+  FULL_ACCESS = "FULL_ACCESS",
+  ADMIN = "ADMIN",
+  READ_CANDIDATES = "READ_CANDIDATES",
+  WRITE_CANDIDATES = "WRITE_CANDIDATES",
+  READ_MEETINGS = "READ_MEETINGS",
+  WRITE_MEETINGS = "WRITE_MEETINGS"
+}
+
 /**
  * Builds a callback to check user permissions. Will throw an error if the user does not have the required permissions.
  * @param permissions - The permissions required to access the resource
@@ -20,8 +29,8 @@ export function permissionLock(permissions: string[]) {
   }
 }
 
-function userHasPermission(user: User, permissions: string[]): boolean {
-  if (user.role?.permissions.includes('FULL_ACCESS')) {
+export function userHasPermission(user: User, permissions: string[]): boolean {
+  if (user.role?.permissions.includes(UserPermissions.FULL_ACCESS)) {
     return true
   }
 
