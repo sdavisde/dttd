@@ -1,21 +1,16 @@
 import { getBuckets } from '@/lib/files'
 import { getStorageUsage } from '@/lib/storage'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { permissionLock } from '@/lib/security'
+import { getValidatedUserWithPermissions } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
-import { isErr } from '@/lib/results'
 import Files from './components/Files'
+import { User } from '@/lib/users/types'
 
 export default async function FilesPage() {
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
+  let user: User
 
   try {
-    if (isErr(userResult) || !user) {
-      throw new Error('User not found')
-    }
-    permissionLock(['FILES_UPLOAD', 'FILES_DELETE'])(user)
+    user = await getValidatedUserWithPermissions(['FILES_UPLOAD', 'FILES_DELETE'])
   } catch (error) {
     redirect('/')
   }

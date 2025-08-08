@@ -1,19 +1,14 @@
-import { permissionLock } from '@/lib/security'
+import { getValidatedUserWithPermissions } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
 import Roles from '@/app/admin/roles/components/Roles'
-import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { User } from '@/lib/users/types'
 
 export default async function RolesPage() {
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
+  let user: User
 
   try {
-    if (isErr(userResult) || !user) {
-      throw new Error('User not found')
-    }
-    permissionLock(['ROLES_MANAGEMENT'])(user)
+    user = await getValidatedUserWithPermissions(['ROLES_MANAGEMENT'])
   } catch (error) {
     redirect('/')
   }

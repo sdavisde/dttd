@@ -1,5 +1,7 @@
 import { User } from '@/lib/users/types'
 import { Errors } from './error'
+import { isErr, Result } from './results'
+import { getLoggedInUser } from '@/actions/users'
 
 export enum UserPermissions {
   FULL_ACCESS = "FULL_ACCESS",
@@ -37,4 +39,24 @@ export function userHasPermission(user: User, permissions: string[]): boolean {
   return permissions.some((permission) =>
     user.role?.permissions.includes(permission)
   )
+}
+
+export function validateUser(userResult: Result<Error, User>): User {
+  const user = userResult.data
+  if (isErr(userResult) || !user) {
+    throw new Error(Errors.NOT_LOGGED_IN.toString())
+  }
+
+  return user
+}
+
+export async function getValidatedUser(): Promise<User> {
+  const userResult = await getLoggedInUser()
+  return validateUser(userResult)
+}
+
+export async function getValidatedUserWithPermissions(permissions: string[]): Promise<User> {
+  const user = await getValidatedUser()
+  permissionLock(permissions)(user)
+  return user
 }
