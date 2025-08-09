@@ -92,7 +92,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             </Button>
           </span>
         </div>
-        {children}
+        <main className="w-full min-h-[80vh]">{children}</main>
         <Footer />
       </SidebarInset>
     </SidebarProvider>

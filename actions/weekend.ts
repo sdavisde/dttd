@@ -29,6 +29,25 @@ export async function getActiveWeekends(): Promise<Result<Error, Record<WeekendT
 /**
  * Fetches a team member's weekend roster record, unless it is already paid for.
  */
+export async function getAllWeekends(): Promise<Result<Error, Weekend[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .select('*')
+    .order('start_date', { ascending: false })
+
+  if (isSupabaseError(error)) {
+    return err(new Error(error?.message))
+  }
+
+  if (!data) {
+    return err(new Error('No weekends found'))
+  }
+
+  return ok(data as Weekend[])
+}
+
 export async function getWeekendRosterRecord(
   teamUserId: string | null,
   weekendId: string | null
