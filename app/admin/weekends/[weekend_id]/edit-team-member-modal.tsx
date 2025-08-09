@@ -77,7 +77,7 @@ export function EditTeamMemberModal({
 }: EditTeamMemberModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
   const form = useForm<EditTeamMemberFormValues>({
     defaultValues: {
       status: rosterMember?.status || '',
@@ -102,7 +102,7 @@ export function EditTeamMemberModal({
   }
 
   const formatRole = (role: string) => {
-    return role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    return role.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
   }
 
   const onSubmit: SubmitHandler<EditTeamMemberFormValues> = async ({
@@ -183,12 +183,13 @@ export function EditTeamMemberModal({
         <SheetHeader>
           <SheetTitle>Edit Team Member</SheetTitle>
           <SheetDescription>
-            Edit {rosterMember.users?.first_name} {rosterMember.users?.last_name}'s roster information.
+            Edit {rosterMember.users?.first_name}{' '}
+            {rosterMember.users?.last_name}'s roster information.
           </SheetDescription>
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4">
             <FormField
               control={form.control}
               name="status"
@@ -268,8 +269,8 @@ export function EditTeamMemberModal({
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isSubmitting}
             onClick={handleSubmit(onSubmit)}
             className="flex-1"

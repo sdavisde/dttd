@@ -64,18 +64,18 @@ type AddTeamMemberModalProps = {
   users: Array<Tables<'users'>>
 }
 
-export function AddTeamMemberModal({ 
-  open, 
-  onClose, 
-  weekendId, 
+export function AddTeamMemberModal({
+  open,
+  onClose,
+  weekendId,
   weekendTitle,
-  users 
+  users,
 }: AddTeamMemberModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [userComboboxOpen, setUserComboboxOpen] = useState(false)
   const [roleComboboxOpen, setRoleComboboxOpen] = useState(false)
-  
+
   const form = useForm<AddTeamMemberFormValues>({
     defaultValues: {
       userId: '',
@@ -94,15 +94,18 @@ export function AddTeamMemberModal({
   }
 
   const formatRole = (role: string) => {
-    return role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    return role.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
   }
 
-  const onSubmit: SubmitHandler<AddTeamMemberFormValues> = async ({ userId, role }) => {
+  const onSubmit: SubmitHandler<AddTeamMemberFormValues> = async ({
+    userId,
+    role,
+  }) => {
     setIsSubmitting(true)
-    
+
     try {
       const result = await addUserToWeekendRoster(weekendId, userId, role)
-      
+
       if (isErr(result)) {
         setError('root', { message: result.error.message })
         return
@@ -126,16 +129,19 @@ export function AddTeamMemberModal({
             Add a team member to {weekendTitle}
           </SheetDescription>
         </SheetHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4">
             <FormField
               control={form.control}
               name="userId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Team Member *</FormLabel>
-                  <Popover open={userComboboxOpen} onOpenChange={setUserComboboxOpen}>
+                  <Popover
+                    open={userComboboxOpen}
+                    onOpenChange={setUserComboboxOpen}
+                  >
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -146,19 +152,24 @@ export function AddTeamMemberModal({
                         >
                           {field.value
                             ? (() => {
-                                const selectedUser = users.find((user) => user.id === field.value)
+                                const selectedUser = users.find(
+                                  (user) => user.id === field.value
+                                )
                                 return selectedUser
                                   ? `${selectedUser.first_name} ${selectedUser.last_name}`
-                                  : "Select team member..."
+                                  : 'Select team member...'
                               })()
-                            : "Select team member..."}
+                            : 'Select team member...'}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
                       <Command>
-                        <CommandInput placeholder="Search team members..." className="h-9" />
+                        <CommandInput
+                          placeholder="Search team members..."
+                          className="h-9"
+                        />
                         <CommandList>
                           <CommandEmpty>No team member found.</CommandEmpty>
                           <CommandGroup>
@@ -172,7 +183,9 @@ export function AddTeamMemberModal({
                                 }}
                               >
                                 <div className="flex flex-col">
-                                  <span>{user.first_name} {user.last_name}</span>
+                                  <span>
+                                    {user.first_name} {user.last_name}
+                                  </span>
                                   {user.email && (
                                     <span className="text-sm text-muted-foreground">
                                       {user.email}
@@ -181,8 +194,10 @@ export function AddTeamMemberModal({
                                 </div>
                                 <Check
                                   className={cn(
-                                    "ml-auto h-4 w-4",
-                                    field.value === user.id ? "opacity-100" : "opacity-0"
+                                    'ml-auto h-4 w-4',
+                                    field.value === user.id
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
                                   )}
                                 />
                               </CommandItem>
@@ -196,14 +211,17 @@ export function AddTeamMemberModal({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="role"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role *</FormLabel>
-                  <Popover open={roleComboboxOpen} onOpenChange={setRoleComboboxOpen}>
+                  <Popover
+                    open={roleComboboxOpen}
+                    onOpenChange={setRoleComboboxOpen}
+                  >
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -214,14 +232,17 @@ export function AddTeamMemberModal({
                         >
                           {field.value
                             ? formatRole(field.value)
-                            : "Select a role..."}
+                            : 'Select a role...'}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
                       <Command>
-                        <CommandInput placeholder="Search roles..." className="h-9" />
+                        <CommandInput
+                          placeholder="Search roles..."
+                          className="h-9"
+                        />
                         <CommandList>
                           <CommandEmpty>No role found.</CommandEmpty>
                           <CommandGroup>
@@ -237,8 +258,10 @@ export function AddTeamMemberModal({
                                 {formatRole(role)}
                                 <Check
                                   className={cn(
-                                    "ml-auto h-4 w-4",
-                                    field.value === role ? "opacity-100" : "opacity-0"
+                                    'ml-auto h-4 w-4',
+                                    field.value === role
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
                                   )}
                                 />
                               </CommandItem>
@@ -252,23 +275,23 @@ export function AddTeamMemberModal({
                 </FormItem>
               )}
             />
-            
+
             {form.formState.errors.root && (
               <div className="text-destructive text-sm">
                 {form.formState.errors.root.message}
               </div>
             )}
-            
-            <SheetFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Adding...' : 'Add to Roster'}
-              </Button>
-            </SheetFooter>
           </form>
         </Form>
+
+        <SheetFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+          <Button type="button" variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Adding...' : 'Add to Roster'}
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   )
