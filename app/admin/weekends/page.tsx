@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
+import Link from 'next/link'
 
 export default async function WeekendsPage() {
   const weekendsResult = await getAllWeekends()
@@ -67,8 +68,13 @@ export default async function WeekendsPage() {
                       className={`hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
                     >
                       <TableCell className="font-medium">
-                        {weekend.title ||
-                          `${weekend.type} Weekend #${weekend.number}`}
+                        <Link 
+                          href={`/admin/weekends/${weekend.id}`}
+                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          {weekend.title ||
+                            `${weekend.type} Weekend #${weekend.number}`}
+                        </Link>
                       </TableCell>
                       <TableCell>{weekend.number}</TableCell>
                       <TableCell>

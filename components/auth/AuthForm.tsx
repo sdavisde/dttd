@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AuthModeToggle from './AuthModeToggle'
@@ -34,14 +34,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setError(null)
     setMessage(null)
     setLoading(true)
-    
+
     // Validate password confirmation for registration
     if (mode === 'register' && password !== confirmPassword) {
       setError('Passwords do not match')
       setLoading(false)
       return
     }
-    
+
     const supabase = createClient()
 
     try {
@@ -108,13 +108,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       <AuthModeToggle mode={mode} onModeChange={setMode} />
 
       {error && (
-        <Alert>
+        <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {message && (
-        <Alert>
+        <Alert variant="info">
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       )}
@@ -147,7 +147,11 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         value={password}
         onChange={setPassword}
         required
-        helpText={mode === 'register' ? 'Password must be at least 6 characters' : undefined}
+        helpText={
+          mode === 'register'
+            ? 'Password must be at least 6 characters'
+            : undefined
+        }
       />
 
       {mode === 'register' && (
@@ -160,14 +164,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         />
       )}
 
-      <Button
-        type="submit"
-        className="w-full mt-4"
-        disabled={loading}
-      >
-        {loading ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : null}
+      <Button type="submit" className="w-full mt-4" disabled={loading}>
+        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {mode === 'login' ? 'Sign In' : 'Create Account'}
       </Button>
 
@@ -192,22 +190,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         {mode === 'login' ? (
           <>
             Don't have an account?{' '}
-            <Button
-              variant="link"
-              asChild
-              className="p-0 h-auto text-sm"
-            >
+            <Button variant="link" asChild className="p-0 h-auto text-sm">
               <a href="/join">Create one</a>
             </Button>
           </>
         ) : (
           <>
             Already have an account?{' '}
-            <Button
-              variant="link"
-              asChild
-              className="p-0 h-auto text-sm"
-            >
+            <Button variant="link" asChild className="p-0 h-auto text-sm">
               <a href="/login">Sign in</a>
             </Button>
           </>
