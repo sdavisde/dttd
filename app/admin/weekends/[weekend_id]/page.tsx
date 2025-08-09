@@ -50,6 +50,7 @@ export default async function WeekendDetailPage({
   const isEditable =
     weekend.status === 'ACTIVE' || weekend.status === 'PLANNING'
 
+  // todo: replace with the lib function once that is merged
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -81,47 +82,6 @@ export default async function WeekendDetailPage({
                 {formatDate(weekend.end_date)}
               </Typography>
             </div>
-            <div className="flex gap-2">
-              <Badge
-                variant={weekend.type === 'MENS' ? 'default' : 'secondary'}
-                className="text-sm"
-              >
-                {weekend.type}
-              </Badge>
-              <Badge
-                variant={
-                  weekend.status === 'ACTIVE'
-                    ? 'default'
-                    : weekend.status === 'PLANNING'
-                      ? 'outline'
-                      : 'secondary'
-                }
-                className="text-sm"
-              >
-                {weekend.status || 'UNKNOWN'}
-              </Badge>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <div>
-              <Typography variant="muted" className="font-medium">
-                Weekend Number
-              </Typography>
-              <Typography>{weekend.number || 'Not Set'}</Typography>
-            </div>
-            <div>
-              <Typography variant="muted" className="font-medium">
-                Start Date
-              </Typography>
-              <Typography>{formatDate(weekend.start_date)}</Typography>
-            </div>
-            <div>
-              <Typography variant="muted" className="font-medium">
-                End Date
-              </Typography>
-              <Typography>{formatDate(weekend.end_date)}</Typography>
-            </div>
           </div>
         </div>
 
@@ -130,12 +90,14 @@ export default async function WeekendDetailPage({
           <div className="mb-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-4">
               <div>
-                <Typography variant="h2" className="text-xl mb-2">
+                <Typography
+                  variant="h2"
+                  className="text-xl mb-2 flex items-center"
+                >
                   Team Roster
-                </Typography>
-                <Typography variant="muted">
-                  Team members assigned to this weekend ({roster.length}{' '}
-                  members)
+                  <span className="text-black/30 font-light text-base ms-2">
+                    ({roster.length} members)
+                  </span>
                 </Typography>
               </div>
               {isEditable && (

@@ -67,8 +67,7 @@ type EditTeamMemberModalProps = {
 const statusOptions = [
   { value: 'awaiting_payment', label: 'Awaiting Payment' },
   { value: 'paid', label: 'Paid' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'drop', label: 'Drop' },
 ]
 
 export function EditTeamMemberModal({

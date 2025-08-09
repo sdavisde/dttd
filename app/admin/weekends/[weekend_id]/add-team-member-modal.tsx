@@ -24,6 +24,19 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { CHARole } from '@/lib/weekend/types'
 import { Tables } from '@/database.types'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -33,6 +46,8 @@ import { addUserToWeekendRoster } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const addTeamMemberFormSchema = z.object({
   userId: z.string().min(1, { message: 'User is required' }),
@@ -58,6 +73,8 @@ export function AddTeamMemberModal({
 }: AddTeamMemberModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userComboboxOpen, setUserComboboxOpen] = useState(false)
+  const [roleComboboxOpen, setRoleComboboxOpen] = useState(false)
   
   const form = useForm<AddTeamMemberFormValues>({
     defaultValues: {
@@ -71,6 +88,8 @@ export function AddTeamMemberModal({
 
   const handleClose = () => {
     reset()
+    setUserComboboxOpen(false)
+    setRoleComboboxOpen(false)
     onClose()
   }
 
@@ -116,25 +135,63 @@ export function AddTeamMemberModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Team Member *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a team member" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {users.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.first_name} {user.last_name}
-                          {user.email && (
-                            <span className="text-muted-foreground ml-2">
-                              ({user.email})
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={userComboboxOpen} onOpenChange={setUserComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={userComboboxOpen}
+                          className="w-full justify-between"
+                        >
+                          {field.value
+                            ? (() => {
+                                const selectedUser = users.find((user) => user.id === field.value)
+                                return selectedUser
+                                  ? `${selectedUser.first_name} ${selectedUser.last_name}`
+                                  : "Select team member..."
+                              })()
+                            : "Select team member..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder="Search team members..." className="h-9" />
+                        <CommandList>
+                          <CommandEmpty>No team member found.</CommandEmpty>
+                          <CommandGroup>
+                            {users.map((user) => (
+                              <CommandItem
+                                key={user.id}
+                                value={`${user.first_name} ${user.last_name} ${user.email}`}
+                                onSelect={() => {
+                                  field.onChange(user.id)
+                                  setUserComboboxOpen(false)
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <span>{user.first_name} {user.last_name}</span>
+                                  {user.email && (
+                                    <span className="text-sm text-muted-foreground">
+                                      {user.email}
+                                    </span>
+                                  )}
+                                </div>
+                                <Check
+                                  className={cn(
+                                    "ml-auto h-4 w-4",
+                                    field.value === user.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -146,20 +203,51 @@ export function AddTeamMemberModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(CHARole).map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {formatRole(role)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={roleComboboxOpen} onOpenChange={setRoleComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={roleComboboxOpen}
+                          className="w-full justify-between"
+                        >
+                          {field.value
+                            ? formatRole(field.value)
+                            : "Select a role..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder="Search roles..." className="h-9" />
+                        <CommandList>
+                          <CommandEmpty>No role found.</CommandEmpty>
+                          <CommandGroup>
+                            {Object.values(CHARole).map((role) => (
+                              <CommandItem
+                                key={role}
+                                value={formatRole(role)}
+                                onSelect={() => {
+                                  field.onChange(role)
+                                  setRoleComboboxOpen(false)
+                                }}
+                              >
+                                {formatRole(role)}
+                                <Check
+                                  className={cn(
+                                    "ml-auto h-4 w-4",
+                                    field.value === role ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
