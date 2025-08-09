@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Navbar } from './navbar-client'
 import { logger } from '@/lib/logger'
 import { slugify } from '@/util/url'
+import { isUserRectorOnUpcomingWeekend } from '@/actions/roster'
+import { isErr } from '@/lib/results'
+import { CHARole } from '@/lib/weekend/types'
 
 async function getNavElements() {
   const supabase = await createClient()
@@ -66,8 +69,13 @@ async function getNavElements() {
     // },
     {
       name: 'Roster',
-      slug: 'admin/roster',
-      permissions_needed: ['READ_ROSTER'],
+      slug: 'roster',
+      permissions_needed: [
+        CHARole.RECTOR,
+        CHARole.HEAD,
+        CHARole.OUTSIDE_HEAD,
+        CHARole.BACKUP_RECTOR,
+      ],
     },
     {
       name: 'Admin',
