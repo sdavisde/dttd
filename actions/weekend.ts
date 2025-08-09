@@ -85,6 +85,7 @@ export async function getWeekendRoster(weekendId: string): Promise<
       weekend_id: string | null
       user_id: string | null
       created_at: string
+      rollo: string | null
       users: {
         id: string
         first_name: string | null
@@ -107,6 +108,7 @@ export async function getWeekendRoster(weekendId: string): Promise<
       weekend_id,
       user_id,
       created_at,
+      rollo,
       users (
         id,
         first_name,
@@ -154,7 +156,8 @@ export async function getAllUsers(): Promise<
 export async function addUserToWeekendRoster(
   weekendId: string,
   userId: string,
-  role: string
+  role: string,
+  rollo?: string
 ): Promise<Result<Error, void>> {
   const supabase = await createClient()
 
@@ -163,6 +166,7 @@ export async function addUserToWeekendRoster(
     user_id: userId,
     status: 'awaiting_payment',
     cha_role: role,
+    rollo: rollo || null,
   })
 
   if (isSupabaseError(error)) {

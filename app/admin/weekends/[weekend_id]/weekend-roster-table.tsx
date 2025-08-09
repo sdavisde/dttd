@@ -33,6 +33,7 @@ type RosterMember = {
   weekend_id: string | null
   user_id: string | null
   created_at: string
+  rollo: string | null
   users: {
     id: string
     first_name: string | null
@@ -58,8 +59,8 @@ export function WeekendRosterTable({
   const router = useRouter()
 
   const formatRole = (role: string | null) => {
-    if (!role) return 'No Role'
-    return role.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+    if (!role) return '-'
+    return role
   }
 
   // Get sort order based on CHARole enum position
@@ -82,13 +83,20 @@ export function WeekendRosterTable({
 
   // Status options for the dropdown
   const statusOptions = [
-    { value: 'awaiting_payment', label: 'Awaiting Payment', color: 'warning' as const },
+    {
+      value: 'awaiting_payment',
+      label: 'Awaiting Payment',
+      color: 'warning' as const,
+    },
     { value: 'paid', label: 'Paid', color: 'success' as const },
     { value: 'drop', label: 'Drop', color: 'error' as const },
   ]
 
   // Handle status update
-  const handleStatusUpdate = async (member: RosterMember, newStatus: string) => {
+  const handleStatusUpdate = async (
+    member: RosterMember,
+    newStatus: string
+  ) => {
     try {
       const client = createClient()
 
@@ -123,6 +131,7 @@ export function WeekendRosterTable({
         const phone = (member.users?.phone_number || '').toLowerCase()
         const role = formatRole(member.cha_role).toLowerCase()
         const status = (member.status || '').toLowerCase()
+        const rollo = (member.rollo || '').toLowerCase()
 
         // Check if query matches any field (fuzzy search)
         return (
@@ -130,7 +139,8 @@ export function WeekendRosterTable({
           email.includes(query) ||
           phone.includes(query) ||
           role.includes(query) ||
-          status.includes(query)
+          status.includes(query) ||
+          rollo.includes(query)
         )
       })
     }
@@ -225,7 +235,12 @@ export function WeekendRosterTable({
                       <TableCell className="text-muted-foreground">
                         {member.users?.phone_number || '-'}
                       </TableCell>
-                      <TableCell>{formatRole(member.cha_role)} CHA</TableCell>
+                      <TableCell>
+                        <span>{formatRole(member.cha_role)}</span>
+                        {member.rollo && (
+                          <span className="ms-1">- {member.rollo}</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {isEditable ? (
                           <DropdownMenu>
@@ -245,7 +260,11 @@ export function WeekendRosterTable({
                                   }
                                   className="flex items-center gap-1 cursor-pointer hover:opacity-80"
                                 >
-                                  {statusOptions.find(opt => opt.value === member.status)?.label || member.status || 'Unknown'}
+                                  {statusOptions.find(
+                                    (opt) => opt.value === member.status
+                                  )?.label ||
+                                    member.status ||
+                                    'Unknown'}
                                   <ChevronDown className="h-3 w-3" />
                                 </Badge>
                               </Button>
@@ -254,10 +273,15 @@ export function WeekendRosterTable({
                               {statusOptions.map((option) => (
                                 <DropdownMenuItem
                                   key={option.value}
-                                  onClick={() => handleStatusUpdate(member, option.value)}
+                                  onClick={() =>
+                                    handleStatusUpdate(member, option.value)
+                                  }
                                   className="flex items-center gap-2"
                                 >
-                                  <Badge color={option.color} className="text-xs">
+                                  <Badge
+                                    color={option.color}
+                                    className="text-xs"
+                                  >
                                     {option.label}
                                   </Badge>
                                 </DropdownMenuItem>
@@ -274,7 +298,11 @@ export function WeekendRosterTable({
                                   : 'error'
                             }
                           >
-                            {statusOptions.find(opt => opt.value === member.status)?.label || member.status || 'Unknown'}
+                            {statusOptions.find(
+                              (opt) => opt.value === member.status
+                            )?.label ||
+                              member.status ||
+                              'Unknown'}
                           </Badge>
                         )}
                       </TableCell>

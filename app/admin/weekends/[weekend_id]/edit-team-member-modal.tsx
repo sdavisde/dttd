@@ -9,6 +9,19 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -16,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
@@ -23,8 +37,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form'
-import { CHARole } from '@/lib/weekend/types'
+import { CHARole, Rollo } from '@/lib/weekend/types'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -33,11 +48,14 @@ import { isSupabaseError } from '@/lib/supabase/utils'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
-import { Trash } from 'lucide-react'
+import { Trash, Check, ChevronsUpDown, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const editTeamMemberFormSchema = z.object({
   status: z.string().min(1, { message: 'Status is required' }),
   cha_role: z.string().min(1, { message: 'Role is required' }),
+  rollo: z.string().optional(),
 })
 
 type EditTeamMemberFormValues = z.infer<typeof editTeamMemberFormSchema>
@@ -49,6 +67,7 @@ type RosterMember = {
   weekend_id: string | null
   user_id: string | null
   created_at: string
+  rollo: string | null
   users: {
     id: string
     first_name: string | null
@@ -77,37 +96,39 @@ export function EditTeamMemberModal({
 }: EditTeamMemberModalProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [roleComboboxOpen, setRoleComboboxOpen] = useState(false)
 
   const form = useForm<EditTeamMemberFormValues>({
     defaultValues: {
       status: rosterMember?.status || '',
       cha_role: rosterMember?.cha_role || '',
+      rollo: rosterMember?.rollo || '',
     },
     resolver: zodResolver(editTeamMemberFormSchema),
   })
 
-  const { handleSubmit, reset, setError } = form
+  const { handleSubmit, reset, setError, watch } = form
+  const selectedRole = watch('cha_role')
 
   // Update form values when rosterMember changes
   React.useEffect(() => {
     if (rosterMember) {
       form.setValue('status', rosterMember.status || '')
       form.setValue('cha_role', rosterMember.cha_role || '')
+      form.setValue('rollo', rosterMember.rollo || '')
     }
   }, [rosterMember, form])
 
   const handleClose = () => {
     reset()
+    setRoleComboboxOpen(false)
     onClose()
-  }
-
-  const formatRole = (role: string) => {
-    return role.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
   }
 
   const onSubmit: SubmitHandler<EditTeamMemberFormValues> = async ({
     status,
     cha_role,
+    rollo,
   }) => {
     if (!rosterMember) {
       setError('root', { message: 'No roster member selected' })
@@ -124,6 +145,7 @@ export function EditTeamMemberModal({
         .update({
           status,
           cha_role,
+          rollo: rollo || null,
         })
         .eq('id', rosterMember.id)
 
@@ -192,55 +214,104 @@ export function EditTeamMemberModal({
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4">
             <FormField
               control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {statusOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="cha_role"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>CHA Role *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(CHARole).map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {formatRole(role)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover
+                    open={roleComboboxOpen}
+                    onOpenChange={setRoleComboboxOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={roleComboboxOpen}
+                          className="w-full justify-between"
+                        >
+                          {field.value ? field.value : 'Select a role...'}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search roles..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No role found.</CommandEmpty>
+                          <CommandGroup>
+                            {Object.values(CHARole).map((role) => (
+                              <CommandItem
+                                key={role}
+                                value={role}
+                                onSelect={() => {
+                                  field.onChange(role)
+                                  setRoleComboboxOpen(false)
+                                }}
+                              >
+                                {role}
+                                <Check
+                                  className={cn(
+                                    'ml-auto h-4 w-4',
+                                    field.value === role
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button
+            {/* Conditional Rollo field for TABLE_LEADER */}
+            {[
+              CHARole.TABLE_LEADER.toString(),
+              CHARole.SPIRITUAL_DIRECTOR.toString(),
+              CHARole.HEAD_SPIRITUAL_DIRECTOR.toString(),
+            ].includes(selectedRole) && (
+              <FormField
+                control={form.control}
+                name="rollo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rollo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a rollo or Silent" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={'Silent'}>Silent</SelectItem>
+                        {Object.values(Rollo).map((rollo) => (
+                          <SelectItem key={rollo} value={rollo}>
+                            {rollo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      What Rollo is this team member going to do? Select Silent
+                      if they are not doing a Rollo.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/*<Button
               type="button"
               variant="destructive"
               onClick={handleDelete}
@@ -249,12 +320,16 @@ export function EditTeamMemberModal({
             >
               <Trash className="w-4 h-4 mr-2" />
               Remove from Roster
-            </Button>
+            </Button>*/}
 
             {form.formState.errors.root && (
-              <div className="text-destructive text-sm">
-                {form.formState.errors.root.message}
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  {form.formState.errors.root.message}
+                </AlertDescription>
+              </Alert>
             )}
           </form>
         </Form>
