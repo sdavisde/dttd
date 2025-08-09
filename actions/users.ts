@@ -62,7 +62,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
           if (!wr.weekends) return false
           const wk = wr.weekends
           return (
-            wk.status === 'active' && genderMatchesWeekend(u.gender, wk.type)
+            wk.status === 'ACTIVE' && genderMatchesWeekend(u.gender, wk.type)
           )
         })
 
@@ -155,7 +155,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
       if (!wr.weekends) return false
       const wk = wr.weekends
       return (
-        wk.status === 'active' && genderMatchesWeekend(user.gender, wk.type)
+        wk.status === 'ACTIVE' && genderMatchesWeekend(user.gender, wk.type)
       )
     })
 
@@ -178,7 +178,9 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
   }
 }
 
-export async function deleteUser(userId: string): Promise<Result<Error, boolean>> {
+export async function deleteUser(
+  userId: string
+): Promise<Result<Error, boolean>> {
   try {
     const supabase = await createClient()
 
@@ -200,7 +202,11 @@ export async function deleteUser(userId: string): Promise<Result<Error, boolean>
       .eq('user_id', userId)
 
     if (rosterError) {
-      return err(new Error(`Failed to delete weekend roster entries: ${rosterError.message}`))
+      return err(
+        new Error(
+          `Failed to delete weekend roster entries: ${rosterError.message}`
+        )
+      )
     }
 
     // Finally delete the user

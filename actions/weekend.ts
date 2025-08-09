@@ -7,10 +7,15 @@ import { Result, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { Weekend, WeekendType } from '@/lib/weekend/types'
 
-export async function getActiveWeekends(): Promise<Result<Error, Record<WeekendType, Weekend | null>>> {
+export async function getActiveWeekends(): Promise<
+  Result<Error, Record<WeekendType, Weekend | null>>
+> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.from('weekends').select('*').eq('status', 'active')
+  const { data, error } = await supabase
+    .from('weekends')
+    .select('*')
+    .eq('status', 'ACTIVE')
 
   if (isSupabaseError(error)) {
     return err(new Error(error?.message))
@@ -48,7 +53,9 @@ export async function getAllWeekends(): Promise<Result<Error, Weekend[]>> {
   return ok(data as Weekend[])
 }
 
-export async function getWeekendById(weekendId: string): Promise<Result<Error, Weekend>> {
+export async function getWeekendById(
+  weekendId: string
+): Promise<Result<Error, Weekend>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -68,26 +75,32 @@ export async function getWeekendById(weekendId: string): Promise<Result<Error, W
   return ok(data as Weekend)
 }
 
-export async function getWeekendRoster(weekendId: string): Promise<Result<Error, Array<{
-  id: string
-  cha_role: string | null
-  status: string | null
-  weekend_id: string | null
-  user_id: string | null
-  created_at: string
-  users: {
-    id: string
-    first_name: string | null
-    last_name: string | null
-    email: string | null
-    phone_number: string | null
-  } | null
-}>>> {
+export async function getWeekendRoster(weekendId: string): Promise<
+  Result<
+    Error,
+    Array<{
+      id: string
+      cha_role: string | null
+      status: string | null
+      weekend_id: string | null
+      user_id: string | null
+      created_at: string
+      users: {
+        id: string
+        first_name: string | null
+        last_name: string | null
+        email: string | null
+        phone_number: string | null
+      } | null
+    }>
+  >
+> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('weekend_roster')
-    .select(`
+    .select(
+      `
       id,
       cha_role,
       status,
@@ -101,7 +114,8 @@ export async function getWeekendRoster(weekendId: string): Promise<Result<Error,
         email,
         phone_number
       )
-    `)
+    `
+    )
     .eq('weekend_id', weekendId)
     .order('cha_role', { ascending: true })
 
@@ -116,7 +130,9 @@ export async function getWeekendRoster(weekendId: string): Promise<Result<Error,
   return ok(data)
 }
 
-export async function getAllUsers(): Promise<Result<Error, Array<Tables<'users'>>>> {
+export async function getAllUsers(): Promise<
+  Result<Error, Array<Tables<'users'>>>
+> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -142,14 +158,12 @@ export async function addUserToWeekendRoster(
 ): Promise<Result<Error, void>> {
   const supabase = await createClient()
 
-  const { error } = await supabase
-    .from('weekend_roster')
-    .insert({
-      weekend_id: weekendId,
-      user_id: userId,
-      status: 'awaiting_payment',
-      cha_role: role,
-    })
+  const { error } = await supabase.from('weekend_roster').insert({
+    weekend_id: weekendId,
+    user_id: userId,
+    status: 'awaiting_payment',
+    cha_role: role,
+  })
 
   if (isSupabaseError(error)) {
     return err(new Error(error?.message))
@@ -162,7 +176,9 @@ export async function getWeekendRosterRecord(
   teamUserId: string | null,
   weekendId: string | null
 ): Promise<Result<string, Tables<'weekend_roster'>>> {
-  logger.info(`Fetching weekend roster record for team user ID: ${teamUserId} and weekend ID: ${weekendId}`)
+  logger.info(
+    `Fetching weekend roster record for team user ID: ${teamUserId} and weekend ID: ${weekendId}`
+  )
 
   if (!teamUserId || !weekendId) {
     return err('💢 Team user ID or weekend ID is null')

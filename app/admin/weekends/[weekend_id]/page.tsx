@@ -1,31 +1,30 @@
-import { getWeekendById, getWeekendRoster, getAllUsers } from '@/actions/weekend'
+import {
+  getWeekendById,
+  getWeekendRoster,
+  getAllUsers,
+} from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { notFound } from 'next/navigation'
 import { AddTeamMemberButton } from './add-team-member-button'
+import { WeekendRosterTable } from './weekend-roster-table'
 
 type WeekendDetailPageProps = {
   params: Promise<{ weekend_id: string }>
 }
 
-export default async function WeekendDetailPage({ params }: WeekendDetailPageProps) {
+export default async function WeekendDetailPage({
+  params,
+}: WeekendDetailPageProps) {
   const { weekend_id } = await params
-  
+
   const [weekendResult, rosterResult, usersResult] = await Promise.all([
     getWeekendById(weekend_id),
     getWeekendRoster(weekend_id),
-    getAllUsers()
+    getAllUsers(),
   ])
 
   if (isErr(weekendResult)) {
@@ -46,22 +45,18 @@ export default async function WeekendDetailPage({ params }: WeekendDetailPagePro
   const weekend = weekendResult.data
   const roster = rosterResult.data
   const users = usersResult.data
-  
+
   // Determine if weekend is editable (active/upcoming)
-  const isEditable = weekend.status === 'ACTIVE' || weekend.status === 'PLANNING'
+  const isEditable =
+    weekend.status === 'ACTIVE' || weekend.status === 'PLANNING'
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
-  }
-
-  const formatRole = (role: string | null) => {
-    if (!role) return 'No Role'
-    return role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
   return (
@@ -70,7 +65,7 @@ export default async function WeekendDetailPage({ params }: WeekendDetailPagePro
         title={weekend.title || `${weekend.type} Weekend #${weekend.number}`}
         breadcrumbs={[
           { label: 'Admin', href: '/admin' },
-          { label: 'Weekends', href: '/admin/weekends' }
+          { label: 'Weekends', href: '/admin/weekends' },
         ]}
       />
       <div className="container mx-auto px-8 py-2 md:py-4">
@@ -82,7 +77,8 @@ export default async function WeekendDetailPage({ params }: WeekendDetailPagePro
                 {weekend.title || `${weekend.type} Weekend #${weekend.number}`}
               </Typography>
               <Typography variant="muted" className="text-lg">
-                {formatDate(weekend.start_date)} - {formatDate(weekend.end_date)}
+                {formatDate(weekend.start_date)} -{' '}
+                {formatDate(weekend.end_date)}
               </Typography>
             </div>
             <div className="flex gap-2">
@@ -106,18 +102,24 @@ export default async function WeekendDetailPage({ params }: WeekendDetailPagePro
               </Badge>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
-              <Typography variant="muted" className="font-medium">Weekend Number</Typography>
+              <Typography variant="muted" className="font-medium">
+                Weekend Number
+              </Typography>
               <Typography>{weekend.number || 'Not Set'}</Typography>
             </div>
             <div>
-              <Typography variant="muted" className="font-medium">Start Date</Typography>
+              <Typography variant="muted" className="font-medium">
+                Start Date
+              </Typography>
               <Typography>{formatDate(weekend.start_date)}</Typography>
             </div>
             <div>
-              <Typography variant="muted" className="font-medium">End Date</Typography>
+              <Typography variant="muted" className="font-medium">
+                End Date
+              </Typography>
               <Typography>{formatDate(weekend.end_date)}</Typography>
             </div>
           </div>
@@ -128,84 +130,28 @@ export default async function WeekendDetailPage({ params }: WeekendDetailPagePro
           <div className="mb-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-4">
               <div>
-                <Typography variant="h2" className="text-xl mb-2">Team Roster</Typography>
+                <Typography variant="h2" className="text-xl mb-2">
+                  Team Roster
+                </Typography>
                 <Typography variant="muted">
-                  Team members assigned to this weekend ({roster.length} members)
+                  Team members assigned to this weekend ({roster.length}{' '}
+                  members)
                 </Typography>
               </div>
               {isEditable && (
                 <AddTeamMemberButton
                   weekendId={weekend_id}
-                  weekendTitle={weekend.title || `${weekend.type} Weekend #${weekend.number}`}
+                  weekendTitle={
+                    weekend.title ||
+                    `${weekend.type} Weekend #${weekend.number}`
+                  }
                   users={users}
                 />
               )}
             </div>
           </div>
-          
-          <div className="relative">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold min-w-[200px]">Name</TableHead>
-                    <TableHead className="min-w-[150px]">Email</TableHead>
-                    <TableHead className="min-w-[150px]">Phone</TableHead>
-                    <TableHead className="min-w-[150px]">Role</TableHead>
-                    <TableHead className="min-w-[100px]">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {roster.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
-                        <p className="text-muted-foreground">
-                          No team members assigned to this weekend.
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    roster.map((member, index) => (
-                      <TableRow
-                        key={member.id}
-                        className={`hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
-                      >
-                        <TableCell className="font-medium">
-                          {member.users?.first_name && member.users?.last_name
-                            ? `${member.users.first_name} ${member.users.last_name}`
-                            : 'Unknown User'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {member.users?.email || 'No email'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {member.users?.phone_number || 'No phone'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {formatRole(member.cha_role)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              member.status === 'paid'
-                                ? 'default'
-                                : member.status === 'confirmed'
-                                  ? 'outline'
-                                  : 'secondary'
-                            }
-                          >
-                            {member.status || 'Unknown'}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+
+          <WeekendRosterTable roster={roster} isEditable={isEditable} />
         </div>
       </div>
     </>
