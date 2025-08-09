@@ -40,7 +40,8 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const publicUrls = /^\/(login|join|auth\/callback|\/?)$/
+  const publicUrls =
+    /^\/(forgot-password|reset-password|login|join|auth\/callback|\/?)$/
   const redirectToHomeUrls = /^\/(login|join)?$/
 
   if (user && redirectToHomeUrls.test(request.nextUrl.pathname)) {

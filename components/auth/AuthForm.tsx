@@ -164,6 +164,18 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         />
       )}
 
+      {mode === 'login' && (
+        <div className="text-right">
+          <Button
+            href="/forgot-password"
+            variant="link"
+            className="p-0 h-auto text-sm text-blue-600"
+          >
+            Forgot your password?
+          </Button>
+        </div>
+      )}
+
       <Button type="submit" className="w-full mt-4" disabled={loading}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {mode === 'login' ? 'Sign In' : 'Create Account'}
