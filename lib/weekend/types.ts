@@ -22,7 +22,7 @@ export type WeekendStatus = string // 'FINISHED' | 'ACTIVE' | 'PLANNING'
 export enum CHARole {
   RECTOR = 'Rector',
   HEAD = 'Head',
-  OUTSIDE_HEAD = 'Assistant Head',
+  ASSISTANT_HEAD = 'Assistant Head',
   BACKUP_RECTOR = 'Backup Rector',
   HEAD_TECH = 'Head Tech',
   TECH = 'Tech',

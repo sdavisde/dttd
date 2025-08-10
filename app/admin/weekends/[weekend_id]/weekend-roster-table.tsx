@@ -46,11 +46,14 @@ type RosterMember = {
 type WeekendRosterTableProps = {
   roster: Array<RosterMember>
   isEditable: boolean
+  /** Whether to include payment/status information (defaults to true) */
+  includePaymentInformation?: boolean
 }
 
 export function WeekendRosterTable({
   roster,
   isEditable,
+  includePaymentInformation = true,
 }: WeekendRosterTableProps) {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedRosterMember, setSelectedRosterMember] =
@@ -58,10 +61,7 @@ export function WeekendRosterTable({
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
 
-  const formatRole = (role: string | null) => {
-    if (!role) return '-'
-    return role
-  }
+  const formatRole = (role: string | null) => role ?? '-'
 
   // Get sort order based on CHARole enum position
   const getRoleSortOrder = (role: string | null) => {
@@ -163,6 +163,9 @@ export function WeekendRosterTable({
     })
   }, [roster, searchQuery])
 
+  // Calculate total columns for colspan
+  const totalColumns = (includePaymentInformation ? 5 : 4) + (isEditable ? 1 : 0)
+
   return (
     <>
       <div className="space-y-4">
@@ -196,7 +199,9 @@ export function WeekendRosterTable({
                   <TableHead className="min-w-[150px]">Email</TableHead>
                   <TableHead className="min-w-[150px]">Phone</TableHead>
                   <TableHead className="min-w-[150px]">Role</TableHead>
-                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  {includePaymentInformation && (
+                    <TableHead className="min-w-[100px]">Status</TableHead>
+                  )}
                   {isEditable && (
                     <TableHead className="min-w-[100px]">Actions</TableHead>
                   )}
@@ -206,7 +211,7 @@ export function WeekendRosterTable({
                 {filteredRoster.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={isEditable ? 6 : 5}
+                      colSpan={totalColumns}
                       className="text-center py-8"
                     >
                       <p className="text-muted-foreground">
@@ -241,71 +246,73 @@ export function WeekendRosterTable({
                           <span className="ms-1">- {member.rollo}</span>
                         )}
                       </TableCell>
-                      <TableCell>
-                        {isEditable ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-auto p-0 hover:bg-transparent"
-                              >
-                                <Badge
-                                  color={
-                                    member.status === 'paid'
-                                      ? 'success'
-                                      : member.status === 'awaiting_payment'
-                                        ? 'warning'
-                                        : 'error'
-                                  }
-                                  className="flex items-center gap-1 cursor-pointer hover:opacity-80"
-                                >
-                                  {statusOptions.find(
-                                    (opt) => opt.value === member.status
-                                  )?.label ||
-                                    member.status ||
-                                    'Unknown'}
-                                  <ChevronDown className="h-3 w-3" />
-                                </Badge>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
-                              {statusOptions.map((option) => (
-                                <DropdownMenuItem
-                                  key={option.value}
-                                  onClick={() =>
-                                    handleStatusUpdate(member, option.value)
-                                  }
-                                  className="flex items-center gap-2"
+                      {includePaymentInformation && (
+                        <TableCell>
+                          {isEditable ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-auto p-0 hover:bg-transparent"
                                 >
                                   <Badge
-                                    color={option.color}
-                                    className="text-xs"
+                                    color={
+                                      member.status === 'paid'
+                                        ? 'success'
+                                        : member.status === 'awaiting_payment'
+                                          ? 'warning'
+                                          : 'error'
+                                    }
+                                    className="flex items-center gap-1 cursor-pointer hover:opacity-80"
                                   >
-                                    {option.label}
+                                    {statusOptions.find(
+                                      (opt) => opt.value === member.status
+                                    )?.label ||
+                                      member.status ||
+                                      'Unknown'}
+                                    <ChevronDown className="h-3 w-3" />
                                   </Badge>
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : (
-                          <Badge
-                            color={
-                              member.status === 'paid'
-                                ? 'success'
-                                : member.status === 'awaiting_payment'
-                                  ? 'warning'
-                                  : 'error'
-                            }
-                          >
-                            {statusOptions.find(
-                              (opt) => opt.value === member.status
-                            )?.label ||
-                              member.status ||
-                              'Unknown'}
-                          </Badge>
-                        )}
-                      </TableCell>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                {statusOptions.map((option) => (
+                                  <DropdownMenuItem
+                                    key={option.value}
+                                    onClick={() =>
+                                      handleStatusUpdate(member, option.value)
+                                    }
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Badge
+                                      color={option.color}
+                                      className="text-xs"
+                                    >
+                                      {option.label}
+                                    </Badge>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <Badge
+                              color={
+                                member.status === 'paid'
+                                  ? 'success'
+                                  : member.status === 'awaiting_payment'
+                                    ? 'warning'
+                                    : 'error'
+                              }
+                            >
+                              {statusOptions.find(
+                                (opt) => opt.value === member.status
+                              )?.label ||
+                                member.status ||
+                                'Unknown'}
+                            </Badge>
+                          )}
+                        </TableCell>
+                      )}
                       {isEditable && (
                         <TableCell>
                           <Button

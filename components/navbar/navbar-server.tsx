@@ -70,12 +70,7 @@ async function getNavElements() {
     {
       name: 'Roster',
       slug: 'roster',
-      permissions_needed: [
-        CHARole.RECTOR,
-        CHARole.HEAD,
-        CHARole.OUTSIDE_HEAD,
-        CHARole.BACKUP_RECTOR,
-      ],
+      permissions_needed: [],
     },
     {
       name: 'Admin',

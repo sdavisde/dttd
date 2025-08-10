@@ -163,7 +163,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           required
         />
       )}
-      {/*
+
       {mode === 'login' && (
         <div className="text-right">
           <Button
@@ -174,7 +174,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             Forgot your password?
           </Button>
         </div>
-      )}*/}
+      )}
 
       <Button type="submit" className="w-full mt-4" disabled={loading}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
