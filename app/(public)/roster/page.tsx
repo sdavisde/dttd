@@ -1,13 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
 import { getActiveWeekends, getWeekendRoster } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-roster-table'
 import { Typography } from '@/components/ui/typography'
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CHARole } from '@/lib/weekend/types'
-import { userHasCHARole, userHasPermission } from '@/lib/security'
+import { Permission, userHasCHARole, userHasPermission } from '@/lib/security'
 
 // todo: replace with lib funciton when merged in
 const formatDate = (dateString: string) => {
@@ -26,7 +25,7 @@ export default async function RosterPage() {
   }
   const user = userResult.data
   const canViewPaymentInfo =
-    userHasPermission(user, ['READ_TEAM_PAYMENTS']) ||
+    userHasPermission(user, [Permission.READ_TEAM_PAYMENTS]) ||
     userHasCHARole(user, [
       CHARole.RECTOR,
       CHARole.BACKUP_RECTOR,
@@ -34,8 +33,8 @@ export default async function RosterPage() {
       CHARole.ROSTER,
     ])
 
-  const canEditPaymentInfo =
-    userHasPermission(user, ['WRITE_TEAM_PAYMENTS']) ||
+  const canEditRoster =
+    userHasPermission(user, [Permission.WRITE_TEAM_ROSTER]) ||
     userHasCHARole(user, [
       CHARole.RECTOR,
       CHARole.BACKUP_RECTOR,
@@ -132,7 +131,7 @@ export default async function RosterPage() {
 
               <WeekendRosterTable
                 roster={roster}
-                isEditable={canEditPaymentInfo}
+                isEditable={canEditRoster}
                 includePaymentInformation={canViewPaymentInfo}
               />
             </TabsContent>

@@ -1,7 +1,6 @@
 import { getBuckets } from '@/lib/files'
 import { getStorageUsage } from '@/lib/storage'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
 import { isErr } from '@/lib/results'
@@ -15,7 +14,6 @@ export default async function FilesPage() {
     if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
-    permissionLock(['FILES_UPLOAD', 'FILES_DELETE'])(user)
   } catch (error) {
     redirect('/')
   }

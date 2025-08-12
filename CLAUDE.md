@@ -16,24 +16,43 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
 
 ### Technology Stack
 
-- **Frontend**: Next.js 15.3.2 (App Router), TypeScript, shadcn/ui components, Tailwind CSS v4
-- **Backend**: Supabase (PostgreSQL), Supabase Auth
-- **State**: TanStack React Query v4, React Hook Form + Zod validation
-- **Payments**: Stripe integration
-- **Email**: Resend service
+- **Frontend**: Next.js 15.3.2 (App Router), TypeScript, React 19, shadcn/ui components, Tailwind CSS v4
+- **Backend**: Supabase (PostgreSQL), Supabase Auth, Supabase SSR
+- **State**: TanStack React Query v4, React Hook Form + Zod v4 validation
+- **Payments**: Stripe integration (v18.2.0)
+- **Email**: Resend service, React Email components
 - **Logging**: Pino logger
+- **UI Libraries**: Radix UI primitives, Lucide React icons, Next Themes, Sonner toasts
+- **Utilities**: date-fns, clsx, class-variance-authority
 
 ## Code Architecture
 
 ### Directory Structure
 
 - `app/` - Next.js App Router pages and layouts
-  - `(public)/` - Public routes (candidate forms, payments, sponsorship)
+  - `(public)/` - Public routes (candidate forms, payments, sponsorship, roster)
+    - `api/` - API routes (webhooks for checkout completion)
+    - `candidate/` - Candidate form workflows
+    - `files/` - Public file access and management
+    - `payment/` - Stripe payment flows
+    - `sponsor/` - Sponsorship form and submission
+    - `review-candidate/` - Candidate review interface
+    - `roster/` - Public roster page
   - `admin/` - Admin dashboard with role-based access
+    - `files/` - File management system
+    - `roles/` - Role assignment interface
+    - `users/` - User management
+    - `weekends/` - Weekend event management
+    - `settings/` - System configuration
 - `actions/` - Server actions for database operations
 - `components/` - Reusable React components organized by feature
+  - `ui/` - shadcn/ui component library
+  - `auth/` - Authentication forms and providers
+  - `file-management/` - File system operations
+  - `email/` - React Email templates
 - `lib/` - Shared utilities, types, and service configurations
 - `hooks/` - Custom React hooks
+- `util/` - Legacy utility functions (should be consolidated with `lib/`)
 
 ### Key Architectural Patterns
 
@@ -41,6 +60,8 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
 2. **Type Safety**: All database operations use generated types from `database.types.ts`
 3. **Result Pattern**: Server actions return `Result<Error, T>` types for consistent error handling
 4. **Authentication Middleware**: Supabase auth handled in `middleware.ts` with route protection
+5. **Component Co-location**: Feature-specific components are organized under their respective domain folders
+6. **Separation of Concerns**: Clear separation between public and admin functionality through route grouping
 
 ### Database Architecture
 
@@ -61,8 +82,9 @@ The application uses Supabase with several key tables:
 
 **User Permissions**:
 - `FULL_ACCESS` - Complete system access
-- `READ_MEDICAL_HISTORY` - Access to medical information
-- `FILES_UPLOAD/DELETE` - File management permissions
+- `READ_MEDICAL_HISTORY` - Access to medical information  
+- `FILES_UPLOAD` - File upload permissions
+- `FILES_DELETE` - File deletion permissions
 
 ### Component Patterns
 

@@ -37,3 +37,13 @@ export function userHasCHARole(user: User, chaRoles: Array<CHARole>): boolean {
   }
   return chaRoles.map(toString).includes(user.team_member_info.cha_role)
 }
+
+export enum Permission {
+  FILES_UPLOAD = 'FILES_UPLOAD',
+  FILES_DELETE = 'FILES_DELETE',
+  ADMIN = 'ADMIN',
+  USER_MANAGEMENT = 'USER_MANAGEMENT',
+  READ_CANDIDATES = 'READ_CANDIDATES',
+  READ_TEAM_PAYMENTS = 'READ_TEAM_PAYMENTS',
+  WRITE_TEAM_ROSTER = 'WRITE_TEAM_ROSTER',
+}

@@ -1,11 +1,21 @@
-const BASE_URL =
-  process.env.NODE_ENV === 'production'
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
-    : 'http://localhost:3000'
+export function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/ /g, '-')
+    .replace(/[^\w-]+/g, '')
+}
 
-const INCLUDES_FORWARD_SLASH_AT_START_REGEX = /^\/(.|\n)*$/
-const INCLUDES_FORWARD_SLASH_AT_START = (string: string) => INCLUDES_FORWARD_SLASH_AT_START_REGEX.test(string)
-
-const getUrl = (path: string) => `${BASE_URL}${!INCLUDES_FORWARD_SLASH_AT_START(path) ? '/' : ''}${path}`
-
-export { getUrl }
+/**
+ * An opinionated approach to reversing a slug into a Title
+ */
+export function unslugify(text: string) {
+  return text
+    .split('-')
+    .map((word) => {
+      if (word.length === 0) {
+        return ''
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1)
+    })
+    .join(' ')
+}
