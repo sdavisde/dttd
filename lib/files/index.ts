@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { err, isErr, ok, Result } from '@/lib/results'
-import { slugify, unslugify } from '@/util/url'
+import { slugify, unslugify } from '@/lib/url'
 import { FileObject } from '@supabase/storage-js'
 
 export type Bucket = {
@@ -118,18 +118,20 @@ export async function getFileFolders(isAdmin: boolean = false) {
   try {
     const supabase = await createClient()
     const { data, error } = await supabase.storage.from('files').list('')
-    
+
     if (error) {
       logger.error('Error fetching root folders:', error)
       return []
     }
 
     const baseUrl = isAdmin ? '/admin/files' : '/files'
-    
+
     return data
       .filter((item) => item.metadata === null)
       .map((item) => ({
-        title: item.name.charAt(0).toUpperCase() + item.name.slice(1).replace(/-/g, ' '),
+        title:
+          item.name.charAt(0).toUpperCase() +
+          item.name.slice(1).replace(/-/g, ' '),
         url: `${baseUrl}/${slugify(item.name)}`,
       }))
       .sort((a, b) => a.title.localeCompare(b.title))
