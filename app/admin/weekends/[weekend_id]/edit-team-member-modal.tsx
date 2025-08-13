@@ -201,7 +201,7 @@ export function EditTeamMemberModal({
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="w-[400px] sm:w-[540px]">
+      <SheetContent className="max-w-full w-[400px] sm:w-[540px]">
         <SheetHeader>
           <SheetTitle>Edit Team Member</SheetTitle>
           <SheetDescription>
@@ -338,6 +338,7 @@ export function EditTeamMemberModal({
           <Button
             type="button"
             variant="outline"
+            size="lg"
             onClick={handleClose}
             className="flex-1"
             disabled={isSubmitting}
@@ -346,6 +347,7 @@ export function EditTeamMemberModal({
           </Button>
           <Button
             type="submit"
+            size="lg"
             disabled={isSubmitting}
             onClick={handleSubmit(onSubmit)}
             className="flex-1"

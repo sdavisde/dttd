@@ -95,6 +95,66 @@ The application uses Supabase with several key tables:
 - Server/client component separation following Next.js best practices
 - Import UI components from `@/components/ui/` directory only
 
+### Responsive Design Guidelines for Admin Pages
+
+**CRITICAL: ALL admin pages and data tables MUST implement mobile-responsive designs following these patterns:**
+
+#### Mobile-First Data Display Requirements
+
+1. **Dual Layout Strategy**:
+   - **Desktop (md+)**: Preserve existing table layouts - NO changes to desktop behavior
+   - **Mobile (sm and below)**: Implement card-based layouts for better mobile UX
+
+2. **Responsive Implementation Pattern**:
+   ```tsx
+   {/* Desktop Table - Hidden on mobile */}
+   <div className="relative hidden md:block">
+     <Table>
+       {/* Existing desktop table implementation */}
+     </Table>
+   </div>
+
+   {/* Mobile Card Layout - Shown only on mobile */}
+   <div className="md:hidden space-y-3">
+     {data.map((item) => (
+       <div key={item.id} className="bg-card border rounded-lg p-4 space-y-3">
+         {/* Mobile card content */}
+       </div>
+     ))}
+   </div>
+   ```
+
+3. **Mobile Card Design Standards**:
+   - **Header**: Primary identifier (name, title) prominently displayed with larger font (`text-lg`, `font-medium`)
+   - **Content Organization**: Use labeled sections with consistent spacing (`space-y-2`, `space-y-3`)
+   - **Labels**: Muted foreground labels with fixed width for alignment (`text-muted-foreground w-16`)
+   - **Action Buttons**: Position in header with proper touch targets (minimum 44px)
+   - **Status/Badges**: Group together with flexbox (`flex flex-wrap items-center gap-2`)
+   - **Borders**: Use card styling (`bg-card border rounded-lg p-4`)
+
+4. **Functional Requirements**:
+   - **Search/Filter**: Must work identically on both desktop and mobile layouts
+   - **Interactions**: All dropdowns, modals, and actions must function on mobile cards
+   - **State Management**: Preserve all existing state management and data flow
+   - **Empty States**: Show appropriate messages for both layouts
+
+5. **Touch Optimization**:
+   - Minimum 44px touch targets for interactive elements
+   - Proper spacing between interactive elements (minimum 8px gaps)
+   - Hover states replaced with appropriate mobile interactions
+
+6. **Example Implementation**:
+   Reference: `/app/admin/weekends/[weekend_id]/weekend-roster-table.tsx` for complete mobile card implementation
+
+#### When to Apply These Guidelines
+
+- **New Admin Pages**: Always implement responsive design from the start
+- **Existing Admin Tables**: When modifying any admin table, add mobile card layout
+- **Data Display Components**: Any component showing tabular data in admin routes
+- **Form Lists**: Lists of editable items in admin interfaces
+
+**DO NOT modify desktop behavior** - only add mobile-responsive alternatives alongside existing layouts.
+
 ### File Organization
 
 - Server components in page directories

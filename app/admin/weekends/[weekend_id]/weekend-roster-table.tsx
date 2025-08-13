@@ -187,8 +187,8 @@ export function WeekendRosterTable({
           </div>
         )}
 
-        {/* Table */}
-        <div className="relative">
+        {/* Desktop Table - Hidden on mobile */}
+        <div className="relative hidden md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -330,6 +330,137 @@ export function WeekendRosterTable({
               </TableBody>
             </Table>
           </div>
+        </div>
+
+        {/* Mobile Card Layout - Shown only on mobile */}
+        <div className="md:hidden space-y-3">
+          {filteredRoster.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                {roster.length === 0
+                  ? 'No team members assigned to this weekend.'
+                  : searchQuery.trim()
+                    ? 'No team members found matching your search.'
+                    : 'No team members assigned to this weekend.'}
+              </p>
+            </div>
+          ) : (
+            filteredRoster.map((member) => (
+              <div
+                key={member.id}
+                className="bg-card border rounded-lg p-4 space-y-3"
+              >
+                {/* Name and Actions Header */}
+                <div className="flex items-center justify-between">
+                  <div className="font-medium text-lg">
+                    {member.users?.first_name && member.users?.last_name
+                      ? `${member.users.first_name} ${member.users.last_name}`
+                      : 'Unknown User'}
+                  </div>
+                  {isEditable && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditRosterMember(member)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm">
+                    <span className="text-muted-foreground w-16">Email:</span>
+                    <span className="text-foreground">
+                      {member.users?.email || '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="text-muted-foreground w-16">Phone:</span>
+                    <span className="text-foreground">
+                      {member.users?.phone_number || '-'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Role and Status */}
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  <Badge variant="outline">
+                    {formatRole(member.cha_role)}
+                    {member.rollo && ` - ${member.rollo}`}
+                  </Badge>
+                  
+                  {includePaymentInformation && (
+                    isEditable ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-0 hover:bg-transparent"
+                          >
+                            <Badge
+                              color={
+                                member.status === 'paid'
+                                  ? 'success'
+                                  : member.status === 'awaiting_payment'
+                                    ? 'warning'
+                                    : 'error'
+                              }
+                              className="flex items-center gap-1 cursor-pointer hover:opacity-80"
+                            >
+                              {statusOptions.find(
+                                (opt) => opt.value === member.status
+                              )?.label ||
+                                member.status ||
+                                'Unknown'}
+                              <ChevronDown className="h-3 w-3" />
+                            </Badge>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {statusOptions.map((option) => (
+                            <DropdownMenuItem
+                              key={option.value}
+                              onClick={() =>
+                                handleStatusUpdate(member, option.value)
+                              }
+                              className="flex items-center gap-2"
+                            >
+                              <Badge
+                                color={option.color}
+                                className="text-xs"
+                              >
+                                {option.label}
+                              </Badge>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <Badge
+                        color={
+                          member.status === 'paid'
+                            ? 'success'
+                            : member.status === 'awaiting_payment'
+                              ? 'warning'
+                              : 'error'
+                        }
+                      >
+                        {statusOptions.find(
+                          (opt) => opt.value === member.status
+                        )?.label ||
+                          member.status ||
+                          'Unknown'}
+                      </Badge>
+                    )
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
