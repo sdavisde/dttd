@@ -1,4 +1,4 @@
-import { permissionLock } from '@/lib/security'
+import { Permission, permissionLock } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
 import { getRoles } from '@/actions/roles'
@@ -14,7 +14,7 @@ export default async function RolesPage() {
     if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
-    permissionLock(['ROLES_MANAGEMENT'])(user)
+    permissionLock([Permission.ROLES_MANAGEMENT])(user)
   } catch (error) {
     redirect('/')
   }
@@ -29,10 +29,10 @@ export default async function RolesPage() {
   return (
     <>
       <AdminBreadcrumbs
-        title='Roles'
+        title="Roles"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
-      <div className='container mx-auto px-8'>
+      <div className="container mx-auto px-8">
         <Roles roles={rolesResult.data} />
       </div>
     </>

@@ -27,13 +27,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { userHasPermission } from '@/lib/security'
 
 interface UsersProps {
   users: User[]
   roles: Array<{ id: string; label: string; permissions: string[] }>
+  canEditUsers: boolean
 }
 
-export default function Users({ users, roles }: UsersProps) {
+export default function Users({ users, roles, canEditUsers }: UsersProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -65,6 +67,8 @@ export default function Users({ users, roles }: UsersProps) {
   }, [searchTerm, users])
 
   const handleUserClick = (user: User) => {
+    if (!canEditUsers) return
+
     setSelectedUser(user)
     setIsModalOpen(true)
   }
@@ -171,18 +175,20 @@ export default function Users({ users, roles }: UsersProps) {
                     </span>
                   </TableCell>
                   <TableCell className="sticky right-0 bg-background text-right border-l">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleUserClick(user)
-                      }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Edit user role</span>
-                    </Button>
+                    {canEditUsers && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleUserClick(user)
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit user role</span>
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

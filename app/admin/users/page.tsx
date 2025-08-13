@@ -1,4 +1,4 @@
-import { permissionLock } from '@/lib/security'
+import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser, getUsers } from '@/actions/users'
 import { getRoles } from '@/actions/roles'
@@ -14,16 +14,12 @@ export default async function UsersPage() {
     if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
-    permissionLock(['USER_MANAGEMENT'])(user)
   } catch (error) {
     redirect('/')
   }
 
   // Fetch users and roles data on the server
-  const [usersResult, rolesResult] = await Promise.all([
-    getUsers(),
-    getRoles(),
-  ])
+  const [usersResult, rolesResult] = await Promise.all([getUsers(), getRoles()])
 
   if (isErr(usersResult)) {
     throw new Error(`Failed to fetch users: ${usersResult.error.message}`)
@@ -33,6 +29,8 @@ export default async function UsersPage() {
     throw new Error(`Failed to fetch roles: ${rolesResult.error.message}`)
   }
 
+  const canEditUsers = userHasPermission(user, [Permission.USER_MANAGEMENT])
+
   return (
     <>
       <AdminBreadcrumbs
@@ -40,7 +38,11 @@ export default async function UsersPage() {
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
       <div className="container mx-auto px-8">
-        <Users users={usersResult.data} roles={rolesResult.data} />
+        <Users
+          users={usersResult.data}
+          roles={rolesResult.data}
+          canEditUsers={canEditUsers}
+        />
       </div>
     </>
   )
