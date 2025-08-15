@@ -23,7 +23,9 @@ export async function sendSponsorshipNotificationEmail(
     const candidateResult = await getHydratedCandidate(candidateId)
 
     if (isErr(candidateResult)) {
-      return err(new Error(`Failed to fetch candidate: ${candidateResult.error.message}`))
+      return err(
+        new Error(`Failed to fetch candidate: ${candidateResult.error.message}`)
+      )
     }
 
     const candidate = candidateResult.data
@@ -32,13 +34,18 @@ export async function sendSponsorshipNotificationEmail(
       return err(new Error('Candidate not found'))
     }
 
-    const { data: preweekendCouple, error: preweekendCoupleError } = await supabase
-      .from('contact_information')
-      .select('*')
-      .eq('id', 'preweekend-couple')
-      .single()
+    const { data: preweekendCouple, error: preweekendCoupleError } =
+      await supabase
+        .from('contact_information')
+        .select('*')
+        .eq('id', 'preweekend-couple')
+        .single()
     if (preweekendCoupleError) {
-      return err(new Error(`Failed to fetch preweekend couple: ${preweekendCoupleError.message}`))
+      return err(
+        new Error(
+          `Failed to fetch preweekend couple: ${preweekendCoupleError.message}`
+        )
+      )
     }
 
     // Send email using Resend
@@ -78,21 +85,26 @@ export async function sendCandidateForms(
       return err(new Error('Candidate email not found on candidate'))
     }
 
-    const { data: candidateFormsEmail, error: candidateFormsEmailError } = await resend.emails.send({
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-      to: [candidateSponsorshipInfo.candidate_email],
-      subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
-      react: CandidateFormsEmail(candidateSponsorshipInfo),
-    })
+    const { data: candidateFormsEmail, error: candidateFormsEmailError } =
+      await resend.emails.send({
+        from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+        to: [candidateSponsorshipInfo.candidate_email],
+        subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
+        react: CandidateFormsEmail(candidateSponsorshipInfo),
+      })
 
     if (candidateFormsEmailError) {
-      return err(new Error(`Failed to send email: ${candidateFormsEmailError.message}`))
+      return err(
+        new Error(`Failed to send email: ${candidateFormsEmailError.message}`)
+      )
     }
 
     return ok({ data: candidateFormsEmail })
   } catch (error) {
     return err(
-      new Error(`Error while sending candidate forms: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      new Error(
+        `Error while sending candidate forms: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     )
   }
 }
@@ -107,8 +119,13 @@ export async function sendPaymentRequestEmail(
 
     const candidateResult = await getHydratedCandidate(candidateId)
     if (isErr(candidateResult)) {
-      logger.error(`Failed to fetch candidate ${candidateId}:`, candidateResult.error)
-      return err(new Error(`Failed to fetch candidate: ${candidateResult.error.message}`))
+      logger.error(
+        `Failed to fetch candidate ${candidateId}:`,
+        candidateResult.error
+      )
+      return err(
+        new Error(`Failed to fetch candidate: ${candidateResult.error.message}`)
+      )
     }
 
     const candidate = candidateResult.data
@@ -116,32 +133,44 @@ export async function sendPaymentRequestEmail(
     logger.info(
       `Found candidate: ${candidate.candidate_sponsorship_info?.candidate_name} (${candidate.candidate_sponsorship_info?.candidate_email})`
     )
-    logger.info(`Found sponsorship request with payment_owner: ${candidate.candidate_sponsorship_info?.payment_owner}`)
+    logger.info(
+      `Found sponsorship request with payment_owner: ${candidate.candidate_sponsorship_info?.payment_owner}`
+    )
 
     // Determine payment owner and their contact information
-    const paymentOwner = candidate.candidate_sponsorship_info?.payment_owner as 'candidate' | 'sponsor'
+    const paymentOwner = candidate.candidate_sponsorship_info?.payment_owner as
+      | 'candidate'
+      | 'sponsor'
     let paymentOwnerEmail: string = ''
     let paymentOwnerName: string = ''
 
     if (paymentOwner === 'sponsor') {
       if (!candidate.candidate_sponsorship_info?.sponsor_email) {
-        logger.error(`Sponsor email not found for sponsorship request ${candidate.candidate_sponsorship_info?.id}`)
+        logger.error(
+          `Sponsor email not found for sponsorship request ${candidate.candidate_sponsorship_info?.id}`
+        )
         return err(new Error('Sponsor email not found'))
       }
       paymentOwnerEmail = candidate.candidate_sponsorship_info?.sponsor_email
-      paymentOwnerName = candidate.candidate_sponsorship_info?.sponsor_name ?? 'Sponsor'
+      paymentOwnerName =
+        candidate.candidate_sponsorship_info?.sponsor_name ?? 'Sponsor'
     }
 
     if (paymentOwner === 'candidate') {
       if (!candidate.candidate_sponsorship_info?.candidate_email) {
-        logger.error(`Candidate email not found for ${candidate.candidate_sponsorship_info?.candidate_name}`)
+        logger.error(
+          `Candidate email not found for ${candidate.candidate_sponsorship_info?.candidate_name}`
+        )
         return err(new Error('Candidate email not found'))
       }
       paymentOwnerEmail = candidate.candidate_sponsorship_info?.candidate_email
-      paymentOwnerName = candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'
+      paymentOwnerName =
+        candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'
     }
 
-    logger.info(`Sending payment request email to ${paymentOwnerName} (${paymentOwnerEmail})`)
+    logger.info(
+      `Sending payment request email to ${paymentOwnerName} (${paymentOwnerEmail})`
+    )
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
@@ -156,13 +185,18 @@ export async function sendPaymentRequestEmail(
     })
 
     if (error) {
-      logger.error(`Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}`, {
-        error,
-      })
+      logger.error(
+        `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}`,
+        {
+          error,
+        }
+      )
       return err(new Error(`Failed to send email: ${error.message}`))
     }
 
-    logger.info(`Payment request email sent successfully for ${candidate.candidate_sponsorship_info?.candidate_name}`)
+    logger.info(
+      `Payment request email sent successfully for ${candidate.candidate_sponsorship_info?.candidate_name}`
+    )
 
     // Update candidate status to awaiting_payment
     const { error: updateError } = await supabase
@@ -193,4 +227,15 @@ export async function sendPaymentRequestEmail(
       )
     )
   }
+}
+
+/**
+ * Accepts a partial User object to define who has submitted team fees.
+ * Sends an email to the appropriate assistant head CHA informing them that team fees have been paid.
+ */
+export async function notifyAssistantHeadForTeamPayment(): Promise<
+  Result<string, true>
+> {
+  // todo: finish this
+  return err('Not implemented yet')
 }

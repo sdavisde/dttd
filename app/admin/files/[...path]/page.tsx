@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { fetchFolderContents } from '@/lib/files'
 import { isErr } from '@/lib/results'
-import { unslugify } from '@/util/url'
+import { unslugify } from '@/lib/url'
 import FilesFolderContent from '@/components/file-management/FilesFolderContent'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 

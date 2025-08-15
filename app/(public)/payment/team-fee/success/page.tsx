@@ -3,29 +3,33 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 import { stripe } from '@/lib/stripe'
+import { notifyAssistantHeadForTeamPayment } from '@/actions/emails'
 
 type SearchParams = Promise<{
   session_id: string
 }>
 
-export default async function TeamFeePaymentSuccessPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function TeamFeePaymentSuccessPage({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}) {
   const { session_id } = await searchParams
 
-  if (!session_id) throw new Error('Please provide a valid session_id (`cs_test_...`)')
+  if (!session_id)
+    throw new Error('Please provide a valid session_id (`cs_test_...`)')
 
-  const { status, customer_details, metadata } = await stripe.checkout.sessions.retrieve(session_id, {
-    expand: ['line_items', 'payment_intent'],
-  })
-
-  if (!customer_details?.email) {
-    throw new Error('Customer email not found')
-  }
-
-  const customerEmail = customer_details.email
+  const { status, customer_details, metadata } =
+    await stripe.checkout.sessions.retrieve(session_id, {
+      expand: ['line_items', 'payment_intent'],
+    })
 
   if (status !== 'complete') {
     return redirect('/')
   }
+
+  // send notification email to the correct assistant head CHA
+  notifyAssistantHeadForTeamPayment()
 
   return (
     <div className="container max-w-2xl mx-auto py-8">
@@ -34,12 +38,9 @@ export default async function TeamFeePaymentSuccessPage({ searchParams }: { sear
           <h1 className="text-3xl font-bold text-green-600">
             Payment Successful!
           </h1>
-          <p className="text-lg">
-            A confirmation email will be sent to {customerEmail}
-          </p>
           <div className="pt-4">
             <Button asChild>
-              <a href='/home'>Return to Home</a>
+              <a href="/home">Return to Home</a>
             </Button>
           </div>
         </CardContent>

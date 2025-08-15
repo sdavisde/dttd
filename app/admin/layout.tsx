@@ -4,17 +4,29 @@ import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Typography } from '@/components/ui/typography'
 import { Errors } from '@/lib/error'
+import * as Results from '@/lib/results'
 import { isErr } from '@/lib/results'
-import { permissionLock, UserPermissions } from '@/lib/security'
+import { permissionLock, UserPermissions, Permission } from '@/lib/security'
 import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
+import { getActiveWeekends } from '@/actions/weekend'
 
 type AdminLayoutProps = {
   children: React.ReactNode
 }
 
-function getSidebarData(fileFolders: Array<{ title: string; url: string }>) {
+async function getSidebarData() {
+  // Fetch dynamic file folders for navigation
+  const fileFolders = await getFileFolders(true)
+  const activeWeekendsResult = await getActiveWeekends()
+
+  const upcomingWeekends = Results.unwrap(
+    Results.map(activeWeekendsResult, (activeWeekends) =>
+      [activeWeekends.MENS, activeWeekends.WOMENS].filter((it) => it !== null)
+    )
+  )
+
   return {
     navMain: [
       {
@@ -23,6 +35,14 @@ function getSidebarData(fileFolders: Array<{ title: string; url: string }>) {
         icon: 'SquareTerminal',
         isActive: true,
         items: [
+          ...upcomingWeekends.map((it) => ({
+            title: it.title ?? '-',
+            url: `/admin/weekends/${it.id}`,
+          })),
+          // {
+          //   title: 'Create Weekend',
+          //   url: '/admin/weekends/create',
+          // },
           {
             title: 'Upcoming Weekend',
             url: '/admin/weekends/upcoming',
@@ -56,18 +76,15 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
   try {
-    if (isErr(userResult) || !user) {
+    if (Results.isErr(userResult) || !user) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
-    permissionLock([UserPermissions.ADMIN])(user)
+    permissionLock([Permission.ADMIN])(user)
   } catch (error: unknown) {
-    console.log(error)
     redirect(`/?error=${(error as Error).message}`)
   }
 
-  // Fetch dynamic file folders for navigation
-  const fileFolders = await getFileFolders(true)
-  const sidebarData = getSidebarData(fileFolders)
+  const sidebarData = await getSidebarData()
 
   return (
     <SidebarProvider>
@@ -93,7 +110,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             </Button>
           </span>
         </div>
-        {children}
+        <main className="w-full min-h-[80vh]">{children}</main>
         <Footer />
       </SidebarInset>
     </SidebarProvider>

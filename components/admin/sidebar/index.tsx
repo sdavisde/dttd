@@ -13,6 +13,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { Permission } from '@/lib/security'
 
 // Icon mapping for serializable data
 const iconMap: Record<string, LucideIcon> = {

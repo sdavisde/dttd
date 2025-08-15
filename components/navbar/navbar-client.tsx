@@ -28,6 +28,9 @@ import { useToastListener } from '../toastbox'
 type NavElement = {
   name: string
   slug: string
+  /**
+   * Slightly overloaded - will try to match any of these permissions against user permissions or CHARole
+   */
   permissions_needed: string[]
   children?: NavElement[]
 }
