@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from './navbar-client'
 import { logger } from '@/lib/logger'
-import { slugify } from '@/util/url'
-import { UserPermissions } from '@/lib/security'
+import { Permission } from '@/lib/security'
 
 async function getNavElements() {
   const supabase = await createClient()
@@ -39,7 +38,7 @@ async function getNavElements() {
     {
       name: 'Admin',
       slug: 'admin',
-      permissions_needed: [UserPermissions.FULL_ACCESS],
+      permissions_needed: [Permission.ADMIN],
     },
   ]
 
