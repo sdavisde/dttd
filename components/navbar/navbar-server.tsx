@@ -28,12 +28,12 @@ async function getNavElements() {
     // {
     //   name: 'Candidates',
     //   slug: 'review-candidate',
-    //   permissions_needed: [UserPermissions.READ_CANDIDATES],
+    //   permissions_needed: [Permission.READ_CANDIDATES],
     // },
     {
       name: 'Roster',
-      slug: 'admin/roster',
-      permissions_needed: ['READ_ROSTER'], // This isn't in db rn
+      slug: 'roster',
+      permissions_needed: [],
     },
     {
       name: 'Admin',

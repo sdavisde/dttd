@@ -42,14 +42,6 @@ async function getSidebarData() {
           //   title: 'Create Weekend',
           //   url: '/admin/weekends/create',
           // },
-          {
-            title: 'Upcoming Weekend',
-            url: '/admin/weekends/upcoming',
-          },
-          {
-            title: 'Create Weekend',
-            url: '/admin/weekends/create',
-          },
         ],
       },
       {
