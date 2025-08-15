@@ -1,11 +1,8 @@
-import { getLoggedInUser } from '@/actions/users'
 import { getUpcomingEvents, getPastEvents } from '@/actions/events'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import Meetings from './components/Meetings'
-import { getValidatedUser, permissionLock, userHasPermission, Permission } from '@/lib/security'
+import { userHasPermission, Permission, getValidatedUser } from '@/lib/security'
 import { isErr } from '@/lib/results'
-import { Errors } from '@/lib/error'
-import { redirect } from 'next/navigation'
 
 export default async function MeetingsPage() {
   const user = await getValidatedUser()
