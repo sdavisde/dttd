@@ -9,17 +9,17 @@ import { cn, formatEventDateTime } from '@/lib/utils'
 
 interface EventCardProps {
   event: Event
-  isEditable?: boolean
+  canEdit?: boolean
   onClick?: (event: Event) => void
   isPast?: boolean
 }
 
-export function EventCard({ event, isEditable = false, onClick, isPast = false }: EventCardProps) {
+export function EventCard({ event, canEdit = false, onClick, isPast = false }: EventCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const formattedDateTime = formatEventDateTime(event.datetime)
 
   const handleClick = () => {
-    if (isEditable && onClick) {
+    if (canEdit && onClick) {
       onClick(event)
     }
   }
@@ -28,16 +28,16 @@ export function EventCard({ event, isEditable = false, onClick, isPast = false }
     <div
       className={cn(
         "relative",
-        isEditable && "cursor-pointer",
+        canEdit && "cursor-pointer",
         isPast && "opacity-60"
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => canEdit && setIsHovered(true)}
+      onMouseLeave={() => canEdit && setIsHovered(false)}
       onClick={handleClick}
     >
       <Alert className={cn(
         "transition-all duration-200 h-full flex flex-col",
-        isEditable && isHovered && "ring-2 ring-primary/50 shadow-md"
+        canEdit && isHovered && "ring-2 ring-primary/50 shadow-md"
       )}>
         <div className='flex items-start gap-2 mb-2'>
           <Calendar className='w-5 h-5 mt-0.5 flex-shrink-0' />
@@ -63,7 +63,7 @@ export function EventCard({ event, isEditable = false, onClick, isPast = false }
           )}
         </div>
 
-        {isEditable && isHovered && (
+        {canEdit && isHovered && (
           <div className="absolute top-2 right-2 p-1 bg-background/80 rounded-md shadow-sm">
             <Edit className="w-4 h-4 text-muted-foreground" />
           </div>

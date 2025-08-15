@@ -43,7 +43,7 @@ export function AdminEvents({
         <EventCard
           key={event.id}
           event={event}
-          isEditable={canEdit}
+          canEdit={canEdit}
           onClick={onEventClick}
           isPast={isPast}
         />
