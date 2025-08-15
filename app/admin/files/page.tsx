@@ -7,16 +7,6 @@ import { isErr } from '@/lib/results'
 import Files from './components/Files'
 
 export default async function FilesPage() {
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
-
-  try {
-    if (isErr(userResult) || !user) {
-      throw new Error('User not found')
-    }
-  } catch (error) {
-    redirect('/')
-  }
 
   const buckets = await getBuckets()
   const usedBytes = await getStorageUsage()

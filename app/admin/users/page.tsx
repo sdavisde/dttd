@@ -1,23 +1,10 @@
-import { Permission, permissionLock, userHasPermission } from '@/lib/security'
-import { redirect } from 'next/navigation'
-import { getLoggedInUser, getUsers } from '@/actions/users'
-import { getRoles } from '@/actions/roles'
-import Users from './components/Users'
 import { isErr } from '@/lib/results'
+import Users from './components/Users'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { getUsers } from '@/actions/users'
+import { getRoles } from '@/actions/roles'
 
 export default async function UsersPage() {
-  const userResult = await getLoggedInUser()
-  const user = userResult?.data
-
-  try {
-    if (isErr(userResult) || !user) {
-      throw new Error('User not found')
-    }
-  } catch (error) {
-    redirect('/')
-  }
-
   // Fetch users and roles data on the server
   const [usersResult, rolesResult] = await Promise.all([getUsers(), getRoles()])
 
