@@ -14,6 +14,8 @@ export const SKIP_REGEX_ROUTES = [
  * Generally done to ensure we send the user to the /home page if they are logged in.
  */
 export const PUBLIC_REGEX_ROUTES = [
+  /^\/forgot-password$/,
+  /^\/reset-password$/,
   /^\/login$/,
   /^\/join$/,
   /^\/auth\/callback$/,

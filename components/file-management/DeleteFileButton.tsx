@@ -2,11 +2,16 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { permissionLock } from '@/lib/security'
+import { Permission, permissionLock } from '@/lib/security'
 import { logger } from '@/lib/logger'
 import { FileObject } from '@supabase/storage-js'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Trash2 } from 'lucide-react'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { useSession } from '@/components/auth/session-provider'
@@ -19,14 +24,19 @@ type DeleteFileButtonProps = {
   onDelete?: (file: FileObject) => void
 }
 
-export function DeleteFileButton({ file, folderName, totalFiles, onDelete }: DeleteFileButtonProps) {
+export function DeleteFileButton({
+  file,
+  folderName,
+  totalFiles,
+  onDelete,
+}: DeleteFileButtonProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const { user } = useSession()
 
   const handleDelete = async () => {
     try {
-      permissionLock(['FILES_DELETE'])(user)
+      permissionLock([Permission.FILES_DELETE])(user)
 
       // Check if this is the last file
       if (totalFiles === 1) {
@@ -35,17 +45,19 @@ export function DeleteFileButton({ file, folderName, totalFiles, onDelete }: Del
       }
 
       setIsDeleting(true)
-      
+
       // Delete the file from backend immediately after confirmation
       const supabase = createClient()
-      const { error } = await supabase.storage.from('files').remove([`${folderName}/${file.name}`])
-      
+      const { error } = await supabase.storage
+        .from('files')
+        .remove([`${folderName}/${file.name}`])
+
       if (error) {
         logger.error('Error deleting file:', error)
         toast.error('Failed to delete file')
         return
       }
-      
+
       // Call onDelete callback to update local state for responsive UI
       if (onDelete) {
         onDelete(file)
@@ -54,7 +66,10 @@ export function DeleteFileButton({ file, folderName, totalFiles, onDelete }: Del
         window.location.reload()
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred while deleting the file'
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'An error occurred while deleting the file'
       toast.error(errorMessage)
       logger.error('Error deleting file:', err)
     } finally {

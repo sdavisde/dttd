@@ -7,6 +7,7 @@ import { Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useRouter } from 'next/navigation'
 
 import {
   Sheet,
@@ -22,8 +23,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
-import { type Event } from '@/actions/events'
-import { useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/hooks/use-events'
+import { type Event, createEvent, updateEvent, deleteEvent } from '@/actions/events'
+import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 
 const CT_TIMEZONE = 'America/Chicago'
@@ -48,10 +49,9 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
   const isEditing = !!event
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [originalFormData, setOriginalFormData] = useState<EventFormData | null>(null)
-
-  const createEventMutation = useCreateEvent()
-  const updateEventMutation = useUpdateEvent()
-  const deleteEventMutation = useDeleteEvent()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter()
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
@@ -97,6 +97,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
   }, [isEditing, event, form])
 
   const onSubmit = async (data: EventFormData) => {
+    setIsSubmitting(true)
     try {
       // Combine date and time in CT, then convert to UTC
       const [hours, minutes] = data.time.split(':').map(Number)
@@ -113,30 +114,47 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
       }
 
       if (isEditing && event) {
-        await updateEventMutation.mutateAsync({ id: event.id, data: eventData })
+        const result = await updateEvent(event.id, eventData)
+        if (isErr(result)) {
+          throw new Error(result.error.message)
+        }
         toast.success('Event updated successfully')
+        router.refresh()
+        handleClose()
       } else {
-        await createEventMutation.mutateAsync(eventData)
+        const result = await createEvent(eventData)
+        if (isErr(result)) {
+          throw new Error(result.error.message)
+        }
         toast.success('Event created successfully')
+        router.refresh()
+        handleClose()
       }
-
-      handleClose()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An unexpected error occurred')
       console.error('Error saving event:', error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleDeleteConfirm = async () => {
     if (!event || !isEditing) return
 
+    setIsDeleting(true)
     try {
-      await deleteEventMutation.mutateAsync(event.id)
+      const result = await deleteEvent(event.id)
+      if (isErr(result)) {
+        throw new Error(result.error.message)
+      }
       toast.success('Event deleted successfully')
       setShowDeleteDialog(false)
+      router.refresh()
       handleClose()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete event')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -172,7 +190,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
   )
 
   const isFormValid = form.formState.isValid
-  const isSaveDisabled = !isFormValid || (isEditing && !hasChanges) || createEventMutation.isPending || updateEventMutation.isPending
+  const isSaveDisabled = !isFormValid || (isEditing && !hasChanges) || isSubmitting
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
@@ -267,7 +285,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
                     type="button"
                     variant="destructive"
                     onClick={() => setShowDeleteDialog(true)}
-                    disabled={deleteEventMutation.isPending || createEventMutation.isPending || updateEventMutation.isPending}
+                    disabled={isDeleting || isSubmitting}
                     className="flex-1"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
@@ -276,10 +294,10 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
                 )}
                 <Button
                   type="submit"
-                  disabled={isSaveDisabled || deleteEventMutation.isPending}
+                  disabled={isSaveDisabled || isDeleting}
                   className={isEditing ? "flex-1" : "w-full"}
                 >
-                  {createEventMutation.isPending || updateEventMutation.isPending
+                  {isSubmitting
                     ? 'Saving...'
                     : isEditing
                       ? 'Save Changes'
@@ -296,7 +314,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
         isOpen={showDeleteDialog}
         title="Delete Event"
         itemName={event?.title || 'this event'}
-        isDeleting={deleteEventMutation.isPending}
+        isDeleting={isDeleting}
         onCancel={() => setShowDeleteDialog(false)}
         onConfirm={handleDeleteConfirm}
         confirmText="Delete Event"

@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { Database } from '@/database.types'
-import { Plus, Trash2 } from 'lucide-react'
-import { useUpdateRolePermissions, useCreateRole } from '@/hooks/use-roles'
+import { updateRolePermissions, createRole } from '@/actions/roles'
 import { logger } from '@/lib/logger'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { isErr } from '@/lib/results'
+import { Permission } from '@/lib/security'
+import Select, { MultiValue } from 'react-select'
 import {
   Sheet,
   SheetContent,
@@ -14,7 +18,6 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export type Role = Database['public']['Tables']['roles']['Row']
@@ -26,20 +29,30 @@ interface RolesSidebar {
   onExited?: () => void
 }
 
+interface PermissionOption {
+  value: string
+  label: string
+}
+
+const permissionOptions: PermissionOption[] = Object.values(Permission).map(
+  (permission) => ({
+    value: permission,
+    label: permission,
+  })
+)
+
 export function RolesSidebar({
   role,
   isOpen,
   onClose,
-  onExited,
 }: RolesSidebar) {
   const [permissions, setPermissions] = useState<string[]>(
     role?.permissions || []
   )
-  const [newPermission, setNewPermission] = useState('')
   const [roleName, setRoleName] = useState(role?.label || '')
-
-  const updateRolePermissions = useUpdateRolePermissions()
-  const createRole = useCreateRole()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   // Update permissions and role name when role changes
   useEffect(() => {
@@ -47,14 +60,14 @@ export function RolesSidebar({
     setRoleName(role?.label || '')
   }, [role])
 
-  // Reset mutation state when modal opens/closes
+  // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      updateRolePermissions.reset()
-      createRole.reset()
+      setError(null)
+      setIsLoading(false)
     } else {
       // Reset form when modal closes
-      setNewPermission('')
+      setError(null)
       if (!role) {
         setRoleName('')
         setPermissions([])
@@ -62,45 +75,54 @@ export function RolesSidebar({
     }
   }, [isOpen, role]) // Include role in dependencies for proper reset logic
 
-  const handleAddPermission = () => {
-    if (newPermission.trim() && !permissions.includes(newPermission.trim())) {
-      const updatedPermissions = [...permissions, newPermission.trim()]
-      setPermissions(updatedPermissions)
-      setNewPermission('')
-    }
-  }
-
-  const handleRemovePermission = (permissionToRemove: string) => {
-    setPermissions(permissions.filter((p) => p !== permissionToRemove))
+  const handlePermissionsChange = (
+    selectedOptions: MultiValue<PermissionOption>
+  ) => {
+    setPermissions(selectedOptions.map((option) => option.value))
   }
 
   const handleSave = async () => {
     if (!roleName.trim()) return
 
+    setIsLoading(true)
+    setError(null)
+
     try {
       if (role) {
         // Update existing role
-        await updateRolePermissions.mutateAsync({
-          roleId: role.id,
-          permissions,
-        })
+        const result = await updateRolePermissions(role.id, permissions)
+        if (isErr(result)) {
+          setError(result.error.message)
+          return
+        }
       } else {
         // Create new role
-        await createRole.mutateAsync({
-          label: roleName.trim(),
-          permissions,
-        })
+        const result = await createRole(roleName.trim(), permissions)
+        if (isErr(result)) {
+          setError(result.error.message)
+          return
+        }
       }
+
+      toast.success(
+        role ? 'Role updated successfully' : 'Role created successfully'
+      )
+      router.refresh()
       onClose()
     } catch (e) {
+      const errorMessage =
+        e instanceof Error ? e.message : 'Failed to save role'
+      setError(errorMessage)
       logger.error(e)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   // Check if anything has changed for existing roles
   const hasChanges = role
     ? JSON.stringify(permissions.sort()) !==
-      JSON.stringify((role.permissions || []).sort())
+    JSON.stringify((role.permissions || []).sort())
     : roleName.trim() !== '' || permissions.length > 0
 
   return (
@@ -113,16 +135,10 @@ export function RolesSidebar({
         </SheetHeader>
 
         <div className="space-y-4 p-4">
-          {(updateRolePermissions.isError || createRole.isError) && (
+          {error && (
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
-              <AlertDescription>
-                {updateRolePermissions.error instanceof Error
-                  ? updateRolePermissions.error.message
-                  : createRole.error instanceof Error
-                    ? createRole.error.message
-                    : 'Failed to save role'}
-              </AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
@@ -136,9 +152,7 @@ export function RolesSidebar({
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder="Enter role name..."
-                disabled={
-                  updateRolePermissions.isPending || createRole.isPending
-                }
+                disabled={isLoading}
                 required
               />
             </div>
@@ -146,86 +160,28 @@ export function RolesSidebar({
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Permissions</label>
-            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border rounded-md">
-              {permissions.map((permission, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  {permission}
-                  <button
-                    onClick={() => handleRemovePermission(permission)}
-                    disabled={
-                      updateRolePermissions.isPending || createRole.isPending
-                    }
-                    className="ml-1 hover:text-destructive"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {permissions.length === 0 && (
-                <span className="text-muted-foreground text-sm">
-                  No permissions assigned
-                </span>
+            <Select
+              isMulti
+              options={permissionOptions}
+              value={permissionOptions.filter((option) =>
+                permissions.includes(option.value)
               )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="newPermission" className="text-sm font-medium">
-              Add Permission
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="newPermission"
-                value={newPermission}
-                onChange={(e) => setNewPermission(e.target.value)}
-                placeholder="Add new permission..."
-                onKeyDown={(e) => e.key === 'Enter' && handleAddPermission()}
-                disabled={
-                  updateRolePermissions.isPending || createRole.isPending
-                }
-              />
-              <Button
-                onClick={handleAddPermission}
-                disabled={
-                  !newPermission.trim() ||
-                  updateRolePermissions.isPending ||
-                  createRole.isPending
-                }
-                className="flex items-center gap-1 h-10"
-              >
-                <Plus className="h-4 w-4" />
-                Add
-              </Button>
-            </div>
+              onChange={handlePermissionsChange}
+              placeholder="Select permissions..."
+              isDisabled={isLoading}
+            />
           </div>
         </div>
 
         <SheetFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={updateRolePermissions.isPending || createRole.isPending}
-          >
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button
             onClick={handleSave}
-            disabled={
-              !roleName.trim() ||
-              updateRolePermissions.isPending ||
-              createRole.isPending ||
-              !hasChanges
-            }
+            disabled={!roleName.trim() || isLoading || !hasChanges}
           >
-            {updateRolePermissions.isPending || createRole.isPending
-              ? 'Saving...'
-              : role
-                ? 'Save Changes'
-                : 'Create Role'}
+            {isLoading ? 'Saving...' : role ? 'Save Changes' : 'Create Role'}
           </Button>
         </SheetFooter>
       </SheetContent>

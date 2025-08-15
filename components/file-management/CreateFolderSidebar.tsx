@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { permissionLock } from '@/lib/security'
+import { Permission, permissionLock } from '@/lib/security'
 import { logger } from '@/lib/logger'
 import {
   Sheet,
@@ -48,7 +48,7 @@ export function CreateFolderSidebar({
 
   const handleCreate = async () => {
     try {
-      permissionLock(['FILES_UPLOAD'])(user)
+      permissionLock([Permission.FILES_UPLOAD])(user)
 
       if (!folderName.trim()) {
         setError('Folder name cannot be empty')

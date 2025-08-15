@@ -1,6 +1,9 @@
 import { getBuckets } from '@/lib/files'
 import { getStorageUsage } from '@/lib/storage'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { redirect } from 'next/navigation'
+import { getLoggedInUser } from '@/actions/users'
+import { isErr } from '@/lib/results'
 import Files from './components/Files'
 
 export default async function FilesPage() {

@@ -12,10 +12,15 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Download, FileText, FolderOpen, Folder } from 'lucide-react'
 import Link from 'next/link'
-import { slugify } from '@/util/url'
+import { slugify } from '@/lib/url'
 
 type PublicFileTableProps = {
   files: FileObject[]
@@ -25,7 +30,9 @@ type PublicFileTableProps = {
 export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
   const handlePreview = async (file: FileObject) => {
     const supabase = createClient()
-    const { data } = await supabase.storage.from('files').getPublicUrl(`${folderName}/${file.name}`)
+    const { data } = await supabase.storage
+      .from('files')
+      .getPublicUrl(`${folderName}/${file.name}`)
     window.open(data.publicUrl, '_blank')
   }
 
@@ -55,8 +62,8 @@ export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
   }
 
   // Separate folders and files
-  const folders = files.filter(item => item.metadata === null)
-  const actualFiles = files.filter(item => item.metadata !== null)
+  const folders = files.filter((item) => item.metadata === null)
+  const actualFiles = files.filter((item) => item.metadata !== null)
 
   return (
     <div className="space-y-6">
@@ -92,7 +99,9 @@ export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
       {/* Files section */}
       {actualFiles.length > 0 && (
         <div>
-          {folders.length > 0 && <h3 className="text-lg font-semibold mb-3">Files</h3>}
+          {folders.length > 0 && (
+            <h3 className="text-lg font-semibold mb-3">Files</h3>
+          )}
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -121,16 +130,14 @@ export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {file.metadata?.size 
+                      {file.metadata?.size
                         ? `${(file.metadata.size / 1024).toFixed(1)} KB`
-                        : '-'
-                      }
+                        : '-'}
                     </TableCell>
                     <TableCell>
-                      {file.updated_at 
+                      {file.updated_at
                         ? new Date(file.updated_at).toLocaleDateString()
-                        : '-'
-                      }
+                        : '-'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div onClick={(e) => e.stopPropagation()}>

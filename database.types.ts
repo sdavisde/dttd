@@ -450,6 +450,7 @@ export type Database = {
           cha_role: string | null
           created_at: string
           id: string
+          rollo: string | null
           status: string | null
           user_id: string | null
           weekend_id: string | null
@@ -458,6 +459,7 @@ export type Database = {
           cha_role?: string | null
           created_at?: string
           id?: string
+          rollo?: string | null
           status?: string | null
           user_id?: string | null
           weekend_id?: string | null
@@ -466,6 +468,7 @@ export type Database = {
           cha_role?: string | null
           created_at?: string
           id?: string
+          rollo?: string | null
           status?: string | null
           user_id?: string | null
           weekend_id?: string | null

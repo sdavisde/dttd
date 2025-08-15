@@ -1,8 +1,7 @@
 'use client'
 
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useMemo, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
 import { getLoggedInUser } from '@/actions/users'
 import { User } from '@/lib/users/types'
 import { Result, isErr } from '@/lib/results'
@@ -23,23 +22,37 @@ type SessionProviderProps = {
 
 export function SessionProvider({ children }: SessionProviderProps) {
   const pathname = usePathname()
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const { data: userResult, isLoading } = useQuery<Result<Error, User>>({
-    queryKey: ['user', pathname],
-    queryFn: getLoggedInUser,
-  })
+  useEffect(() => {
+    async function fetchUser() {
+      setIsLoading(true)
+      try {
+        const userResult = await getLoggedInUser()
+        
+        const pathIsPublic =
+          PUBLIC_REGEX_ROUTES.some((route) => route.test(pathname)) ||
+          SKIP_REGEX_ROUTES.some((route) => route.test(pathname))
 
-  const user = userResult?.data ?? null
+        if (userResult && isErr(userResult) && !pathIsPublic) {
+          logger.error(`Error fetching user at path ${pathname}`, {
+            error: userResult.error,
+          })
+          setUser(null)
+        } else {
+          setUser(userResult?.data ?? null)
+        }
+      } catch (error) {
+        logger.error(`Unexpected error fetching user at path ${pathname}`, { error })
+        setUser(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-  const pathIsPublic =
-    PUBLIC_REGEX_ROUTES.some((route) => route.test(pathname)) ||
-    SKIP_REGEX_ROUTES.some((route) => route.test(pathname))
-
-  if (userResult && isErr(userResult) && !pathIsPublic) {
-    logger.error(`Error fetching user at path ${pathname}`, {
-      error: userResult.error,
-    })
-  }
+    fetchUser()
+  }, [pathname])
 
   const value = useMemo(
     () => ({

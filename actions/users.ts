@@ -61,7 +61,9 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
         const rosterRecord = (u.weekend_roster ?? []).find((wr) => {
           if (!wr.weekends) return false
           const wk = wr.weekends
-          return wk.status === 'active' && genderMatchesWeekend(u.gender, wk.type)
+          return (
+            wk.status === 'ACTIVE' && genderMatchesWeekend(u.gender, wk.type)
+          )
         })
 
         return {
@@ -79,7 +81,11 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
 
     return ok(users)
   } catch (error) {
-    return err(new Error(`Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(
+      new Error(
+        `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    )
   }
 }
 
@@ -148,7 +154,9 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
     const rosterRecord = (user.weekend_roster ?? []).find((wr) => {
       if (!wr.weekends) return false
       const wk = wr.weekends
-      return wk.status === 'active' && genderMatchesWeekend(user.gender, wk.type)
+      return (
+        wk.status === 'ACTIVE' && genderMatchesWeekend(user.gender, wk.type)
+      )
     })
 
     return ok({
@@ -162,11 +170,69 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
       team_member_info: rosterRecord ?? null,
     })
   } catch (error) {
-    return err(new Error(`Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(
+      new Error(
+        `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    )
   }
 }
 
-export async function assignUserRole(userId: string, roleId: string): Promise<Result<Error, true>> {
+export async function deleteUser(
+  userId: string
+): Promise<Result<Error, boolean>> {
+  try {
+    const supabase = await createClient()
+
+    // Delete related records first (foreign key constraints)
+    // Delete user roles
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
+
+    if (roleError) {
+      return err(new Error(`Failed to delete user roles: ${roleError.message}`))
+    }
+
+    // Delete weekend roster entries
+    const { error: rosterError } = await supabase
+      .from('weekend_roster')
+      .delete()
+      .eq('user_id', userId)
+
+    if (rosterError) {
+      return err(
+        new Error(
+          `Failed to delete weekend roster entries: ${rosterError.message}`
+        )
+      )
+    }
+
+    // Finally delete the user
+    const { error: userError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId)
+
+    if (userError) {
+      return err(new Error(`Failed to delete user: ${userError.message}`))
+    }
+
+    return ok(true)
+  } catch (error) {
+    return err(
+      new Error(
+        `Error while deleting user: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    )
+  }
+}
+
+export async function assignUserRole(
+  userId: string,
+  roleId: string
+): Promise<Result<Error, true>> {
   try {
     const supabase = await createClient()
 
@@ -177,7 +243,9 @@ export async function assignUserRole(userId: string, roleId: string): Promise<Re
       .eq('user_id', userId)
 
     if (deleteError) {
-      return err(new Error(`Failed to remove existing user role: ${deleteError.message}`))
+      return err(
+        new Error(`Failed to remove existing user role: ${deleteError.message}`)
+      )
     }
 
     // Insert the new role
@@ -186,22 +254,31 @@ export async function assignUserRole(userId: string, roleId: string): Promise<Re
       .insert({ user_id: userId, role_id: roleId })
 
     if (insertError) {
-      return err(new Error(`Failed to assign user role: ${insertError.message}`))
+      return err(
+        new Error(`Failed to assign user role: ${insertError.message}`)
+      )
     }
 
     return ok(true)
   } catch (error) {
     return err(
-      new Error(`Error while assigning user role: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      new Error(
+        `Error while assigning user role: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
     )
   }
 }
 
-export async function removeUserRole(userId: string): Promise<Result<Error, true>> {
+export async function removeUserRole(
+  userId: string
+): Promise<Result<Error, true>> {
   try {
     const supabase = await createClient()
 
-    const { error } = await supabase.from('user_roles').delete().eq('user_id', userId)
+    const { error } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
 
     if (error) {
       return err(new Error(`Failed to remove user role: ${error.message}`))
@@ -209,6 +286,10 @@ export async function removeUserRole(userId: string): Promise<Result<Error, true
 
     return ok(true)
   } catch (error) {
-    return err(new Error(`Error while removing user role: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(
+      new Error(
+        `Error while removing user role: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    )
   }
 }

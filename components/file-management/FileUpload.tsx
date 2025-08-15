@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/auth/session-provider'
-import { permissionLock } from '@/lib/security'
+import { Permission, permissionLock } from '@/lib/security'
 import { Button } from '@/components/ui/button'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -29,7 +29,7 @@ export function FileUpload({ folder }: FileUploadProps) {
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      permissionLock(['FILES_UPLOAD'])(user)
+      permissionLock([Permission.FILES_UPLOAD])(user)
 
       const files = event.target.files
       if (!files || files.length === 0) return
