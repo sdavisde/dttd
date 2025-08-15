@@ -6,19 +6,17 @@ import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { AdminEvents } from '@/components/events/AdminEvents'
 import { EventSidebar } from '@/components/events/EventSidebar'
-import { useUpcomingEvents, usePastEvents } from '@/hooks/use-events'
 import { type Event } from '@/actions/events'
 
 interface MeetingsProps {
   canEdit: boolean
+  upcomingEvents: Event[]
+  pastEvents: Event[]
 }
 
-export default function Meetings({ canEdit }: MeetingsProps) {
+export default function Meetings({ canEdit, upcomingEvents, pastEvents }: MeetingsProps) {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
-  const { data: upcomingEvents, isLoading: upcomingLoading, error: upcomingError } = useUpcomingEvents()
-  const { data: pastEvents, isLoading: pastLoading, error: pastError } = usePastEvents()
 
   const handleEventClick = (event: Event) => {
     if (canEdit) {
@@ -60,9 +58,7 @@ export default function Meetings({ canEdit }: MeetingsProps) {
           <Typography variant='h5'>Upcoming Events</Typography>
         </div>
         <AdminEvents
-          events={upcomingEvents?.slice(0, 4)}
-          isLoading={upcomingLoading}
-          error={upcomingError as Error | null}
+          events={upcomingEvents}
           canEdit={canEdit}
           onEventClick={handleEventClick}
         />
@@ -74,8 +70,6 @@ export default function Meetings({ canEdit }: MeetingsProps) {
         </div>
         <AdminEvents
           events={pastEvents}
-          isLoading={pastLoading}
-          error={pastError as Error | null}
           canEdit={canEdit}
           onEventClick={handleEventClick}
           isPast={true}

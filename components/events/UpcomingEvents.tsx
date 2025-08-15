@@ -1,14 +1,34 @@
 'use client'
 
 import { Calendar } from 'lucide-react'
-import { useUpcomingEvents } from '@/hooks/use-events'
+import { getUpcomingEvents, type Event } from '@/actions/events'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { EventAlert } from './EventAlert'
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
+import { isErr } from '@/lib/results'
 
 export function UpcomingEvents() {
-  const { data: events, isLoading, error } = useUpcomingEvents()
+  const [events, setEvents] = useState<Event[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    async function loadEvents() {
+      setIsLoading(true)
+      setError(null)
+
+      const result = await getUpcomingEvents()
+      if (isErr(result)) {
+        setError(new Error(result.error.message))
+      } else {
+        setEvents(result.data)
+      }
+      setIsLoading(false)
+    }
+
+    loadEvents()
+  }, [])
 
   const topFour = useMemo(() => events?.slice(0, 4) ?? [], [events])
 
