@@ -45,7 +45,6 @@ export function RolesSidebar({
   role,
   isOpen,
   onClose,
-  onExited,
 }: RolesSidebar) {
   const [permissions, setPermissions] = useState<string[]>(
     role?.permissions || []
@@ -123,7 +122,7 @@ export function RolesSidebar({
   // Check if anything has changed for existing roles
   const hasChanges = role
     ? JSON.stringify(permissions.sort()) !==
-      JSON.stringify((role.permissions || []).sort())
+    JSON.stringify((role.permissions || []).sort())
     : roleName.trim() !== '' || permissions.length > 0
 
   return (

@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Typography } from '@/components/ui/typography'
 import { Errors } from '@/lib/error'
 import * as Results from '@/lib/results'
-import { Permission, permissionLock } from '@/lib/security'
+import { permissionLock, Permission } from '@/lib/security'
 import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
@@ -43,6 +43,11 @@ async function getSidebarData() {
           //   url: '/admin/weekends/create',
           // },
         ],
+      },
+      {
+        title: 'Meetings',
+        url: '/admin/meetings',
+        icon: 'Calendar',
       },
       {
         title: 'Master Roster',
