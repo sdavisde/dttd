@@ -102,7 +102,11 @@ export default function Roles({ roles }: RolesProps) {
             Manage system roles and their associated permissions.
           </Typography>
         </div>
-        <Button onClick={handleCreateRole} className="flex items-center gap-2">
+        <Button onClick={handleCreateRole}
+          size="sm"
+          variant="ghost"
+          className="flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Role
         </Button>
