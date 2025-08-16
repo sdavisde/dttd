@@ -13,7 +13,9 @@ interface ResetPasswordFormProps {
   searchParams?: { [key: string]: string | string[] | undefined }
 }
 
-export default function ResetPasswordForm({ searchParams }: ResetPasswordFormProps) {
+export default function ResetPasswordForm({
+  searchParams,
+}: ResetPasswordFormProps) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -26,32 +28,41 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
   useEffect(() => {
     const checkSession = async () => {
       const supabase = createClient()
-      
+
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
         if (session) {
           setHasValidSession(true)
         } else {
           // Check if we have a hash fragment with tokens (from email link)
-          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const hashParams = new URLSearchParams(
+            window.location.hash.substring(1)
+          )
           const accessToken = hashParams.get('access_token')
           const refreshToken = hashParams.get('refresh_token')
-          
+
           if (accessToken && refreshToken) {
             // Set the session using the tokens from the URL
             const { data, error } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             })
-            
+
             if (error) {
-              setError('Invalid or expired reset link. Please request a new password reset.')
+              console.log(error)
+              setError(
+                'Invalid or expired reset link. Please request a new password reset.'
+              )
             } else if (data.session) {
               setHasValidSession(true)
             }
           } else {
-            setError('Invalid or expired reset link. Please request a new password reset.')
+            setError(
+              'Invalid or expired reset link. Please request a new password reset.'
+            )
           }
         }
       } catch (error) {
@@ -85,21 +96,23 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
 
     try {
       const supabase = createClient()
-      
+
       // Update the user's password
       const { error: updateError } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       })
 
       if (updateError) {
         setError(updateError.message)
       } else {
         setPasswordReset(true)
-        
+
         // Sign out the user after password reset to force fresh login
         setTimeout(async () => {
           await supabase.auth.signOut()
-          router.push('/login?message=Password reset successful. Please log in with your new password.')
+          router.push(
+            '/login?message=Password reset successful. Please log in with your new password.'
+          )
         }, 3000)
       }
     } catch (error) {
@@ -137,15 +150,11 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
         </Alert>
 
         <Button asChild className="w-full mt-4">
-          <Link href="/forgot-password">
-            Request New Reset Link
-          </Link>
+          <Link href="/forgot-password">Request New Reset Link</Link>
         </Button>
 
         <Button variant="ghost" asChild className="w-full">
-          <Link href="/login">
-            Back to Login
-          </Link>
+          <Link href="/login">Back to Login</Link>
         </Button>
       </div>
     )
@@ -162,7 +171,8 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
             Password Reset Successfully
           </h2>
           <p className="text-gray-600 text-sm">
-            Your password has been updated. You will be redirected to the login page shortly.
+            Your password has been updated. You will be redirected to the login
+            page shortly.
           </p>
         </div>
 
@@ -173,9 +183,7 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
         </Alert>
 
         <Button asChild className="w-full mt-4">
-          <Link href="/login">
-            Go to Login Now
-          </Link>
+          <Link href="/login">Go to Login Now</Link>
         </Button>
       </div>
     )
@@ -190,9 +198,7 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Reset your password
         </h2>
-        <p className="text-gray-600 text-sm">
-          Enter your new password below.
-        </p>
+        <p className="text-gray-600 text-sm">Enter your new password below.</p>
       </div>
 
       {error && (
@@ -220,9 +226,9 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
         disabled={loading}
       />
 
-      <Button 
-        type="submit" 
-        className="w-full mt-4" 
+      <Button
+        type="submit"
+        className="w-full mt-4"
         disabled={loading || !password || !confirmPassword}
       >
         {loading ? (
@@ -236,9 +242,7 @@ export default function ResetPasswordForm({ searchParams }: ResetPasswordFormPro
       </Button>
 
       <Button variant="ghost" asChild className="w-full mt-2">
-        <Link href="/login">
-          Cancel and return to login
-        </Link>
+        <Link href="/login">Cancel and return to login</Link>
       </Button>
     </form>
   )
