@@ -167,6 +167,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       {mode === 'login' && (
         <div className="text-right">
           <Button
+            type="button"
             href="/forgot-password"
             variant="link"
             className="p-0 h-auto text-sm text-blue-600"
