@@ -29,7 +29,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
@@ -48,7 +47,7 @@ import { isSupabaseError } from '@/lib/supabase/utils'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
-import { Trash, Check, ChevronsUpDown, AlertCircle } from 'lucide-react'
+import { Check, ChevronsUpDown, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
