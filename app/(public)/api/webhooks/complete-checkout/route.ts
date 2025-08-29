@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
 
     // This route should only accept checkout.session.completed events
     if (event.type !== 'checkout.session.completed') {
-      logger.info(`💢 Ignoring webhook event: ${event.type} - Event type not supported`)
+      logger.info(
+        `💢 Ignoring webhook event: ${event.type} - Event type not supported`
+      )
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
@@ -42,8 +44,14 @@ export async function POST(request: NextRequest) {
     const session = checkoutCompletedEvent.data.object
 
     if (!session.payment_intent || typeof session.payment_intent !== 'string') {
-      logger.error(session.payment_intent, '💢 Missing payment intent in session')
-      return NextResponse.json({ error: 'Missing payment intent' }, { status: 400 })
+      logger.error(
+        session.payment_intent,
+        '💢 Missing payment intent in session'
+      )
+      return NextResponse.json(
+        { error: 'Missing payment intent' },
+        { status: 400 }
+      )
     }
 
     console.log(`Processing completed checkout session:`, session)
@@ -54,21 +62,41 @@ export async function POST(request: NextRequest) {
     switch (priceId) {
       case process.env.CANDIDATE_FEE_PRICE_ID:
         const candidateId = session.metadata?.candidate_id ?? null
-        logger.info(`Processing candidate payment for candidate: ${candidateId}`)
+        logger.info(
+          `Processing candidate payment for candidate: ${candidateId}`
+        )
 
-        const candidateIsAwaitingPaymentResult = await candidateIsAwaitingPayment(candidateId)
+        const candidateIsAwaitingPaymentResult =
+          await candidateIsAwaitingPayment(candidateId)
         if (isErr(candidateIsAwaitingPaymentResult)) {
-          logger.error(candidateIsAwaitingPaymentResult.error, '💢 Candidate is not awaiting payment')
-          return NextResponse.json({ error: candidateIsAwaitingPaymentResult.error }, { status: 400 })
+          logger.error(
+            candidateIsAwaitingPaymentResult.error,
+            '💢 Candidate is not awaiting payment'
+          )
+          return NextResponse.json(
+            { error: candidateIsAwaitingPaymentResult.error },
+            { status: 400 }
+          )
         }
 
-        logger.info(`✅ Found candidate tied to payment, and they are awaiting payment`)
+        logger.info(
+          `✅ Found candidate tied to payment, and they are awaiting payment`
+        )
 
         // This non-null assertion is safe because we check for id existance in the function above
-        const recordCandidatePaymentResult = await recordCandidatePayment(candidateId!, session)
+        const recordCandidatePaymentResult = await recordCandidatePayment(
+          candidateId!,
+          session
+        )
         if (isErr(recordCandidatePaymentResult)) {
-          logger.error(recordCandidatePaymentResult.error, '💢 Failed to record candidate payment')
-          return NextResponse.json({ error: recordCandidatePaymentResult.error }, { status: 400 })
+          logger.error(
+            recordCandidatePaymentResult.error,
+            '💢 Failed to record candidate payment'
+          )
+          return NextResponse.json(
+            { error: recordCandidatePaymentResult.error },
+            { status: 400 }
+          )
         }
 
         logger.info(
@@ -77,8 +105,14 @@ export async function POST(request: NextRequest) {
 
         const confirmCandidateResult = await confirmCandidate(candidateId!)
         if (isErr(confirmCandidateResult)) {
-          logger.error(confirmCandidateResult.error, '💢 Failed to confirm candidate')
-          return NextResponse.json({ error: confirmCandidateResult.error }, { status: 400 })
+          logger.error(
+            confirmCandidateResult.error,
+            '💢 Failed to confirm candidate'
+          )
+          return NextResponse.json(
+            { error: confirmCandidateResult.error },
+            { status: 400 }
+          )
         }
 
         logger.info(`✅ Successfully confirmed candidate ${candidateId}`)
@@ -88,48 +122,85 @@ export async function POST(request: NextRequest) {
         const weekendId = session.metadata?.weekend_id ?? null
         logger.info(`Processing team payment for team: ${teamUserId}`)
 
-        const weekendRosterRecord = await getWeekendRosterRecord(teamUserId, weekendId)
+        const weekendRosterRecord = await getWeekendRosterRecord(
+          teamUserId,
+          weekendId
+        )
         if (isErr(weekendRosterRecord)) {
-          logger.error(weekendRosterRecord.error, '💢 Failed to get weekend_roster record')
-          return NextResponse.json({ error: weekendRosterRecord.error }, { status: 400 })
+          logger.error(
+            weekendRosterRecord.error,
+            '💢 Failed to get weekend_roster record'
+          )
+          return NextResponse.json(
+            { error: weekendRosterRecord.error },
+            { status: 400 }
+          )
         }
 
-        logger.info(`✅ Found weekend_roster record for team member: ${teamUserId}`)
+        logger.info(
+          `✅ Found weekend_roster record for team member: ${teamUserId}`
+        )
 
-        const weekendRosterPaymentRecord = await recordWeekendRosterPayment(weekendRosterRecord.data.id!, session)
+        const weekendRosterPaymentRecord = await recordWeekendRosterPayment(
+          weekendRosterRecord.data.id!,
+          session
+        )
         if (isErr(weekendRosterPaymentRecord)) {
-          logger.error(weekendRosterPaymentRecord.error, '💢 Failed to record weekend_roster_payment')
-          return NextResponse.json({ error: weekendRosterPaymentRecord.error }, { status: 400 })
+          logger.error(
+            weekendRosterPaymentRecord.error,
+            '💢 Failed to record weekend_roster_payment'
+          )
+          return NextResponse.json(
+            { error: weekendRosterPaymentRecord.error },
+            { status: 400 }
+          )
         }
 
         logger.info(
           `✅ Successfully recorded weekend_roster_payment ${weekendRosterPaymentRecord.data.id} for weekend_roster_id ${weekendRosterRecord.data.id}`
         )
 
-        const markTeamMemberAsPaidResult = await markTeamMemberAsPaid(weekendRosterRecord.data.id)
+        const markTeamMemberAsPaidResult = await markTeamMemberAsPaid(
+          weekendRosterRecord.data.id
+        )
         if (isErr(markTeamMemberAsPaidResult)) {
-          logger.error(markTeamMemberAsPaidResult.error, '💢 Failed to mark team member as paid')
-          return NextResponse.json({ error: markTeamMemberAsPaidResult.error }, { status: 400 })
+          logger.error(
+            markTeamMemberAsPaidResult.error,
+            '💢 Failed to mark team member as paid'
+          )
+          return NextResponse.json(
+            { error: markTeamMemberAsPaidResult.error },
+            { status: 400 }
+          )
         }
+
+        // TODO: send assistant head cha notification of payment
 
         logger.info(`✅ Successfully marked team member as paid`)
         break
       default:
-        logger.error(`💢 Error during webhook processing: Unknown price id: ${priceId}`)
+        logger.error(
+          `💢 Error during webhook processing: Unknown price id: ${priceId}`
+        )
         break
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
     logger.error('💢 Webhook processing error:', error)
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Webhook processing failed' },
+      { status: 500 }
+    )
   }
 }
 
 /**
  * Checks if a candidate is in the awaiting_payment status
  */
-async function candidateIsAwaitingPayment(candidateId: string | null): Promise<Result<string, true>> {
+async function candidateIsAwaitingPayment(
+  candidateId: string | null
+): Promise<Result<string, true>> {
   if (!candidateId) {
     return err('💢 Candidate ID is null')
   }
@@ -192,14 +263,21 @@ async function recordCandidatePayment(
 /**
  * Confirms a candidate by updating their status to confirmed
  */
-async function confirmCandidate(candidateId: string): Promise<Result<string, true>> {
+async function confirmCandidate(
+  candidateId: string
+): Promise<Result<string, true>> {
   const supabase = await createClient()
 
   // Update candidate status to confirmed
-  const { error: updateError } = await supabase.from('candidates').update({ status: 'confirmed' }).eq('id', candidateId)
+  const { error: updateError } = await supabase
+    .from('candidates')
+    .update({ status: 'confirmed' })
+    .eq('id', candidateId)
 
   if (updateError) {
-    return err(`💢 Failed to update candidate status to confirmed: ${updateError.message}`)
+    return err(
+      `💢 Failed to update candidate status to confirmed: ${updateError.message}`
+    )
   }
 
   return ok(true)
@@ -211,15 +289,18 @@ async function recordWeekendRosterPayment(
 ): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
   const supabase = await createClient()
 
-  const { data: weekendRosterPaymentRecord, error: paymentRecordError } = await supabase
-    .from('weekend_roster_payments')
-    .insert({
-      weekend_roster_id: weekendRosterRecordId,
-      payment_amount: session.amount_total ? session.amount_total / 100 : null,
-      payment_intent_id: session.payment_intent as string,
-    })
-    .select()
-    .single()
+  const { data: weekendRosterPaymentRecord, error: paymentRecordError } =
+    await supabase
+      .from('weekend_roster_payments')
+      .insert({
+        weekend_roster_id: weekendRosterRecordId,
+        payment_amount: session.amount_total
+          ? session.amount_total / 100
+          : null,
+        payment_intent_id: session.payment_intent as string,
+      })
+      .select()
+      .single()
 
   if (paymentRecordError) {
     return err(paymentRecordError.message)
@@ -228,7 +309,9 @@ async function recordWeekendRosterPayment(
   return ok(weekendRosterPaymentRecord)
 }
 
-async function markTeamMemberAsPaid(weekendRosterId: string): Promise<Result<string, true>> {
+async function markTeamMemberAsPaid(
+  weekendRosterId: string
+): Promise<Result<string, true>> {
   const supabase = await createClient()
 
   const { error: updateError } = await supabase
@@ -237,7 +320,9 @@ async function markTeamMemberAsPaid(weekendRosterId: string): Promise<Result<str
     .eq('id', weekendRosterId)
 
   if (updateError) {
-    return err(`💢 Failed to update weekend_roster record to paid: ${updateError.message}`)
+    return err(
+      `💢 Failed to update weekend_roster record to paid: ${updateError.message}`
+    )
   }
 
   return ok(true)
