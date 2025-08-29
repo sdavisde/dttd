@@ -38,7 +38,7 @@ async function getNavElements() {
     {
       name: 'Admin',
       slug: 'admin',
-      permissions_needed: [Permission.ADMIN],
+      permissions_needed: [Permission.READ_ADMIN_PORTAL],
     },
   ]
 

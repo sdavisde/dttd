@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Edit, User as UserIcon, Trash2 } from 'lucide-react'
+import { Search, Edit, User as UserIcon, Trash2, Users as UsersIcon } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import { User } from '@/lib/users/types'
 import {
@@ -28,6 +28,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { userHasPermission } from '@/lib/security'
+import { useTablePagination } from '@/hooks/use-table-pagination'
+import { TablePagination } from '@/components/ui/table-pagination'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface UsersProps {
   users: User[]
@@ -65,6 +68,17 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
       )
     })
   }, [searchTerm, users])
+
+  // Pagination setup
+  const {
+    paginatedData,
+    pagination,
+    setPage,
+    setPageSize,
+  } = useTablePagination(filteredUsers, {
+    initialPageSize: 10,
+    initialPage: 1,
+  })
 
   const handleUserClick = (user: User) => {
     if (!canEditUsers) return
@@ -107,10 +121,21 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
 
   return (
     <div className="my-4">
-      <div className="mb-4">
-        <Typography variant="h4" className="mb-2">
-          User Management
-        </Typography>
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Typography variant="h4">
+            User Management
+          </Typography>
+          <Card className="px-3 py-1.5">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-2 text-sm">
+                <UsersIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{users.length}</span>
+                <span className="text-muted-foreground">total users</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <Typography variant="muted">
           Manage user roles and permissions. Click on a user to assign or change
@@ -153,7 +178,7 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user, index) => (
+              {paginatedData.map((user, index) => (
                 <TableRow
                   key={user.id}
                   className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
@@ -204,7 +229,7 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
                   </TableCell>
                 </TableRow>
               ))}
-              {filteredUsers.length === 0 && (
+              {paginatedData.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">
                     <p className="text-muted-foreground">
@@ -218,6 +243,14 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
             </TableBody>
           </Table>
         </div>
+        
+        {/* Pagination */}
+        <TablePagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[5, 10, 20, 50]}
+        />
       </div>
 
       {/* User Role Sidebar */}

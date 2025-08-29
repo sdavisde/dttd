@@ -70,7 +70,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     if (Results.isErr(userResult) || !user) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
-    permissionLock([Permission.ADMIN])(user)
+    permissionLock([Permission.READ_ADMIN_PORTAL])(user)
   } catch (error: unknown) {
     redirect(`/?error=${(error as Error).message}`)
   }
