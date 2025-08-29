@@ -14,7 +14,11 @@ interface MeetingsProps {
   pastEvents: Event[]
 }
 
-export default function Meetings({ canEdit, upcomingEvents, pastEvents }: MeetingsProps) {
+export default function Meetings({
+  canEdit,
+  upcomingEvents,
+  pastEvents,
+}: MeetingsProps) {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -40,11 +44,13 @@ export default function Meetings({ canEdit, upcomingEvents, pastEvents }: Meetin
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-2">
-        <Typography variant="h4" as="h1">Meetings & Events</Typography>
+        <Typography variant="h4" as="h1">
+          Meetings & Events
+        </Typography>
         {canEdit && (
-          <Button onClick={handleAddEvent}
+          <Button
+            onClick={handleAddEvent}
             size="sm"
-            variant="ghost"
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -53,9 +59,9 @@ export default function Meetings({ canEdit, upcomingEvents, pastEvents }: Meetin
         )}
       </div>
 
-      <div className='w-full'>
-        <div className='w-full mt-4 mb-2'>
-          <Typography variant='h5'>Upcoming Events</Typography>
+      <div className="w-full">
+        <div className="w-full mt-4 mb-2">
+          <Typography variant="h5">Upcoming Events</Typography>
         </div>
         <AdminEvents
           events={upcomingEvents}
@@ -64,9 +70,9 @@ export default function Meetings({ canEdit, upcomingEvents, pastEvents }: Meetin
         />
       </div>
 
-      <div className='w-full'>
-        <div className='w-full mt-8 mb-2'>
-          <Typography variant='h5'>Past Events</Typography>
+      <div className="w-full">
+        <div className="w-full mt-8 mb-2">
+          <Typography variant="h5">Past Events</Typography>
         </div>
         <AdminEvents
           events={pastEvents}

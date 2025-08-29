@@ -45,7 +45,7 @@ async function getSidebarData() {
         ],
       },
       {
-        title: 'Meetings',
+        title: 'Events',
         url: '/admin/meetings',
         icon: 'Calendar',
       },
