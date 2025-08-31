@@ -12,19 +12,15 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Edit, Search, ChevronDown, Info } from 'lucide-react'
 import { EditTeamMemberModal } from './edit-team-member-modal'
 import { PaymentInfoModal } from './payment-info-modal'
+import { CashCheckPaymentModal } from './cash-check-payment-modal'
 import { CHARole } from '@/lib/weekend/types'
 import { createClient } from '@/lib/supabase/client'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { logger } from '@/lib/logger'
+import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { useRouter } from 'next/navigation'
 import { WeekendRosterMember } from '@/actions/weekend'
 
@@ -45,6 +41,9 @@ export function WeekendRosterTable({
     useState<WeekendRosterMember | null>(null)
   const [paymentInfoModalOpen, setPaymentInfoModalOpen] = useState(false)
   const [selectedPaymentMember, setSelectedPaymentMember] =
+    useState<WeekendRosterMember | null>(null)
+  const [cashCheckModalOpen, setCashCheckModalOpen] = useState(false)
+  const [selectedCashCheckMember, setSelectedCashCheckMember] =
     useState<WeekendRosterMember | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
@@ -77,6 +76,30 @@ export function WeekendRosterTable({
   const handleClosePaymentInfoModal = () => {
     setPaymentInfoModalOpen(false)
     setSelectedPaymentMember(null)
+  }
+
+  const handleShowCashCheckModal = (rosterMember: WeekendRosterMember) => {
+    setSelectedCashCheckMember(rosterMember)
+    setCashCheckModalOpen(true)
+  }
+
+  const handleCloseCashCheckModal = () => {
+    setCashCheckModalOpen(false)
+    setSelectedCashCheckMember(null)
+  }
+
+  // Format payment summary for display
+  const formatPaymentSummary = (member: WeekendRosterMember) => {
+    const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
+    const paid = member.total_paid || 0
+    const balance = totalFee - paid
+
+    return {
+      paid,
+      balance,
+      display: `$${paid.toFixed(0)} / $${totalFee}`,
+      isPaidInFull: balance <= 0,
+    }
   }
 
   // Status options for the dropdown
@@ -162,8 +185,9 @@ export function WeekendRosterTable({
   }, [roster, searchQuery])
 
   // Calculate total columns for colspan
+  // Updated calculation after removing status column
   const totalColumns =
-    (includePaymentInformation ? 5 : 4) + (isEditable ? 1 : 0)
+    (includePaymentInformation ? 4 : 3) + (isEditable ? 1 : 0)
 
   return (
     <>
@@ -200,10 +224,9 @@ export function WeekendRosterTable({
                   <TableHead className="min-w-[150px]">Role</TableHead>
                   {includePaymentInformation && (
                     <>
-                      <TableHead className="min-w-[100px]">
-                        Payment Info
-                      </TableHead>
-                      <TableHead className="min-w-[100px]">Status</TableHead>
+                      <TableHead className="min-w-[100px]">Payment</TableHead>
+                      {/* Status column temporarily removed for cash/check payment implementation */}
+                      {/* <TableHead className="min-w-[100px]">Status</TableHead> */}
                     </>
                   )}
                   {isEditable && (
@@ -252,23 +275,50 @@ export function WeekendRosterTable({
                       </TableCell>
                       {includePaymentInformation && (
                         <>
-                          {member.payment_info ? (
-                            <TableCell className="text-muted-foreground">
+                          <TableCell>
+                            <div className="flex items-center gap-2">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-auto p-0 hover:bg-muted rounded-full transition-colors"
-                                onClick={() => handleShowPaymentInfo(member)}
-                                title="View payment information"
+                                className="h-auto p-1 hover:bg-muted text-left"
+                                onClick={() =>
+                                  isEditable
+                                    ? handleShowCashCheckModal(member)
+                                    : handleShowPaymentInfo(member)
+                                }
+                                title={
+                                  isEditable
+                                    ? 'Record payment'
+                                    : 'View payment information'
+                                }
                               >
-                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                                <span
+                                  className={`text-sm font-medium ${
+                                    formatPaymentSummary(member).isPaidInFull
+                                      ? 'text-green-600'
+                                      : formatPaymentSummary(member).paid > 0
+                                        ? 'text-amber-600'
+                                        : 'text-muted-foreground'
+                                  }`}
+                                >
+                                  {formatPaymentSummary(member).display}
+                                </span>
                               </Button>
-                            </TableCell>
-                          ) : (
-                            <TableCell className="text-muted-foreground">
-                              -
-                            </TableCell>
-                          )}
+                              {member.all_payments.length > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-auto p-0 hover:bg-muted rounded-full transition-colors"
+                                  onClick={() => handleShowPaymentInfo(member)}
+                                  title="View payment details"
+                                >
+                                  <Info className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                          {/* Status column temporarily removed for cash/check payment implementation */}
+                          {/* 
                           <TableCell>
                             {isEditable ? (
                               <DropdownMenu>
@@ -334,6 +384,7 @@ export function WeekendRosterTable({
                               </Badge>
                             )}
                           </TableCell>
+                          */}
                         </>
                       )}
                       {isEditable && (
@@ -417,7 +468,8 @@ export function WeekendRosterTable({
 
                   {includePaymentInformation && (
                     <>
-                      {/* Status Badge */}
+                      {/* Status Badge - temporarily removed for cash/check payment implementation */}
+                      {/* 
                       {isEditable ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -478,20 +530,50 @@ export function WeekendRosterTable({
                             'Unknown'}
                         </Badge>
                       )}
+                      */}
 
-                      {/* Payment Info Button for Mobile */}
-                      {member.payment_info && (
+                      {/* Payment Summary for Mobile */}
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-auto p-1 hover:bg-muted"
-                          onClick={() => handleShowPaymentInfo(member)}
-                          title="View payment information"
+                          onClick={() =>
+                            isEditable
+                              ? handleShowCashCheckModal(member)
+                              : handleShowPaymentInfo(member)
+                          }
+                          title={
+                            isEditable
+                              ? 'Record payment'
+                              : 'View payment information'
+                          }
                         >
-                          <Info className="h-4 w-4 text-muted-foreground" />
-                          <span className="ml-1 text-xs">Payment</span>
+                          <span
+                            className={`text-sm font-medium ${
+                              formatPaymentSummary(member).isPaidInFull
+                                ? 'text-green-600'
+                                : formatPaymentSummary(member).paid > 0
+                                  ? 'text-amber-600'
+                                  : 'text-muted-foreground'
+                            }`}
+                          >
+                            {formatPaymentSummary(member).display}
+                          </span>
                         </Button>
-                      )}
+                        {member.all_payments.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto p-1 hover:bg-muted"
+                            onClick={() => handleShowPaymentInfo(member)}
+                            title="View payment details"
+                          >
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                            <span className="ml-1 text-xs">Details</span>
+                          </Button>
+                        )}
+                      </div>
                     </>
                   )}
                 </div>
@@ -511,6 +593,12 @@ export function WeekendRosterTable({
         open={paymentInfoModalOpen}
         onClose={handleClosePaymentInfoModal}
         rosterMember={selectedPaymentMember}
+      />
+
+      <CashCheckPaymentModal
+        open={cashCheckModalOpen}
+        onClose={handleCloseCashCheckModal}
+        rosterMember={selectedCashCheckMember}
       />
     </>
   )

@@ -96,6 +96,17 @@ export type WeekendRosterMember = {
     payment_intent_id: string | null
     payment_method: string | null
   } | null
+  // Total amount paid from all payment records
+  total_paid: number
+  // Array of all payment records for this member
+  all_payments: Array<{
+    id: string
+    payment_amount: number | null
+    payment_intent_id: string | null
+    payment_method: string | null
+    created_at: string
+    notes: string | null
+  }>
 }
 
 export async function getWeekendRoster(
@@ -122,7 +133,7 @@ export async function getWeekendRoster(
         phone_number
       ),
       weekend_roster_payments (
-        id, weekend_roster_id, payment_amount, payment_intent_id, payment_method
+        id, weekend_roster_id, payment_amount, payment_intent_id, payment_method, created_at, notes
       )
     `
     )
@@ -138,9 +149,16 @@ export async function getWeekendRoster(
   }
 
   const normalizedWeekendRoster = data.map((weekend_roster) => {
+    const all_payments = weekend_roster.weekend_roster_payments || []
+    const total_paid = all_payments.reduce((sum, payment) => {
+      return sum + (payment.payment_amount || 0)
+    }, 0)
+
     return {
       ...weekend_roster,
       payment_info: weekend_roster.weekend_roster_payments?.[0] ?? null,
+      total_paid,
+      all_payments,
     }
   })
 
@@ -225,4 +243,59 @@ export async function getWeekendRosterRecord(
   }
 
   return ok(weekendRosterRecord)
+}
+
+/**
+ * Records a manual (cash/check) payment for a weekend roster member
+ */
+export async function recordManualPayment(
+  weekendRosterId: string,
+  paymentAmount: number,
+  paymentMethod: 'cash' | 'check',
+  notes?: string
+): Promise<Result<Error, Tables<'weekend_roster_payments'>>> {
+  const supabase = await createClient()
+
+  // Verify the weekend roster record exists
+  const { data: rosterRecord, error: fetchError } = await supabase
+    .from('weekend_roster')
+    .select('id')
+    .eq('id', weekendRosterId)
+    .single()
+
+  if (isSupabaseError(fetchError)) {
+    return err(new Error(`Failed to find roster record: ${fetchError.message}`))
+  }
+
+  if (!rosterRecord) {
+    return err(new Error('Weekend roster record not found'))
+  }
+
+  // Insert the payment record
+  const { data: paymentRecord, error: insertError } = await supabase
+    .from('weekend_roster_payments')
+    .insert({
+      weekend_roster_id: weekendRosterId,
+      payment_amount: paymentAmount,
+      payment_method: paymentMethod,
+      payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`, // Generate unique ID for manual payments
+      notes: notes ?? null,
+      // Note: created_at will be set automatically by Supabase
+    })
+    .select()
+    .single()
+
+  if (isSupabaseError(insertError)) {
+    return err(new Error(`Failed to record payment: ${insertError.message}`))
+  }
+
+  if (!paymentRecord) {
+    return err(new Error('Failed to record payment'))
+  }
+
+  logger.info(
+    `Manual payment recorded: ${paymentMethod} payment of $${paymentAmount} for roster ID ${weekendRosterId}`
+  )
+
+  return ok(paymentRecord)
 }
