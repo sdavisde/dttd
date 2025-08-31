@@ -75,27 +75,32 @@ export async function getWeekendById(
   return ok(data as Weekend)
 }
 
-export async function getWeekendRoster(weekendId: string): Promise<
-  Result<
-    Error,
-    Array<{
-      id: string
-      cha_role: string | null
-      status: string | null
-      weekend_id: string | null
-      user_id: string | null
-      created_at: string
-      rollo: string | null
-      users: {
-        id: string
-        first_name: string | null
-        last_name: string | null
-        email: string | null
-        phone_number: string | null
-      } | null
-    }>
-  >
-> {
+export type WeekendRosterMember = {
+  id: string
+  cha_role: string | null
+  status: string | null
+  weekend_id: string | null
+  user_id: string | null
+  created_at: string
+  rollo: string | null
+  users: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    email: string | null
+    phone_number: string | null
+  } | null
+  payment_info: {
+    id: string
+    payment_amount: number | null
+    payment_intent_id: string | null
+    payment_method: string | null
+  } | null
+}
+
+export async function getWeekendRoster(
+  weekendId: string
+): Promise<Result<Error, Array<WeekendRosterMember>>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -115,6 +120,9 @@ export async function getWeekendRoster(weekendId: string): Promise<
         last_name,
         email,
         phone_number
+      ),
+      weekend_roster_payments (
+        id, weekend_roster_id, payment_amount, payment_intent_id, payment_method
       )
     `
     )
@@ -129,7 +137,14 @@ export async function getWeekendRoster(weekendId: string): Promise<
     return err(new Error('No roster found for weekend'))
   }
 
-  return ok(data)
+  const normalizedWeekendRoster = data.map((weekend_roster) => {
+    return {
+      ...weekend_roster,
+      payment_info: weekend_roster.weekend_roster_payments?.[0] ?? null,
+    }
+  })
+
+  return ok(normalizedWeekendRoster)
 }
 
 export async function getAllUsers(): Promise<

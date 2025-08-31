@@ -5,12 +5,12 @@ import {
 } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
-import { Button } from '@/components/ui/button'
 import { notFound } from 'next/navigation'
 import { AddTeamMemberButton } from './add-team-member-button'
 import { WeekendRosterTable } from './weekend-roster-table'
+import { formatDateTime } from '@/lib/utils'
+import { Datetime } from '@/components/ui/datetime'
 
 type WeekendDetailPageProps = {
   params: Promise<{ weekend_id: string }>
@@ -50,15 +50,8 @@ export default async function WeekendDetailPage({
   const isEditable =
     weekend.status === 'ACTIVE' || weekend.status === 'PLANNING'
 
-  // todo: replace with the lib function once that is merged
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
+  const startDate = formatDateTime(weekend.start_date)
+  const endDate = formatDateTime(weekend.end_date)
 
   return (
     <>
@@ -77,9 +70,14 @@ export default async function WeekendDetailPage({
               <Typography variant="h1" className="text-2xl mb-2">
                 {weekend.title || `${weekend.type} Weekend #${weekend.number}`}
               </Typography>
-              <Typography variant="muted" className="text-lg">
-                {formatDate(weekend.start_date)} -{' '}
-                {formatDate(weekend.end_date)}
+              <Typography
+                as="span"
+                variant="muted"
+                className="text-lg flex items-center gap-2"
+              >
+                <Datetime dateTime={startDate} />
+                <span>-</span>
+                <Datetime dateTime={endDate} />
               </Typography>
             </div>
           </div>

@@ -18,33 +18,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Edit, Search, ChevronDown } from 'lucide-react'
+import { Edit, Search, ChevronDown, Info } from 'lucide-react'
 import { EditTeamMemberModal } from './edit-team-member-modal'
+import { PaymentInfoModal } from './payment-info-modal'
 import { CHARole } from '@/lib/weekend/types'
 import { createClient } from '@/lib/supabase/client'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
-
-type RosterMember = {
-  id: string
-  cha_role: string | null
-  status: string | null
-  weekend_id: string | null
-  user_id: string | null
-  created_at: string
-  rollo: string | null
-  users: {
-    id: string
-    first_name: string | null
-    last_name: string | null
-    email: string | null
-    phone_number: string | null
-  } | null
-}
+import { WeekendRosterMember } from '@/actions/weekend'
 
 type WeekendRosterTableProps = {
-  roster: Array<RosterMember>
+  roster: Array<WeekendRosterMember>
   isEditable: boolean
   /** Whether to include payment/status information (defaults to true) */
   includePaymentInformation?: boolean
@@ -57,7 +42,10 @@ export function WeekendRosterTable({
 }: WeekendRosterTableProps) {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedRosterMember, setSelectedRosterMember] =
-    useState<RosterMember | null>(null)
+    useState<WeekendRosterMember | null>(null)
+  const [paymentInfoModalOpen, setPaymentInfoModalOpen] = useState(false)
+  const [selectedPaymentMember, setSelectedPaymentMember] =
+    useState<WeekendRosterMember | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
 
@@ -71,7 +59,7 @@ export function WeekendRosterTable({
     return index === -1 ? 998 : index // Unknown roles near the end
   }
 
-  const handleEditRosterMember = (rosterMember: RosterMember) => {
+  const handleEditRosterMember = (rosterMember: WeekendRosterMember) => {
     setSelectedRosterMember(rosterMember)
     setEditModalOpen(true)
   }
@@ -79,6 +67,16 @@ export function WeekendRosterTable({
   const handleCloseEditModal = () => {
     setEditModalOpen(false)
     setSelectedRosterMember(null)
+  }
+
+  const handleShowPaymentInfo = (rosterMember: WeekendRosterMember) => {
+    setSelectedPaymentMember(rosterMember)
+    setPaymentInfoModalOpen(true)
+  }
+
+  const handleClosePaymentInfoModal = () => {
+    setPaymentInfoModalOpen(false)
+    setSelectedPaymentMember(null)
   }
 
   // Status options for the dropdown
@@ -94,7 +92,7 @@ export function WeekendRosterTable({
 
   // Handle status update
   const handleStatusUpdate = async (
-    member: RosterMember,
+    member: WeekendRosterMember,
     newStatus: string
   ) => {
     try {
@@ -164,7 +162,8 @@ export function WeekendRosterTable({
   }, [roster, searchQuery])
 
   // Calculate total columns for colspan
-  const totalColumns = (includePaymentInformation ? 5 : 4) + (isEditable ? 1 : 0)
+  const totalColumns =
+    (includePaymentInformation ? 5 : 4) + (isEditable ? 1 : 0)
 
   return (
     <>
@@ -200,7 +199,12 @@ export function WeekendRosterTable({
                   <TableHead className="min-w-[150px]">Phone</TableHead>
                   <TableHead className="min-w-[150px]">Role</TableHead>
                   {includePaymentInformation && (
-                    <TableHead className="min-w-[100px]">Status</TableHead>
+                    <>
+                      <TableHead className="min-w-[100px]">
+                        Payment Info
+                      </TableHead>
+                      <TableHead className="min-w-[100px]">Status</TableHead>
+                    </>
                   )}
                   {isEditable && (
                     <TableHead className="min-w-[100px]">Actions</TableHead>
@@ -247,71 +251,90 @@ export function WeekendRosterTable({
                         )}
                       </TableCell>
                       {includePaymentInformation && (
-                        <TableCell>
-                          {isEditable ? (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-auto p-0 hover:bg-transparent"
-                                >
-                                  <Badge
-                                    color={
-                                      member.status === 'paid'
-                                        ? 'success'
-                                        : member.status === 'awaiting_payment'
-                                          ? 'warning'
-                                          : 'error'
-                                    }
-                                    className="flex items-center gap-1 cursor-pointer hover:opacity-80"
-                                  >
-                                    {statusOptions.find(
-                                      (opt) => opt.value === member.status
-                                    )?.label ||
-                                      member.status ||
-                                      'Unknown'}
-                                    <ChevronDown className="h-3 w-3" />
-                                  </Badge>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start">
-                                {statusOptions.map((option) => (
-                                  <DropdownMenuItem
-                                    key={option.value}
-                                    onClick={() =>
-                                      handleStatusUpdate(member, option.value)
-                                    }
-                                    className="flex items-center gap-2"
+                        <>
+                          {member.payment_info ? (
+                            <TableCell className="text-muted-foreground">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-0 hover:bg-muted rounded-full transition-colors"
+                                onClick={() => handleShowPaymentInfo(member)}
+                                title="View payment information"
+                              >
+                                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                              </Button>
+                            </TableCell>
+                          ) : (
+                            <TableCell className="text-muted-foreground">
+                              -
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            {isEditable ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-auto p-0 hover:bg-transparent"
                                   >
                                     <Badge
-                                      color={option.color}
-                                      className="text-xs"
+                                      color={
+                                        member.status === 'paid'
+                                          ? 'success'
+                                          : member.status === 'awaiting_payment'
+                                            ? 'warning'
+                                            : 'error'
+                                      }
+                                      className="flex items-center gap-1 cursor-pointer hover:opacity-80"
                                     >
-                                      {option.label}
+                                      {statusOptions.find(
+                                        (opt) => opt.value === member.status
+                                      )?.label ||
+                                        member.status ||
+                                        'Unknown'}
+                                      <ChevronDown className="h-3 w-3" />
                                     </Badge>
-                                  </DropdownMenuItem>
-                                ))}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          ) : (
-                            <Badge
-                              color={
-                                member.status === 'paid'
-                                  ? 'success'
-                                  : member.status === 'awaiting_payment'
-                                    ? 'warning'
-                                    : 'error'
-                              }
-                            >
-                              {statusOptions.find(
-                                (opt) => opt.value === member.status
-                              )?.label ||
-                                member.status ||
-                                'Unknown'}
-                            </Badge>
-                          )}
-                        </TableCell>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                  {statusOptions.map((option) => (
+                                    <DropdownMenuItem
+                                      key={option.value}
+                                      onClick={() =>
+                                        handleStatusUpdate(member, option.value)
+                                      }
+                                      className="flex items-center gap-2"
+                                    >
+                                      <Badge
+                                        color={option.color}
+                                        className="text-xs"
+                                      >
+                                        {option.label}
+                                      </Badge>
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <Badge
+                                color={
+                                  member.status === 'paid'
+                                    ? 'success'
+                                    : member.status === 'awaiting_payment'
+                                      ? 'warning'
+                                      : 'error'
+                                }
+                              >
+                                {statusOptions.find(
+                                  (opt) => opt.value === member.status
+                                )?.label ||
+                                  member.status ||
+                                  'Unknown'}
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </>
                       )}
                       {isEditable && (
                         <TableCell>
@@ -391,71 +414,85 @@ export function WeekendRosterTable({
                     {formatRole(member.cha_role)}
                     {member.rollo && ` - ${member.rollo}`}
                   </Badge>
-                  
+
                   {includePaymentInformation && (
-                    isEditable ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-auto p-0 hover:bg-transparent"
-                          >
-                            <Badge
-                              color={
-                                member.status === 'paid'
-                                  ? 'success'
-                                  : member.status === 'awaiting_payment'
-                                    ? 'warning'
-                                    : 'error'
-                              }
-                              className="flex items-center gap-1 cursor-pointer hover:opacity-80"
-                            >
-                              {statusOptions.find(
-                                (opt) => opt.value === member.status
-                              )?.label ||
-                                member.status ||
-                                'Unknown'}
-                              <ChevronDown className="h-3 w-3" />
-                            </Badge>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          {statusOptions.map((option) => (
-                            <DropdownMenuItem
-                              key={option.value}
-                              onClick={() =>
-                                handleStatusUpdate(member, option.value)
-                              }
-                              className="flex items-center gap-2"
+                    <>
+                      {/* Status Badge */}
+                      {isEditable ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-auto p-0 hover:bg-transparent"
                             >
                               <Badge
-                                color={option.color}
-                                className="text-xs"
+                                color={
+                                  member.status === 'paid'
+                                    ? 'success'
+                                    : member.status === 'awaiting_payment'
+                                      ? 'warning'
+                                      : 'error'
+                                }
+                                className="flex items-center gap-1 cursor-pointer hover:opacity-80"
                               >
-                                {option.label}
+                                {statusOptions.find(
+                                  (opt) => opt.value === member.status
+                                )?.label ||
+                                  member.status ||
+                                  'Unknown'}
+                                <ChevronDown className="h-3 w-3" />
                               </Badge>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <Badge
-                        color={
-                          member.status === 'paid'
-                            ? 'success'
-                            : member.status === 'awaiting_payment'
-                              ? 'warning'
-                              : 'error'
-                        }
-                      >
-                        {statusOptions.find(
-                          (opt) => opt.value === member.status
-                        )?.label ||
-                          member.status ||
-                          'Unknown'}
-                      </Badge>
-                    )
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            {statusOptions.map((option) => (
+                              <DropdownMenuItem
+                                key={option.value}
+                                onClick={() =>
+                                  handleStatusUpdate(member, option.value)
+                                }
+                                className="flex items-center gap-2"
+                              >
+                                <Badge color={option.color} className="text-xs">
+                                  {option.label}
+                                </Badge>
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <Badge
+                          color={
+                            member.status === 'paid'
+                              ? 'success'
+                              : member.status === 'awaiting_payment'
+                                ? 'warning'
+                                : 'error'
+                          }
+                        >
+                          {statusOptions.find(
+                            (opt) => opt.value === member.status
+                          )?.label ||
+                            member.status ||
+                            'Unknown'}
+                        </Badge>
+                      )}
+
+                      {/* Payment Info Button for Mobile */}
+                      {member.payment_info && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-1 hover:bg-muted"
+                          onClick={() => handleShowPaymentInfo(member)}
+                          title="View payment information"
+                        >
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                          <span className="ml-1 text-xs">Payment</span>
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -468,6 +505,12 @@ export function WeekendRosterTable({
         open={editModalOpen}
         onClose={handleCloseEditModal}
         rosterMember={selectedRosterMember}
+      />
+
+      <PaymentInfoModal
+        open={paymentInfoModalOpen}
+        onClose={handleClosePaymentInfoModal}
+        rosterMember={selectedPaymentMember}
       />
     </>
   )
