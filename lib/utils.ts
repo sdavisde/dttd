@@ -45,7 +45,13 @@ export const formatPhoneNumber = (
   return phoneNumber
 }
 
-export const formatEventDateTime = (datetime: string | null) => {
+export type FormattedDateTime =
+  | {
+      dateStr: string
+      timeStr: string
+    }
+  | string
+export const formatDateTime = (datetime: string | null): FormattedDateTime => {
   if (!datetime) return 'Date TBD'
 
   try {
