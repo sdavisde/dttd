@@ -50,6 +50,11 @@ async function getSidebarData() {
         icon: 'Calendar',
       },
       {
+        title: 'Payments',
+        url: '/admin/payments',
+        icon: 'DollarSign',
+      },
+      {
         title: 'Master Roster',
         url: '/admin/users',
         icon: 'Users',
