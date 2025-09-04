@@ -67,7 +67,7 @@ export default async function WeekendDetailPage({
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
             <div>
-              <Typography variant="h1" className="text-2xl mb-2">
+              <Typography variant="h5" className="text-2xl mb-2">
                 {weekend.title || `${weekend.type} Weekend #${weekend.number}`}
               </Typography>
               <Typography

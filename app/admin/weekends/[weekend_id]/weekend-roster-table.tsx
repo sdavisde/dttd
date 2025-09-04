@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Edit, Search, ChevronDown, Info } from 'lucide-react'
+import { useTablePagination } from '@/hooks/use-table-pagination'
+import { TablePagination } from '@/components/ui/table-pagination'
 import { EditTeamMemberModal } from './edit-team-member-modal'
 import { PaymentInfoModal } from './payment-info-modal'
 import { CashCheckPaymentModal } from './cash-check-payment-modal'
@@ -184,6 +186,13 @@ export function WeekendRosterTable({
     })
   }, [roster, searchQuery])
 
+  // Pagination setup
+  const { paginatedData, pagination, setPage, setPageSize } =
+    useTablePagination(filteredRoster, {
+      initialPageSize: 10,
+      initialPage: 1,
+    })
+
   // Calculate total columns for colspan
   // Updated calculation after removing status column
   const totalColumns =
@@ -235,7 +244,7 @@ export function WeekendRosterTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRoster.length === 0 ? (
+                {paginatedData.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={totalColumns}
@@ -251,7 +260,7 @@ export function WeekendRosterTable({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredRoster.map((member, index) => (
+                  paginatedData.map((member, index) => (
                     <TableRow
                       key={member.id}
                       className={`hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
@@ -318,7 +327,7 @@ export function WeekendRosterTable({
                             </div>
                           </TableCell>
                           {/* Status column temporarily removed for cash/check payment implementation */}
-                          {/* 
+                          {/*
                           <TableCell>
                             {isEditable ? (
                               <DropdownMenu>
@@ -404,11 +413,19 @@ export function WeekendRosterTable({
               </TableBody>
             </Table>
           </div>
+
+          {/* Desktop Pagination */}
+          <TablePagination
+            pagination={pagination}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[5, 10, 20, 50]}
+          />
         </div>
 
         {/* Mobile Card Layout - Shown only on mobile */}
         <div className="md:hidden space-y-3">
-          {filteredRoster.length === 0 ? (
+          {paginatedData.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
                 {roster.length === 0
@@ -419,7 +436,7 @@ export function WeekendRosterTable({
               </p>
             </div>
           ) : (
-            filteredRoster.map((member) => (
+            paginatedData.map((member) => (
               <div
                 key={member.id}
                 className="bg-card border rounded-lg p-4 space-y-3"
@@ -469,7 +486,7 @@ export function WeekendRosterTable({
                   {includePaymentInformation && (
                     <>
                       {/* Status Badge - temporarily removed for cash/check payment implementation */}
-                      {/* 
+                      {/*
                       {isEditable ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -580,6 +597,14 @@ export function WeekendRosterTable({
               </div>
             ))
           )}
+
+          {/* Mobile Pagination */}
+          <TablePagination
+            pagination={pagination}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[5, 10, 20, 50]}
+          />
         </div>
       </div>
 
