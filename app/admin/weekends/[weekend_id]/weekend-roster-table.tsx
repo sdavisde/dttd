@@ -99,7 +99,7 @@ export function WeekendRosterTable({
     return {
       paid,
       balance,
-      display: `$${paid.toFixed(0)} / $${totalFee}`,
+      display: `$${paid.toFixed(0)}`,
       isPaidInFull: balance <= 0,
     }
   }
@@ -287,9 +287,9 @@ export function WeekendRosterTable({
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                className="h-auto p-1 hover:bg-muted text-left"
+                                className="h-auto p-1 hover:bg-muted text-left rounded-lg w-12"
                                 onClick={() =>
                                   isEditable
                                     ? handleShowCashCheckModal(member)
@@ -303,11 +303,9 @@ export function WeekendRosterTable({
                               >
                                 <span
                                   className={`text-sm font-medium ${
-                                    formatPaymentSummary(member).isPaidInFull
+                                    formatPaymentSummary(member) > 0
                                       ? 'text-green-600'
-                                      : formatPaymentSummary(member).paid > 0
-                                        ? 'text-amber-600'
-                                        : 'text-muted-foreground'
+                                      : 'text-muted-foreground'
                                   }`}
                                 >
                                   {formatPaymentSummary(member).display}
