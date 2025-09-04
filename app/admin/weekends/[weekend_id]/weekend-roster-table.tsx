@@ -143,11 +143,14 @@ export function WeekendRosterTable({
   const filteredRoster = useMemo(() => {
     let result = roster
 
+    // First, filter out dropped members
+    result = result.filter((member) => member.status !== 'drop')
+
     // Filter by search query if provided
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim()
 
-      result = roster.filter((member) => {
+      result = result.filter((member) => {
         const name =
           `${member.users?.first_name || ''} ${member.users?.last_name || ''}`.toLowerCase()
         const email = (member.users?.email || '').toLowerCase()

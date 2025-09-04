@@ -46,6 +46,9 @@ export default async function WeekendDetailPage({
   const roster = rosterResult.data
   const users = usersResult.data
 
+  // Filter out dropped members for count calculation
+  const activeRoster = roster.filter((member) => member.status !== 'drop')
+
   // Determine if weekend is editable (active/upcoming)
   const isEditable =
     weekend.status === 'ACTIVE' || weekend.status === 'PLANNING'
@@ -94,7 +97,7 @@ export default async function WeekendDetailPage({
                 >
                   Team Roster
                   <span className="text-black/30 font-light text-base ms-2">
-                    ({roster.length} members)
+                    ({activeRoster.length} members)
                   </span>
                 </Typography>
               </div>

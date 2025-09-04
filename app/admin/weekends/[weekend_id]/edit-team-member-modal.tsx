@@ -163,6 +163,37 @@ export function EditTeamMemberModal({
     }
   }
 
+  const handleDrop = async () => {
+    if (!rosterMember) {
+      setError('root', { message: 'No roster member selected' })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const client = createClient()
+
+      const { error } = await client
+        .from('weekend_roster')
+        .update({ status: 'drop' })
+        .eq('id', rosterMember.id)
+
+      if (isSupabaseError(error)) {
+        logger.error(error, '💢 failed to drop roster member')
+        setError('root', { message: 'Failed to drop roster member' })
+        return
+      }
+
+      router.refresh()
+      handleClose()
+    } catch (error) {
+      setError('root', { message: 'An unexpected error occurred' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleDelete = async () => {
     if (!rosterMember) {
       setError('root', { message: 'No roster member selected' })
@@ -333,26 +364,41 @@ export function EditTeamMemberModal({
           </form>
         </Form>
 
-        <SheetFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+        <SheetFooter className="flex flex-col gap-3">
+          {/* Drop Button - Full width and prominent */}
           <Button
             type="button"
-            variant="outline"
+            variant="destructive"
             size="lg"
-            onClick={handleClose}
-            className="flex-1"
+            onClick={handleDrop}
             disabled={isSubmitting}
+            className="w-full"
           >
-            Cancel
+            Drop Team Member
           </Button>
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isSubmitting}
-            onClick={handleSubmit(onSubmit)}
-            className="flex-1"
-          >
-            {isSubmitting ? 'Updating...' : 'Update Team Member'}
-          </Button>
+
+          {/* Action buttons row */}
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={handleClose}
+              className="flex-1"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit)}
+              className="flex-1"
+            >
+              {isSubmitting ? 'Updating...' : 'Update Team Member'}
+            </Button>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
