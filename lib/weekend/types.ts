@@ -30,6 +30,7 @@ export enum CHARole {
   TABLE_LEADER = 'Table Leader',
   HEAD_SPIRITUAL_DIRECTOR = 'Head Spiritual Director',
   SPIRITUAL_DIRECTOR = 'Spiritual Director',
+  SPIRITUAL_DIRECTOR_TRAINEE = 'Spiritual Director Trainee',
   HEAD_PRAYER = 'Head Prayer',
   PRAYER = 'Prayer',
   HEAD_CHAPEL = 'Head Chapel',
@@ -43,6 +44,7 @@ export enum CHARole {
   TABLE = 'Table',
   HEAD_DORM = 'Head Dorm',
   DORM = 'Dorm',
+  HEAD_DINING = 'Head Dining',
   DINING = 'Dining',
   HEAD_MOBILE = 'Head Mobile',
   MOBILE = 'Mobile',
@@ -51,8 +53,11 @@ export enum CHARole {
   MEAT = 'Meat',
   ROSTER = 'Roster',
   GOPHER = 'Gopher',
-  MDEDIC = 'Medic',
+  MEDIC = 'Medic',
   SMOKER = 'Smoker',
+
+  // todo: we might take this position out in the future
+  ROVER = 'Rover',
 }
 
 export enum Rollo {
