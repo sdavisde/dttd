@@ -303,7 +303,7 @@ export function WeekendRosterTable({
                               >
                                 <span
                                   className={`text-sm font-medium ${
-                                    formatPaymentSummary(member) > 0
+                                    formatPaymentSummary(member).paid > 0
                                       ? 'text-green-600'
                                       : 'text-muted-foreground'
                                   }`}
