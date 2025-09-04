@@ -253,7 +253,7 @@ export function AddTeamMemberModal({
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0">
-                        <CommandDialog>
+                        <Command>
                           <CommandInput
                             placeholder="Search roles..."
                             className="h-9"
@@ -283,7 +283,7 @@ export function AddTeamMemberModal({
                               ))}
                             </CommandGroup>
                           </CommandList>
-                        </CommandDialog>
+                        </Command>
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
