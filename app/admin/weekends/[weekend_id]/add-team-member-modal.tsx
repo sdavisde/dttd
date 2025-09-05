@@ -9,7 +9,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
@@ -17,11 +16,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form'
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -33,14 +30,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { CHARole, Rollo } from '@/lib/weekend/types'
+import { ChaRoleField } from '@/components/weekend/cha-role-field'
+import { RolloField } from '@/components/weekend/rollo-field'
 import { Tables } from '@/database.types'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -79,7 +70,6 @@ export function AddTeamMemberModal({
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [userComboboxOpen, setUserComboboxOpen] = useState(false)
-  const [roleComboboxOpen, setRoleComboboxOpen] = useState(false)
 
   const form = useForm<AddTeamMemberFormValues>({
     defaultValues: {
@@ -96,7 +86,6 @@ export function AddTeamMemberModal({
   const handleClose = () => {
     reset()
     setUserComboboxOpen(false)
-    setRoleComboboxOpen(false)
     onClose()
   }
 
@@ -229,107 +218,22 @@ export function AddTeamMemberModal({
                 )}
               />
 
-              <FormField
+              <ChaRoleField
                 control={form.control}
                 name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role *</FormLabel>
-                    <Popover
-                      open={roleComboboxOpen}
-                      onOpenChange={setRoleComboboxOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={roleComboboxOpen}
-                            className="w-full justify-between"
-                          >
-                            {field.value ? field.value : 'Select a role...'}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search roles..."
-                            className="h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No role found.</CommandEmpty>
-                            <CommandGroup>
-                              {Object.values(CHARole).map((role) => (
-                                <CommandItem
-                                  key={role}
-                                  value={role}
-                                  onSelect={() => {
-                                    field.onChange(role)
-                                    setRoleComboboxOpen(false)
-                                  }}
-                                >
-                                  {role}
-                                  <Check
-                                    className={cn(
-                                      'ml-auto h-4 w-4',
-                                      field.value === role
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Role"
+                placeholder="Select a role..."
+                required
               />
 
-              {/* Conditional Rollo field for TABLE_LEADER */}
-              {[
-                CHARole.TABLE_LEADER.toString(),
-                CHARole.SPIRITUAL_DIRECTOR.toString(),
-                CHARole.HEAD_SPIRITUAL_DIRECTOR.toString(),
-              ].includes(selectedRole) && (
-                <FormField
-                  control={form.control}
-                  name="rollo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rollo</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a rollo or SILENT" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="SILENT">SILENT</SelectItem>
-                          {Object.values(Rollo).map((rollo) => (
-                            <SelectItem key={rollo} value={rollo}>
-                              {rollo}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        What Rollo is this team member going to do? Select
-                        SILENT if they are not doing a Rollo.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+              <RolloField
+                control={form.control}
+                name="rollo"
+                selectedRole={selectedRole}
+                placeholder="Select a rollo or SILENT"
+                silentLabel="SILENT"
+                description="What Rollo is this team member going to do? Select SILENT if they are not doing a Rollo."
+              />
 
               {form.formState.errors.root && (
                 <Alert variant="destructive">
