@@ -128,7 +128,7 @@ export default function Page() {
                   Create and manage weekend events, view rosters, and track
                   capacity.
                 </Typography>
-                <Badge variant="secondary">2 active</Badge>
+                {/*<Badge variant="secondary">2 active</Badge>*/}
               </CardContent>
             </Card>
           </Link>
@@ -162,9 +162,7 @@ export default function Page() {
                   Upload, organize, and manage files for weekends and
                   documentation.
                 </Typography>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">24 recent</Badge>
-                </div>
+                {/*<Badge variant="outline">24 recent</Badge>*/}
               </CardContent>
             </Card>
           </Link>
@@ -181,7 +179,7 @@ export default function Page() {
                 <Typography variant="small" className="text-muted-foreground">
                   Monitor payment status and Stripe transaction history.
                 </Typography>
-                <Badge variant="secondary">$2,840 MTD</Badge>
+                {/*<Badge variant="secondary">$2,840 MTD</Badge>*/}
               </CardContent>
             </Card>
           </Link>
