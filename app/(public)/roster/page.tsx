@@ -1,6 +1,7 @@
 import { getActiveWeekends, getWeekendRoster } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-roster-table'
+import { DroppedRosterSection, ActiveRosterHeader } from '@/components/weekend'
 import { Typography } from '@/components/ui/typography'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
@@ -73,24 +74,26 @@ export default async function RosterPage() {
 
   if (rosters.length === 1) {
     const { roster } = rosters[0]
+
     return (
       <div className="container mx-auto px-8 py-8">
         <div className="mb-8">
           <Typography variant="h1" className="text-2xl mb-2">
             Weekend Roster
           </Typography>
-          <Typography variant="h2" className="text-xl mb-4 flex items-center">
-            Team Members
-            <span className="text-black/30 font-light text-base ms-2">
-              ({roster.length} members)
-            </span>
-          </Typography>
+
+          <div className="mb-4">
+            <ActiveRosterHeader roster={roster} />
+          </div>
 
           <WeekendRosterTable
             roster={roster}
             isEditable={false}
             includePaymentInformation={false}
           />
+
+          {/* Dropped Team Members Section - Only shown to users with edit permissions */}
+          {canEditRoster && <DroppedRosterSection roster={roster} />}
         </div>
       </div>
     )
@@ -119,21 +122,18 @@ export default async function RosterPage() {
           </Typography>
           {rosters.map(({ roster, value }) => (
             <TabsContent key={value} value={value}>
-              <Typography
-                variant="h3"
-                className="text-xl mb-4 flex items-center"
-              >
-                Team Members
-                <span className="text-black/30 font-light text-base ms-2">
-                  ({roster.length} members)
-                </span>
-              </Typography>
+              <div className="mb-4">
+                <ActiveRosterHeader roster={roster} />
+              </div>
 
               <WeekendRosterTable
                 roster={roster}
                 isEditable={canEditRoster}
                 includePaymentInformation={canViewPaymentInfo}
               />
+
+              {/* Dropped Team Members Section - Only shown to users with edit permissions */}
+              {canEditRoster && <DroppedRosterSection roster={roster} />}
             </TabsContent>
           ))}
         </Tabs>

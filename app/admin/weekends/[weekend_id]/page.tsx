@@ -9,6 +9,8 @@ import { Typography } from '@/components/ui/typography'
 import { notFound } from 'next/navigation'
 import { AddTeamMemberButton } from './add-team-member-button'
 import { WeekendRosterTable } from './weekend-roster-table'
+import { DroppedRosterSection, ActiveRosterHeader } from '@/components/weekend'
+import { splitRosterByStatus } from '@/lib/weekend/roster-utils'
 import { formatDateTime } from '@/lib/utils'
 import { Datetime } from '@/components/ui/datetime'
 
@@ -46,8 +48,8 @@ export default async function WeekendDetailPage({
   const roster = rosterResult.data
   const users = usersResult.data
 
-  // Filter out dropped members for count calculation
-  const activeRoster = roster.filter((member) => member.status !== 'drop')
+  // Split roster into active and dropped members
+  const { activeRoster } = splitRosterByStatus(roster)
 
   // Determine if weekend is editable (active/upcoming)
   const isEditable =
@@ -89,18 +91,7 @@ export default async function WeekendDetailPage({
         {/* Team Roster Section */}
         <div>
           <div className="mb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-4">
-              <div>
-                <Typography
-                  variant="h2"
-                  className="text-xl mb-2 flex items-center"
-                >
-                  Team Roster
-                  <span className="text-black/30 font-light text-base ms-2">
-                    ({activeRoster.length} members)
-                  </span>
-                </Typography>
-              </div>
+            <ActiveRosterHeader roster={roster} title="Team Roster">
               {isEditable && (
                 <AddTeamMemberButton
                   weekendId={weekend_id}
@@ -111,11 +102,14 @@ export default async function WeekendDetailPage({
                   users={users}
                 />
               )}
-            </div>
+            </ActiveRosterHeader>
           </div>
 
           <WeekendRosterTable roster={roster} isEditable={isEditable} />
         </div>
+
+        {/* Dropped Team Members Section */}
+        <DroppedRosterSection roster={roster} />
       </div>
     </>
   )
