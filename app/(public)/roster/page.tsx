@@ -43,6 +43,14 @@ export default async function RosterPage() {
       CHARole.ROSTER,
     ])
 
+  const canViewDroppedMembers =
+    userHasPermission(user, [Permission.WRITE_TEAM_ROSTER]) ||
+    userHasCHARole(user, [
+      CHARole.RECTOR,
+      CHARole.ASSISTANT_HEAD,
+      CHARole.ROSTER,
+    ])
+
   // Get active weekends
   const activeWeekendsResult = await getActiveWeekends()
   if (isErr(activeWeekendsResult)) {
@@ -92,8 +100,8 @@ export default async function RosterPage() {
             includePaymentInformation={false}
           />
 
-          {/* Dropped Team Members Section - Only shown to users with edit permissions */}
-          {canEditRoster && <DroppedRosterSection roster={roster} />}
+          {/* Dropped Team Members Section - Only shown to specific CHA roles */}
+          {canViewDroppedMembers && <DroppedRosterSection roster={roster} />}
         </div>
       </div>
     )
@@ -132,8 +140,10 @@ export default async function RosterPage() {
                 includePaymentInformation={canViewPaymentInfo}
               />
 
-              {/* Dropped Team Members Section - Only shown to users with edit permissions */}
-              {canEditRoster && <DroppedRosterSection roster={roster} />}
+              {/* Dropped Team Members Section - Only shown to specific CHA roles */}
+              {canViewDroppedMembers && (
+                <DroppedRosterSection roster={roster} />
+              )}
             </TabsContent>
           ))}
         </Tabs>
