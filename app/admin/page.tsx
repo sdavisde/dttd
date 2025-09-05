@@ -33,12 +33,10 @@ export default function Page() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/*<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Candidates
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Candidates</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -113,55 +111,46 @@ export default function Page() {
               </Typography>
             </CardContent>
           </Card>
-        </div>
+        </div>*/}
 
         {/* Quick Links */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="hover:bg-muted/50 transition-colors">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Weekend Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Typography variant="small" className="text-muted-foreground">
-                Create and manage weekend events, view rosters, and track
-                capacity.
-              </Typography>
-              <div className="flex flex-wrap gap-2">
-                <Button href="/admin/weekends" variant="outline" size="sm">
-                  View Weekends
-                </Button>
+          <Link href="/admin/weekends" className="flex w-full">
+            <Card className="hover:bg-muted/50 transition-colors w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Weekend Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Typography variant="small" className="text-muted-foreground">
+                  Create and manage weekend events, view rosters, and track
+                  capacity.
+                </Typography>
                 <Badge variant="secondary">2 active</Badge>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="hover:bg-muted/50 transition-colors">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5" />
-                Users &amp; Roles
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Typography variant="small" className="text-muted-foreground">
-                Manage user accounts and assign permissions for admin access.
-              </Typography>
-              <div className="flex flex-wrap gap-2">
-                <Button href="/admin/users" variant="outline" size="sm">
-                  Manage Users
-                </Button>
-                <Button href="/admin/roles" variant="outline" size="sm">
-                  Manage Roles
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <Link href="/admin/users" className="flex w-full">
+            <Card className="hover:bg-muted/50 transition-colors w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5" />
+                  Roster &amp; Roles
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Typography variant="small" className="text-muted-foreground">
+                  Manage user accounts and assign permissions for admin access.
+                </Typography>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Link href="/admin/files" className="flex">
-            <Card className="hover:bg-muted/50 transition-colors">
+          <Link href="/admin/files" className="flex w-full">
+            <Card className="hover:bg-muted/50 transition-colors w-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
@@ -180,8 +169,8 @@ export default function Page() {
             </Card>
           </Link>
 
-          <Link href="/admin/payments" className="flex">
-            <Card className="hover:bg-muted/50 transition-colors">
+          <Link href="/admin/payments" className="flex w-full">
+            <Card className="hover:bg-muted/50 transition-colors w-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
@@ -197,8 +186,8 @@ export default function Page() {
             </Card>
           </Link>
 
-          <Link href="/admin/settings" className="flex">
-            <Card className="hover:bg-muted/50 transition-colors">
+          <Link href="/admin/settings" className="flex w-full">
+            <Card className="hover:bg-muted/50 transition-colors w-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5" />
