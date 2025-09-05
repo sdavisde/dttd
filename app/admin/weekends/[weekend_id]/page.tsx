@@ -4,6 +4,7 @@ import {
   getAllUsers,
 } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
+import { genderMatchesWeekend } from '@/lib/weekend'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
 import { notFound } from 'next/navigation'
@@ -48,8 +49,13 @@ export default async function WeekendDetailPage({
   const roster = rosterResult.data
   const users = usersResult.data
 
-  // Split roster into active and dropped members
-  const { activeRoster } = splitRosterByStatus(roster)
+  // Filter users for add team member modal
+  const rosterUserIds = new Set(roster.map((r) => r.user_id).filter(Boolean))
+  const availableUsers = users.filter(
+    (user) =>
+      genderMatchesWeekend(user.gender, weekend.type) &&
+      !rosterUserIds.has(user.id)
+  )
 
   // Determine if weekend is editable (active/upcoming)
   const isEditable =
@@ -99,7 +105,8 @@ export default async function WeekendDetailPage({
                     weekend.title ||
                     `${weekend.type} Weekend #${weekend.number}`
                   }
-                  users={users}
+                  weekendType={weekend.type}
+                  users={availableUsers}
                 />
               )}
             </ActiveRosterHeader>

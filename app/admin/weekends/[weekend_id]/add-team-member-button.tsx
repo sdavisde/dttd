@@ -12,7 +12,11 @@ type AddTeamMemberButtonProps = {
   users: Array<Tables<'users'>>
 }
 
-export function AddTeamMemberButton({ weekendId, weekendTitle, users }: AddTeamMemberButtonProps) {
+export function AddTeamMemberButton({
+  weekendId,
+  weekendTitle,
+  users,
+}: AddTeamMemberButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (
@@ -21,7 +25,7 @@ export function AddTeamMemberButton({ weekendId, weekendTitle, users }: AddTeamM
         <Plus className="h-4 w-4 mr-2" />
         Add Team Member
       </Button>
-      
+
       <AddTeamMemberModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
