@@ -105,7 +105,6 @@ export default async function WeekendDetailPage({
                     weekend.title ||
                     `${weekend.type} Weekend #${weekend.number}`
                   }
-                  weekendType={weekend.type}
                   users={availableUsers}
                 />
               )}
