@@ -1,6 +1,6 @@
 'use client'
 
-import { Info } from 'lucide-react'
+import { Info, Plus } from 'lucide-react'
 import { PaymentInfoModal } from './payment-info-modal'
 import { CashCheckPaymentModal } from './cash-check-payment-modal'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
@@ -42,39 +42,48 @@ export const PaymentInfo = ({ member, isEditable }: PaymentInfoProps) => {
   }
 
   const { paid, balance, display, isPaidInFull } = formatPaymentSummary(member)
+  const hasPayments = member.all_payments.length > 0
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-auto p-1 hover:bg-muted text-left rounded-lg w-12"
-        onClick={() =>
-          isEditable
-            ? handleShowCashCheckModal(member)
-            : handleShowPaymentInfo(member)
-        }
-        title={isEditable ? 'Record payment' : 'View payment information'}
-      >
-        <span
-          className={cn(
-            'text-sm font-medium',
-            paid > 0 ? 'text-green-600' : 'text-muted-foreground'
-          )}
-        >
-          {display}
-        </span>
-      </Button>
-
-      {member.all_payments.length > 0 && (
+      {/* Price Display - Clickable only when payments exist */}
+      {hasPayments ? (
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-auto p-0 hover:bg-muted rounded-full transition-colors"
+          className="p-2 hover:bg-muted text-left rounded-lg w-20 flex items-center gap-1"
           onClick={() => handleShowPaymentInfo(member)}
           title="View payment details"
         >
-          <Info className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
+          <Info className="text-gray" />
+          <span
+            className={cn(
+              'text-sm font-medium',
+              paid > 0 ? 'text-green-600' : 'text-muted-foreground'
+            )}
+          >
+            {display}
+          </span>
+        </Button>
+      ) : (
+        <div className="p-1 text-center rounded-lg w-20">
+          <span className={cn('text-sm font-medium', 'text-muted-foreground')}>
+            {display}
+          </span>
+        </div>
+      )}
+
+      {/* Manual Payment Button - Always visible when editable */}
+      {isEditable && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="p-2 aspect-square transition-colors"
+          onClick={() => handleShowCashCheckModal(member)}
+          title="Record manual payment"
+        >
+          <Plus className="text-muted-foreground hover:text-foreground transition-colors" />
+          <span>New Payment</span>
         </Button>
       )}
 
