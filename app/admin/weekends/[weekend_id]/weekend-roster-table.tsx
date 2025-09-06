@@ -12,19 +12,13 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Edit, Search, ChevronDown, Info } from 'lucide-react'
+import { Edit, Search } from 'lucide-react'
 import { useTablePagination } from '@/hooks/use-table-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { EditTeamMemberModal } from './edit-team-member-modal'
-import { PaymentInfoModal } from './payment-info-modal'
-import { CashCheckPaymentModal } from './cash-check-payment-modal'
 import { CHARole } from '@/lib/weekend/types'
-import { createClient } from '@/lib/supabase/client'
-import { isSupabaseError } from '@/lib/supabase/utils'
-import { logger } from '@/lib/logger'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
-import { useRouter } from 'next/navigation'
 import { WeekendRosterMember } from '@/actions/weekend'
+import { PaymentInfo } from './payment-info'
 
 type WeekendRosterTableProps = {
   roster: Array<WeekendRosterMember>
@@ -41,14 +35,7 @@ export function WeekendRosterTable({
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedRosterMember, setSelectedRosterMember] =
     useState<WeekendRosterMember | null>(null)
-  const [paymentInfoModalOpen, setPaymentInfoModalOpen] = useState(false)
-  const [selectedPaymentMember, setSelectedPaymentMember] =
-    useState<WeekendRosterMember | null>(null)
-  const [cashCheckModalOpen, setCashCheckModalOpen] = useState(false)
-  const [selectedCashCheckMember, setSelectedCashCheckMember] =
-    useState<WeekendRosterMember | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const router = useRouter()
 
   const formatRole = (role: string | null) => role ?? '-'
 
@@ -68,75 +55,6 @@ export function WeekendRosterTable({
   const handleCloseEditModal = () => {
     setEditModalOpen(false)
     setSelectedRosterMember(null)
-  }
-
-  const handleShowPaymentInfo = (rosterMember: WeekendRosterMember) => {
-    setSelectedPaymentMember(rosterMember)
-    setPaymentInfoModalOpen(true)
-  }
-
-  const handleClosePaymentInfoModal = () => {
-    setPaymentInfoModalOpen(false)
-    setSelectedPaymentMember(null)
-  }
-
-  const handleShowCashCheckModal = (rosterMember: WeekendRosterMember) => {
-    setSelectedCashCheckMember(rosterMember)
-    setCashCheckModalOpen(true)
-  }
-
-  const handleCloseCashCheckModal = () => {
-    setCashCheckModalOpen(false)
-    setSelectedCashCheckMember(null)
-  }
-
-  // Format payment summary for display
-  const formatPaymentSummary = (member: WeekendRosterMember) => {
-    const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
-    const paid = member.total_paid || 0
-    const balance = totalFee - paid
-
-    return {
-      paid,
-      balance,
-      display: `$${paid.toFixed(0)}`,
-      isPaidInFull: balance <= 0,
-    }
-  }
-
-  // Status options for the dropdown
-  const statusOptions = [
-    {
-      value: 'awaiting_payment',
-      label: 'Awaiting Payment',
-      color: 'warning' as const,
-    },
-    { value: 'paid', label: 'Paid', color: 'success' as const },
-    { value: 'drop', label: 'Drop', color: 'error' as const },
-  ]
-
-  // Handle status update
-  const handleStatusUpdate = async (
-    member: WeekendRosterMember,
-    newStatus: string
-  ) => {
-    try {
-      const client = createClient()
-
-      const { error } = await client
-        .from('weekend_roster')
-        .update({ status: newStatus })
-        .eq('id', member.id)
-
-      if (isSupabaseError(error)) {
-        logger.error(error, '💢 failed to update roster member status')
-        return
-      }
-
-      router.refresh()
-    } catch (error) {
-      logger.error(error, '💢 unexpected error updating roster member status')
-    }
   }
 
   // Fuzzy search filtering and sorting
@@ -235,11 +153,7 @@ export function WeekendRosterTable({
                   <TableHead className="min-w-[150px]">Phone</TableHead>
                   <TableHead className="min-w-[150px]">Role</TableHead>
                   {includePaymentInformation && (
-                    <>
-                      <TableHead className="min-w-[100px]">Payment</TableHead>
-                      {/* Status column temporarily removed for cash/check payment implementation */}
-                      {/* <TableHead className="min-w-[100px]">Status</TableHead> */}
-                    </>
+                    <TableHead className="min-w-[100px]">Payment</TableHead>
                   )}
                   {isEditable && (
                     <TableHead className="min-w-[100px]">Actions</TableHead>
@@ -286,116 +200,12 @@ export function WeekendRosterTable({
                         )}
                       </TableCell>
                       {includePaymentInformation && (
-                        <>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-auto p-1 hover:bg-muted text-left rounded-lg w-12"
-                                onClick={() =>
-                                  isEditable
-                                    ? handleShowCashCheckModal(member)
-                                    : handleShowPaymentInfo(member)
-                                }
-                                title={
-                                  isEditable
-                                    ? 'Record payment'
-                                    : 'View payment information'
-                                }
-                              >
-                                <span
-                                  className={`text-sm font-medium ${
-                                    formatPaymentSummary(member).paid > 0
-                                      ? 'text-green-600'
-                                      : 'text-muted-foreground'
-                                  }`}
-                                >
-                                  {formatPaymentSummary(member).display}
-                                </span>
-                              </Button>
-                              {member.all_payments.length > 0 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-auto p-0 hover:bg-muted rounded-full transition-colors"
-                                  onClick={() => handleShowPaymentInfo(member)}
-                                  title="View payment details"
-                                >
-                                  <Info className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                          {/* Status column temporarily removed for cash/check payment implementation */}
-                          {/*
-                          <TableCell>
-                            {isEditable ? (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-auto p-0 hover:bg-transparent"
-                                  >
-                                    <Badge
-                                      color={
-                                        member.status === 'paid'
-                                          ? 'success'
-                                          : member.status === 'awaiting_payment'
-                                            ? 'warning'
-                                            : 'error'
-                                      }
-                                      className="flex items-center gap-1 cursor-pointer hover:opacity-80"
-                                    >
-                                      {statusOptions.find(
-                                        (opt) => opt.value === member.status
-                                      )?.label ||
-                                        member.status ||
-                                        'Unknown'}
-                                      <ChevronDown className="h-3 w-3" />
-                                    </Badge>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                  {statusOptions.map((option) => (
-                                    <DropdownMenuItem
-                                      key={option.value}
-                                      onClick={() =>
-                                        handleStatusUpdate(member, option.value)
-                                      }
-                                      className="flex items-center gap-2"
-                                    >
-                                      <Badge
-                                        color={option.color}
-                                        className="text-xs"
-                                      >
-                                        {option.label}
-                                      </Badge>
-                                    </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            ) : (
-                              <Badge
-                                color={
-                                  member.status === 'paid'
-                                    ? 'success'
-                                    : member.status === 'awaiting_payment'
-                                      ? 'warning'
-                                      : 'error'
-                                }
-                              >
-                                {statusOptions.find(
-                                  (opt) => opt.value === member.status
-                                )?.label ||
-                                  member.status ||
-                                  'Unknown'}
-                              </Badge>
-                            )}
-                          </TableCell>
-                          */}
-                        </>
+                        <TableCell>
+                          <PaymentInfo
+                            member={member}
+                            isEditable={isEditable}
+                          />
+                        </TableCell>
                       )}
                       {isEditable && (
                         <TableCell>
@@ -485,114 +295,7 @@ export function WeekendRosterTable({
                   </Badge>
 
                   {includePaymentInformation && (
-                    <>
-                      {/* Status Badge - temporarily removed for cash/check payment implementation */}
-                      {/*
-                      {isEditable ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-auto p-0 hover:bg-transparent"
-                            >
-                              <Badge
-                                color={
-                                  member.status === 'paid'
-                                    ? 'success'
-                                    : member.status === 'awaiting_payment'
-                                      ? 'warning'
-                                      : 'error'
-                                }
-                                className="flex items-center gap-1 cursor-pointer hover:opacity-80"
-                              >
-                                {statusOptions.find(
-                                  (opt) => opt.value === member.status
-                                )?.label ||
-                                  member.status ||
-                                  'Unknown'}
-                                <ChevronDown className="h-3 w-3" />
-                              </Badge>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
-                            {statusOptions.map((option) => (
-                              <DropdownMenuItem
-                                key={option.value}
-                                onClick={() =>
-                                  handleStatusUpdate(member, option.value)
-                                }
-                                className="flex items-center gap-2"
-                              >
-                                <Badge color={option.color} className="text-xs">
-                                  {option.label}
-                                </Badge>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        <Badge
-                          color={
-                            member.status === 'paid'
-                              ? 'success'
-                              : member.status === 'awaiting_payment'
-                                ? 'warning'
-                                : 'error'
-                          }
-                        >
-                          {statusOptions.find(
-                            (opt) => opt.value === member.status
-                          )?.label ||
-                            member.status ||
-                            'Unknown'}
-                        </Badge>
-                      )}
-                      */}
-
-                      {/* Payment Summary for Mobile */}
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-auto p-1 hover:bg-muted"
-                          onClick={() =>
-                            isEditable
-                              ? handleShowCashCheckModal(member)
-                              : handleShowPaymentInfo(member)
-                          }
-                          title={
-                            isEditable
-                              ? 'Record payment'
-                              : 'View payment information'
-                          }
-                        >
-                          <span
-                            className={`text-sm font-medium ${
-                              formatPaymentSummary(member).isPaidInFull
-                                ? 'text-green-600'
-                                : formatPaymentSummary(member).paid > 0
-                                  ? 'text-amber-600'
-                                  : 'text-muted-foreground'
-                            }`}
-                          >
-                            {formatPaymentSummary(member).display}
-                          </span>
-                        </Button>
-                        {member.all_payments.length > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-auto p-1 hover:bg-muted"
-                            onClick={() => handleShowPaymentInfo(member)}
-                            title="View payment details"
-                          >
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                            <span className="ml-1 text-xs">Details</span>
-                          </Button>
-                        )}
-                      </div>
-                    </>
+                    <PaymentInfo member={member} isEditable={isEditable} />
                   )}
                 </div>
               </div>
@@ -613,18 +316,6 @@ export function WeekendRosterTable({
         open={editModalOpen}
         onClose={handleCloseEditModal}
         rosterMember={selectedRosterMember}
-      />
-
-      <PaymentInfoModal
-        open={paymentInfoModalOpen}
-        onClose={handleClosePaymentInfoModal}
-        rosterMember={selectedPaymentMember}
-      />
-
-      <CashCheckPaymentModal
-        open={cashCheckModalOpen}
-        onClose={handleCloseCashCheckModal}
-        rosterMember={selectedCashCheckMember}
       />
     </>
   )
