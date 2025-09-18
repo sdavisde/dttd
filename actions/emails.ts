@@ -9,6 +9,7 @@ import { Tables } from '@/database.types'
 import CandidateFormsEmail from '@/components/email/CandidateFormsEmail'
 import { getHydratedCandidate } from './candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'
+import TeamPaymentNotificationEmail from '@/components/email/TeamPaymentNotificationEmail'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -230,12 +231,101 @@ export async function sendPaymentRequestEmail(
 }
 
 /**
- * Accepts a partial User object to define who has submitted team fees.
- * Sends an email to the appropriate assistant head CHA informing them that team fees have been paid.
+ * Sends an email to the assistant head CHA informing them that team fees have been paid.
  */
-export async function notifyAssistantHeadForTeamPayment(): Promise<
-  Result<string, true>
-> {
-  // todo: finish this
-  return err('Not implemented yet')
+export async function notifyAssistantHeadForTeamPayment(
+  teamUserId: string | null,
+  weekendId: string | null,
+  paymentAmount: number
+): Promise<Result<string, true>> {
+  if (!teamUserId || !weekendId) {
+    return err('💢 Team user ID or weekend ID is null')
+  }
+
+  try {
+    const supabase = await createClient()
+
+    // Get all weekend roster data and weekend details in parallel
+    const [teamMemberResult, weekendResult, assistantHeadResult] = await Promise.all([
+      // Get team member details
+      supabase
+        .from('weekend_roster')
+        .select(`
+          *,
+          users!inner(email, first_name, last_name)
+        `)
+        .eq('user_id', teamUserId)
+        .eq('weekend_id', weekendId)
+        .single(),
+
+      // Get weekend details
+      supabase
+        .from('weekends')
+        .select('*')
+        .eq('id', weekendId)
+        .single(),
+
+      // Find Assistant Head for this weekend
+      supabase
+        .from('weekend_roster')
+        .select(`
+          *,
+          users!inner(email, first_name, last_name)
+        `)
+        .eq('weekend_id', weekendId)
+        .eq('cha_role', 'Assistant Head')
+        .limit(1)
+        .single()
+    ])
+
+    const { data: teamMember, error: teamMemberError } = teamMemberResult
+    const { data: weekend, error: weekendError } = weekendResult
+    const { data: assistantHead, error: assistantHeadError } = assistantHeadResult
+
+    if (teamMemberError || !teamMember) {
+      return err(`💢 Failed to fetch team member details: ${teamMemberError?.message || 'Team member not found'}`)
+    }
+
+    if (weekendError || !weekend) {
+      return err(`💢 Failed to fetch weekend details: ${weekendError?.message || 'Weekend not found'}`)
+    }
+
+    if (assistantHeadError || !assistantHead) {
+      return err(`💢 Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message || 'Assistant Head not found'}`)
+    }
+
+    if (!assistantHead.users.email) {
+      return err(`💢 Assistant head email not found for weekend ${weekendId}`)
+    }
+
+    // Send email to assistant head
+    const { error } = await resend.emails.send({
+      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+      to: [assistantHead.users.email],
+      subject: `Team Fee Received - ${teamMember.users.first_name} ${teamMember.users.last_name}`,
+      react: TeamPaymentNotificationEmail({
+        teamMemberName: `${teamMember.users.first_name} ${teamMember.users.last_name}`,
+        teamMemberEmail: teamMember.users.email,
+        weekendName: weekend.title || `${weekend.type} DTTD - #${weekend.number}`,
+        paymentAmount
+      }),
+    })
+
+    if (error) {
+      logger.error(
+        `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}`,
+        error
+      )
+      return err(`Failed to send email: ${error.message}`)
+    }
+
+    logger.info(
+      `Team payment notification email sent successfully to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}`
+    )
+    return ok(true)
+  } catch (error) {
+    return err(
+      `Error while sending team payment notification email: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
 }

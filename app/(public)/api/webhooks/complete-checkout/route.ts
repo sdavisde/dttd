@@ -6,6 +6,7 @@ import { Result, ok, err, isErr } from '@/lib/results'
 import Stripe from 'stripe'
 import { Tables } from '@/database.types'
 import { getWeekendRosterRecord } from '@/actions/weekend'
+import { notifyAssistantHeadForTeamPayment } from '@/actions/emails'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -174,9 +175,26 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        // TODO: send assistant head cha notification of payment
-
         logger.info(`✅ Successfully marked team member as paid`)
+
+        const paymentAmount = session.amount_total
+          ? session.amount_total / 100
+          : 0
+
+        const notifyAssistantHeadResult = await notifyAssistantHeadForTeamPayment(
+          teamUserId,
+          weekendId,
+          paymentAmount
+        )
+        if (isErr(notifyAssistantHeadResult)) {
+          logger.error(
+            notifyAssistantHeadResult.error,
+            '💢 Failed to notify assistant head of team payment'
+          )
+          // The payment was processed successfully, so we don't return an error here
+        } else {
+          logger.info(`✅ Successfully notified assistant head of team payment`)
+        }
         break
       default:
         logger.error(
