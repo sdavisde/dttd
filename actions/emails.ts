@@ -294,11 +294,15 @@ export async function notifyAssistantHeadForTeamPayment(
       return err(`💢 Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message || 'Assistant Head not found'}`)
     }
 
+    if (!assistantHead.users.email) {
+      return err(`💢 Assistant head email not found for weekend ${weekendId}`)
+    }
+
     // Send email to assistant head
     const { error } = await resend.emails.send({
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-      to: [assistantHead.users.email || 'admin@dustytrailstresdias.org'],
-      subject: `Team Payment Received - ${teamMember.users.first_name} ${teamMember.users.last_name}`,
+      to: [assistantHead.users.email],
+      subject: `Team Fee Received - ${teamMember.users.first_name} ${teamMember.users.last_name}`,
       react: TeamPaymentNotificationEmail({
         teamMemberName: `${teamMember.users.first_name} ${teamMember.users.last_name}`,
         teamMemberEmail: teamMember.users.email,
