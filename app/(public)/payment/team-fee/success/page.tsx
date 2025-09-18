@@ -28,9 +28,6 @@ export default async function TeamFeePaymentSuccessPage({
     return redirect('/')
   }
 
-  // send notification email to the correct assistant head CHA
-  notifyAssistantHeadForTeamPayment()
-
   return (
     <div className="container max-w-2xl mx-auto py-8">
       <Card>
