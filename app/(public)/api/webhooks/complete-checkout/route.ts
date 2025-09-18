@@ -239,7 +239,7 @@ async function processTeamPayment(
     )
   }
 
-  const paymentAmount = session.amount_total ? session.amount_total / 100 : 0
+  const paymentAmount = toDollarAmount(session.amount_total) ?? 0
 
   if (weekendRosterPaymentRecord.created) {
     const notifyAssistantHeadResult = await notifyAssistantHeadForTeamPayment(
@@ -340,7 +340,7 @@ async function recordCandidatePayment(
     .from('candidate_payments')
     .insert({
       candidate_id: candidateId,
-      payment_amount: session.amount_total ? session.amount_total / 100 : null, // Convert from cents
+      payment_amount: toDollarAmount(session.amount_total),
       payment_owner: session.metadata?.payment_owner ?? 'unknown',
       payment_intent_id: session.payment_intent as string, // This type assertion is safe because we check payment_intent in the webhook route
     })
@@ -434,9 +434,7 @@ async function recordWeekendRosterPayment(
       .from('weekend_roster_payments')
       .insert({
         weekend_roster_id: weekendRosterRecordId,
-        payment_amount: session.amount_total
-          ? session.amount_total / 100
-          : null,
+        payment_amount: toDollarAmount(session.amount_total),
         payment_intent_id: session.payment_intent as string,
       })
       .select()
@@ -485,4 +483,12 @@ async function markTeamMemberAsPaid(
   }
 
   return ok(true)
+}
+
+function toDollarAmount(amount: number | null | undefined): number | null {
+  if (typeof amount !== 'number') {
+    return null
+  }
+
+  return amount / 100
 }
