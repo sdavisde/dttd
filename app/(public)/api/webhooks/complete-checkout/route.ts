@@ -55,9 +55,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const paymentIntentId = session.payment_intent
-
-    logger.info({ session }, 'Processing completed checkout session')
+    console.log(`Processing completed checkout session:`, session)
 
     const priceId = session.metadata?.price_id
 
@@ -69,195 +67,140 @@ export async function POST(request: NextRequest) {
           `Processing candidate payment for candidate: ${candidateId}`
         )
 
-        const candidateRecordResult = await getCandidateRecord(candidateId)
-        if (isErr(candidateRecordResult)) {
+        const candidateIsAwaitingPaymentResult =
+          await candidateIsAwaitingPayment(candidateId)
+        if (isErr(candidateIsAwaitingPaymentResult)) {
           logger.error(
-            candidateRecordResult.error,
-            '💢 Failed to fetch candidate record'
+            candidateIsAwaitingPaymentResult.error,
+            '💢 Candidate is not awaiting payment'
           )
           return NextResponse.json(
-            { error: candidateRecordResult.error },
+            { error: candidateIsAwaitingPaymentResult.error },
             { status: 400 }
           )
         }
 
-        const candidate = candidateRecordResult.data
-
-        const candidatePaymentRecordedResult = await candidatePaymentAlreadyRecorded(
-          paymentIntentId
+        logger.info(
+          `✅ Found candidate tied to payment, and they are awaiting payment`
         )
-        if (isErr(candidatePaymentRecordedResult)) {
+
+        // This non-null assertion is safe because we check for id existance in the function above
+        const recordCandidatePaymentResult = await recordCandidatePayment(
+          candidateId!,
+          session
+        )
+        if (isErr(recordCandidatePaymentResult)) {
           logger.error(
-            candidatePaymentRecordedResult.error,
-            '💢 Failed to check for existing candidate payment record'
+            recordCandidatePaymentResult.error,
+            '💢 Failed to record candidate payment'
           )
           return NextResponse.json(
-            { error: candidatePaymentRecordedResult.error },
-            { status: 500 }
+            { error: recordCandidatePaymentResult.error },
+            { status: 400 }
           )
         }
 
-        if (!candidatePaymentRecordedResult.data) {
-          if (candidate.status !== 'awaiting_payment') {
-            const errorMessage = `💢 Candidate ${candidateId} not in awaiting_payment status`
-            logger.error(errorMessage)
-            return NextResponse.json({ error: errorMessage }, { status: 400 })
-          }
+        logger.info(
+          `✅ Successfully recorded candidate_payment ${recordCandidatePaymentResult.data.id} for candidate id ${candidateId}`
+        )
 
-          const recordCandidatePaymentResult = await recordCandidatePayment(
-            candidate.id,
-            session
+        const confirmCandidateResult = await confirmCandidate(candidateId!)
+        if (isErr(confirmCandidateResult)) {
+          logger.error(
+            confirmCandidateResult.error,
+            '💢 Failed to confirm candidate'
           )
-          if (isErr(recordCandidatePaymentResult)) {
-            logger.error(
-              recordCandidatePaymentResult.error,
-              '💢 Failed to record candidate payment'
-            )
-            return NextResponse.json(
-              { error: recordCandidatePaymentResult.error },
-              { status: 400 }
-            )
-          }
-
-          logger.info(
-            `✅ Successfully recorded candidate_payment ${recordCandidatePaymentResult.data.id} for candidate id ${candidateId}`
+          return NextResponse.json(
+            { error: confirmCandidateResult.error },
+            { status: 400 }
           )
         }
 
-        if (candidate.status !== 'confirmed') {
-          const confirmCandidateResult = await confirmCandidate(candidate.id)
-          if (isErr(confirmCandidateResult)) {
-            logger.error(
-              confirmCandidateResult.error,
-              '💢 Failed to confirm candidate'
-            )
-            return NextResponse.json(
-              { error: confirmCandidateResult.error },
-              { status: 400 }
-            )
-          }
-
-          logger.info(`✅ Successfully confirmed candidate ${candidateId}`)
-        } else {
-          logger.info(`Candidate ${candidateId} already confirmed`)
-        }
+        logger.info(`✅ Successfully confirmed candidate ${candidateId}`)
         break
       case process.env.TEAM_FEE_PRICE_ID:
         const teamUserId = session.metadata?.user_id ?? null
         const weekendId = session.metadata?.weekend_id ?? null
         logger.info(`Processing team payment for team: ${teamUserId}`)
 
-        const teamPaymentRecordedResult = await teamPaymentAlreadyRecorded(
-          paymentIntentId
+        const weekendRosterRecord = await getWeekendRosterRecord(
+          teamUserId,
+          weekendId
         )
-        if (isErr(teamPaymentRecordedResult)) {
+        if (isErr(weekendRosterRecord)) {
           logger.error(
-            teamPaymentRecordedResult.error,
-            '💢 Failed to check for existing team payment record'
-          )
-          return NextResponse.json(
-            { error: teamPaymentRecordedResult.error },
-            { status: 500 }
-          )
-        }
-
-        const teamPaymentExists = teamPaymentRecordedResult.data
-
-        const weekendRosterRecordResult = teamPaymentExists
-          ? await getWeekendRosterRecordAnyStatus(teamUserId, weekendId)
-          : await getWeekendRosterRecord(teamUserId, weekendId)
-
-        if (isErr(weekendRosterRecordResult)) {
-          logger.error(
-            weekendRosterRecordResult.error,
+            weekendRosterRecord.error,
             '💢 Failed to get weekend_roster record'
           )
           return NextResponse.json(
-            { error: weekendRosterRecordResult.error },
+            { error: weekendRosterRecord.error },
             { status: 400 }
           )
         }
 
-        const weekendRosterRecord = weekendRosterRecordResult.data
+        logger.info(
+          `✅ Found weekend_roster record for team member: ${teamUserId}`
+        )
 
-        if (!teamPaymentExists) {
-          const weekendRosterPaymentRecord = await recordWeekendRosterPayment(
-            weekendRosterRecord.id!,
-            session
+        const weekendRosterPaymentRecord = await recordWeekendRosterPayment(
+          weekendRosterRecord.data.id!,
+          session
+        )
+        if (isErr(weekendRosterPaymentRecord)) {
+          logger.error(
+            weekendRosterPaymentRecord.error,
+            '💢 Failed to record weekend_roster_payment'
           )
-          if (isErr(weekendRosterPaymentRecord)) {
-            logger.error(
-              weekendRosterPaymentRecord.error,
-              '💢 Failed to record weekend_roster_payment'
-            )
-            return NextResponse.json(
-              { error: weekendRosterPaymentRecord.error },
-              { status: 400 }
-            )
-          }
-
-          logger.info(
-            `✅ Successfully recorded weekend_roster_payment ${weekendRosterPaymentRecord.data.id} for weekend_roster_id ${weekendRosterRecord.id}`
-          )
-        } else {
-          logger.info(
-            `Team payment already recorded for intent ${paymentIntentId}, skipping insert`
+          return NextResponse.json(
+            { error: weekendRosterPaymentRecord.error },
+            { status: 400 }
           )
         }
 
-        let shouldNotifyAssistantHead = !teamPaymentExists
+        logger.info(
+          `✅ Successfully recorded weekend_roster_payment ${weekendRosterPaymentRecord.data.id} for weekend_roster_id ${weekendRosterRecord.data.id}`
+        )
 
-        if (weekendRosterRecord.status !== 'paid') {
-          const markTeamMemberAsPaidResult = await markTeamMemberAsPaid(
-            weekendRosterRecord.id
+        const markTeamMemberAsPaidResult = await markTeamMemberAsPaid(
+          weekendRosterRecord.data.id
+        )
+        if (isErr(markTeamMemberAsPaidResult)) {
+          logger.error(
+            markTeamMemberAsPaidResult.error,
+            '💢 Failed to mark team member as paid'
           )
-          if (isErr(markTeamMemberAsPaidResult)) {
-            logger.error(
-              markTeamMemberAsPaidResult.error,
-              '💢 Failed to mark team member as paid'
-            )
-            return NextResponse.json(
-              { error: markTeamMemberAsPaidResult.error },
-              { status: 400 }
-            )
-          }
-
-          logger.info(`✅ Successfully marked team member ${teamUserId} as paid`)
-          shouldNotifyAssistantHead = true
-        } else {
-          logger.info(`Team member ${teamUserId} already marked as paid`)
+          return NextResponse.json(
+            { error: markTeamMemberAsPaidResult.error },
+            { status: 400 }
+          )
         }
 
-        if (shouldNotifyAssistantHead) {
-          const paymentAmount = session.amount_total ? session.amount_total / 100 : 0
+        logger.info(`✅ Successfully marked team member as paid`)
 
-          const notifyAssistantHeadResult = await notifyAssistantHeadForTeamPayment(
-            teamUserId,
-            weekendId,
-            paymentAmount
+        const paymentAmount = session.amount_total
+          ? session.amount_total / 100
+          : 0
+
+        const notifyAssistantHeadResult = await notifyAssistantHeadForTeamPayment(
+          teamUserId,
+          weekendId,
+          paymentAmount
+        )
+        if (isErr(notifyAssistantHeadResult)) {
+          logger.error(
+            notifyAssistantHeadResult.error,
+            '💢 Failed to notify assistant head of team payment'
           )
-          if (isErr(notifyAssistantHeadResult)) {
-            logger.error(
-              notifyAssistantHeadResult.error,
-              '💢 Failed to notify assistant head of team payment'
-            )
-            // Don't return error here as the payment was processed successfully
-          } else {
-            logger.info(`✅ Successfully notified assistant head of team payment`)
-          }
+          // The payment was processed successfully, so we don't return an error here
         } else {
-          logger.info(
-            `Skipping assistant head notification for duplicate payment intent ${paymentIntentId}`
-          )
+          logger.info(`✅ Successfully notified assistant head of team payment`)
         }
         break
       default:
-        const errorMessage = `Unknown price id: ${priceId}`
-        logger.error(`💢 Error during webhook processing: ${errorMessage}`)
-        return NextResponse.json(
-          { error: errorMessage },
-          { status: 400 }
+        logger.error(
+          `💢 Error during webhook processing: Unknown price id: ${priceId}`
         )
+        break
     }
 
     return NextResponse.json({ received: true })
@@ -271,17 +214,18 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Fetches a candidate record for payment processing
+ * Checks if a candidate is in the awaiting_payment status
  */
-async function getCandidateRecord(
+async function candidateIsAwaitingPayment(
   candidateId: string | null
-): Promise<Result<string, Tables<'candidates'>>> {
+): Promise<Result<string, true>> {
   if (!candidateId) {
     return err('💢 Candidate ID is null')
   }
 
   const supabase = await createClient()
 
+  // Verify the candidate exists and is in awaiting_payment status
   const { data: candidate, error: fetchError } = await supabase
     .from('candidates')
     .select('*')
@@ -296,25 +240,11 @@ async function getCandidateRecord(
     return err(`💢 Candidate not found with id: ${candidateId}`)
   }
 
-  return ok(candidate)
-}
-
-async function candidatePaymentAlreadyRecorded(
-  paymentIntentId: string
-): Promise<Result<string, boolean>> {
-  const supabase = await createClient()
-
-  const { data: paymentRecords, error } = await supabase
-    .from('candidate_payments')
-    .select('id')
-    .eq('payment_intent_id', paymentIntentId)
-    .limit(1)
-
-  if (error) {
-    return err(error.message)
+  if (candidate.status !== 'awaiting_payment') {
+    return err('💢 Candidate not in awaiting_payment status')
   }
 
-  return ok(!!paymentRecords && paymentRecords.length > 0)
+  return ok(true)
 }
 
 /**
@@ -395,52 +325,6 @@ async function recordWeekendRosterPayment(
   }
 
   return ok(weekendRosterPaymentRecord)
-}
-
-async function teamPaymentAlreadyRecorded(
-  paymentIntentId: string
-): Promise<Result<string, boolean>> {
-  const supabase = await createClient()
-
-  const { data: paymentRecords, error } = await supabase
-    .from('weekend_roster_payments')
-    .select('id')
-    .eq('payment_intent_id', paymentIntentId)
-    .limit(1)
-
-  if (error) {
-    return err(error.message)
-  }
-
-  return ok(!!paymentRecords && paymentRecords.length > 0)
-}
-
-async function getWeekendRosterRecordAnyStatus(
-  teamUserId: string | null,
-  weekendId: string | null
-): Promise<Result<string, Tables<'weekend_roster'>>> {
-  if (!teamUserId || !weekendId) {
-    return err('💢 Team user ID or weekend ID is null')
-  }
-
-  const supabase = await createClient()
-
-  const { data: weekendRosterRecord, error: fetchError } = await supabase
-    .from('weekend_roster')
-    .select('*')
-    .eq('user_id', teamUserId)
-    .eq('weekend_id', weekendId)
-    .single()
-
-  if (fetchError) {
-    return err(fetchError.message)
-  }
-
-  if (!weekendRosterRecord) {
-    return err('💢 Weekend roster record not found')
-  }
-
-  return ok(weekendRosterRecord)
 }
 
 async function markTeamMemberAsPaid(
