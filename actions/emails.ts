@@ -274,6 +274,7 @@ export async function notifyAssistantHeadForTeamPayment(
         `)
         .eq('weekend_id', weekendId)
         .eq('cha_role', 'Assistant Head')
+        .limit(1)
         .single()
     ])
 
