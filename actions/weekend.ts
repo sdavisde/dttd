@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Tables } from '@/database.types'
+import { Tables, TablesInsert, TablesUpdate } from '@/database.types'
 import { logger } from '@/lib/logger'
 import { Result, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
@@ -73,6 +73,72 @@ export async function getWeekendById(
   }
 
   return ok(data as Weekend)
+}
+
+type WeekendInsert = TablesInsert<'weekends'>
+type WeekendUpdate = TablesUpdate<'weekends'>
+
+export async function createWeekend(
+  weekend: Omit<WeekendInsert, 'id' | 'created_at'>
+): Promise<Result<Error, Weekend>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .insert(weekend)
+    .select('*')
+    .single()
+
+  if (isSupabaseError(error)) {
+    return err(new Error(`Failed to create weekend: ${error.message}`))
+  }
+
+  if (!data) {
+    return err(new Error('Weekend not created'))
+  }
+
+  return ok(data as Weekend)
+}
+
+export async function updateWeekend(
+  weekendId: string,
+  updates: Omit<WeekendUpdate, 'id' | 'created_at'>
+): Promise<Result<Error, Weekend>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .update(updates)
+    .eq('id', weekendId)
+    .select('*')
+    .single()
+
+  if (isSupabaseError(error)) {
+    return err(new Error(`Failed to update weekend: ${error.message}`))
+  }
+
+  if (!data) {
+    return err(new Error('Weekend not updated'))
+  }
+
+  return ok(data as Weekend)
+}
+
+export async function deleteWeekend(
+  weekendId: string
+): Promise<Result<Error, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('weekends')
+    .delete()
+    .eq('id', weekendId)
+
+  if (isSupabaseError(error)) {
+    return err(new Error(`Failed to delete weekend: ${error.message}`))
+  }
+
+  return ok(undefined)
 }
 
 export type WeekendRosterMember = {
