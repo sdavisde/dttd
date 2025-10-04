@@ -75,8 +75,7 @@ export function Dashboard({ user }: DashboardProps) {
             className="w-full h-52 flex flex-col items-center justify-center gap-2"
             // todo: eventually this should link back to the /sponsor page. We put this here because the sponsorship flow is not ready yet.
             // more info in the README.
-            href="https://docs.google.com/forms/d/e/1FAIpQLSeQVh9Ml-kbv7NTM20icotI9RQDn2gL9YUSP53nO2GGK5v1Lg/viewform"
-            linkProps={{ target: '_blank', rel: 'noopener noreferrer' }}
+            href="/sponsor"
           >
             <UserPlus className="w-10 h-10" />
             <span className="text-lg font-semibold">Sponsor a Candidate</span>

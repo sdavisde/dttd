@@ -3,6 +3,7 @@ import { Nunito } from 'next/font/google'
 import './globals.css'
 import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
+import { QueryProvider } from '@/components/providers/query-provider'
 import { Toastbox } from '@/components/toastbox'
 
 const nunito = Nunito({
@@ -27,10 +28,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="DTTD" />
       </Head>
       <body className={`font-sans antialiased ${nunito.className}`}>
-        <SessionProvider>
-          {children}
-          <Toastbox />
-        </SessionProvider>
+        <QueryProvider>
+          <SessionProvider>
+            {children}
+            <Toastbox />
+          </SessionProvider>
+        </QueryProvider>
       </body>
     </html>
   )

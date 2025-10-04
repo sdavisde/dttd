@@ -42,11 +42,11 @@ export function FileUpload({ folder }: FileUploadProps) {
         return
       }
 
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('File size must be less than 10MB')
-        return
-      }
+      // Validate file size (10MB limit) REMOVED THIS LIMIT B/C OF ROSTER PDFS
+      // if (file.size > 10 * 1024 * 1024) {
+      //   toast.error('File size must be less than 10MB')
+      //   return
+      // }
 
       setUploading(true)
 
