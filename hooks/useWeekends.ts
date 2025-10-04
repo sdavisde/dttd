@@ -1,13 +1,22 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { fetchActiveWeekends } from '@/lib/queries/weekends'
+import { getActiveWeekends } from '@/actions/weekend'
+import { isErr } from '@/lib/results'
+import { logger } from '@/lib/logger'
 
 export function useWeekends() {
   return useQuery({
     queryKey: ['weekends', 'active'],
-    queryFn: fetchActiveWeekends,
+    queryFn: async () => {
+      const result = await getActiveWeekends()
+      if (isErr(result)) {
+        logger.error(result.error.message)
+        return null
+      }
+      return result.data
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes (was cacheTime in v4)
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   })
 }
