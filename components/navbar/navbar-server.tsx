@@ -25,11 +25,11 @@ async function getNavElements() {
       slug: 'files',
       permissions_needed: [] as string[],
     },
-    // {
-    //   name: 'Candidates',
-    //   slug: 'review-candidate',
-    //   permissions_needed: [Permission.READ_CANDIDATES],
-    // },
+    {
+      name: 'Candidates',
+      slug: 'review-candidates',
+      permissions_needed: [Permission.FULL_ACCESS],
+    },
     {
       name: 'Roster',
       slug: 'roster',

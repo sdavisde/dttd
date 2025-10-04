@@ -35,8 +35,4 @@ RESEND_API_KEY=your_resend_key
 - [ ] Implement rejection logic for candidates
 - [ ] Add mens/womens column to candidate table
 - [ ] Create delete user action
-- [ ] Move upcoming events data to database
-- [ ] Link sponsor button to /sponsor page (currently points to Google Form)
-  - Need to have a meeting with the pre weekend couple to understand the ideal flow for how the system can help facilitate candidate sponsorship.
-  - The system needs to host all the forms and flow so that we know who the candidate is and can track whether or not they have paid.
 - [ ] Add user account actions dropdown menu

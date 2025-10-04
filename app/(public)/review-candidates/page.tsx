@@ -22,7 +22,7 @@ export default async function ReviewCandidatePage() {
   return (
     <div className="container mx-auto p-4 min-h-[80vh]">
       <div className="my-4">
-        <Typography variant="h1">Review Candidates</Typography>
+        <Typography variant="h1">Candidate List</Typography>
         <Typography variant="p" className="mb-4">
           A list of candidates for the upcoming weekends.
         </Typography>

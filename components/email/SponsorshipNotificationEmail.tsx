@@ -169,7 +169,7 @@ export default function SponsorshipNotificationEmail({
             {/* Call to Action */}
             <Section className="text-center mb-8">
               <Button
-                href={getUrl('/review-candidate')}
+                href={getUrl('/review-candidates')}
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold text-decoration-none inline-block"
               >
                 Review Sponsorship Request
