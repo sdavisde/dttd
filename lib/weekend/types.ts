@@ -23,7 +23,6 @@ export type WeekendWithGroup = Weekend & { group_id: string | null }
 
 export type RawWeekendRecord = Weekend & {
   group_id?: string | null
-  group_id?: string | null
 }
 
 export type WeekendGroup = Record<WeekendType, Weekend | null>

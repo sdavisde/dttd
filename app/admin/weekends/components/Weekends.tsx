@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendGroupGrid } from './WeekendGroupGrid'
+import { WeekendSidebar } from './WeekendSidebar'
 
 interface WeekendsProps {
   weekendGroups: WeekendGroupWithId[]
@@ -133,16 +134,14 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
     if (!canEdit) {
       return
     }
-    handleCloseSidebar()
+    setSelectedGroup(null)
     setIsSidebarOpen(true)
   }
 
   const sidebarState = isSidebarOpen ? 'open' : 'closed'
   const sidebarAnnouncement = selectedGroup
-    ? `Editing weekends`
-    : 'No weekends selected'
-
-  // TODO: Integrate WeekendSidebar component once implemented.
+    ? `Editing weekend group ${selectedGroup.groupId}`
+    : 'No weekend group selected'
 
   return (
     <div className="space-y-6" data-sidebar-state={sidebarState}>
@@ -162,7 +161,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
             aria-expanded={isSidebarOpen}
           >
             <Plus className="w-4 h-4" />
-            Add Weekends
+            Add Weekend Group
           </Button>
         )}
       </div>
@@ -189,6 +188,12 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
           isPast
         />
       </div>
+
+      <WeekendSidebar
+        isOpen={isSidebarOpen}
+        onClose={handleCloseSidebar}
+        weekendGroup={selectedGroup}
+      />
     </div>
   )
 }
