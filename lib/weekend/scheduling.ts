@@ -42,6 +42,35 @@ export const formatDateLabel = (date: Date) =>
 export const formatDateForApi = (date: Date) =>
   date.toISOString().split('T')[0]
 
+export const toLocalDateFromISO = (
+  dateString?: string | null
+): Date | null => {
+  if (!dateString) {
+    return null
+  }
+
+  const isoPortion = dateString.split('T')[0]
+  const [yearStr, monthStr, dayStr] = isoPortion.split('-')
+
+  if (!yearStr || !monthStr || !dayStr) {
+    return null
+  }
+
+  const year = Number(yearStr)
+  const month = Number(monthStr)
+  const day = Number(dayStr)
+
+  if (
+    Number.isNaN(year) ||
+    Number.isNaN(month) ||
+    Number.isNaN(day)
+  ) {
+    return null
+  }
+
+  return normalizeDate(new Date(year, month - 1, day))
+}
+
 export const getNextThursdayRange = (reference = new Date()): DateRange => {
   const next = normalizeDate(reference)
   let daysAhead = (4 - next.getDay() + 7) % 7
@@ -64,16 +93,15 @@ export const inferMensWeekendFromGroup = (
   const mensWeekend = group.weekends.MENS
   const womensWeekend = group.weekends.WOMENS
 
-  const mensStart = mensWeekend?.start_date
-    ? new Date(mensWeekend.start_date)
-    : womensWeekend?.start_date
-      ? addDays(new Date(womensWeekend.start_date), -7)
-      : null
-  const mensEnd = mensWeekend?.end_date
-    ? new Date(mensWeekend.end_date)
-    : womensWeekend?.end_date
-      ? addDays(new Date(womensWeekend.end_date), -7)
-      : null
+  const womensStartDate = toLocalDateFromISO(womensWeekend?.start_date)
+  const womensEndDate = toLocalDateFromISO(womensWeekend?.end_date)
+
+  const mensStart =
+    toLocalDateFromISO(mensWeekend?.start_date) ??
+    (womensStartDate ? addDays(womensStartDate, -7) : null)
+  const mensEnd =
+    toLocalDateFromISO(mensWeekend?.end_date) ??
+    (womensEndDate ? addDays(womensEndDate, -7) : null)
 
   if (mensStart && mensEnd) {
     return {

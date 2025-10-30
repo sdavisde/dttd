@@ -11,6 +11,10 @@ import {
   WeekendGroupWithId,
   WeekendType,
 } from '@/lib/weekend/types'
+import {
+  formatDateLabel,
+  toLocalDateFromISO,
+} from '@/lib/weekend/scheduling'
 
 interface WeekendGroupCardProps {
   group: WeekendGroupWithId
@@ -39,25 +43,15 @@ const formatWeekendTitle = (weekend: Weekend | null, label: string) => {
 }
 
 const formatDateRange = (start?: string | null, end?: string | null) => {
-  if (!start || !end) {
+  const startDate = toLocalDateFromISO(start)
+  const endDate = toLocalDateFromISO(end)
+
+  if (!startDate || !endDate) {
     return 'Dates TBD'
   }
 
-  const startDate = new Date(start)
-  const endDate = new Date(end)
-
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return 'Dates TBD'
-  }
-
-  const options: Intl.DateTimeFormatOptions = {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }
-
-  const startLabel = startDate.toLocaleDateString('en-US', options)
-  const endLabel = endDate.toLocaleDateString('en-US', options)
+  const startLabel = formatDateLabel(startDate)
+  const endLabel = formatDateLabel(endDate)
 
   return `${startLabel} - ${endLabel}`
 }

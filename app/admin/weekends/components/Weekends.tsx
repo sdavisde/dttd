@@ -7,6 +7,7 @@ import { Typography } from '@/components/ui/typography'
 import { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendGroupGrid } from './WeekendGroupGrid'
 import { WeekendSidebar } from './WeekendSidebar'
+import { toLocalDateFromISO } from '@/lib/weekend/scheduling'
 
 interface WeekendsProps {
   weekendGroups: WeekendGroupWithId[]
@@ -30,12 +31,8 @@ const splitWeekendGroups = (
   const today = startOfToday()
   return groups.reduce<WeekendGroupBuckets>(
     (acc, group) => {
-      const mensStart = group.weekends.MENS?.start_date
-        ? new Date(group.weekends.MENS.start_date)
-        : null
-      const womensEnd = group.weekends.WOMENS?.end_date
-        ? new Date(group.weekends.WOMENS.end_date)
-        : null
+      const mensStart = toLocalDateFromISO(group.weekends.MENS?.start_date)
+      const womensEnd = toLocalDateFromISO(group.weekends.WOMENS?.end_date)
 
       const isPast =
         Boolean(womensEnd) && womensEnd !== null && womensEnd < today
@@ -62,8 +59,12 @@ const splitWeekendGroups = (
 
 const sortByDateAscending = (groups: WeekendGroupWithId[]) =>
   [...groups].sort((a, b) => {
-    const aDate = a.weekends.MENS?.start_date ?? a.weekends.WOMENS?.start_date
-    const bDate = b.weekends.MENS?.start_date ?? b.weekends.WOMENS?.start_date
+    const aDate =
+      toLocalDateFromISO(a.weekends.MENS?.start_date) ??
+      toLocalDateFromISO(a.weekends.WOMENS?.start_date)
+    const bDate =
+      toLocalDateFromISO(b.weekends.MENS?.start_date) ??
+      toLocalDateFromISO(b.weekends.WOMENS?.start_date)
 
     if (!aDate && !bDate) {
       return 0
@@ -77,13 +78,17 @@ const sortByDateAscending = (groups: WeekendGroupWithId[]) =>
       return -1
     }
 
-    return new Date(aDate).getTime() - new Date(bDate).getTime()
+    return aDate.getTime() - bDate.getTime()
   })
 
 const sortByDateDescending = (groups: WeekendGroupWithId[]) =>
   [...groups].sort((a, b) => {
-    const aDate = a.weekends.WOMENS?.end_date ?? a.weekends.MENS?.end_date
-    const bDate = b.weekends.WOMENS?.end_date ?? b.weekends.MENS?.end_date
+    const aDate =
+      toLocalDateFromISO(a.weekends.WOMENS?.end_date) ??
+      toLocalDateFromISO(a.weekends.MENS?.end_date)
+    const bDate =
+      toLocalDateFromISO(b.weekends.WOMENS?.end_date) ??
+      toLocalDateFromISO(b.weekends.MENS?.end_date)
 
     if (!aDate && !bDate) {
       return 0
@@ -97,7 +102,7 @@ const sortByDateDescending = (groups: WeekendGroupWithId[]) =>
       return -1
     }
 
-    return new Date(bDate).getTime() - new Date(aDate).getTime()
+    return bDate.getTime() - aDate.getTime()
   })
 
 export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
@@ -140,8 +145,8 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
 
   const sidebarState = isSidebarOpen ? 'open' : 'closed'
   const sidebarAnnouncement = selectedGroup
-    ? 'Editing weekends'
-    : 'No weekends selected'
+    ? `Editing weekend group ${selectedGroup.groupId}`
+    : 'No weekend group selected'
 
   return (
     <div className="space-y-6" data-sidebar-state={sidebarState}>
