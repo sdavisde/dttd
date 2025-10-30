@@ -532,6 +532,7 @@ export type Database = {
         Row: {
           created_at: string
           end_date: string
+          group_id: string | null
           id: string
           number: number | null
           start_date: string
@@ -542,6 +543,7 @@ export type Database = {
         Insert: {
           created_at?: string
           end_date: string
+          group_id?: string | null
           id?: string
           number?: number | null
           start_date: string
@@ -552,6 +554,7 @@ export type Database = {
         Update: {
           created_at?: string
           end_date?: string
+          group_id?: string | null
           id?: string
           number?: number | null
           start_date?: string
