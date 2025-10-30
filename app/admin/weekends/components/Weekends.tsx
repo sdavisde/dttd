@@ -140,8 +140,8 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
 
   const sidebarState = isSidebarOpen ? 'open' : 'closed'
   const sidebarAnnouncement = selectedGroup
-    ? `Editing weekend group ${selectedGroup.groupId}`
-    : 'No weekend group selected'
+    ? 'Editing weekends'
+    : 'No weekends selected'
 
   return (
     <div className="space-y-6" data-sidebar-state={sidebarState}>
@@ -161,7 +161,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
             aria-expanded={isSidebarOpen}
           >
             <Plus className="w-4 h-4" />
-            Add Weekend Group
+            Add Weekends
           </Button>
         )}
       </div>

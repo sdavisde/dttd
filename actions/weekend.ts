@@ -1,4 +1,5 @@
 'use server'
+import { randomUUID } from 'crypto'
 
 import { createClient } from '@/lib/supabase/server'
 import { Tables } from '@/database.types'
@@ -17,7 +18,7 @@ import {
   WeekendUpdateInput,
   CreateWeekendGroupInput,
   UpdateWeekendGroupInput,
-} from '@/lib/weekend/types'
+} from "@/lib/weekend/types"
 
 const toWeekendGroup = (weekends: WeekendWithGroup[]): WeekendGroup => ({
   MENS: weekends.find((weekend) => weekend.type === 'MENS') ?? null,
@@ -312,6 +313,70 @@ export async function deleteWeekendGroup(
   }
 
   return ok({ success: true })
+}
+
+const normalizeSidebarTitle = (title?: string | null) => {
+  if (!title) {
+    return null
+  }
+
+  const trimmed = title.trim()
+  return trimmed.length === 0 ? null : trimmed
+}
+
+export type WeekendSidebarPayload = {
+  groupId?: string | null
+  title?: string
+  mensStart: string
+  mensEnd: string
+  womensStart: string
+  womensEnd: string
+}
+
+export async function saveWeekendGroupFromSidebar(
+  payload: WeekendSidebarPayload
+): Promise<Result<Error, WeekendGroupWithId>> {
+  const sharedTitle = normalizeSidebarTitle(payload.title)
+
+  const mensCreate: WeekendWriteInput = {
+    start_date: payload.mensStart,
+    end_date: payload.mensEnd,
+    title: `Mens ${sharedTitle}`,
+  }
+
+  const womensCreate: WeekendWriteInput = {
+    start_date: payload.womensStart,
+    end_date: payload.womensEnd,
+    title: `Womens ${sharedTitle}`,
+  }
+
+  if (!payload.groupId) {
+    const groupId = randomUUID()
+    return createWeekendGroup({
+      groupId,
+      mens: mensCreate,
+      womens: womensCreate,
+    })
+  }
+
+  const mensUpdate: WeekendUpdateInput = {
+    start_date: payload.mensStart,
+    end_date: payload.mensEnd,
+    title: sharedTitle,
+  }
+
+  const womensUpdate: WeekendUpdateInput = {
+    start_date: payload.womensStart,
+    end_date: payload.womensEnd,
+    title: sharedTitle,
+  }
+
+  const updates: UpdateWeekendGroupInput = {
+    mens: mensUpdate,
+    womens: womensUpdate,
+  }
+
+  return updateWeekendGroup(payload.groupId, updates)
 }
 
 /**
