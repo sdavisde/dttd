@@ -26,7 +26,7 @@ const toWeekendGroup = (weekends: WeekendWithGroup[]): WeekendGroup => ({
 
 const toWeekendWithGroup = (weekend: RawWeekendRecord): WeekendWithGroup => ({
   ...weekend,
-  weekend_group_id: weekend.weekend_group_id ?? weekend.group_id ?? null,
+  group_id: weekend.group_id ?? null,
 })
 
 const ensureRequiredDates = (
@@ -49,7 +49,7 @@ const prepareInsertPayload = (
   type: WeekendType,
   payload: WeekendWriteInput
 ) => ({
-  weekend_group_id: groupId,
+  group_id: groupId,
   type,
   start_date: payload.start_date,
   end_date: payload.end_date,
@@ -106,7 +106,7 @@ export async function getWeekendGroup(
   groupId: string
 ): Promise<Result<Error, WeekendGroupWithId>> {
   if (!groupId) {
-    return err(new Error('weekend_group_id is required to fetch a group'))
+    return err(new Error('group_id is required to fetch a group'))
   }
 
   const supabase = await createClient()
@@ -114,7 +114,7 @@ export async function getWeekendGroup(
   const { data, error } = await supabase
     .from('weekends')
     .select('*')
-    .eq('weekend_group_id', groupId)
+    .eq('group_id', groupId)
     .order('type', { ascending: true })
 
   if (isSupabaseError(error)) {
@@ -141,7 +141,7 @@ export async function getWeekendGroupsByStatus(
   }
 
   const { data, error } = await query
-    .order('weekend_group_id', { ascending: true })
+    .order('group_id', { ascending: true })
     .order('type', { ascending: true })
 
   if (isSupabaseError(error)) {
@@ -157,13 +157,13 @@ export async function getWeekendGroupsByStatus(
   for (const rawWeekend of data as RawWeekendRecord[]) {
     const weekend = toWeekendWithGroup(rawWeekend)
 
-    if (!weekend.weekend_group_id) {
+    if (!weekend.group_id) {
       continue
     }
 
-    const existing = groups.get(weekend.weekend_group_id) ?? []
+    const existing = groups.get(weekend.group_id) ?? []
     existing.push(weekend)
-    groups.set(weekend.weekend_group_id, existing)
+    groups.set(weekend.group_id, existing)
   }
 
   const result: WeekendGroupWithId[] = Array.from(groups.entries())
@@ -236,7 +236,7 @@ export async function updateWeekendGroup(
   updates: UpdateWeekendGroupInput
 ): Promise<Result<Error, WeekendGroupWithId>> {
   if (!groupId) {
-    return err(new Error('weekend_group_id is required to update a group'))
+    return err(new Error('group_id is required to update a group'))
   }
 
   if (!updates.mens && !updates.womens) {
@@ -264,7 +264,7 @@ export async function updateWeekendGroup(
     const { data, error } = await supabase
       .from('weekends')
       .update(sanitized)
-      .eq('weekend_group_id', groupId)
+      .eq('group_id', groupId)
       .eq('type', type)
       .select('*')
       .single()
@@ -297,7 +297,7 @@ export async function deleteWeekendGroup(
   groupId: string
 ): Promise<Result<Error, { success: boolean }>> {
   if (!groupId) {
-    return err(new Error('weekend_group_id is required to delete a group'))
+    return err(new Error('group_id is required to delete a group'))
   }
 
   const supabase = await createClient()
@@ -305,7 +305,7 @@ export async function deleteWeekendGroup(
   const { error: weekendDeleteError } = await supabase
     .from('weekends')
     .delete()
-    .eq('weekend_group_id', groupId)
+    .eq('group_id', groupId)
 
   if (isSupabaseError(weekendDeleteError)) {
     return err(new Error(weekendDeleteError?.message))

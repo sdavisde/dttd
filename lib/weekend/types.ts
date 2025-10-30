@@ -19,10 +19,10 @@ export type WeekendType = 'MENS' | 'WOMENS'
 
 export type WeekendStatus = string // 'FINISHED' | 'ACTIVE' | 'PLANNING'
 
-export type WeekendWithGroup = Weekend & { weekend_group_id: string | null }
+export type WeekendWithGroup = Weekend & { group_id: string | null }
 
 export type RawWeekendRecord = Weekend & {
-  weekend_group_id?: string | null
+  group_id?: string | null
   group_id?: string | null
 }
 
