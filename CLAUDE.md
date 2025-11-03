@@ -161,3 +161,4 @@ The application uses Supabase with several key tables:
 - Client components marked with 'use client'
 - Shared types in `lib/` subdirectories by domain
 - Email templates using React Email in `components/email/`
+- use `yarn build` to confirm compilation

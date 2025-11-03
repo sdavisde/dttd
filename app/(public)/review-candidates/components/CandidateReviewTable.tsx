@@ -7,7 +7,7 @@ import { deleteCandidate, updateCandidateStatus } from '@/actions/candidates'
 import { CandidateTable } from './CandidateTable'
 import { CandidateDetailSheet } from './CandidateDetailSheet'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
-import { StatusInfoSheet } from './StatusInfoSheet'
+import { StatusLegend } from './StatusLegend'
 import * as Results from '@/lib/results'
 import { sendCandidateForms } from '@/actions/emails'
 import { sendPaymentRequestEmail } from '@/actions/emails'
@@ -25,7 +25,6 @@ export function CandidateReviewTable({
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [isStatusInfoOpen, setIsStatusInfoOpen] = useState(false)
   const router = useRouter()
 
   const handleRowClick = (candidate: HydratedCandidate) => {
@@ -139,8 +138,9 @@ export function CandidateReviewTable({
       <CandidateTable
         candidates={candidates}
         onRowClick={handleRowClick}
-        onStatusInfoClick={() => setIsStatusInfoOpen(true)}
       />
+
+      <StatusLegend />
 
       <CandidateDetailSheet
         candidate={selectedCandidate}
@@ -161,11 +161,6 @@ export function CandidateReviewTable({
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         confirmText="Delete Candidate"
-      />
-
-      <StatusInfoSheet
-        isOpen={isStatusInfoOpen}
-        onClose={() => setIsStatusInfoOpen(false)}
       />
     </>
   )

@@ -6,19 +6,22 @@ interface StatusChipProps {
 }
 
 export function StatusChip({ status }: StatusChipProps) {
-  const statusConfig: Record<CandidateStatus, { color: string; label: string }> = {
-    sponsored: { color: 'default', label: 'Sponsored' },
+  const statusConfig: Record<
+    CandidateStatus,
+    { color: 'info' | 'warning' | 'secondary' | 'success' | 'error'; label: string }
+  > = {
+    sponsored: { color: 'info', label: 'Sponsored' },
     awaiting_forms: { color: 'warning', label: 'Awaiting Forms' },
-    pending_approval: { color: 'info', label: 'Pending Approval' },
-    awaiting_payment: { color: 'secondary', label: 'Awaiting Payment' },
+    pending_approval: { color: 'secondary', label: 'Pending Approval' },
+    awaiting_payment: { color: 'warning', label: 'Awaiting Payment' },
     confirmed: { color: 'success', label: 'Confirmed' },
     rejected: { color: 'error', label: 'Rejected' },
   }
 
-  const config = statusConfig[status] ?? { color: 'default', label: 'Unknown' }
+  const config = statusConfig[status] ?? { color: 'secondary' as const, label: 'Unknown' }
   return (
     <Badge
-      variant={config.color as 'default' | 'secondary' | 'destructive' | 'outline'}
+      color={config.color}
       className='text-xs'
     >
       {config.label}

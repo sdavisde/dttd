@@ -3,17 +3,14 @@
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { HelpCircle } from 'lucide-react'
 
 interface CandidateTableProps {
   candidates: HydratedCandidate[]
   onRowClick: (candidate: HydratedCandidate) => void
-  onStatusInfoClick: () => void
 }
 
-export function CandidateTable({ candidates, onRowClick, onStatusInfoClick }: CandidateTableProps) {
+export function CandidateTable({ candidates, onRowClick }: CandidateTableProps) {
   return (
     <>
       {/* Desktop Table - Hidden on mobile */}
@@ -26,21 +23,7 @@ export function CandidateTable({ candidates, onRowClick, onStatusInfoClick }: Ca
               <TableHead>Sponsor</TableHead>
               <TableHead>Weekend</TableHead>
               <TableHead>Submitted</TableHead>
-              <TableHead>
-                <div className='flex items-center gap-1'>
-                  <span>Status</span>
-                  <Button
-                    onClick={onStatusInfoClick}
-                    title='Status Information'
-                    variant='ghost'
-                  >
-                    <HelpCircle
-                      size={20}
-                      className='text-muted-foreground'
-                    />
-                  </Button>
-                </div>
-              </TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -113,19 +96,6 @@ export function CandidateTable({ candidates, onRowClick, onStatusInfoClick }: Ca
             </div>
           ))
         )}
-
-        {/* Status info button for mobile */}
-        <div className="flex justify-center pt-4">
-          <Button
-            onClick={onStatusInfoClick}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <HelpCircle size={16} />
-            Status Information
-          </Button>
-        </div>
       </div>
     </>
   )
