@@ -1,11 +1,64 @@
 'use server'
+import { randomUUID } from 'crypto'
 
 import { createClient } from '@/lib/supabase/server'
 import { Tables } from '@/database.types'
 import { logger } from '@/lib/logger'
-import { Result, err, ok } from '@/lib/results'
+import { Result, err, ok, isErr } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
-import { Weekend, WeekendType } from '@/lib/weekend/types'
+import {
+  Weekend,
+  WeekendType,
+  WeekendStatus,
+  WeekendWithGroup,
+  RawWeekendRecord,
+  WeekendGroup,
+  WeekendGroupWithId,
+  WeekendWriteInput,
+  WeekendUpdateInput,
+  CreateWeekendGroupInput,
+  UpdateWeekendGroupInput,
+} from "@/lib/weekend/types"
+
+const toWeekendGroup = (weekends: WeekendWithGroup[]): WeekendGroup => ({
+  MENS: weekends.find((weekend) => weekend.type === 'MENS') ?? null,
+  WOMENS: weekends.find((weekend) => weekend.type === 'WOMENS') ?? null,
+})
+
+const toWeekendWithGroup = (weekend: RawWeekendRecord): WeekendWithGroup => ({
+  ...weekend,
+  group_id: weekend.group_id ?? null,
+})
+
+const ensureRequiredDates = (
+  type: WeekendType,
+  payload: WeekendWriteInput
+): Result<Error, void> => {
+  if (!payload.start_date || !payload.end_date) {
+    return err(
+      new Error(
+        `${type} weekend requires both start_date and end_date before saving`
+      )
+    )
+  }
+
+  return ok(undefined)
+}
+
+const prepareInsertPayload = (
+  groupId: string,
+  type: WeekendType,
+  payload: WeekendWriteInput
+) => ({
+  group_id: groupId,
+  type,
+  start_date: payload.start_date,
+  end_date: payload.end_date,
+  number: payload.number ?? null,
+  status: payload.status ?? null,
+  title: payload.title ?? null,
+})
+
 
 export async function getActiveWeekends(): Promise<
   Result<Error, Record<WeekendType, Weekend | null>>
@@ -29,6 +82,280 @@ export async function getActiveWeekends(): Promise<
     MENS: data.find((weekend) => weekend.type === 'MENS') ?? null,
     WOMENS: data.find((weekend) => weekend.type === 'WOMENS') ?? null,
   })
+}
+
+export async function getWeekendGroup(
+  groupId: string
+): Promise<Result<Error, WeekendGroupWithId>> {
+  if (!groupId) {
+    return err(new Error('group_id is required to fetch a group'))
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .select('*')
+    .eq('group_id', groupId)
+    .order('type', { ascending: true })
+
+  if (isSupabaseError(error)) {
+    return err(new Error(error?.message))
+  }
+
+  if (!data || data.length === 0) {
+    return err(new Error(`Weekend group ${groupId} not found`))
+  }
+
+  const typedWeekends = (data as RawWeekendRecord[]).map(toWeekendWithGroup)
+
+  return ok({ groupId, weekends: toWeekendGroup(typedWeekends) })
+}
+
+export async function getWeekendGroupsByStatus(
+  statuses?: WeekendStatus[]
+): Promise<Result<Error, WeekendGroupWithId[]>> {
+  const supabase = await createClient()
+  let query = supabase.from('weekends').select('*')
+
+  if (statuses && statuses.length > 0) {
+    query = query.in('status', statuses)
+  }
+
+  const { data, error } = await query
+    .order('group_id', { ascending: true })
+    .order('type', { ascending: true })
+
+  if (isSupabaseError(error)) {
+    return err(new Error(error?.message))
+  }
+
+  if (!data || data.length === 0) {
+    return ok([])
+  }
+
+  const groups = new Map<string, WeekendWithGroup[]>()
+
+  for (const rawWeekend of data as RawWeekendRecord[]) {
+    const weekend = toWeekendWithGroup(rawWeekend)
+
+    if (!weekend.group_id) {
+      continue
+    }
+
+    const existing = groups.get(weekend.group_id) ?? []
+    existing.push(weekend)
+    groups.set(weekend.group_id, existing)
+  }
+
+  const result: WeekendGroupWithId[] = Array.from(groups.entries())
+    .map(([groupId, weekends]) => ({
+      groupId,
+      weekends: toWeekendGroup(weekends),
+    }))
+    .sort((a, b) => {
+      const aNumber =
+        a.weekends.MENS?.number ??
+        a.weekends.WOMENS?.number ??
+        Number.MAX_SAFE_INTEGER
+      const bNumber =
+        b.weekends.MENS?.number ??
+        b.weekends.WOMENS?.number ??
+        Number.MAX_SAFE_INTEGER
+      return aNumber - bNumber
+    })
+
+  return ok(result)
+}
+
+export async function createWeekendGroup(
+  input: CreateWeekendGroupInput
+): Promise<Result<Error, WeekendGroupWithId>> {
+  if (!input.groupId) {
+    return err(new Error('groupId is required when creating a weekend group'))
+  }
+
+  const mensValidation = ensureRequiredDates('MENS', input.mens)
+  if (isErr(mensValidation)) {
+    return err(mensValidation.error)
+  }
+
+  const womensValidation = ensureRequiredDates('WOMENS', input.womens)
+  if (isErr(womensValidation)) {
+    return err(womensValidation.error)
+  }
+
+  const supabase = await createClient()
+
+  const insertPayload = [
+    prepareInsertPayload(input.groupId, 'MENS', input.mens),
+    prepareInsertPayload(input.groupId, 'WOMENS', input.womens),
+  ]
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .insert(insertPayload)
+    .select('*')
+
+  if (isSupabaseError(error)) {
+    return err(new Error(error?.message))
+  }
+
+  if (!data || data.length === 0) {
+    return err(new Error('Failed to create weekend group'))
+  }
+
+  return ok({
+    groupId: input.groupId,
+    weekends: toWeekendGroup(
+      (data as RawWeekendRecord[]).map(toWeekendWithGroup)
+    ),
+  })
+}
+
+export async function updateWeekendGroup(
+  groupId: string,
+  updates: UpdateWeekendGroupInput
+): Promise<Result<Error, WeekendGroupWithId>> {
+  if (!groupId) {
+    return err(new Error('group_id is required to update a group'))
+  }
+
+  if (!updates.mens && !updates.womens) {
+    return err(
+      new Error('No updates were provided for either mens or womens weekend')
+    )
+  }
+
+  const supabase = await createClient()
+
+  const applyUpdate = async (
+    type: WeekendType,
+    payload?: WeekendUpdateInput
+  ): Promise<Result<Error, WeekendWithGroup | null>> => {
+    if (!payload) {
+      return ok(null)
+    }
+
+    if (!hasDefinedUpdateValues(payload)) {
+      return ok(null)
+    }
+
+    const { data, error } = await supabase
+      .from('weekends')
+      .update(payload)
+      .eq('group_id', groupId)
+      .eq('type', type)
+      .select('*')
+      .single()
+
+    if (isSupabaseError(error)) {
+      return err(new Error(error?.message))
+    }
+
+    if (!data) {
+      return err(new Error(`Failed to update ${type} weekend`))
+    }
+
+    return ok(toWeekendWithGroup(data as RawWeekendRecord))
+  }
+
+  const mensResult = await applyUpdate('MENS', updates.mens)
+  if (isErr(mensResult)) {
+    return err(mensResult.error)
+  }
+
+  const womensResult = await applyUpdate('WOMENS', updates.womens)
+  if (isErr(womensResult)) {
+    return err(womensResult.error)
+  }
+
+  return getWeekendGroup(groupId)
+}
+
+export async function deleteWeekendGroup(
+  groupId: string
+): Promise<Result<Error, { success: boolean }>> {
+  if (!groupId) {
+    return err(new Error('group_id is required to delete a group'))
+  }
+
+  const supabase = await createClient()
+
+  const { error: weekendDeleteError } = await supabase
+    .from('weekends')
+    .delete()
+    .eq('group_id', groupId)
+
+  if (isSupabaseError(weekendDeleteError)) {
+    return err(new Error(weekendDeleteError?.message))
+  }
+
+  return ok({ success: true })
+}
+
+const normalizeSidebarTitle = (title?: string | null) => {
+  if (!title) {
+    return null
+  }
+
+  const trimmed = title.trim()
+  return trimmed.length === 0 ? null : trimmed
+}
+
+export type WeekendSidebarPayload = {
+  groupId?: string | null
+  title?: string
+  mensStart: string
+  mensEnd: string
+  womensStart: string
+  womensEnd: string
+}
+
+export async function saveWeekendGroupFromSidebar(
+  payload: WeekendSidebarPayload
+): Promise<Result<Error, WeekendGroupWithId>> {
+  const sharedTitle = normalizeSidebarTitle(payload.title)
+
+  const mensCreate: WeekendWriteInput = {
+    start_date: payload.mensStart,
+    end_date: payload.mensEnd,
+    title: `Mens ${sharedTitle}`,
+  }
+
+  const womensCreate: WeekendWriteInput = {
+    start_date: payload.womensStart,
+    end_date: payload.womensEnd,
+    title: `Womens ${sharedTitle}`,
+  }
+
+  if (!payload.groupId) {
+    const groupId = randomUUID()
+    return createWeekendGroup({
+      groupId,
+      mens: mensCreate,
+      womens: womensCreate,
+    })
+  }
+
+  const mensUpdate: WeekendUpdateInput = {
+    start_date: payload.mensStart,
+    end_date: payload.mensEnd,
+    title: sharedTitle,
+  }
+
+  const womensUpdate: WeekendUpdateInput = {
+    start_date: payload.womensStart,
+    end_date: payload.womensEnd,
+    title: sharedTitle,
+  }
+
+  const updates: UpdateWeekendGroupInput = {
+    mens: mensUpdate,
+    womens: womensUpdate,
+  }
+
+  return updateWeekendGroup(payload.groupId, updates)
 }
 
 /**
@@ -298,4 +625,11 @@ export async function recordManualPayment(
   )
 
   return ok(paymentRecord)
+}
+
+/**
+ * Returns true when at least one field in the payload is defined.
+ */
+const hasDefinedUpdateValues = (payload: WeekendUpdateInput): boolean => {
+  return Object.values(payload).some((value) => value !== undefined)
 }
