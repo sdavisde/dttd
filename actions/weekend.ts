@@ -59,25 +59,6 @@ const prepareInsertPayload = (
   title: payload.title ?? null,
 })
 
-/**
- * This function sanitizes the update payload by removing undefined values.
- * 
- * @param payload 
- * @returns Record<string, unknown>
- */
-const sanitizeUpdatePayload = (
-  payload: WeekendUpdateInput
-): Record<string, unknown> => {
-  return Object.entries(payload).reduce<Record<string, unknown>>(
-    (acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = value
-      }
-      return acc
-    },
-    {}
-  )
-}
 
 export async function getActiveWeekends(): Promise<
   Result<Error, Record<WeekendType, Weekend | null>>
@@ -256,15 +237,13 @@ export async function updateWeekendGroup(
       return ok(null)
     }
 
-    const sanitized = sanitizeUpdatePayload(payload)
-
-    if (Object.keys(sanitized).length === 0) {
+    if (!hasDefinedUpdateValues(payload)) {
       return ok(null)
     }
 
     const { data, error } = await supabase
       .from('weekends')
-      .update(sanitized)
+      .update(payload)
       .eq('group_id', groupId)
       .eq('type', type)
       .select('*')
@@ -646,4 +625,11 @@ export async function recordManualPayment(
   )
 
   return ok(paymentRecord)
+}
+
+/**
+ * Returns true when at least one field in the payload is defined.
+ */
+const hasDefinedUpdateValues = (payload: WeekendUpdateInput): boolean => {
+  return Object.values(payload).some((value) => value !== undefined)
 }
