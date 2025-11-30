@@ -1,9 +1,6 @@
-'use client'
-
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
