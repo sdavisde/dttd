@@ -1,20 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { CalendarRange, Edit } from 'lucide-react'
+import { Edit } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import {
-  Weekend,
-  WeekendGroupWithId,
-  WeekendType,
-} from '@/lib/weekend/types'
-import {
-  formatDateLabel,
-  toLocalDateFromISO,
-} from '@/lib/weekend/scheduling'
+import { Weekend, WeekendGroupWithId, WeekendType } from '@/lib/weekend/types'
+import { formatDateLabel, toLocalDateFromISO } from '@/lib/weekend/scheduling'
+import { formatWeekendTitle } from '@/lib/weekend'
+import { isNil } from 'lodash'
 
 interface WeekendGroupCardProps {
   group: WeekendGroupWithId
@@ -27,19 +21,6 @@ type WeekendSummary = {
   label: string
   weekend: Weekend | null
   type: WeekendType
-}
-
-const formatWeekendTitle = (weekend: Weekend | null, label: string) => {
-  if (!weekend) {
-    return `${label} TBD`
-  }
-
-  if (weekend.title) {
-    return weekend.title
-  }
-
-  const numberSuffix = weekend.number ? ` #${weekend.number}` : ''
-  return `${label}${numberSuffix}`
 }
 
 const formatDateRange = (start?: string | null, end?: string | null) => {
@@ -75,9 +56,6 @@ export function WeekendGroupCard({
     }
   }
 
-  const sharedNumber =
-    group.weekends.MENS?.number ?? group.weekends.WOMENS?.number ?? null
-
   return (
     <div
       className={cn(
@@ -96,18 +74,21 @@ export function WeekendGroupCard({
         )}
       >
         <div className="space-y-3 ml-7">
-          {weekendSummaries.map(({ label, weekend, type }) => (
-            <div key={type} className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <Typography variant="small" className="font-semibold">
-                  {formatWeekendTitle(weekend, label)}
+          {weekendSummaries
+            .filter((it) => !isNil(it.weekend))
+            .map(({ weekend, type }) => (
+              <div key={type} className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Typography variant="small" className="font-semibold">
+                    {/* Safe assertion because of filter above */}
+                    {formatWeekendTitle(weekend!)}
+                  </Typography>
+                </div>
+                <Typography variant="small" className="text-muted-foreground">
+                  {formatDateRange(weekend?.start_date, weekend?.end_date)}
                 </Typography>
               </div>
-              <Typography variant="small" className="text-muted-foreground">
-                {formatDateRange(weekend?.start_date, weekend?.end_date)}
-              </Typography>
-            </div>
-          ))}
+            ))}
         </div>
 
         {canEdit && isHovered && (

@@ -74,3 +74,7 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
     return 'Invalid Date'
   }
 }
+
+export const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
