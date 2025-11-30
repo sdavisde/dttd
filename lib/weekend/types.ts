@@ -19,6 +19,40 @@ export type WeekendType = 'MENS' | 'WOMENS'
 
 export type WeekendStatus = string // 'FINISHED' | 'ACTIVE' | 'PLANNING'
 
+export type WeekendWithGroup = Weekend & { group_id: string | null }
+
+export type RawWeekendRecord = Weekend & {
+  group_id?: string | null
+}
+
+export type WeekendGroup = Record<WeekendType, Weekend | null>
+
+export type WeekendGroupWithId = {
+  groupId: string
+  weekends: WeekendGroup
+}
+
+export type WeekendWriteInput = {
+  start_date: string
+  end_date: string
+  number?: number | null
+  status?: WeekendStatus | null
+  title?: string | null
+}
+
+export type WeekendUpdateInput = Partial<WeekendWriteInput>
+
+export type CreateWeekendGroupInput = {
+  groupId: string
+  mens: WeekendWriteInput
+  womens: WeekendWriteInput
+}
+
+export type UpdateWeekendGroupInput = {
+  mens?: WeekendUpdateInput
+  womens?: WeekendUpdateInput
+}
+
 export enum CHARole {
   RECTOR = 'Rector',
   HEAD = 'Head',
