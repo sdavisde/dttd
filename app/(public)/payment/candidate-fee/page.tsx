@@ -22,7 +22,9 @@ interface CandidateFeesPaymentPageProps {
  * If the candidate is awaiting payment, the page will render a stripe checkout page.
  *
  */
-export default async function CandidateFeesPaymentPage({ searchParams }: CandidateFeesPaymentPageProps) {
+export default async function CandidateFeesPaymentPage({
+  searchParams,
+}: CandidateFeesPaymentPageProps) {
   const { candidate_id } = await searchParams
 
   const candidateFeePriceId = process.env.CANDIDATE_FEE_PRICE_ID
@@ -36,8 +38,12 @@ export default async function CandidateFeesPaymentPage({ searchParams }: Candida
 
   const candidateResult = await getHydratedCandidate(candidate_id)
   if (Results.isErr(candidateResult)) {
-    logger.error(`Failed to fetch candidate ${candidate_id}:`, candidateResult.error)
-    return Results.err(new Error(`Failed to fetch candidate: ${candidateResult.error.message}`))
+    logger.error(
+      `Failed to fetch candidate ${candidate_id}: ${candidateResult.error.message}`
+    )
+    return Results.err(
+      new Error(`Failed to fetch candidate: ${candidateResult.error.message}`)
+    )
   }
 
   const candidate = candidateResult.data
@@ -54,17 +60,25 @@ export default async function CandidateFeesPaymentPage({ searchParams }: Candida
   // Validate payment_owner parameter
   if (
     candidate.candidate_sponsorship_info?.payment_owner &&
-    !['candidate', 'sponsor'].includes(candidate.candidate_sponsorship_info.payment_owner)
+    !['candidate', 'sponsor'].includes(
+      candidate.candidate_sponsorship_info.payment_owner
+    )
   ) {
     redirect('/home?error=invalid_payment_owner')
   }
 
   return (
-    <div className='payment-page'>
+    <div className="payment-page">
       <Checkout
         priceId={candidateFeePriceId}
-        metadata={{ candidate_id, payment_owner: candidate.candidate_sponsorship_info?.payment_owner ?? '' }}
-        returnUrl={getUrl('/payment/candidate-fee/success?session_id={CHECKOUT_SESSION_ID}')}
+        metadata={{
+          candidate_id,
+          payment_owner:
+            candidate.candidate_sponsorship_info?.payment_owner ?? '',
+        }}
+        returnUrl={getUrl(
+          '/payment/candidate-fee/success?session_id={CHECKOUT_SESSION_ID}'
+        )}
       />
     </div>
   )

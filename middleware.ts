@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  logger.info('running middleware', req.nextUrl.pathname)
+  logger.info(`running middleware: ${req.nextUrl.pathname}`)
   return await updateSession(req)
 }
 

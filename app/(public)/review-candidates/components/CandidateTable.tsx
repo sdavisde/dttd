@@ -1,6 +1,14 @@
 'use client'
 
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { cn } from '@/lib/utils'
@@ -10,7 +18,10 @@ interface CandidateTableProps {
   onRowClick: (candidate: HydratedCandidate) => void
 }
 
-export function CandidateTable({ candidates, onRowClick }: CandidateTableProps) {
+export function CandidateTable({
+  candidates,
+  onRowClick,
+}: CandidateTableProps) {
   return (
     <>
       {/* Desktop Table - Hidden on mobile */}
@@ -31,15 +42,26 @@ export function CandidateTable({ candidates, onRowClick }: CandidateTableProps) 
               <TableRow
                 key={candidate.id}
                 onClick={() => onRowClick(candidate)}
-                className={cn(index % 2 === 0 ? 'bg-transparent' : 'bg-muted', 'hover:bg-muted/50 cursor-pointer')}
+                className={cn(
+                  index % 2 === 0 ? 'bg-transparent' : 'bg-muted',
+                  'hover:bg-muted/50 cursor-pointer'
+                )}
               >
-                <TableCell>{candidate.candidate_sponsorship_info?.candidate_name}</TableCell>
-                <TableCell>{candidate.candidate_sponsorship_info?.candidate_email}</TableCell>
-                <TableCell>{candidate.candidate_sponsorship_info?.sponsor_name}</TableCell>
                 <TableCell>
-                  {candidate.weekends?.type === 'MENS' ? "Men's" : candidate.weekends?.type === 'WOMENS' ? "Women's" : 'Unassigned'}
+                  {candidate.candidate_sponsorship_info?.candidate_name}
                 </TableCell>
-                <TableCell>{new Date(candidate.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {candidate.candidate_sponsorship_info?.candidate_email}
+                </TableCell>
+                <TableCell>
+                  {candidate.candidate_sponsorship_info?.sponsor_name}
+                </TableCell>
+                {/*<TableCell>
+                  {candidate.weekends?.type === 'MENS' ? "Men's" : candidate.weekends?.type === 'WOMENS' ? "Women's" : 'Unassigned'}
+                </TableCell>*/}
+                <TableCell>
+                  {new Date(candidate.created_at).toLocaleDateString()}
+                </TableCell>
                 <TableCell>
                   <StatusChip status={candidate.status} />
                 </TableCell>
@@ -65,7 +87,8 @@ export function CandidateTable({ candidates, onRowClick }: CandidateTableProps) 
               {/* Header with name and status */}
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">
-                  {candidate.candidate_sponsorship_info?.candidate_name || 'Unknown Candidate'}
+                  {candidate.candidate_sponsorship_info?.candidate_name ||
+                    'Unknown Candidate'}
                 </h3>
                 <StatusChip status={candidate.status} />
               </div>
@@ -74,23 +97,33 @@ export function CandidateTable({ candidates, onRowClick }: CandidateTableProps) 
               <div className="space-y-2 text-sm">
                 <div className="flex">
                   <span className="text-muted-foreground w-16">Email:</span>
-                  <span>{candidate.candidate_sponsorship_info?.candidate_email || 'Not provided'}</span>
-                </div>
-                <div className="flex">
-                  <span className="text-muted-foreground w-16">Sponsor:</span>
-                  <span>{candidate.candidate_sponsorship_info?.sponsor_name || 'Unknown'}</span>
-                </div>
-                <div className="flex">
-                  <span className="text-muted-foreground w-16">Weekend:</span>
                   <span>
-                    {candidate.weekends?.type === 'MENS' ? "Men's Weekend" :
-                     candidate.weekends?.type === 'WOMENS' ? "Women's Weekend" :
-                     'Unassigned'}
+                    {candidate.candidate_sponsorship_info?.candidate_email ||
+                      'Not provided'}
                   </span>
                 </div>
                 <div className="flex">
+                  <span className="text-muted-foreground w-16">Sponsor:</span>
+                  <span>
+                    {candidate.candidate_sponsorship_info?.sponsor_name ||
+                      'Unknown'}
+                  </span>
+                </div>
+                {/*<div className="flex">
+                  <span className="text-muted-foreground w-16">Weekend:</span>
+                  <span>
+                    {candidate.weekends?.type === 'MENS'
+                      ? "Men's Weekend"
+                      : candidate.weekends?.type === 'WOMENS'
+                        ? "Women's Weekend"
+                        : 'Unassigned'}
+                  </span>
+                </div>*/}
+                <div className="flex">
                   <span className="text-muted-foreground w-16">Submitted:</span>
-                  <span>{new Date(candidate.created_at).toLocaleDateString()}</span>
+                  <span>
+                    {new Date(candidate.created_at).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </div>

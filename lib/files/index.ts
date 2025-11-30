@@ -21,7 +21,7 @@ export async function getBuckets(): Promise<Bucket[]> {
     await supabase.storage.listBuckets()
 
   if (bucketsError) {
-    logger.error('Error fetching buckets:', bucketsError)
+    logger.error(`Error fetching buckets: ${bucketsError.message}`)
     return []
   }
 
@@ -33,8 +33,7 @@ export async function getBuckets(): Promise<Bucket[]> {
 
       if (foldersError) {
         logger.error(
-          `Error fetching folders for bucket ${bucket.name}:`,
-          foldersError
+          `Error fetching folders for bucket ${bucket.name}: ${foldersError.message}`
         )
         return { name: bucket.name, folders: [] }
       }
@@ -120,7 +119,7 @@ export async function getFileFolders(isAdmin: boolean = false) {
     const { data, error } = await supabase.storage.from('files').list('')
 
     if (error) {
-      logger.error('Error fetching root folders:', error)
+      logger.error(`Error fetching root folders: ${error.message}`)
       return []
     }
 
@@ -136,7 +135,7 @@ export async function getFileFolders(isAdmin: boolean = false) {
       }))
       .sort((a, b) => a.title.localeCompare(b.title))
   } catch (error) {
-    logger.error('Error in getFileFolders:', error)
+    logger.error(`Error in getFileFolders: ${error instanceof Error ? error.message : String(error)}`)
     return []
   }
 }

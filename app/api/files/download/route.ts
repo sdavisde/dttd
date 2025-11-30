@@ -13,14 +13,14 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient()
-    
+
     // Get file data
     const { data: fileData, error: downloadError } = await supabase.storage
       .from(bucket)
       .download(path)
 
     if (downloadError) {
-      logger.error('Error downloading file:', downloadError)
+      logger.error(`Error downloading file: ${downloadError.message}`)
       return new NextResponse('File not found', { status: 404 })
     }
 
@@ -28,12 +28,13 @@ export async function GET(request: NextRequest) {
     const { data: fileInfo } = await supabase.storage
       .from(bucket)
       .list(path.split('/').slice(0, -1).join('/') || '', {
-        search: path.split('/').pop()
+        search: path.split('/').pop(),
       })
 
     const fileName = path.split('/').pop() || 'download'
     const fileMetadata = fileInfo?.[0]
-    const contentType = fileMetadata?.metadata?.mimetype || 'application/octet-stream'
+    const contentType =
+      fileMetadata?.metadata?.mimetype || 'application/octet-stream'
 
     // Convert blob to array buffer
     const arrayBuffer = await fileData.arrayBuffer()
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error('Error in file download route:', error)
+    logger.error(`Error in file download route: ${error}`)
     return new NextResponse('Internal server error', { status: 500 })
   }
 }

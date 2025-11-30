@@ -43,7 +43,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
     const users: User[] = data
       .map((u) => {
         if (!u.email) {
-          logger.error('User has no email', { userId: u.id })
+          logger.error({ userId: u.id }, `User has no email`)
           return null
         }
 
@@ -136,7 +136,6 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
     }
 
     if (!user.email) {
-      logger.error('User has no email', { userId: authUser.id })
       return err(new Error('User has no email'))
     }
 

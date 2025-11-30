@@ -51,7 +51,7 @@ export default async function CandidateFeePaymentSuccessPage({
     .eq('id', metadata.candidateId)
 
   if (updateError) {
-    logger.error('Failed to update candidate status:', updateError)
+    logger.error(`Failed to update candidate status: ${updateError.message}`)
   }
 
   return (

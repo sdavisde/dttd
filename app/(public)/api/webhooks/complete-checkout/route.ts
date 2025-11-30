@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
     } catch (err) {
-      logger.error('Webhook signature verification failed:', err)
+      logger.error(err, `Webhook signature verification failed`)
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
 
@@ -46,8 +46,7 @@ export async function POST(request: NextRequest) {
 
     if (!session.payment_intent || typeof session.payment_intent !== 'string') {
       logger.error(
-        session.payment_intent,
-        '💢 Missing payment intent in session'
+        `💢 Missing payment intent in session: ${session.payment_intent}`
       )
       return NextResponse.json(
         { error: 'Missing payment intent' },
@@ -55,7 +54,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`Processing completed checkout session:`, session)
+    logger.info(session, `Processing completed checkout session`)
 
     const priceId = session.metadata?.price_id
 
@@ -71,8 +70,8 @@ export async function POST(request: NextRequest) {
           await candidateIsAwaitingPayment(candidateId)
         if (isErr(candidateIsAwaitingPaymentResult)) {
           logger.error(
-            candidateIsAwaitingPaymentResult.error,
-            '💢 Candidate is not awaiting payment'
+            candidateIsAwaitingPaymentResult,
+            `💢 Candidate is not awaiting payment`
           )
           return NextResponse.json(
             { error: candidateIsAwaitingPaymentResult.error },
@@ -91,8 +90,7 @@ export async function POST(request: NextRequest) {
         )
         if (isErr(recordCandidatePaymentResult)) {
           logger.error(
-            recordCandidatePaymentResult.error,
-            '💢 Failed to record candidate payment'
+            `💢 Failed to record candidate payment ${recordCandidatePaymentResult.error}`
           )
           return NextResponse.json(
             { error: recordCandidatePaymentResult.error },
@@ -107,8 +105,7 @@ export async function POST(request: NextRequest) {
         const confirmCandidateResult = await confirmCandidate(candidateId!)
         if (isErr(confirmCandidateResult)) {
           logger.error(
-            confirmCandidateResult.error,
-            '💢 Failed to confirm candidate'
+            `💢 Failed to confirm candidate ${candidateId} ${confirmCandidateResult.error}`
           )
           return NextResponse.json(
             { error: confirmCandidateResult.error },
@@ -129,8 +126,8 @@ export async function POST(request: NextRequest) {
         )
         if (isErr(weekendRosterRecord)) {
           logger.error(
-            weekendRosterRecord.error,
-            '💢 Failed to get weekend_roster record'
+            weekendRosterRecord,
+            `💢 Failed to get weekend_roster record`
           )
           return NextResponse.json(
             { error: weekendRosterRecord.error },
@@ -148,8 +145,8 @@ export async function POST(request: NextRequest) {
         )
         if (isErr(weekendRosterPaymentRecord)) {
           logger.error(
-            weekendRosterPaymentRecord.error,
-            '💢 Failed to record weekend_roster_payment'
+            weekendRosterPaymentRecord,
+            `💢 Failed to record weekend_roster_payment`
           )
           return NextResponse.json(
             { error: weekendRosterPaymentRecord.error },
@@ -166,8 +163,8 @@ export async function POST(request: NextRequest) {
         )
         if (isErr(markTeamMemberAsPaidResult)) {
           logger.error(
-            markTeamMemberAsPaidResult.error,
-            '💢 Failed to mark team member as paid'
+            markTeamMemberAsPaidResult,
+            `💢 Failed to mark team member as paid`
           )
           return NextResponse.json(
             { error: markTeamMemberAsPaidResult.error },
@@ -181,15 +178,16 @@ export async function POST(request: NextRequest) {
           ? session.amount_total / 100
           : 0
 
-        const notifyAssistantHeadResult = await notifyAssistantHeadForTeamPayment(
-          teamUserId,
-          weekendId,
-          paymentAmount
-        )
+        const notifyAssistantHeadResult =
+          await notifyAssistantHeadForTeamPayment(
+            teamUserId,
+            weekendId,
+            paymentAmount
+          )
         if (isErr(notifyAssistantHeadResult)) {
           logger.error(
-            notifyAssistantHeadResult.error,
-            '💢 Failed to notify assistant head of team payment'
+            notifyAssistantHeadResult,
+            `💢 Failed to notify assistant head of team payment`
           )
           // The payment was processed successfully, so we don't return an error here
         } else {
@@ -205,7 +203,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    logger.error('💢 Webhook processing error:', error)
+    logger.error(error, `💢 Webhook processing error`)
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

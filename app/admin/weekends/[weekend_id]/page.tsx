@@ -11,7 +11,6 @@ import { notFound } from 'next/navigation'
 import { AddTeamMemberButton } from './add-team-member-button'
 import { WeekendRosterTable } from './weekend-roster-table'
 import { DroppedRosterSection, ActiveRosterHeader } from '@/components/weekend'
-import { splitRosterByStatus } from '@/lib/weekend/roster-utils'
 import { formatDateTime } from '@/lib/utils'
 import { Datetime } from '@/components/ui/datetime'
 

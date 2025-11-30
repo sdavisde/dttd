@@ -47,7 +47,7 @@ export async function getAllPayments(): Promise<
     // 3. Test payment_owner field population vs candidate name fallback
     // 4. Ensure candidate payment records are being created in the payment flow
     // Uncomment and test the code below once candidate payment system is ready:
-    
+
     // Fetch candidate payments
     // const { data: candidatePayments, error: candidateError } = await supabase
     //   .from('candidate_payments')

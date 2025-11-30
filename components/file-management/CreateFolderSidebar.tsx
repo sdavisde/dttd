@@ -93,7 +93,7 @@ export function CreateFolderSidebar({
           ? err.message
           : 'An error occurred while creating the folder'
       setError(errorMessage)
-      logger.error('Error creating folder:', err)
+      logger.error(`Error creating folder: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setLoading(false)
     }

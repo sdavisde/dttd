@@ -4,7 +4,7 @@ import { CalendarDays } from 'lucide-react'
 import { WeekendGroupWithId } from '@/lib/weekend/types'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
-import { WeekendGroupCard } from './WeekendGroupCard'
+import { WeekendGroupContainer } from './WeekendGroupContainer'
 
 interface WeekendGroupGridProps {
   groups: WeekendGroupWithId[]
@@ -42,7 +42,7 @@ export function WeekendGroupGrid({
   return (
     <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
       {groups.map((group) => (
-        <WeekendGroupCard
+        <WeekendGroupContainer
           key={group.groupId}
           group={group}
           canEdit={canEdit && !isPast}

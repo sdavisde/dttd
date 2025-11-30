@@ -50,11 +50,11 @@ export function CandidateReviewTable({
         setSelectedCandidate(null)
         window.location.reload()
       } else {
-        logger.error('Failed to delete candidate:', result.error)
+        logger.error(`Failed to delete candidate: ${result.error.message}`)
         alert(`Failed to delete: ${result.error.message}`)
       }
     } catch (error) {
-      logger.error('Error deleting candidate:', error)
+      logger.error('Error deleting candidate')
       alert('An unexpected error occurred while deleting')
     } finally {
       setIsDeleting(false)
@@ -76,7 +76,7 @@ export function CandidateReviewTable({
   }
 
   const onSendForms = async () => {
-    logger.info('Sending candidate forms:', selectedCandidate?.id)
+    logger.info(`Sending candidate forms: ${selectedCandidate?.id}`)
 
     const candidateSponsorshipInfo =
       selectedCandidate?.candidate_sponsorship_info
@@ -91,7 +91,7 @@ export function CandidateReviewTable({
       'awaiting_forms'
     )
     if (Results.isErr(result)) {
-      logger.error('Failed to update candidate status:', result.error)
+      logger.error(`Failed to update candidate status: ${result.error.message}`)
       return
     }
 
@@ -100,8 +100,7 @@ export function CandidateReviewTable({
     )
     if (Results.isErr(candidateFormsResult)) {
       logger.error(
-        'Failed to send candidate forms:',
-        candidateFormsResult.error
+        `Failed to send candidate forms: ${candidateFormsResult.error.message}`
       )
       return
     }
@@ -113,7 +112,7 @@ export function CandidateReviewTable({
   }
 
   const onSendPaymentRequest = async () => {
-    logger.info('Sending payment request:', selectedCandidate?.id)
+    logger.info(`Sending payment request: ${selectedCandidate?.id}`)
 
     if (!selectedCandidate) {
       logger.error('No candidate selected to send payment request')
@@ -123,7 +122,9 @@ export function CandidateReviewTable({
     const result = await sendPaymentRequestEmail(selectedCandidate.id)
 
     if (Results.isErr(result)) {
-      logger.error('Failed to send payment request email:', result.error)
+      logger.error(
+        `Failed to send payment request email: ${result.error.message}`
+      )
       alert(`Failed to send payment request email: ${result.error.message}`)
     }
 
@@ -135,10 +136,7 @@ export function CandidateReviewTable({
 
   return (
     <>
-      <CandidateTable
-        candidates={candidates}
-        onRowClick={handleRowClick}
-      />
+      <CandidateTable candidates={candidates} onRowClick={handleRowClick} />
 
       <StatusLegend />
 

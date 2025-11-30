@@ -51,7 +51,7 @@ export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
       .from('files')
       .download(`${folderName}/${file.name}`)
     if (error) {
-      logger.error('Error downloading file:', error)
+      logger.error(`Error downloading file: ${error.message}`)
       return
     }
     const url = window.URL.createObjectURL(data)

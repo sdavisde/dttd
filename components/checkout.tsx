@@ -123,7 +123,7 @@ export default function Checkout({
 
   // Show error state
   if (error) {
-    logger.error(user?.id, user?.email, error)
+    logger.error(`Checkout error - userId: ${user?.id}, email: ${user?.email}, error: ${error}`)
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <Typography variant="h5" className="text-red-600 text-center">

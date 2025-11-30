@@ -116,7 +116,7 @@ export function FolderSidebar({
           ? err.message
           : 'An error occurred while saving the folder'
       setError(errorMessage)
-      logger.error('Error saving folder:', err)
+      logger.error(`Error saving folder: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setLoading(false)
     }

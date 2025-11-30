@@ -40,8 +40,7 @@ export default async function TeamFeesPaymentPage({
   const weekendRosterRecord = await getWeekendRosterRecord(user.id, weekend_id)
   if (isErr(weekendRosterRecord)) {
     logger.error(
-      'Error fetching weekend roster record',
-      weekendRosterRecord.error
+      `Error fetching weekend roster record ${weekendRosterRecord.error}`
     )
     return (
       <div className="h-[80vh] w-screen flex items-center justify-center p-4">

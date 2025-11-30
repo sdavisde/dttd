@@ -9,7 +9,7 @@ async function getNavElements() {
     await supabase.storage.listBuckets()
 
   if (bucketsError) {
-    logger.error('Error fetching buckets:', bucketsError)
+    logger.error(`Error fetching buckets: ${bucketsError.message}`)
     return []
   }
 

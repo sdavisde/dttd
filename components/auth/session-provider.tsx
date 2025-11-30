@@ -30,21 +30,23 @@ export function SessionProvider({ children }: SessionProviderProps) {
       setIsLoading(true)
       try {
         const userResult = await getLoggedInUser()
-        
+
         const pathIsPublic =
           PUBLIC_REGEX_ROUTES.some((route) => route.test(pathname)) ||
           SKIP_REGEX_ROUTES.some((route) => route.test(pathname))
 
         if (userResult && isErr(userResult) && !pathIsPublic) {
-          logger.error(`Error fetching user at path ${pathname}`, {
-            error: userResult.error,
-          })
+          logger.error(
+            `Error fetching user at path ${pathname} error: ${userResult.error.message}`
+          )
           setUser(null)
         } else {
           setUser(userResult?.data ?? null)
         }
       } catch (error) {
-        logger.error(`Unexpected error fetching user at path ${pathname}`, { error })
+        logger.error(
+          `Unexpected error fetching user at path ${pathname} error: ${error}`
+        )
         setUser(null)
       } finally {
         setIsLoading(false)

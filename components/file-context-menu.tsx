@@ -114,7 +114,7 @@ export function FileContextMenu({
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to rename item')
-      logger.error('Error renaming item:', err)
+      logger.error(`Error renaming item: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setLoading(false)
     }
@@ -160,7 +160,7 @@ export function FileContextMenu({
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete item')
-      logger.error('Error deleting item:', err)
+      logger.error(`Error deleting item: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setLoading(false)
     }

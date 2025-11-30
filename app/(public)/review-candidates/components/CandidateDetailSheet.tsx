@@ -72,7 +72,7 @@ export function CandidateDetailSheet({
           </div>
 
           {/* Weekend Assignment */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+          {/*<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
             <div>
               <Typography variant="small" className="text-muted-foreground">
                 Weekend Assignment
@@ -91,7 +91,7 @@ export function CandidateDetailSheet({
                 {candidate.weekends?.title || 'N/A'}
               </Typography>
             </div>
-          </div>
+          </div>*/}
 
           {/* Candidate Assessment (from Sponsor) */}
           <Typography variant="h6" className="mb-2">
@@ -178,7 +178,10 @@ export function CandidateDetailSheet({
               <Typography variant="h6" className="mb-2">
                 Candidate Form Details
               </Typography>
-              <Typography variant="small" className="text-muted-foreground mb-2">
+              <Typography
+                variant="small"
+                className="text-muted-foreground mb-2"
+              >
                 Information provided by the candidate:
               </Typography>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
@@ -187,7 +190,8 @@ export function CandidateDetailSheet({
                     Full Name
                   </Typography>
                   <Typography variant="p">
-                    {candidate.candidate_info.first_name} {candidate.candidate_info.last_name}
+                    {candidate.candidate_info.first_name}{' '}
+                    {candidate.candidate_info.last_name}
                   </Typography>
                 </div>
                 <div>
@@ -228,7 +232,9 @@ export function CandidateDetailSheet({
                       <>, {candidate.candidate_info.address_line_2}</>
                     )}
                     <br />
-                    {candidate.candidate_info.city}, {candidate.candidate_info.state} {candidate.candidate_info.zip}
+                    {candidate.candidate_info.city},{' '}
+                    {candidate.candidate_info.state}{' '}
+                    {candidate.candidate_info.zip}
                   </Typography>
                 </div>
                 <div>
@@ -329,9 +335,14 @@ export function CandidateDetailSheet({
                   Attends Secuela
                 </Typography>
                 <Typography variant="p">
-                  {candidate.candidate_sponsorship_info?.attends_secuela === 'yes' ? 'Yes' :
-                   candidate.candidate_sponsorship_info?.attends_secuela === 'no' ? 'No' :
-                   candidate.candidate_sponsorship_info?.attends_secuela || 'Not specified'}
+                  {candidate.candidate_sponsorship_info?.attends_secuela ===
+                  'yes'
+                    ? 'Yes'
+                    : candidate.candidate_sponsorship_info?.attends_secuela ===
+                        'no'
+                      ? 'No'
+                      : candidate.candidate_sponsorship_info?.attends_secuela ||
+                        'Not specified'}
                 </Typography>
               </div>
               <div>
@@ -351,9 +362,14 @@ export function CandidateDetailSheet({
                   Payment Owner
                 </Typography>
                 <Typography variant="p">
-                  {candidate.candidate_sponsorship_info?.payment_owner === 'sponsor' ? 'Sponsor' :
-                   candidate.candidate_sponsorship_info?.payment_owner === 'candidate' ? 'Candidate' :
-                   candidate.candidate_sponsorship_info?.payment_owner || 'Not specified'}
+                  {candidate.candidate_sponsorship_info?.payment_owner ===
+                  'sponsor'
+                    ? 'Sponsor'
+                    : candidate.candidate_sponsorship_info?.payment_owner ===
+                        'candidate'
+                      ? 'Candidate'
+                      : candidate.candidate_sponsorship_info?.payment_owner ||
+                        'Not specified'}
                 </Typography>
               </div>
             </div>

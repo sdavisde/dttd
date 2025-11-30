@@ -59,8 +59,8 @@ export async function sendSponsorshipNotificationEmail(
 
     if (error) {
       logger.error(
-        `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}`,
-        error
+        error,
+        `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}`
       )
       return err(new Error(`Failed to send email: ${error.message}`))
     }
@@ -121,8 +121,7 @@ export async function sendPaymentRequestEmail(
     const candidateResult = await getHydratedCandidate(candidateId)
     if (isErr(candidateResult)) {
       logger.error(
-        `Failed to fetch candidate ${candidateId}:`,
-        candidateResult.error
+        `Failed to fetch candidate ${candidateId}: ${candidateResult.error.message}`
       )
       return err(
         new Error(`Failed to fetch candidate: ${candidateResult.error.message}`)
@@ -187,10 +186,7 @@ export async function sendPaymentRequestEmail(
 
     if (error) {
       logger.error(
-        `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}`,
-        {
-          error,
-        }
+        `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${error.message}`
       )
       return err(new Error(`Failed to send email: ${error.message}`))
     }
@@ -207,10 +203,7 @@ export async function sendPaymentRequestEmail(
 
     if (updateError) {
       logger.error(
-        `Failed to update candidate status to awaiting_payment for ${candidate.candidate_sponsorship_info?.candidate_name}`,
-        {
-          error: updateError,
-        }
+        `Failed to update candidate status to awaiting_payment for ${candidate.candidate_sponsorship_info?.candidate_name}: ${updateError.message}`
       )
       // Don't return error here as the email was sent successfully
     } else {
@@ -221,7 +214,9 @@ export async function sendPaymentRequestEmail(
 
     return ok({ data })
   } catch (error) {
-    logger.error(`Error while sending payment request email:`, error)
+    logger.error(
+      `Error while sending payment request email: ${error instanceof Error ? error.message : String(error)}`
+    )
     return err(
       new Error(
         `Error while sending payment request email: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -246,52 +241,60 @@ export async function notifyAssistantHeadForTeamPayment(
     const supabase = await createClient()
 
     // Get all weekend roster data and weekend details in parallel
-    const [teamMemberResult, weekendResult, assistantHeadResult] = await Promise.all([
-      // Get team member details
-      supabase
-        .from('weekend_roster')
-        .select(`
+    const [teamMemberResult, weekendResult, assistantHeadResult] =
+      await Promise.all([
+        // Get team member details
+        supabase
+          .from('weekend_roster')
+          .select(
+            `
           *,
           users!inner(email, first_name, last_name)
-        `)
-        .eq('user_id', teamUserId)
-        .eq('weekend_id', weekendId)
-        .single(),
+        `
+          )
+          .eq('user_id', teamUserId)
+          .eq('weekend_id', weekendId)
+          .single(),
 
-      // Get weekend details
-      supabase
-        .from('weekends')
-        .select('*')
-        .eq('id', weekendId)
-        .single(),
+        // Get weekend details
+        supabase.from('weekends').select('*').eq('id', weekendId).single(),
 
-      // Find Assistant Head for this weekend
-      supabase
-        .from('weekend_roster')
-        .select(`
+        // Find Assistant Head for this weekend
+        supabase
+          .from('weekend_roster')
+          .select(
+            `
           *,
           users!inner(email, first_name, last_name)
-        `)
-        .eq('weekend_id', weekendId)
-        .eq('cha_role', 'Assistant Head')
-        .limit(1)
-        .single()
-    ])
+        `
+          )
+          .eq('weekend_id', weekendId)
+          .eq('cha_role', 'Assistant Head')
+          .limit(1)
+          .single(),
+      ])
 
     const { data: teamMember, error: teamMemberError } = teamMemberResult
     const { data: weekend, error: weekendError } = weekendResult
-    const { data: assistantHead, error: assistantHeadError } = assistantHeadResult
+    const { data: assistantHead, error: assistantHeadError } =
+      assistantHeadResult
 
     if (teamMemberError || !teamMember) {
-      return err(`💢 Failed to fetch team member details: ${teamMemberError?.message || 'Team member not found'}`)
+      return err(
+        `💢 Failed to fetch team member details: ${teamMemberError?.message || 'Team member not found'}`
+      )
     }
 
     if (weekendError || !weekend) {
-      return err(`💢 Failed to fetch weekend details: ${weekendError?.message || 'Weekend not found'}`)
+      return err(
+        `💢 Failed to fetch weekend details: ${weekendError?.message || 'Weekend not found'}`
+      )
     }
 
     if (assistantHeadError || !assistantHead) {
-      return err(`💢 Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message || 'Assistant Head not found'}`)
+      return err(
+        `💢 Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message || 'Assistant Head not found'}`
+      )
     }
 
     if (!assistantHead.users.email) {
@@ -306,15 +309,15 @@ export async function notifyAssistantHeadForTeamPayment(
       react: TeamPaymentNotificationEmail({
         teamMemberName: `${teamMember.users.first_name} ${teamMember.users.last_name}`,
         teamMemberEmail: teamMember.users.email,
-        weekendName: weekend.title || `${weekend.type} DTTD - #${weekend.number}`,
-        paymentAmount
+        weekendName:
+          weekend.title || `${weekend.type} DTTD - #${weekend.number}`,
+        paymentAmount,
       }),
     })
 
     if (error) {
       logger.error(
-        `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}`,
-        error
+        `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}: ${error.message}`
       )
       return err(`Failed to send email: ${error.message}`)
     }

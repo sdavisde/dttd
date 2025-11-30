@@ -133,7 +133,7 @@ export function EditTeamMemberModal({
         .eq('id', rosterMember.id)
 
       if (isSupabaseError(error)) {
-        logger.error(error, '💢 failed to update roster member')
+        logger.error(`💢 failed to update roster member: ${error.message}`)
         setError('root', { message: 'Failed to update roster member' })
         return
       }
@@ -164,7 +164,7 @@ export function EditTeamMemberModal({
         .eq('id', rosterMember.id)
 
       if (isSupabaseError(error)) {
-        logger.error(error, '💢 failed to drop roster member')
+        logger.error(`💢 failed to drop roster member: ${error.message}`)
         setError('root', { message: 'Failed to drop roster member' })
         return
       }
@@ -195,7 +195,7 @@ export function EditTeamMemberModal({
         .eq('id', rosterMember.id)
 
       if (isSupabaseError(error)) {
-        logger.error(error, '💢 failed to delete roster member')
+        logger.error(`💢 failed to delete roster member: ${error.message}`)
         setError('root', { message: 'Failed to delete roster member' })
         return
       }
