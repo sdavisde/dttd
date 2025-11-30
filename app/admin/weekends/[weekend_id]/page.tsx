@@ -5,6 +5,7 @@ import {
 } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { genderMatchesWeekend } from '@/lib/weekend'
+import { WeekendStatus } from '@/lib/weekend/types'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
 import { notFound } from 'next/navigation'
@@ -62,7 +63,8 @@ export default async function WeekendDetailPage({
 
   // Determine if weekend is editable (active/upcoming)
   const isEditable =
-    weekend.status === 'ACTIVE' || weekend.status === 'PLANNING'
+    weekend.status === WeekendStatus.ACTIVE ||
+    weekend.status === WeekendStatus.PLANNING
 
   const startDate = formatDateTime(weekend.start_date)
   const endDate = formatDateTime(weekend.end_date)

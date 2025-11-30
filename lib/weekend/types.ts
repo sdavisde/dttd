@@ -10,14 +10,20 @@ export type Weekend = {
   start_date: string
   end_date: string
   number: number | null
-  status: WeekendStatus | null
+  status: WeekendStatusValue | null
   title: string | null
   type: WeekendType
 }
 
 export type WeekendType = 'MENS' | 'WOMENS'
 
-export type WeekendStatus = string // 'FINISHED' | 'ACTIVE' | 'PLANNING'
+export enum WeekendStatus {
+  PLANNING = 'PLANNING',
+  ACTIVE = 'ACTIVE',
+  FINISHED = 'FINISHED',
+}
+
+export type WeekendStatusValue = `${WeekendStatus}`
 
 export type WeekendWithGroup = Weekend & { group_id: string | null }
 
@@ -36,7 +42,7 @@ export type WeekendWriteInput = {
   start_date: string
   end_date: string
   number?: number | null
-  status?: WeekendStatus | null
+  status?: WeekendStatusValue | null
   title?: string | null
 }
 

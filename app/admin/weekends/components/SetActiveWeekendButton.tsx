@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { WeekendGroupWithId } from '@/lib/weekend/types'
+import { WeekendGroupWithId, WeekendStatus } from '@/lib/weekend/types'
 import { getGroupStatus } from '@/lib/weekend'
 import { setActiveWeekendGroup } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
@@ -29,7 +29,7 @@ export function SetActiveWeekendButton({
   const [isLoading, setIsLoading] = useState(false)
 
   const currentActiveGroup = weekendGroups.find(
-    (group) => getGroupStatus(group) === 'ACTIVE'
+    (group) => getGroupStatus(group) === WeekendStatus.ACTIVE
   )
 
   const handleSetActive = async (groupId: string) => {

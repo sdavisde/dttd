@@ -10,6 +10,7 @@ import {
   Weekend,
   WeekendType,
   WeekendStatus,
+  WeekendStatusValue,
   WeekendWithGroup,
   RawWeekendRecord,
   WeekendGroup,
@@ -18,7 +19,7 @@ import {
   WeekendUpdateInput,
   CreateWeekendGroupInput,
   UpdateWeekendGroupInput,
-} from "@/lib/weekend/types"
+} from '@/lib/weekend/types'
 
 const toWeekendGroup = (weekends: WeekendWithGroup[]): WeekendGroup => ({
   MENS: weekends.find((weekend) => weekend.type === 'MENS') ?? null,
@@ -55,10 +56,9 @@ const prepareInsertPayload = (
   start_date: payload.start_date,
   end_date: payload.end_date,
   number: payload.number ?? null,
-  status: payload.status ?? null,
+  status: payload.status ?? WeekendStatus.PLANNING,
   title: payload.title ?? null,
 })
-
 
 export async function getActiveWeekends(): Promise<
   Result<Error, Record<WeekendType, Weekend | null>>
@@ -68,7 +68,7 @@ export async function getActiveWeekends(): Promise<
   const { data, error } = await supabase
     .from('weekends')
     .select('*')
-    .eq('status', 'ACTIVE')
+    .eq('status', WeekendStatus.ACTIVE)
 
   if (isSupabaseError(error)) {
     return err(new Error(error?.message))
@@ -79,8 +79,9 @@ export async function getActiveWeekends(): Promise<
   }
 
   return ok({
-    MENS: data.find((weekend) => weekend.type === 'MENS') ?? null,
-    WOMENS: data.find((weekend) => weekend.type === 'WOMENS') ?? null,
+    MENS: (data.find((weekend) => weekend.type === 'MENS') as Weekend) ?? null,
+    WOMENS:
+      (data.find((weekend) => weekend.type === 'WOMENS') as Weekend) ?? null,
   })
 }
 
@@ -113,7 +114,7 @@ export async function getWeekendGroup(
 }
 
 export async function getWeekendGroupsByStatus(
-  statuses?: WeekendStatus[]
+  statuses?: WeekendStatusValue[]
 ): Promise<Result<Error, WeekendGroupWithId[]>> {
   const supabase = await createClient()
   let query = supabase.from('weekends').select('*')
@@ -180,24 +181,28 @@ export async function setActiveWeekendGroup(
   // 1. Find all currently ACTIVE weekends and update them to FINISHED
   const { error: finishError } = await supabase
     .from('weekends')
-    .update({ status: 'FINISHED' })
-    .eq('status', 'ACTIVE')
+    .update({ status: WeekendStatus.FINISHED })
+    .eq('status', WeekendStatus.ACTIVE)
 
   if (isSupabaseError(finishError)) {
     return err(
-      new Error(`Failed to mark previous active weekends as finished: ${finishError.message}`)
+      new Error(
+        `Failed to mark previous active weekends as finished: ${finishError.message}`
+      )
     )
   }
 
   // 2. Update the selected weekend group to ACTIVE (both MENS and WOMENS)
   const { error: activateError } = await supabase
     .from('weekends')
-    .update({ status: 'ACTIVE' })
+    .update({ status: WeekendStatus.ACTIVE })
     .eq('group_id', groupId)
 
   if (isSupabaseError(activateError)) {
     return err(
-      new Error(`Failed to set weekend group as active: ${activateError.message}`)
+      new Error(
+        `Failed to set weekend group as active: ${activateError.message}`
+      )
     )
   }
 
