@@ -10,6 +10,7 @@ import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
 import { getActiveWeekends } from '@/actions/weekend'
+import { formatWeekendTitle } from '@/lib/weekend'
 
 type AdminLayoutProps = {
   children: React.ReactNode
@@ -35,7 +36,7 @@ async function getSidebarData() {
         isActive: true,
         items: [
           ...upcomingWeekends.map((it) => ({
-            title: it.title ?? '-',
+            title: formatWeekendTitle(it) ?? '-',
             url: `/admin/weekends/${it.id}`,
           })),
           // {

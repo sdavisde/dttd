@@ -10,7 +10,11 @@ import { Typography } from '@/components/ui/typography'
 import { notFound } from 'next/navigation'
 import { AddTeamMemberButton } from './add-team-member-button'
 import { WeekendRosterTable } from './weekend-roster-table'
-import { DroppedRosterSection, ActiveRosterHeader } from '@/components/weekend'
+import {
+  DroppedRosterSection,
+  ActiveRosterHeader,
+  WeekendStatusBadge,
+} from '@/components/weekend'
 import { formatDateTime } from '@/lib/utils'
 import { Datetime } from '@/components/ui/datetime'
 
@@ -77,9 +81,12 @@ export default async function WeekendDetailPage({
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
             <div>
-              <Typography variant="h5" className="text-2xl mb-2">
-                {weekend.title || `${weekend.type} Weekend #${weekend.number}`}
-              </Typography>
+              <div className="flex items-center gap-2 mb-2">
+                <Typography variant="h5" className="text-2xl">
+                  {weekend.title || `${weekend.type} Weekend #${weekend.number}`}
+                </Typography>
+                <WeekendStatusBadge status={weekend.status} />
+              </div>
               <Typography
                 as="span"
                 variant="muted"

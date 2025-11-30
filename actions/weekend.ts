@@ -168,6 +168,43 @@ export async function getWeekendGroupsByStatus(
   return ok(result)
 }
 
+export async function setActiveWeekendGroup(
+  groupId: string
+): Promise<Result<Error, WeekendGroupWithId>> {
+  if (!groupId) {
+    return err(new Error('group_id is required to set active weekend'))
+  }
+
+  const supabase = await createClient()
+
+  // 1. Find all currently ACTIVE weekends and update them to FINISHED
+  const { error: finishError } = await supabase
+    .from('weekends')
+    .update({ status: 'FINISHED' })
+    .eq('status', 'ACTIVE')
+
+  if (isSupabaseError(finishError)) {
+    return err(
+      new Error(`Failed to mark previous active weekends as finished: ${finishError.message}`)
+    )
+  }
+
+  // 2. Update the selected weekend group to ACTIVE (both MENS and WOMENS)
+  const { error: activateError } = await supabase
+    .from('weekends')
+    .update({ status: 'ACTIVE' })
+    .eq('group_id', groupId)
+
+  if (isSupabaseError(activateError)) {
+    return err(
+      new Error(`Failed to set weekend group as active: ${activateError.message}`)
+    )
+  }
+
+  // 3. Return the updated group
+  return getWeekendGroup(groupId)
+}
+
 export async function createWeekendGroup(
   input: CreateWeekendGroupInput
 ): Promise<Result<Error, WeekendGroupWithId>> {

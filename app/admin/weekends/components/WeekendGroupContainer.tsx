@@ -6,6 +6,8 @@ import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendCard } from './WeekendCard'
+import { WeekendStatusBadge } from '@/components/weekend/WeekendStatusBadge'
+import { getGroupStatus } from '@/lib/weekend'
 import { isNil } from 'lodash'
 
 interface WeekendGroupContainerProps {
@@ -21,9 +23,15 @@ export function WeekendGroupContainer({
 }: WeekendGroupContainerProps) {
   const { MENS, WOMENS } = group.weekends
   const groupTitle = group.weekends.MENS?.title?.replace(/mens|womens/gi, '')
+  const groupStatus = getGroupStatus(group)
 
   return (
-    <Alert className="flex flex-col justify-start items-center gap-4">
+    <Alert className="relative flex flex-col justify-start items-center gap-4">
+      {/* Status badge in top-right corner */}
+      <div className="absolute top-3 right-3">
+        <WeekendStatusBadge status={groupStatus} />
+      </div>
+
       {/* Centered header with title and edit button */}
       <div className="flex items-center justify-center gap-2">
         <Typography variant="h5" className="font-semibold text-center">

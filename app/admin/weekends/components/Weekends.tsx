@@ -7,6 +7,7 @@ import { Typography } from '@/components/ui/typography'
 import { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendGroupGrid } from './WeekendGroupGrid'
 import { WeekendSidebar } from './WeekendSidebar'
+import { SetActiveWeekendButton } from './SetActiveWeekendButton'
 import { toLocalDateFromISO } from '@/lib/weekend/scheduling'
 
 interface WeekendsProps {
@@ -159,15 +160,18 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
           Weekends
         </Typography>
         {canEdit && (
-          <Button
-            onClick={handleAddWeekendGroup}
-            size="sm"
-            className="flex items-center gap-2"
-            aria-expanded={isSidebarOpen}
-          >
-            <Plus className="w-4 h-4" />
-            Add Weekends
-          </Button>
+          <div className="flex items-center gap-2">
+            <SetActiveWeekendButton weekendGroups={upcomingGroups} />
+            <Button
+              onClick={handleAddWeekendGroup}
+              size="sm"
+              className="flex items-center gap-2"
+              aria-expanded={isSidebarOpen}
+            >
+              <Plus className="w-4 h-4" />
+              Add Weekends
+            </Button>
+          </div>
         )}
       </div>
 

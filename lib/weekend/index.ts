@@ -1,5 +1,5 @@
 import { capitalize } from '@/lib/utils'
-import { Weekend } from './types'
+import { Weekend, WeekendGroupWithId, WeekendStatus } from './types'
 
 export const genderMatchesWeekend = (
   gender: string | null,
@@ -22,4 +22,11 @@ export const formatWeekendTitle = (weekend: Weekend) => {
 
   const numberSuffix = weekend.number ? ` #${weekend.number}` : ''
   return `${weekendTypeLabel}${numberSuffix}`
+}
+
+// Get the status of a weekend group (both MENS and WOMENS should have same status)
+export const getGroupStatus = (
+  group: WeekendGroupWithId
+): WeekendStatus | null => {
+  return group.weekends.MENS?.status ?? group.weekends.WOMENS?.status ?? null
 }
