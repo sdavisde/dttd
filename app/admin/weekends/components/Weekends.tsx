@@ -127,7 +127,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
     setSelectedGroup(null)
   }
 
-  const handleGroupClick = (group: WeekendGroupWithId) => {
+  const handleGroupEdit = (group: WeekendGroupWithId) => {
     if (!canEdit) {
       return
     }
@@ -178,7 +178,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
         <WeekendGroupGrid
           groups={upcomingGroups}
           canEdit={canEdit}
-          onGroupClick={handleGroupClick}
+          handleGroupEdit={handleGroupEdit}
         />
       </div>
 
@@ -189,7 +189,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
         <WeekendGroupGrid
           groups={pastGroups}
           canEdit={canEdit}
-          onGroupClick={handleGroupClick}
+          handleGroupEdit={handleGroupEdit}
           isPast
         />
       </div>

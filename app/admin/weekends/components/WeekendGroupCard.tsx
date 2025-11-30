@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Edit } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
@@ -9,12 +8,13 @@ import { Weekend, WeekendGroupWithId, WeekendType } from '@/lib/weekend/types'
 import { formatDateLabel, toLocalDateFromISO } from '@/lib/weekend/scheduling'
 import { formatWeekendTitle } from '@/lib/weekend'
 import { isNil } from 'lodash'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface WeekendGroupCardProps {
   group: WeekendGroupWithId
   canEdit?: boolean
-  onClick?: (group: WeekendGroupWithId) => void
-  isPast?: boolean
+  onEdit?: (group: WeekendGroupWithId) => void
 }
 
 type WeekendSummary = {
@@ -39,38 +39,23 @@ const formatDateRange = (start?: string | null, end?: string | null) => {
 
 export function WeekendGroupCard({
   group,
-  canEdit = false,
-  onClick,
-  isPast = false,
+  canEdit,
+  onEdit,
 }: WeekendGroupCardProps) {
-  const [isHovered, setIsHovered] = useState(false)
-
   const weekendSummaries: WeekendSummary[] = [
     { label: 'Mens Weekend', weekend: group.weekends.MENS, type: 'MENS' },
     { label: 'Womens Weekend', weekend: group.weekends.WOMENS, type: 'WOMENS' },
   ]
 
-  const handleClick = () => {
-    if (canEdit && onClick) {
-      onClick(group)
-    }
-  }
-
   return (
-    <div
-      className={cn(
-        'relative',
-        canEdit && 'cursor-pointer',
-        isPast && 'opacity-60'
-      )}
-      onMouseEnter={() => canEdit && setIsHovered(true)}
-      onMouseLeave={() => canEdit && setIsHovered(false)}
-      onClick={handleClick}
+    <Link
+      // href={`/admin/weekends/${group.id}`}
+      className={cn('relative group cursor-pointer')}
     >
       <Alert
         className={cn(
           'transition-all duration-200 h-full flex flex-col gap-4',
-          canEdit && isHovered && 'ring-2 ring-primary/50 shadow-md'
+          'group-hover:ring-2 group-hover:ring-primary/50 group-hover:shadow-md'
         )}
       >
         <div className="space-y-3 ml-7">
@@ -91,12 +76,17 @@ export function WeekendGroupCard({
             ))}
         </div>
 
-        {canEdit && isHovered && (
-          <div className="absolute top-2 right-2 p-1 bg-background/80 rounded-md shadow-sm">
+        {canEdit && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-2 right-2 flex md:hidden group-hover:flex"
+            onClick={() => onEdit?.(group)}
+          >
             <Edit className="w-4 h-4 text-muted-foreground" />
-          </div>
+          </Button>
         )}
       </Alert>
-    </div>
+    </Link>
   )
 }

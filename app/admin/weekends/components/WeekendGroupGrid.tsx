@@ -9,14 +9,14 @@ import { WeekendGroupCard } from './WeekendGroupCard'
 interface WeekendGroupGridProps {
   groups: WeekendGroupWithId[]
   canEdit: boolean
-  onGroupClick?: (group: WeekendGroupWithId) => void
+  handleGroupEdit?: (group: WeekendGroupWithId) => void
   isPast?: boolean
 }
 
 export function WeekendGroupGrid({
   groups,
   canEdit,
-  onGroupClick,
+  handleGroupEdit,
   isPast = false,
 }: WeekendGroupGridProps) {
   if (!groups || groups.length === 0) {
@@ -45,9 +45,8 @@ export function WeekendGroupGrid({
         <WeekendGroupCard
           key={group.groupId}
           group={group}
-          canEdit={canEdit}
-          onClick={onGroupClick}
-          isPast={isPast}
+          canEdit={canEdit && !isPast}
+          onEdit={handleGroupEdit}
         />
       ))}
     </div>
