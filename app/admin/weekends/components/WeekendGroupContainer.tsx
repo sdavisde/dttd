@@ -2,6 +2,8 @@
 
 import { Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Alert } from '@/components/ui/alert'
+import { Typography } from '@/components/ui/typography'
 import { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendCard } from './WeekendCard'
 import { isNil } from 'lodash'
@@ -18,28 +20,32 @@ export function WeekendGroupContainer({
   onEdit,
 }: WeekendGroupContainerProps) {
   const { MENS, WOMENS } = group.weekends
+  const groupTitle = group.weekends.MENS?.title?.replace(/mens|womens/gi, '')
 
   return (
-    <div className="relative space-y-3">
-      {/* Edit button positioned at top-right of the group */}
-      {canEdit && (
-        <div className="absolute top-0 right-0 z-10">
+    <Alert className="flex flex-col justify-start items-center gap-4">
+      {/* Centered header with title and edit button */}
+      <div className="flex items-center justify-center gap-2">
+        <Typography variant="h5" className="font-semibold text-center">
+          {groupTitle}
+        </Typography>
+        {canEdit && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="opacity-0 md:opacity-100 md:hover:opacity-100 transition-opacity"
+            className="h-8 w-8"
             onClick={() => onEdit?.(group)}
           >
-            <Edit className="w-4 h-4 text-muted-foreground" />
+            <Edit className="w-4 h-4" />
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Individual weekend cards */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
         {!isNil(MENS) && <WeekendCard weekend={MENS} />}
         {!isNil(WOMENS) && <WeekendCard weekend={WOMENS} />}
       </div>
-    </div>
+    </Alert>
   )
 }

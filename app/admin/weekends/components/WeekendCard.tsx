@@ -2,7 +2,7 @@
 
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
-import { cn } from '@/lib/utils'
+import { capitalize, cn } from '@/lib/utils'
 import { Weekend } from '@/lib/weekend/types'
 import { formatDateLabel, toLocalDateFromISO } from '@/lib/weekend/scheduling'
 import { formatWeekendTitle } from '@/lib/weekend'
@@ -20,7 +20,7 @@ const formatDateRange = (start?: string | null, end?: string | null) => {
     return 'Dates TBD'
   }
 
-  const startLabel = formatDateLabel(startDate)
+  const startLabel = formatDateLabel(startDate, { year: undefined })
   const endLabel = formatDateLabel(endDate)
 
   return `${startLabel} - ${endLabel}`
@@ -28,28 +28,20 @@ const formatDateRange = (start?: string | null, end?: string | null) => {
 
 export function WeekendCard({ weekend }: WeekendCardProps) {
   return (
-    <Link
-      href={`/admin/weekends/${weekend.id}`}
-      className={cn('relative group cursor-pointer block')}
-    >
+    <Link href={`/admin/weekends/${weekend.id}`} className="group">
       <Alert
         className={cn(
-          'transition-all duration-200 h-full flex flex-col gap-4',
-          'group-hover:ring-2 group-hover:ring-primary/50 group-hover:shadow-md'
+          'transition-all duration-200 min-h-16 h-full flex flex-col justify-center gap-1',
+          'group-hover:ring-2 group-hover:ring-primary/50 group-hover:shadow-sm',
+          'bg-card/50'
         )}
       >
-        <div className="space-y-3 ml-7">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <Typography variant="small" className="font-semibold">
-                {formatWeekendTitle(weekend)}
-              </Typography>
-            </div>
-            <Typography variant="small" className="text-muted-foreground">
-              {formatDateRange(weekend.start_date, weekend.end_date)}
-            </Typography>
-          </div>
-        </div>
+        <Typography variant="small" className="font-semibold">
+          {capitalize(weekend.type.toLowerCase())} roster
+        </Typography>
+        <Typography variant="small" className="text-muted-foreground">
+          {formatDateRange(weekend.start_date, weekend.end_date)}
+        </Typography>
       </Alert>
     </Link>
   )

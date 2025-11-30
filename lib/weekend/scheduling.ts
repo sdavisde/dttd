@@ -32,19 +32,20 @@ export const normalizeDate = (date: Date) => {
 export const getMonthKey = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 
-export const formatDateLabel = (date: Date) =>
+export const formatDateLabel = (
+  date: Date,
+  options?: Intl.DateTimeFormatOptions
+) =>
   date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    ...options,
   })
 
-export const formatDateForApi = (date: Date) =>
-  date.toISOString().split('T')[0]
+export const formatDateForApi = (date: Date) => date.toISOString().split('T')[0]
 
-export const toLocalDateFromISO = (
-  dateString?: string | null
-): Date | null => {
+export const toLocalDateFromISO = (dateString?: string | null): Date | null => {
   if (!dateString) {
     return null
   }
@@ -60,11 +61,7 @@ export const toLocalDateFromISO = (
   const month = Number(monthStr)
   const day = Number(dayStr)
 
-  if (
-    Number.isNaN(year) ||
-    Number.isNaN(month) ||
-    Number.isNaN(day)
-  ) {
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
     return null
   }
 
@@ -158,10 +155,9 @@ export const generateWeekendOptionsForMonth = (
   while (cursor.getMonth() === month) {
     const start = new Date(cursor)
     const end = addDays(start, 3)
-    const keyValue = `${start.toISOString().slice(0, 10)}_${end.toISOString().slice(
-      0,
-      10
-    )}`
+    const keyValue = `${start.toISOString().slice(0, 10)}_${end
+      .toISOString()
+      .slice(0, 10)}`
     options.push({
       start,
       end,
