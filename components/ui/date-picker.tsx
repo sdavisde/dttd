@@ -28,6 +28,7 @@ export function DatePicker({
   contentClassName,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
+  const currentYear = new Date().getFullYear()
 
   return (
     <Popover
@@ -59,6 +60,8 @@ export function DatePicker({
           }}
           disabled={disabled}
           captionLayout='dropdown'
+          fromYear={currentYear - 2}
+          toYear={currentYear + 3}
         />
       </PopoverContent>
     </Popover>
