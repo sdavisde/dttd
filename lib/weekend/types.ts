@@ -15,7 +15,13 @@ export type Weekend = {
   type: WeekendType
 }
 
-export type WeekendType = 'MENS' | 'WOMENS'
+export const WeekendType = {
+  MENS: 'MENS',
+  WOMENS: 'WOMENS',
+} as const
+
+export type WeekendType = (typeof WeekendType)[keyof typeof WeekendType]
+
 
 export enum WeekendStatus {
   PLANNING = 'PLANNING',

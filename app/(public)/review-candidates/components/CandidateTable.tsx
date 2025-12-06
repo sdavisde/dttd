@@ -117,7 +117,7 @@ export function CandidateTable({
       <div className="md:hidden space-y-3">
         {candidates.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
-            No candidates found for this filter.
+            No candidates found
           </div>
         ) : (
           candidates.map((candidate) => (

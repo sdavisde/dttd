@@ -124,27 +124,61 @@ export async function getHydratedCandidate(candidateId: string): Promise<Result<
 /**
  * Gets all candidates with their related information
  */
-export async function getAllCandidatesWithDetails(): Promise<Result<Error, Array<HydratedCandidate>>> {
+import { WeekendType } from '@/lib/weekend/types'
+
+export type CandidateFilterOptions = {
+  weekendGroupId?: string
+  weekendType?: WeekendType
+}
+
+/**
+ * Gets all candidates with their related information
+ */
+export async function getAllCandidatesWithDetails(
+  options: CandidateFilterOptions = {}
+): Promise<Result<Error, Array<HydratedCandidate>>> {
   try {
     const supabase = await createClient()
 
-    const { data: candidates, error: candidatesError } = await supabase.from('candidates').select(`
+    // Determine if we need to filter by weekend (requires inner join)
+    const needsWeekendFilter = !!options.weekendGroupId || !!options.weekendType
+    const weekendJoinType = needsWeekendFilter ? '!inner' : ''
+
+    let query = supabase.from('candidates').select(`
         *,
         candidate_sponsorship_info(*),
         candidate_info(*),
-        weekends (
-          title
+        weekends${weekendJoinType} (
+          id,
+          title,
+          group_id,
+          type
         )
       `)
 
+    if (options.weekendGroupId) {
+      query = query.eq('weekends.group_id', options.weekendGroupId)
+    }
+
+    if (options.weekendType) {
+      query = query.eq('weekends.type', options.weekendType)
+    }
+
+    const { data: candidates, error: candidatesError } = await query
+
     if (candidatesError) {
-      return err(new Error(`Failed to get candidates with details: ${candidatesError.message}`))
+      return err(
+        new Error(
+          `Failed to get candidates with details: ${candidatesError.message}`
+        )
+      )
     }
 
     return ok(
       candidates.map((candidate) => ({
         ...candidate,
-        candidate_sponsorship_info: candidate.candidate_sponsorship_info.at(0),
+        candidate_sponsorship_info:
+          candidate.candidate_sponsorship_info.at(0),
         candidate_info: candidate.candidate_info.at(0),
       }))
     )

@@ -1,5 +1,7 @@
 'use server'
 import { randomUUID } from 'crypto'
+import { formatWeekendTitle } from '@/lib/weekend'
+import { capitalize } from '@/lib/utils'
 
 import { createClient } from '@/lib/supabase/server'
 import { Tables } from '@/database.types'
@@ -20,10 +22,12 @@ import {
   CreateWeekendGroupInput,
   UpdateWeekendGroupInput,
 } from '@/lib/weekend/types'
+import { isNil } from 'lodash'
 
 const toWeekendGroup = (weekends: WeekendWithGroup[]): WeekendGroup => ({
-  MENS: weekends.find((weekend) => weekend.type === 'MENS') ?? null,
-  WOMENS: weekends.find((weekend) => weekend.type === 'WOMENS') ?? null,
+  MENS: weekends.find((weekend) => weekend.type === WeekendType.MENS) ?? null,
+  WOMENS:
+    weekends.find((weekend) => weekend.type === WeekendType.WOMENS) ?? null,
 })
 
 const toWeekendWithGroup = (weekend: RawWeekendRecord): WeekendWithGroup => ({
@@ -79,9 +83,12 @@ export async function getActiveWeekends(): Promise<
   }
 
   return ok({
-    MENS: (data.find((weekend) => weekend.type === 'MENS') as Weekend) ?? null,
+    MENS:
+      (data.find((weekend) => weekend.type === WeekendType.MENS) as Weekend) ??
+      null,
     WOMENS:
-      (data.find((weekend) => weekend.type === 'WOMENS') as Weekend) ?? null,
+      (data.find((weekend) => weekend.type === WeekendType.WOMENS) as Weekend) ??
+      null,
   })
 }
 
@@ -217,12 +224,12 @@ export async function createWeekendGroup(
     return err(new Error('groupId is required when creating a weekend group'))
   }
 
-  const mensValidation = ensureRequiredDates('MENS', input.mens)
+  const mensValidation = ensureRequiredDates(WeekendType.MENS, input.mens)
   if (isErr(mensValidation)) {
     return err(mensValidation.error)
   }
 
-  const womensValidation = ensureRequiredDates('WOMENS', input.womens)
+  const womensValidation = ensureRequiredDates(WeekendType.WOMENS, input.womens)
   if (isErr(womensValidation)) {
     return err(womensValidation.error)
   }
@@ -230,8 +237,8 @@ export async function createWeekendGroup(
   const supabase = await createClient()
 
   const insertPayload = [
-    prepareInsertPayload(input.groupId, 'MENS', input.mens),
-    prepareInsertPayload(input.groupId, 'WOMENS', input.womens),
+    prepareInsertPayload(input.groupId, WeekendType.MENS, input.mens),
+    prepareInsertPayload(input.groupId, WeekendType.WOMENS, input.womens),
   ]
 
   const { data, error } = await supabase
@@ -302,12 +309,12 @@ export async function updateWeekendGroup(
     return ok(toWeekendWithGroup(data as RawWeekendRecord))
   }
 
-  const mensResult = await applyUpdate('MENS', updates.mens)
+  const mensResult = await applyUpdate(WeekendType.MENS, updates.mens)
   if (isErr(mensResult)) {
     return err(mensResult.error)
   }
 
-  const womensResult = await applyUpdate('WOMENS', updates.womens)
+  const womensResult = await applyUpdate(WeekendType.WOMENS, updates.womens)
   if (isErr(womensResult)) {
     return err(womensResult.error)
   }
@@ -669,9 +676,34 @@ export async function recordManualPayment(
   return ok(paymentRecord)
 }
 
-/**
- * Returns true when at least one field in the payload is defined.
- */
 const hasDefinedUpdateValues = (payload: WeekendUpdateInput): boolean => {
   return Object.values(payload).some((value) => value !== undefined)
 }
+
+const getWeekendLabel = (weekend: Weekend | null): string => {
+  if (isNil(weekend)) {
+    return 'Unknown Weekend'
+  }
+
+  return formatWeekendTitle(weekend)
+}
+
+export async function getWeekendOptions(): Promise<
+  Result<Error, Array<{ id: string; label: string }>>
+> {
+  const groupsResult = await getWeekendGroupsByStatus()
+  if (isErr(groupsResult)) return err(groupsResult.error)
+
+  const options = groupsResult.data.map((group) => {
+    const mens = group.weekends.MENS
+    const womens = group.weekends.WOMENS
+    // Use mens weekend if available, otherwise womens, otherwise null
+    const anyWeekend = mens ?? womens ?? null
+
+    return { id: group.groupId, label: getWeekendLabel(anyWeekend) }
+  })
+
+  // Return reversed (newest first)
+  return ok(options.reverse())
+}
+
