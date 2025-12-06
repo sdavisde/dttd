@@ -9,16 +9,41 @@ import {
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { cn } from '@/lib/utils'
+import { ArrowUp, ArrowDown } from 'lucide-react'
+
+type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 
 interface CandidateTableProps {
   candidates: HydratedCandidate[]
   onRowClick: (candidate: HydratedCandidate) => void
+  sortColumn?: SortColumn
+  sortDirection?: 'asc' | 'desc'
+  onSort?: (column: SortColumn) => void
+  showArchived?: boolean
 }
 
 export function CandidateTable({
   candidates,
   onRowClick,
+  sortColumn = null,
+  sortDirection = 'asc',
+  onSort,
+  showArchived = false,
 }: CandidateTableProps) {
+  const renderSortIcon = (column: SortColumn) => {
+    if (sortColumn !== column) return null
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="ml-1 h-4 w-4 inline" />
+    ) : (
+      <ArrowDown className="ml-1 h-4 w-4 inline" />
+    )
+  }
+
+  const handleHeaderClick = (column: SortColumn) => {
+    if (onSort) {
+      onSort(column)
+    }
+  }
   return (
     <>
       {/* Desktop Table - Hidden on mobile */}
@@ -26,12 +51,31 @@ export function CandidateTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Candidate Name</TableHead>
+              <TableHead
+                className="cursor-pointer select-none hover:bg-muted/50"
+                onClick={() => handleHeaderClick('name')}
+              >
+                Candidate Name{renderSortIcon('name')}
+              </TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Sponsor</TableHead>
-              <TableHead>Weekend</TableHead>
-              <TableHead>Submitted</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead
+                className="cursor-pointer select-none hover:bg-muted/50"
+                onClick={() => handleHeaderClick('sponsor')}
+              >
+                Sponsor{renderSortIcon('sponsor')}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer select-none hover:bg-muted/50"
+                onClick={() => handleHeaderClick('submitted')}
+              >
+                Submitted{renderSortIcon('submitted')}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer select-none hover:bg-muted/50"
+                onClick={() => handleHeaderClick('status')}
+              >
+                Status{renderSortIcon('status')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -41,7 +85,8 @@ export function CandidateTable({
                 onClick={() => onRowClick(candidate)}
                 className={cn(
                   index % 2 === 0 ? 'bg-transparent' : 'bg-muted',
-                  'hover:bg-muted/50 cursor-pointer'
+                  'hover:bg-muted/50 cursor-pointer',
+                  candidate.status === 'rejected' && showArchived && 'opacity-50 bg-muted/30'
                 )}
               >
                 <TableCell>

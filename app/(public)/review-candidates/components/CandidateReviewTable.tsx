@@ -6,8 +6,11 @@ import { logger } from '@/lib/logger'
 import { deleteCandidate, updateCandidateStatus } from '@/actions/candidates'
 import { CandidateTable } from './CandidateTable'
 import { CandidateDetailSheet } from './CandidateDetailSheet'
+import { CandidateTableControls } from './CandidateTableControls'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { StatusLegend } from './StatusLegend'
+import { TablePagination } from '@/components/ui/table-pagination'
+import { useCandidateReviewTable } from '@/hooks/use-candidate-review-table'
 import * as Results from '@/lib/results'
 import { sendCandidateForms } from '@/actions/emails'
 import { sendPaymentRequestEmail } from '@/actions/emails'
@@ -26,6 +29,27 @@ export function CandidateReviewTable({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
+
+  // Table controls hook
+  const {
+    paginatedCandidates,
+    searchQuery,
+    setSearchQuery,
+    statusFilters,
+    toggleStatusFilter,
+    showArchived,
+    setShowArchived,
+    sortColumn,
+    sortDirection,
+    handleSort,
+    pagination,
+    setPage,
+    setPageSize,
+    clearFilters,
+  } = useCandidateReviewTable(candidates, {
+    initialPageSize: 25,
+    initialPage: 1,
+  })
 
   const handleRowClick = (candidate: HydratedCandidate) => {
     setSelectedCandidate(candidate)
@@ -48,7 +72,7 @@ export function CandidateReviewTable({
         setIsDeleteDialogOpen(false)
         setIsSheetOpen(false)
         setSelectedCandidate(null)
-        window.location.reload()
+        router.refresh()
       } else {
         logger.error(`Failed to delete candidate: ${result.error.message}`)
         alert(`Failed to delete: ${result.error.message}`)
@@ -136,9 +160,35 @@ export function CandidateReviewTable({
 
   return (
     <>
-      <CandidateTable candidates={candidates} onRowClick={handleRowClick} />
+      <div className="space-y-4">
+        <CandidateTableControls
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilters={statusFilters}
+          onToggleStatus={toggleStatusFilter}
+          showArchived={showArchived}
+          onToggleArchived={setShowArchived}
+          onClearFilters={clearFilters}
+        />
 
-      <StatusLegend />
+        <CandidateTable
+          candidates={paginatedCandidates}
+          onRowClick={handleRowClick}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          showArchived={showArchived}
+        />
+
+        <TablePagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[10, 25, 50, 100]}
+        />
+
+        <StatusLegend />
+      </div>
 
       <CandidateDetailSheet
         candidate={selectedCandidate}

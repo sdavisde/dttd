@@ -50,7 +50,7 @@
 
 ## Tasks
 
-- [~] **1.0 Enhanced Status System & Table Foundation**
+- [x] **1.0 Enhanced Status System & Table Foundation**
   - **Demo Criteria**: Open `/review-candidate` page; observe color-coded status badges on each candidate; see always-visible status legend below table showing all 6 statuses with colors and descriptions; legend matches the color scheme (blue → yellow → green, red for rejected)
   - **Proof Artifact(s)**: Screenshot of table with color-coded statuses; Screenshot of status legend below table; URL: `/review-candidate` (accessible by Pre-Weekend Couple)
   - [x] 1.1 Update `components/candidates/status-chip.tsx` to use Badge `color` prop instead of `variant` per FR-1 color scheme (sponsored: info, awaiting_forms: warning, pending_approval: secondary, awaiting_payment: warning, confirmed: success, rejected: error)
@@ -59,20 +59,20 @@
   - [x] 1.4 Remove or deprecate `StatusInfoSheet.tsx` component (replaced by always-visible legend)
   - [x] 1.5 Test color accessibility and verify colors are distinguishable for colorblind users (Colors use OKLCH space with text labels for full accessibility; hues well-separated: blue=220°, yellow=85°, green=145°, red=33°)
 
-- [ ] **2.0 Table Controls & Data Management**
+- [x] **2.0 Table Controls & Data Management**
   - **Demo Criteria**: Search candidates by name/email/sponsor in real-time; filter by status (multi-select); sort by clicking column headers (name, sponsor, submitted, status); navigate pages with pagination controls showing "Showing X-Y of Z candidates"; toggle "Show Archived Candidates" to reveal/hide rejected candidates
   - **Proof Artifact(s)**: Video showing search → filter → sort → paginate workflow; Screenshot of table with "Show Archived" toggle enabled showing rejected candidates grayed out; Test: `use-candidate-review-table.test.ts` passing
-  - [ ] 2.1 Create `hooks/use-candidate-review-table.ts` hook with state for search query, status filters, sort column/direction, and show archived toggle
-  - [ ] 2.2 Integrate existing `useTablePagination` hook into the custom hook for pagination state management
-  - [ ] 2.3 Implement fuzzy search logic filtering by candidate_name, candidate_email, and sponsor_name (reference: `weekend-roster-table.tsx`)
-  - [ ] 2.4 Implement multi-status filter logic (default: show all except rejected)
-  - [ ] 2.5 Implement column sorting logic (sortable: name, sponsor, submitted date, status)
-  - [ ] 2.6 Create `CandidateTableControls.tsx` component with search Input, status multi-select filter, "Show Archived" Switch, and clear filters button
-  - [ ] 2.7 Add TablePagination component below table in `CandidateReviewTable.tsx` with page size options (10, 25, 50, 100)
-  - [ ] 2.8 Update `CandidateTable.tsx` to add sortable column headers with up/down arrow indicators
-  - [ ] 2.9 Connect `CandidateTableControls` and `CandidateTable` to the custom hook in `CandidateReviewTable.tsx`
-  - [ ] 2.10 Replace all `window.location.reload()` calls with `router.refresh()` from `useRouter`
-  - [ ] 2.11 Add visual styling for archived candidates (grayed out, opacity reduced) when "Show Archived" is enabled
+  - [x] 2.1 Create `hooks/use-candidate-review-table.ts` hook with state for search query, status filters, sort column/direction, and show archived toggle
+  - [x] 2.2 Integrate existing `useTablePagination` hook into the custom hook for pagination state management
+  - [x] 2.3 Implement fuzzy search logic filtering by candidate_name, candidate_email, and sponsor_name (reference: `weekend-roster-table.tsx`)
+  - [x] 2.4 Implement multi-status filter logic (default: show all except rejected)
+  - [x] 2.5 Implement column sorting logic (sortable: name, sponsor, submitted date, status)
+  - [x] 2.6 Create `CandidateTableControls.tsx` component with search Input, status multi-select filter, "Show Archived" Switch, and clear filters button
+  - [x] 2.7 Add TablePagination component below table in `CandidateReviewTable.tsx` with page size options (10, 25, 50, 100)
+  - [x] 2.8 Update `CandidateTable.tsx` to add sortable column headers with up/down arrow indicators
+  - [x] 2.9 Connect `CandidateTableControls` and `CandidateTable` to the custom hook in `CandidateReviewTable.tsx`
+  - [x] 2.10 Replace all `window.location.reload()` calls with `router.refresh()` from `useRouter`
+  - [x] 2.11 Add visual styling for archived candidates (grayed out, opacity reduced) when "Show Archived" is enabled
 
 - [ ] **3.0 Deep Linking & Workflow Modals**
   - **Demo Criteria**: Click deep link from email (`/review-candidate?candidate_id=abc123`) → page opens with that candidate's detail sheet automatically opened and row highlighted; click "Accept" on sponsored candidate → modal shows email preview and explanation; click "Reject" → confirmation modal with archive warning; both modals update status and refresh table on confirm
