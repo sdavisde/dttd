@@ -96,13 +96,40 @@ export function CandidateReviewTable({
   const onSendForms = async (candidate: HydratedCandidate) => {
     logger.info(`Sending candidate forms: ${candidate.id}`)
 
+    const candidateSponsorshipInfo = candidate.candidate_sponsorship_info
+    if (!candidateSponsorshipInfo) {
+      logger.error('Candidate sponsorship info not found')
+      return
+    }
+
+    // Set the candidate status to awaiting_forms
+    const result = await updateCandidateStatus(
+      candidate.id,
+      'awaiting_forms'
+    )
+    if (Results.isErr(result)) {
+      logger.error(`Failed to update candidate status: ${result.error.message}`)
+      alert(`Failed to update status: ${result.error.message}`)
+      return
+    }
+
+    const candidateFormsResult = await sendCandidateForms(
+      candidateSponsorshipInfo
+    )
+    if (Results.isErr(candidateFormsResult)) {
+      logger.error(
+        `Failed to send candidate forms: ${candidateFormsResult.error.message}`
+      )
+      alert(`Failed to send forms email: ${candidateFormsResult.error.message}`)
+      return
+    }
+
+    router.refresh()
   }
 
   const onSendPaymentRequest = async (candidate: HydratedCandidate) => {
     logger.info(`Sending payment request: ${candidate.id}`)
 
-    // Placeholder logic
-    /*
     const result = await sendPaymentRequestEmail(candidate.id)
 
     if (Results.isErr(result)) {
@@ -110,13 +137,10 @@ export function CandidateReviewTable({
         `Failed to send payment request email: ${result.error.message}`
       )
       alert(`Failed to send payment request email: ${result.error.message}`)
+      return
     }
 
-    // Close the sheet and refresh the page to update the status
-    setIsSheetOpen(false)
-    setSelectedCandidate(null)
     router.refresh()
-    */
   }
 
   return (
