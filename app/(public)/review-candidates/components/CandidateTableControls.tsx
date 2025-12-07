@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Search, X } from 'lucide-react'
 import { FacetedFilter } from '@/components/ui/faceted-filter'
 import { CandidateStatus } from '@/lib/candidates/types'
+import { useFeatureFlags } from '@/hooks/use-feature-flags'
 
 interface CandidateTableControlsProps {
   searchQuery: string
@@ -34,6 +35,9 @@ export function CandidateTableControls({
   onToggleArchived,
   onClearFilters,
 }: CandidateTableControlsProps) {
+  const { isEnabled } = useFeatureFlags()
+  const showFilters = isEnabled('candidate-filters')
+
   const hasActiveFilters =
     searchQuery.trim() !== '' ||
     statusFilters.length !== 5 || // Default is 5 (all except rejected)
@@ -55,28 +59,30 @@ export function CandidateTableControls({
       {/* Filters Row */}
       <div className="flex flex-wrap items-center gap-4">
         {/* Status Filter */}
-        <FacetedFilter
-          title="Status"
-          options={STATUS_OPTIONS}
-          selectedValues={statusFilters}
-          onSelect={(values) => {
-            const newSet = new Set(values as CandidateStatus[])
-            const oldSet = new Set(statusFilters)
+        {showFilters && (
+          <FacetedFilter
+            title="Status"
+            options={STATUS_OPTIONS}
+            selectedValues={statusFilters}
+            onSelect={(values) => {
+              const newSet = new Set(values as CandidateStatus[])
+              const oldSet = new Set(statusFilters)
 
-            // Find items to add (in new but not old)
-            for (const val of newSet) {
-              if (!oldSet.has(val)) {
-                onToggleStatus(val)
+              // Find items to add (in new but not old)
+              for (const val of newSet) {
+                if (!oldSet.has(val)) {
+                  onToggleStatus(val)
+                }
               }
-            }
-            // Find items to remove (in old but not new)
-            for (const val of oldSet) {
-              if (!newSet.has(val)) {
-                onToggleStatus(val)
+              // Find items to remove (in old but not new)
+              for (const val of oldSet) {
+                if (!newSet.has(val)) {
+                  onToggleStatus(val)
+                }
               }
-            }
-          }}
-        />
+            }}
+          />
+        )}
 
         {/* Show Archived Toggle */}
         <div className="flex items-center gap-2">
@@ -91,7 +97,7 @@ export function CandidateTableControls({
         </div>
 
         {/* Clear Filters Button */}
-        {hasActiveFilters && (
+        {showFilters && hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
