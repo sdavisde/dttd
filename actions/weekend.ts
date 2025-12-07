@@ -1,6 +1,6 @@
 'use server'
 import { randomUUID } from 'crypto'
-import { formatWeekendTitle } from '@/lib/weekend'
+import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
 import { capitalize } from '@/lib/utils'
 
 import { createClient } from '@/lib/supabase/server'
@@ -685,7 +685,7 @@ const getWeekendLabel = (weekend: Weekend | null): string => {
     return 'Unknown Weekend'
   }
 
-  return formatWeekendTitle(weekend)
+  return trimWeekendTypeFromTitle(formatWeekendTitle(weekend))
 }
 
 export async function getWeekendOptions(): Promise<

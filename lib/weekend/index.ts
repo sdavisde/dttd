@@ -16,11 +16,15 @@ export const genderMatchesWeekend = (
   )
 }
 
+export const trimWeekendTypeFromTitle = (title: string) => {
+  return title.replace(/mens|Mens|Womens|womens/g, '')
+}
+
 export const formatWeekendTitle = (weekend: Weekend) => {
   const weekendTypeLabel = capitalize(weekend.type.toLowerCase())
   if (weekend.title) {
     // Remove mens or womens if it's in the weekend title already so that we can add it at the beginning consistently.
-    const reducedTitle = weekend.title.replace(/mens|Mens|Womens|womens/g, '')
+    const reducedTitle = trimWeekendTypeFromTitle(weekend.title)
     return `${weekendTypeLabel} ${reducedTitle}`
   }
 
