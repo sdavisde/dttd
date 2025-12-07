@@ -5,10 +5,8 @@ import {
   SheetTitle,
   SheetFooter,
 } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Typography } from '@/components/ui/typography'
-import { XIcon } from 'lucide-react'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { CandidateActions } from './CandidateActions'
@@ -17,22 +15,12 @@ interface CandidateDetailSheetProps {
   candidate: HydratedCandidate | null
   isOpen: boolean
   onClose: () => void
-  onDelete: () => void
-  onApprove: (id: string) => void
-  onReject: (id: string) => void
-  onSendForms: (id: string) => void
-  onSendPaymentRequest: (id: string) => void
 }
 
 export function CandidateDetailSheet({
   candidate,
   isOpen,
   onClose,
-  onDelete,
-  onApprove,
-  onReject,
-  onSendForms,
-  onSendPaymentRequest,
 }: CandidateDetailSheetProps) {
   if (!candidate) return null
 
@@ -334,13 +322,13 @@ export function CandidateDetailSheet({
                 </Typography>
                 <Typography variant="p">
                   {candidate.candidate_sponsorship_info?.attends_secuela ===
-                  'yes'
+                    'yes'
                     ? 'Yes'
                     : candidate.candidate_sponsorship_info?.attends_secuela ===
-                        'no'
+                      'no'
                       ? 'No'
                       : candidate.candidate_sponsorship_info?.attends_secuela ||
-                        'Not specified'}
+                      'Not specified'}
                 </Typography>
               </div>
               <div>
@@ -361,13 +349,13 @@ export function CandidateDetailSheet({
                 </Typography>
                 <Typography variant="p">
                   {candidate.candidate_sponsorship_info?.payment_owner ===
-                  'sponsor'
+                    'sponsor'
                     ? 'Sponsor'
                     : candidate.candidate_sponsorship_info?.payment_owner ===
-                        'candidate'
+                      'candidate'
                       ? 'Candidate'
                       : candidate.candidate_sponsorship_info?.payment_owner ||
-                        'Not specified'}
+                      'Not specified'}
                 </Typography>
               </div>
             </div>
@@ -375,15 +363,7 @@ export function CandidateDetailSheet({
         </div>
 
         <SheetFooter>
-          <CandidateActions
-            candidate={candidate}
-            onDelete={onDelete}
-            onApprove={onApprove}
-            onReject={onReject}
-            onSendForms={onSendForms}
-            onSendPaymentRequest={onSendPaymentRequest}
-            onClose={onClose}
-          />
+          <CandidateActions onClose={onClose} />
         </SheetFooter>
       </SheetContent>
     </Sheet>

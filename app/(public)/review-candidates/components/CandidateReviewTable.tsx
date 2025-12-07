@@ -88,21 +88,23 @@ export function CandidateReviewTable({
     setIsDeleteDialogOpen(false)
   }
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = async (candidate: HydratedCandidate) => {
     // TODO: Implement approval logic
-    console.log('Approving candidate:', id)
+    console.log('Approving candidate:', candidate.id)
   }
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (candidate: HydratedCandidate) => {
     // TODO: Implement rejection logic
-    console.log('Rejecting candidate:', id)
+    console.log('Rejecting candidate:', candidate.id)
   }
 
-  const onSendForms = async () => {
-    logger.info(`Sending candidate forms: ${selectedCandidate?.id}`)
+  const onSendForms = async (candidate: HydratedCandidate) => {
+    logger.info(`Sending candidate forms: ${candidate.id}`)
 
+    // Placeholder logic for now
+    /*
     const candidateSponsorshipInfo =
-      selectedCandidate?.candidate_sponsorship_info
+      candidate.candidate_sponsorship_info
     if (!candidateSponsorshipInfo) {
       logger.error('Candidate sponsorship info not found')
       return
@@ -110,7 +112,7 @@ export function CandidateReviewTable({
 
     // Set the candidate status to awaiting_forms
     const result = await updateCandidateStatus(
-      selectedCandidate.id,
+      candidate.id,
       'awaiting_forms'
     )
     if (Results.isErr(result)) {
@@ -132,17 +134,15 @@ export function CandidateReviewTable({
     setIsSheetOpen(false)
     setSelectedCandidate(null)
     router.refresh()
+    */
   }
 
-  const onSendPaymentRequest = async () => {
-    logger.info(`Sending payment request: ${selectedCandidate?.id}`)
+  const onSendPaymentRequest = async (candidate: HydratedCandidate) => {
+    logger.info(`Sending payment request: ${candidate.id}`)
 
-    if (!selectedCandidate) {
-      logger.error('No candidate selected to send payment request')
-      return
-    }
-
-    const result = await sendPaymentRequestEmail(selectedCandidate.id)
+    // Placeholder logic
+    /*
+    const result = await sendPaymentRequestEmail(candidate.id)
 
     if (Results.isErr(result)) {
       logger.error(
@@ -155,6 +155,7 @@ export function CandidateReviewTable({
     setIsSheetOpen(false)
     setSelectedCandidate(null)
     router.refresh()
+    */
   }
 
   return (
@@ -177,6 +178,9 @@ export function CandidateReviewTable({
           sortDirection={sortDirection}
           onSort={handleSort}
           showArchived={showArchived}
+          onSendForms={onSendForms}
+          onSendPaymentRequest={onSendPaymentRequest}
+          onReject={handleReject}
         />
 
         <TablePagination
@@ -193,11 +197,6 @@ export function CandidateReviewTable({
         candidate={selectedCandidate}
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
-        onDelete={handleDeleteClick}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onSendForms={onSendForms}
-        onSendPaymentRequest={onSendPaymentRequest}
       />
 
       <DeleteConfirmationDialog

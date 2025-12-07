@@ -9,10 +9,16 @@ import {
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { cn } from '@/lib/utils'
-import { ArrowUp, ArrowDown, Users, Info } from 'lucide-react'
+import { ArrowUp, ArrowDown, Users, Info, MoreHorizontal } from 'lucide-react'
 import { isEmpty } from 'lodash'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { StatusLegend } from './StatusLegend'
 
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
@@ -24,6 +30,9 @@ interface CandidateTableProps {
   sortDirection?: 'asc' | 'desc'
   onSort?: (column: SortColumn) => void
   showArchived?: boolean
+  onSendForms?: (candidate: HydratedCandidate) => void
+  onSendPaymentRequest?: (candidate: HydratedCandidate) => void
+  onReject?: (candidate: HydratedCandidate) => void
 }
 
 export function CandidateTable({
@@ -33,6 +42,9 @@ export function CandidateTable({
   sortDirection = 'asc',
   onSort,
   showArchived = false,
+  onSendForms,
+  onSendPaymentRequest,
+  onReject,
 }: CandidateTableProps) {
   if (isEmpty(candidates)) {
     return (
@@ -111,6 +123,7 @@ export function CandidateTable({
 
                 {renderSortIcon('status')}
               </TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -143,6 +156,42 @@ export function CandidateTable({
                 </TableCell>
                 <TableCell>
                   <StatusChip status={candidate.status} />
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                      >
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onRowClick(candidate)}>
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onSendForms?.(candidate)}>
+                        Send Forms
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onSendPaymentRequest?.(candidate)}
+                        className="flex justify-between items-center"
+                      >
+                        Request Payment
+                        {candidate.candidate_sponsorship_info?.payment_owner === 'sponsor' && (
+                          <span className="ml-2 text-xs text-muted-foreground">(sponsor)</span>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        variant='destructive'
+                        onClick={() => onReject?.(candidate)}
+                      >
+                        Reject
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
