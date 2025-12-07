@@ -169,15 +169,21 @@ export function CandidateTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onRowClick(candidate)}>
+                      <DropdownMenuItem
+                        onClick={() => onRowClick(candidate)}
+                        className="cursor-pointer"
+                      >
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onSendForms?.(candidate)}>
+                      <DropdownMenuItem
+                        onClick={() => onSendForms?.(candidate)}
+                        className="cursor-pointer"
+                      >
                         Send Forms
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onSendPaymentRequest?.(candidate)}
-                        className="flex justify-between items-center"
+                        className="flex justify-between items-center cursor-pointer"
                       >
                         Request Payment
                         {candidate.candidate_sponsorship_info?.payment_owner === 'sponsor' && (
@@ -186,6 +192,7 @@ export function CandidateTable({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         variant='destructive'
+                        className="cursor-pointer"
                         onClick={() => onReject?.(candidate)}
                       >
                         Reject
