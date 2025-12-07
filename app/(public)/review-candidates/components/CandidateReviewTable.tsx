@@ -55,10 +55,6 @@ export function CandidateReviewTable({
     setIsSheetOpen(true)
   }
 
-  const handleDeleteClick = () => {
-    setIsDeleteDialogOpen(true)
-  }
-
   const handleDeleteConfirm = async () => {
     if (!selectedCandidate) return
 
