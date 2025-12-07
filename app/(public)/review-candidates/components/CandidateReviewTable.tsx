@@ -85,8 +85,17 @@ export function CandidateReviewTable({
   }
 
   const handleReject = async (candidate: HydratedCandidate) => {
-    // TODO: Implement rejection logic
-    console.log('Rejecting candidate:', candidate.id)
+    logger.info(`Rejecting candidate: ${candidate.id}`)
+
+    const result = await updateCandidateStatus(candidate.id, 'rejected')
+
+    if (Results.isErr(result)) {
+      logger.error(`Failed to reject candidate: ${result.error.message}`)
+      alert(`Failed to reject candidate: ${result.error.message}`)
+      return
+    }
+
+    router.refresh()
   }
 
   const onSendForms = async (candidate: HydratedCandidate) => {
