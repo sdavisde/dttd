@@ -14,6 +14,7 @@ import * as Results from '@/lib/results'
 import { sendCandidateForms } from '@/actions/emails'
 import { sendPaymentRequestEmail } from '@/actions/emails'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
@@ -70,11 +71,11 @@ export function CandidateReviewTable({
         router.refresh()
       } else {
         logger.error(`Failed to delete candidate: ${result.error.message}`)
-        alert(`Failed to delete: ${result.error.message}`)
+        toast.error(`Failed to delete: ${result.error.message}`)
       }
     } catch (error) {
       logger.error('Error deleting candidate')
-      alert('An unexpected error occurred while deleting')
+      toast.error('An unexpected error occurred while deleting')
     } finally {
       setIsDeleting(false)
     }
@@ -91,10 +92,11 @@ export function CandidateReviewTable({
 
     if (Results.isErr(result)) {
       logger.error(`Failed to reject candidate: ${result.error.message}`)
-      alert(`Failed to reject candidate: ${result.error.message}`)
+      toast.error(`Failed to reject candidate: ${result.error.message}`)
       return
     }
 
+    toast.success('Candidate rejected')
     router.refresh()
   }
 
@@ -114,7 +116,7 @@ export function CandidateReviewTable({
     )
     if (Results.isErr(result)) {
       logger.error(`Failed to update candidate status: ${result.error.message}`)
-      alert(`Failed to update status: ${result.error.message}`)
+      toast.error(`Failed to update status: ${result.error.message}`)
       return
     }
 
@@ -125,10 +127,11 @@ export function CandidateReviewTable({
       logger.error(
         `Failed to send candidate forms: ${candidateFormsResult.error.message}`
       )
-      alert(`Failed to send forms email: ${candidateFormsResult.error.message}`)
+      toast.error(`Failed to send forms email: ${candidateFormsResult.error.message}`)
       return
     }
 
+    toast.success('Candidate forms sent successfully')
     router.refresh()
   }
 
@@ -141,10 +144,11 @@ export function CandidateReviewTable({
       logger.error(
         `Failed to send payment request email: ${result.error.message}`
       )
-      alert(`Failed to send payment request email: ${result.error.message}`)
+      toast.error(`Failed to send payment request email: ${result.error.message}`)
       return
     }
 
+    toast.success('Payment request sent successfully')
     router.refresh()
   }
 
