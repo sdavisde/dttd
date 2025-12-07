@@ -36,9 +36,9 @@ export default async function SubmittedPage({
     <div className="container mx-auto p-4 md:p-8">
       <Card className="border-0 md:border-[1px] shadow-none md:shadow-sm">
         <CardHeader>
-          <CardTitle className="text-lg">
-            Thank you for wanting to sponsor{' '}
-            {candidate.candidate_sponsorship_info?.candidate_name}!
+          <CardTitle className="text-lg flex gap-1">
+            <span>Thank you for sponsoring</span>
+            <span>{candidate.candidate_sponsorship_info?.candidate_name}!</span>
           </CardTitle>
         </CardHeader>
         <CardContent>

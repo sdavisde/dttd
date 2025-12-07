@@ -14,10 +14,12 @@ export async function createCandidateWithSponsorshipInfo(
   try {
     const supabase = await createClient()
 
+    const { weekend_id, ...sponsorshipInfo } = data
+
     // Upsert the candidate record
     const { data: candidate, error: candidateError } = await supabase
       .from('candidates')
-      .insert({ status: 'sponsored' })
+      .insert({ status: 'sponsored', weekend_id })
       .select()
       .single()
 
@@ -28,7 +30,7 @@ export async function createCandidateWithSponsorshipInfo(
     // Create the sponsorship info record
     const { error: sponsorshipInfoError } = await supabase.from('candidate_sponsorship_info').insert({
       candidate_id: candidate.id,
-      ...data,
+      ...sponsorshipInfo,
     })
 
     if (sponsorshipInfoError) {
