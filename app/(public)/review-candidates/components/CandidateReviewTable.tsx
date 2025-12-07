@@ -8,7 +8,6 @@ import { CandidateTable } from './CandidateTable'
 import { CandidateDetailSheet } from './CandidateDetailSheet'
 import { CandidateTableControls } from './CandidateTableControls'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
-import { StatusLegend } from './StatusLegend'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { useCandidateReviewTable } from '@/hooks/use-candidate-review-table'
 import * as Results from '@/lib/results'
@@ -187,7 +186,7 @@ export function CandidateReviewTable({
           pageSizeOptions={[10, 25, 50, 100]}
         />
 
-        <StatusLegend />
+
       </div>
 
       <CandidateDetailSheet

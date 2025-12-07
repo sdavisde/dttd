@@ -9,7 +9,11 @@ import {
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { cn } from '@/lib/utils'
-import { ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUp, ArrowDown, Users, Info } from 'lucide-react'
+import { isEmpty } from 'lodash'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { StatusLegend } from './StatusLegend'
 
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 
@@ -30,6 +34,20 @@ export function CandidateTable({
   onSort,
   showArchived = false,
 }: CandidateTableProps) {
+  if (isEmpty(candidates)) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg border-dashed bg-muted/10">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/40 mb-4">
+          <Users className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold">No candidates found</h3>
+        <p className="text-sm text-muted-foreground max-w-sm mt-1">
+          We couldn't find any candidates matching your criteria.
+        </p>
+      </div>
+    )
+  }
+
   const renderSortIcon = (column: SortColumn) => {
     if (sortColumn !== column) return null
     return sortDirection === 'asc' ? (
@@ -71,10 +89,27 @@ export function CandidateTable({
                 Submitted{renderSortIcon('submitted')}
               </TableHead>
               <TableHead
-                className="cursor-pointer select-none hover:bg-muted/50"
+                className="cursor-pointer select-none hover:bg-muted/50 flex items-center"
                 onClick={() => handleHeaderClick('status')}
               >
-                Status{renderSortIcon('status')}
+                <span>Status</span>
+
+                <Popover>
+                  <PopoverTrigger asChild onClick={e => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                      <span className="sr-only">Status Reference</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="start">
+                    <div className="space-y-4">
+                      <h4 className="font-medium leading-none">Status Reference</h4>
+                      <StatusLegend />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
+                {renderSortIcon('status')}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -86,7 +121,9 @@ export function CandidateTable({
                 className={cn(
                   index % 2 === 0 ? 'bg-transparent' : 'bg-muted',
                   'hover:bg-muted/50 cursor-pointer',
-                  candidate.status === 'rejected' && showArchived && 'opacity-50 bg-muted/30'
+                  candidate.status === 'rejected' &&
+                  showArchived &&
+                  'opacity-50 bg-muted/30'
                 )}
               >
                 <TableCell>
@@ -115,43 +152,38 @@ export function CandidateTable({
 
       {/* Mobile Card Layout - Shown only on mobile */}
       <div className="md:hidden space-y-3">
-        {candidates.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            No candidates found
-          </div>
-        ) : (
-          candidates.map((candidate) => (
-            <div
-              key={candidate.id}
-              className="bg-card border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-muted/50"
-              onClick={() => onRowClick(candidate)}
-            >
-              {/* Header with name and status */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">
-                  {candidate.candidate_sponsorship_info?.candidate_name ||
-                    'Unknown Candidate'}
-                </h3>
-                <StatusChip status={candidate.status} />
-              </div>
+        {candidates.map((candidate) => (
+          <div
+            key={candidate.id}
+            className="bg-card border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-muted/50"
+            onClick={() => onRowClick(candidate)}
+          >
+            {/* Header with name and status */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">
+                {candidate.candidate_sponsorship_info?.candidate_name ||
+                  'Unknown Candidate'}
+              </h3>
+              <StatusChip status={candidate.status} />
+            </div>
 
-              {/* Content sections */}
-              <div className="space-y-2 text-sm">
-                <div className="flex">
-                  <span className="text-muted-foreground w-16">Email:</span>
-                  <span>
-                    {candidate.candidate_sponsorship_info?.candidate_email ||
-                      'Not provided'}
-                  </span>
-                </div>
-                <div className="flex">
-                  <span className="text-muted-foreground w-16">Sponsor:</span>
-                  <span>
-                    {candidate.candidate_sponsorship_info?.sponsor_name ||
-                      'Unknown'}
-                  </span>
-                </div>
-                {/*<div className="flex">
+            {/* Content sections */}
+            <div className="space-y-2 text-sm">
+              <div className="flex">
+                <span className="text-muted-foreground w-16">Email:</span>
+                <span>
+                  {candidate.candidate_sponsorship_info?.candidate_email ||
+                    'Not provided'}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="text-muted-foreground w-16">Sponsor:</span>
+                <span>
+                  {candidate.candidate_sponsorship_info?.sponsor_name ||
+                    'Unknown'}
+                </span>
+              </div>
+              {/*<div className="flex">
                   <span className="text-muted-foreground w-16">Weekend:</span>
                   <span>
                     {candidate.weekends?.type === 'MENS'
@@ -161,16 +193,15 @@ export function CandidateTable({
                         : 'Unassigned'}
                   </span>
                 </div>*/}
-                <div className="flex">
-                  <span className="text-muted-foreground w-16">Submitted:</span>
-                  <span>
-                    {new Date(candidate.created_at).toLocaleDateString()}
-                  </span>
-                </div>
+              <div className="flex">
+                <span className="text-muted-foreground w-16">Submitted:</span>
+                <span>
+                  {new Date(candidate.created_at).toLocaleDateString()}
+                </span>
               </div>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
     </>
   )
