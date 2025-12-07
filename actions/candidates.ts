@@ -37,7 +37,7 @@ export async function createCandidateWithSponsorshipInfo(
       return err(new Error(`Failed to create sponsorship info: ${sponsorshipInfoError.message}`))
     }
 
-    return ok(candidate)
+    return ok(candidate as HydratedCandidate)
   } catch (error) {
     return err(
       new Error(
@@ -111,7 +111,7 @@ export async function getHydratedCandidate(candidateId: string): Promise<Result<
       ...candidate,
       candidate_sponsorship_info: candidate.candidate_sponsorship_info.at(0),
       candidate_info: candidate.candidate_info.at(0),
-    }
+    } as HydratedCandidate
 
     return ok(hydratedCandidate)
   } catch (error) {
@@ -182,7 +182,7 @@ export async function getAllCandidatesWithDetails(
         candidate_sponsorship_info:
           candidate.candidate_sponsorship_info.at(0),
         candidate_info: candidate.candidate_info.at(0),
-      }))
+      })) as HydratedCandidate[]
     )
   } catch (error) {
     return err(

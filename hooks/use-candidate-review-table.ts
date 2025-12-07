@@ -21,7 +21,6 @@ export function useCandidateReviewTable(
   const [statusFilters, setStatusFilters] = useState<CandidateStatus[]>([
     'sponsored',
     'awaiting_forms',
-    'pending_approval',
     'awaiting_payment',
     'confirmed',
     // Note: 'rejected' is excluded by default (archived)
@@ -63,7 +62,6 @@ export function useCandidateReviewTable(
     setStatusFilters([
       'sponsored',
       'awaiting_forms',
-      'pending_approval',
       'awaiting_payment',
       'confirmed',
     ])

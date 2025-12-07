@@ -88,11 +88,6 @@ export function CandidateReviewTable({
     setIsDeleteDialogOpen(false)
   }
 
-  const handleApprove = async (candidate: HydratedCandidate) => {
-    // TODO: Implement approval logic
-    console.log('Approving candidate:', candidate.id)
-  }
-
   const handleReject = async (candidate: HydratedCandidate) => {
     // TODO: Implement rejection logic
     console.log('Rejecting candidate:', candidate.id)
@@ -101,40 +96,6 @@ export function CandidateReviewTable({
   const onSendForms = async (candidate: HydratedCandidate) => {
     logger.info(`Sending candidate forms: ${candidate.id}`)
 
-    // Placeholder logic for now
-    /*
-    const candidateSponsorshipInfo =
-      candidate.candidate_sponsorship_info
-    if (!candidateSponsorshipInfo) {
-      logger.error('Candidate sponsorship info not found')
-      return
-    }
-
-    // Set the candidate status to awaiting_forms
-    const result = await updateCandidateStatus(
-      candidate.id,
-      'awaiting_forms'
-    )
-    if (Results.isErr(result)) {
-      logger.error(`Failed to update candidate status: ${result.error.message}`)
-      return
-    }
-
-    const candidateFormsResult = await sendCandidateForms(
-      candidateSponsorshipInfo
-    )
-    if (Results.isErr(candidateFormsResult)) {
-      logger.error(
-        `Failed to send candidate forms: ${candidateFormsResult.error.message}`
-      )
-      return
-    }
-
-    // Close the sheet and refresh the page to update the status
-    setIsSheetOpen(false)
-    setSelectedCandidate(null)
-    router.refresh()
-    */
   }
 
   const onSendPaymentRequest = async (candidate: HydratedCandidate) => {

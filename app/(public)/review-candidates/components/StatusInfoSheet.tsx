@@ -14,9 +14,8 @@ interface StatusInfoSheetProps {
 export function StatusInfoSheet({ isOpen, onClose }: StatusInfoSheetProps) {
   const statusDescriptions: Record<CandidateStatus, string> = {
     sponsored: 'Candidate has been sponsored and is ready for the next step',
-    awaiting_forms: 'Candidate needs to complete and submit required forms',
-    pending_approval: 'Candidate is waiting for approval from the review committee',
-    awaiting_payment: 'Payment is required before proceeding',
+    awaiting_forms: 'Candidate needs to complete their information forms',
+    awaiting_payment: 'Payment is required to confirm the candidate',
     confirmed: 'Candidate has been confirmed and is ready for the weekend',
     rejected: 'Candidate application has been rejected',
   }
@@ -24,7 +23,6 @@ export function StatusInfoSheet({ isOpen, onClose }: StatusInfoSheetProps) {
   const allStatuses: CandidateStatus[] = [
     'sponsored',
     'awaiting_forms',
-    'pending_approval',
     'awaiting_payment',
     'confirmed',
     'rejected',

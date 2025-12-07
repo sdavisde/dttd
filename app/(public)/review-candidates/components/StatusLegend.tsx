@@ -6,8 +6,6 @@ export function StatusLegend() {
   const statusDescriptions: Record<CandidateStatus, string> = {
     sponsored: 'Candidate has been sponsored and is ready for the next step',
     awaiting_forms: 'Candidate needs to complete and submit required forms',
-    pending_approval:
-      'Candidate is waiting for approval from the review committee',
     awaiting_payment: 'Payment is required before proceeding',
     confirmed: 'Candidate has been confirmed and is ready for the weekend',
     rejected: 'Candidate application has been rejected',
@@ -16,7 +14,6 @@ export function StatusLegend() {
   const allStatuses: CandidateStatus[] = [
     'sponsored',
     'awaiting_forms',
-    'pending_approval',
     'awaiting_payment',
     'confirmed',
     'rejected',
