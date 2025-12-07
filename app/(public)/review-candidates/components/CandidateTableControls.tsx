@@ -2,8 +2,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { Search, X } from 'lucide-react'
+import { FacetedFilter } from '@/components/ui/faceted-filter'
 import { CandidateStatus } from '@/lib/candidates/types'
 
 interface CandidateTableControlsProps {
@@ -55,19 +55,28 @@ export function CandidateTableControls({
       {/* Filters Row */}
       <div className="flex flex-wrap items-center gap-4">
         {/* Status Filter */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Label className="text-sm text-muted-foreground">Filter by Status:</Label>
-          {STATUS_OPTIONS.map((status) => (
-            <Badge
-              key={status.value}
-              variant={statusFilters.includes(status.value) ? 'default' : 'outline'}
-              className="cursor-pointer select-none transition-all hover:opacity-80"
-              onClick={() => onToggleStatus(status.value)}
-            >
-              {status.label}
-            </Badge>
-          ))}
-        </div>
+        <FacetedFilter
+          title="Status"
+          options={STATUS_OPTIONS}
+          selectedValues={statusFilters}
+          onSelect={(values) => {
+            const newSet = new Set(values as CandidateStatus[])
+            const oldSet = new Set(statusFilters)
+
+            // Find items to add (in new but not old)
+            for (const val of newSet) {
+              if (!oldSet.has(val)) {
+                onToggleStatus(val)
+              }
+            }
+            // Find items to remove (in old but not new)
+            for (const val of oldSet) {
+              if (!newSet.has(val)) {
+                onToggleStatus(val)
+              }
+            }
+          }}
+        />
 
         {/* Show Archived Toggle */}
         <div className="flex items-center gap-2">
