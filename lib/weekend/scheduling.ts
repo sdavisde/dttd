@@ -81,30 +81,28 @@ export const getNextThursdayRange = (reference = new Date()): DateRange => {
   return { start, end }
 }
 
-export const inferMensWeekendFromGroup = (
+export const getMensWeekendDateRange = (
   group: WeekendGroupWithId | null
-): { title: string; range: DateRange } => {
-  if (isNil(group)) {
+): { range: DateRange } => {
+  if (isNil(group) || isNil(group.weekends.MENS)) {
     const nextRange = getNextThursdayRange()
-    return { title: '', range: nextRange }
+    return { range: nextRange }
   }
 
   const mensWeekend = group.weekends.MENS
   const womensWeekend = group.weekends.WOMENS
 
   const womensStartDate = toLocalDateFromISO(womensWeekend?.start_date)
-  const womensEndDate = toLocalDateFromISO(womensWeekend?.end_date)
 
   const mensStart =
-    toLocalDateFromISO(mensWeekend?.start_date) ??
+    toLocalDateFromISO(mensWeekend.start_date) ??
     (womensStartDate ? addDays(womensStartDate, -7) : null)
   const mensEnd =
-    toLocalDateFromISO(mensWeekend?.end_date) ??
-    (womensEndDate ? addDays(womensEndDate, -7) : null)
+    toLocalDateFromISO(mensWeekend.end_date) ??
+    (mensStart ? addDays(mensStart, 3) : null)
 
   if (mensStart && mensEnd) {
     return {
-      title: mensWeekend?.title ?? womensWeekend?.title ?? '',
       range: {
         start: normalizeDate(mensStart),
         end: normalizeDate(mensEnd),
@@ -114,7 +112,6 @@ export const inferMensWeekendFromGroup = (
 
   const nextRange = getNextThursdayRange()
   return {
-    title: mensWeekend?.title ?? womensWeekend?.title ?? '',
     range: nextRange,
   }
 }

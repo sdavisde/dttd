@@ -50,7 +50,7 @@ import {
   generateWeekendOptionsForMonth,
   getMonthKey,
   getWeekendTitle,
-  inferMensWeekendFromGroup,
+  getMensWeekendDateRange,
   isSameDay,
   normalizeDate,
 } from '@/lib/weekend/scheduling'
@@ -72,7 +72,7 @@ interface WeekendSidebarProps {
 function computeDefaultValues(
   weekendGroup: WeekendGroupWithId | null
 ): WeekendFormValues {
-  const initial = inferMensWeekendFromGroup(weekendGroup)
+  const initial = getMensWeekendDateRange(weekendGroup)
   return {
     title: getWeekendTitle(weekendGroup?.weekends.MENS ?? null) ?? '',
     mensStartDate: initial.range.start,
@@ -87,6 +87,7 @@ export function WeekendSidebar({
 }: WeekendSidebarProps) {
   const router = useRouter()
   const isEditing = Boolean(weekendGroup)
+  const initialDateRange = getMensWeekendDateRange(weekendGroup)
 
   // Form state managed by React Hook Form
   const form = useForm<WeekendFormValues>({
@@ -95,10 +96,9 @@ export function WeekendSidebar({
   })
 
   // UI-only state
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const initial = inferMensWeekendFromGroup(weekendGroup)
-    return getMonthKey(initial.range.start)
-  })
+  const [selectedMonth, setSelectedMonth] = useState(
+    getMonthKey(initialDateRange.range.start)
+  )
   const [isModifyingDates, setIsModifyingDates] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
