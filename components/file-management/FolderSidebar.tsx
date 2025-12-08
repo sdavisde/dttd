@@ -116,7 +116,9 @@ export function FolderSidebar({
           ? err.message
           : 'An error occurred while saving the folder'
       setError(errorMessage)
-      logger.error(`Error saving folder: ${err instanceof Error ? err.message : String(err)}`)
+      logger.error(
+        `Error saving folder: ${err instanceof Error ? err.message : String(err)}`
+      )
     } finally {
       setLoading(false)
     }
@@ -156,7 +158,8 @@ export function FolderSidebar({
                   }
                 />
                 <Typography variant="muted" className="text-xs">
-                  Folder names should be in title format (e.g. "My Folder")
+                  Folder names should be in title format (e.g. &ldquo;My
+                  Folder&rdquo;)
                 </Typography>
                 {isEditing && (
                   <Typography

@@ -93,7 +93,9 @@ export function CreateFolderSidebar({
           ? err.message
           : 'An error occurred while creating the folder'
       setError(errorMessage)
-      logger.error(`Error creating folder: ${err instanceof Error ? err.message : String(err)}`)
+      logger.error(
+        `Error creating folder: ${err instanceof Error ? err.message : String(err)}`
+      )
     } finally {
       setLoading(false)
     }
@@ -131,7 +133,8 @@ export function CreateFolderSidebar({
                   }
                 />
                 <Typography variant="muted" className="text-xs">
-                  Folder names should be in title format (e.g. "My Folder")
+                  Folder names should be in title format (e.g. &ldquo;My
+                  Folder&rdquo;)
                 </Typography>
               </div>
             </div>

@@ -114,7 +114,9 @@ export function FileContextMenu({
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to rename item')
-      logger.error(`Error renaming item: ${err instanceof Error ? err.message : String(err)}`)
+      logger.error(
+        `Error renaming item: ${err instanceof Error ? err.message : String(err)}`
+      )
     } finally {
       setLoading(false)
     }
@@ -160,7 +162,9 @@ export function FileContextMenu({
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete item')
-      logger.error(`Error deleting item: ${err instanceof Error ? err.message : String(err)}`)
+      logger.error(
+        `Error deleting item: ${err instanceof Error ? err.message : String(err)}`
+      )
     } finally {
       setLoading(false)
     }
@@ -236,7 +240,7 @@ export function FileContextMenu({
               Rename {item.isFolder ? 'Folder' : 'File'}
             </DialogTitle>
             <DialogDescription>
-              Enter a new name for "{item.name}"
+              Enter a new name for &ldquo;{item.name}&rdquo;
             </DialogDescription>
           </DialogHeader>
 
@@ -297,7 +301,7 @@ export function FileContextMenu({
 
             <Alert>
               <AlertDescription>
-                Are you sure you want to delete "{item.name}"?
+                Are you sure you want to delete &ldquo;{item.name}&rdquo;?
                 {item.isFolder &&
                   ' All files within this folder will also be deleted.'}
               </AlertDescription>
