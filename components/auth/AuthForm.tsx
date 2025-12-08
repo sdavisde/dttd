@@ -202,7 +202,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       <p className="text-center text-sm text-gray-600 mt-4">
         {mode === 'login' ? (
           <>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Button variant="link" asChild className="p-0 h-auto text-sm">
               <a href="/join">Create one</a>
             </Button>

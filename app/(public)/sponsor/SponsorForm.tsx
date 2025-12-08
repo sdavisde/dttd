@@ -233,14 +233,14 @@ export function SponsorForm() {
                           <SelectContent>
                             {weekends?.MENS && (
                               <SelectItem value={weekends.MENS.id}>
-                                Men's Weekend -{' '}
+                                Men&apos;s Weekend -{' '}
                                 {weekends.MENS.title ||
                                   `Weekend #${weekends.MENS.number}`}
                               </SelectItem>
                             )}
                             {weekends?.WOMENS && (
                               <SelectItem value={weekends.WOMENS.id}>
-                                Women's Weekend -{' '}
+                                Women&apos;s Weekend -{' '}
                                 {weekends.WOMENS.title ||
                                   `Weekend #${weekends.WOMENS.number}`}
                               </SelectItem>
@@ -270,7 +270,7 @@ export function SponsorForm() {
                     name="sponsor_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sponsor's Name</FormLabel>
+                        <FormLabel>Sponsor&apos;s Name</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -284,7 +284,7 @@ export function SponsorForm() {
                     name="sponsor_phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sponsor's Phone #</FormLabel>
+                        <FormLabel>Sponsor&apos;s Phone #</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -298,7 +298,7 @@ export function SponsorForm() {
                     name="sponsor_address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sponsor's Address</FormLabel>
+                        <FormLabel>Sponsor&apos;s Address</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -312,7 +312,7 @@ export function SponsorForm() {
                     name="sponsor_church"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sponsor's Church</FormLabel>
+                        <FormLabel>Sponsor&apos;s Church</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -327,7 +327,7 @@ export function SponsorForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Sponsor's Weekend Attended & Where
+                          Sponsor&apos;s Weekend Attended & Where
                         </FormLabel>
                         <FormControl>
                           <Input {...field} />
@@ -343,7 +343,7 @@ export function SponsorForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Sponsor's Reunion Group Name & Location
+                          Sponsor&apos;s Reunion Group Name & Location
                         </FormLabel>
                         <FormControl>
                           <Input {...field} />

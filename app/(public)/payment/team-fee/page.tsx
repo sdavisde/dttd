@@ -50,8 +50,13 @@ export default async function TeamFeesPaymentPage({
             Registration Issue
           </AlertTitle>
           <AlertDescription className="space-y-2">
-            <p>It doesn't look like you're registered for the weekend yet.</p>
-            <p>Please contact your Rector to ensure you're on the roster.</p>
+            <p>
+              It doesn&apos;t look like you&apos;re registered for the weekend
+              yet.
+            </p>
+            <p>
+              Please contact your Rector to ensure you&apos;re on the roster.
+            </p>
             <p className="text-sm mt-4">
               If this issue persists, please contact Sean Davis at 214-799-7708
               or sdavisde@gmail.com for assistance in paying your team fees.

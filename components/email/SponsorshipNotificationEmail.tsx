@@ -137,7 +137,7 @@ export default function SponsorshipNotificationEmail({
               {/* God's Evidence and Support Plan */}
               <Section className="mb-6">
                 <Text className="text-gray-700 mb-3">
-                  <strong>Evidence of God's Leading:</strong>
+                  <strong>Evidence of God&apos;s Leading:</strong>
                 </Text>
                 <Text className="text-gray-600 mb-4 pl-4">
                   {candidate_sponsorship_info?.god_evidence ??

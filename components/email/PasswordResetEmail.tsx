@@ -44,8 +44,9 @@ export default function PasswordResetEmail({
               </Heading>
 
               <Text className="text-gray-700 mb-6">
-                We received a request to reset the password for your account ({userEmail}). 
-                If you made this request, click the button below to reset your password.
+                We received a request to reset the password for your account (
+                {userEmail}). If you made this request, click the button below
+                to reset your password.
               </Text>
 
               {/* Call to Action */}
@@ -63,8 +64,8 @@ export default function PasswordResetEmail({
               </Text>
 
               <Text className="text-gray-700 mb-6">
-                If you didn't request a password reset, you can safely ignore this email. 
-                Your password will not be changed.
+                If you didn&apos;t request a password reset, you can safely
+                ignore this email. Your password will not be changed.
               </Text>
 
               {/* Security Notice */}
@@ -84,7 +85,8 @@ export default function PasswordResetEmail({
               </Section>
 
               <Text className="text-gray-600 text-sm">
-                If the button above doesn't work, copy and paste this link into your browser:
+                If the button above doesn&apos;t work, copy and paste this link
+                into your browser:
                 <br />
                 <span className="text-blue-600 break-all">{resetUrl}</span>
               </Text>
@@ -95,10 +97,12 @@ export default function PasswordResetEmail({
             {/* Footer */}
             <Section className="text-center text-gray-600 text-sm">
               <Text className="mb-2">
-                This email was sent because a password reset was requested for your account.
+                This email was sent because a password reset was requested for
+                your account.
               </Text>
               <Text className="mb-2">
-                If you have any questions, please contact the system administrator.
+                If you have any questions, please contact the system
+                administrator.
               </Text>
               <Text>© 2025 Dusty Trails Tres Dias. All rights reserved.</Text>
             </Section>

@@ -62,7 +62,7 @@ export default function ForgotPasswordForm({
             Check your email
           </h2>
           <p className="text-gray-600 text-sm">
-            If an account with that email exists, we've sent you a password
+            If an account with that email exists, we&apos;ve sent you a password
             reset link.
           </p>
         </div>
@@ -116,7 +116,7 @@ export default function ForgotPasswordForm({
           Forgot your password?
         </h2>
         <p className="text-gray-600 text-sm">
-          Enter your email address and we'll send you a link to reset your
+          Enter your email address and we&apos;ll send you a link to reset your
           password.
         </p>
       </div>

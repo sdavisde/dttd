@@ -220,7 +220,7 @@ export function EditTeamMemberModal({
           <SheetTitle>Edit Team Member</SheetTitle>
           <SheetDescription>
             Edit {rosterMember.users?.first_name}{' '}
-            {rosterMember.users?.last_name}'s roster information.
+            {rosterMember.users?.last_name}&apos;s roster information.
           </SheetDescription>
         </SheetHeader>
 

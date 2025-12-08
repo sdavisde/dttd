@@ -58,7 +58,7 @@ export function CandidateTable({
         </div>
         <h3 className="text-lg font-semibold">No candidates found</h3>
         <p className="text-sm text-muted-foreground max-w-sm mt-1">
-          We couldn't find any candidates matching your criteria.
+          We couldn&apos;t find any candidates matching your criteria.
         </p>
       </div>
     )

@@ -28,7 +28,7 @@ export function Dashboard({ user }: DashboardProps) {
             This is your personal space in the Dusty Trails Tres Dias community.
           </Typography>
           <Typography variant="muted">
-            Here you'll find important information, updates, and resources.
+            Here you&apos;ll find important information, updates, and resources.
           </Typography>
         </div>
 

@@ -43,9 +43,9 @@ export default function Home() {
             <Card className="bg-white/20 border-none p-6 max-w-2xl mx-auto backdrop-blur-sm">
               <CardTitle>
                 <Typography className="text-background text-lg italic leading-relaxed text-center">
-                  "For in Christ all the fullness of the Deity lives in bodily
-                  form, and in Christ you have been brought to fullness. He is
-                  the head over every power and authority."
+                  &ldquo;For in Christ all the fullness of the Deity lives in
+                  bodily form, and in Christ you have been brought to fullness.
+                  He is the head over every power and authority.&rdquo;
                 </Typography>
               </CardTitle>
               <CardDescription>
@@ -66,9 +66,9 @@ export default function Home() {
             </Typography>
             <p className="text-gray-600 leading-relaxed">
               Tres Dias is an international movement designed to create an
-              environment for strengthening your walk with Christ. It's a time
-              of worship, fellowship, learning, and personal reflection in a
-              supportive Christian community.
+              environment for strengthening your walk with Christ. It&apos;s a
+              time of worship, fellowship, learning, and personal reflection in
+              a supportive Christian community.
             </p>
           </div>
 
