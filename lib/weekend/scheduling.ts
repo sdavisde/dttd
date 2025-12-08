@@ -1,3 +1,5 @@
+import { isNil } from 'lodash'
+import { formatWeekendTitle } from '.'
 import { WeekendGroupWithId, Weekend } from './types'
 
 export type DateRange = {
@@ -82,7 +84,7 @@ export const getNextThursdayRange = (reference = new Date()): DateRange => {
 export const inferMensWeekendFromGroup = (
   group: WeekendGroupWithId | null
 ): { title: string; range: DateRange } => {
-  if (!group) {
+  if (isNil(group)) {
     const nextRange = getNextThursdayRange()
     return { title: '', range: nextRange }
   }
@@ -175,12 +177,12 @@ export const isSameDay = (a: Date, b: Date) =>
   MILLISECONDS_IN_DAY
 
 export const getWeekendTitle = (weekend: Weekend | null) => {
-  if (!weekend) {
+  if (isNil(weekend)) {
     return ''
   }
 
-  if (weekend.title) {
-    return weekend.title
+  if (!isNil(weekend.title)) {
+    return formatWeekendTitle(weekend)
   }
 
   if (typeof weekend.number === 'number') {
