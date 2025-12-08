@@ -59,6 +59,7 @@ const weekendFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   mensStartDate: z.date(),
   mensEndDate: z.date(),
+  selectedMonth: z.string(),
 })
 
 type WeekendFormValues = z.infer<typeof weekendFormSchema>
@@ -77,6 +78,7 @@ function computeDefaultValues(
     title: getWeekendTitle(weekendGroup?.weekends.MENS ?? null) ?? '',
     mensStartDate: initial.range.start,
     mensEndDate: initial.range.end,
+    selectedMonth: getMonthKey(initial.range.start),
   }
 }
 
@@ -87,7 +89,6 @@ export function WeekendSidebar({
 }: WeekendSidebarProps) {
   const router = useRouter()
   const isEditing = Boolean(weekendGroup)
-  const initialDateRange = getMensWeekendDateRange(weekendGroup)
 
   // Form state managed by React Hook Form
   const form = useForm<WeekendFormValues>({
@@ -96,9 +97,6 @@ export function WeekendSidebar({
   })
 
   // UI-only state
-  const [selectedMonth, setSelectedMonth] = useState(
-    getMonthKey(initialDateRange.range.start)
-  )
   const [isModifyingDates, setIsModifyingDates] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -110,12 +108,12 @@ export function WeekendSidebar({
   useEffect(() => {
     const defaultValues = computeDefaultValues(weekendGroup)
     form.reset(defaultValues)
-    setSelectedMonth(getMonthKey(defaultValues.mensStartDate))
   }, [weekendGroup, form])
 
   // Get current form values
   const mensStartDate = form.watch('mensStartDate')
   const mensEndDate = form.watch('mensEndDate')
+  const selectedMonth = form.watch('selectedMonth')
 
   const womensRange = useMemo(
     () => ({
@@ -133,7 +131,7 @@ export function WeekendSidebar({
   )
 
   const handleMonthChange = (month: string) => {
-    setSelectedMonth(month)
+    form.setValue('selectedMonth', month)
 
     // Auto-select first weekend in the new month
     const newWeekendOptions = generateWeekendOptionsForMonth(month)
