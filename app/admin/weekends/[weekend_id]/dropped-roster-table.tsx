@@ -47,11 +47,11 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
 
       result = result.filter((member) => {
         const name =
-          `${member.users?.first_name || ''} ${member.users?.last_name || ''}`.toLowerCase()
-        const email = (member.users?.email || '').toLowerCase()
-        const phone = (member.users?.phone_number || '').toLowerCase()
+          `${member.users?.first_name ?? ''} ${member.users?.last_name ?? ''}`.toLowerCase()
+        const email = (member.users?.email ?? '').toLowerCase()
+        const phone = (member.users?.phone_number ?? '').toLowerCase()
         const role = formatRole(member.cha_role).toLowerCase()
-        const rollo = (member.rollo || '').toLowerCase()
+        const rollo = (member.rollo ?? '').toLowerCase()
 
         // Check if query matches any field (fuzzy search)
         return (
@@ -75,9 +75,9 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
 
       // If same role, sort by name
       const nameA =
-        `${a.users?.first_name || ''} ${a.users?.last_name || ''}`.toLowerCase()
+        `${a.users?.first_name ?? ''} ${a.users?.last_name ?? ''}`.toLowerCase()
       const nameB =
-        `${b.users?.first_name || ''} ${b.users?.last_name || ''}`.toLowerCase()
+        `${b.users?.first_name ?? ''} ${b.users?.last_name ?? ''}`.toLowerCase()
       return nameA.localeCompare(nameB)
     })
   }, [roster, searchQuery])
@@ -129,7 +129,9 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
                     colSpan={6}
                     className="h-24 text-center text-muted-foreground"
                   >
-                    {searchQuery ? 'No dropped members found matching your search.' : 'No dropped members.'}
+                    {searchQuery
+                      ? 'No dropped members found matching your search.'
+                      : 'No dropped members.'}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -141,10 +143,10 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {member.users?.email || '-'}
+                      {member.users?.email ?? '-'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {member.users?.phone_number || '-'}
+                      {member.users?.phone_number ?? '-'}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
@@ -152,7 +154,7 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {member.rollo || '-'}
+                      {member.rollo ?? '-'}
                     </TableCell>
                     <TableCell>
                       <Badge variant="destructive">Dropped</Badge>
@@ -168,11 +170,16 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
         <div className="md:hidden space-y-3">
           {paginatedData.length === 0 ? (
             <div className="bg-card border rounded-lg p-4 text-center text-muted-foreground">
-              {searchQuery ? 'No dropped members found matching your search.' : 'No dropped members.'}
+              {searchQuery
+                ? 'No dropped members found matching your search.'
+                : 'No dropped members.'}
             </div>
           ) : (
             paginatedData.map((member) => (
-              <div key={member.id} className="bg-card border rounded-lg p-4 space-y-3">
+              <div
+                key={member.id}
+                className="bg-card border rounded-lg p-4 space-y-3"
+              >
                 {/* Header with name and status */}
                 <div className="flex items-start justify-between">
                   <div>
@@ -190,15 +197,17 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground w-16">Phone:</span>
-                    <span>{member.users?.phone_number || '-'}</span>
+                    <span>{member.users?.phone_number ?? '-'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground w-16">Role:</span>
-                    <span className="font-medium">{formatRole(member.cha_role)}</span>
+                    <span className="font-medium">
+                      {formatRole(member.cha_role)}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground w-16">Rollo:</span>
-                    <span>{member.rollo || '-'}</span>
+                    <span>{member.rollo ?? '-'}</span>
                   </div>
                 </div>
               </div>

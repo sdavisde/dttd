@@ -31,10 +31,10 @@ export async function GET(request: NextRequest) {
         search: path.split('/').pop(),
       })
 
-    const fileName = path.split('/').pop() || 'download'
+    const fileName = path.split('/').pop() ?? 'download'
     const fileMetadata = fileInfo?.[0]
     const contentType =
-      fileMetadata?.metadata?.mimetype || 'application/octet-stream'
+      fileMetadata?.metadata?.mimetype ?? 'application/octet-stream'
 
     // Convert blob to array buffer
     const arrayBuffer = await fileData.arrayBuffer()

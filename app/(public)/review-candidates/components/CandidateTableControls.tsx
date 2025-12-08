@@ -84,16 +84,18 @@ export function CandidateTableControls({
         )}
 
         {/* Show Archived Toggle */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="show-archived"
-            checked={showArchived}
-            onCheckedChange={(checked) => onToggleArchived(checked === true)}
-          />
-          <Label htmlFor="show-archived" className="text-sm cursor-pointer">
-            Show Archived
-          </Label>
-        </div>
+        {showFilters && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="show-archived"
+              checked={showArchived}
+              onCheckedChange={(checked) => onToggleArchived(checked === true)}
+            />
+            <Label htmlFor="show-archived" className="text-sm cursor-pointer">
+              Show Archived
+            </Label>
+          </div>
+        )}
 
         {/* Clear Filters Button */}
         {showFilters && hasActiveFilters && (

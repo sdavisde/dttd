@@ -87,8 +87,9 @@ export async function getActiveWeekends(): Promise<
       (data.find((weekend) => weekend.type === WeekendType.MENS) as Weekend) ??
       null,
     WOMENS:
-      (data.find((weekend) => weekend.type === WeekendType.WOMENS) as Weekend) ??
-      null,
+      (data.find(
+        (weekend) => weekend.type === WeekendType.WOMENS
+      ) as Weekend) ?? null,
   })
 }
 
@@ -525,9 +526,9 @@ export async function getWeekendRoster(
   }
 
   const normalizedWeekendRoster = data.map((weekend_roster) => {
-    const all_payments = weekend_roster.weekend_roster_payments || []
+    const all_payments = weekend_roster.weekend_roster_payments ?? []
     const total_paid = all_payments.reduce((sum, payment) => {
-      return sum + (payment.payment_amount || 0)
+      return sum + (payment.payment_amount ?? 0)
     }, 0)
 
     return {
@@ -706,4 +707,3 @@ export async function getWeekendOptions(): Promise<
   // Return reversed (newest first)
   return ok(options.reverse())
 }
-

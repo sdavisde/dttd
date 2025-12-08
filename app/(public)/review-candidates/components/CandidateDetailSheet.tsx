@@ -77,7 +77,7 @@ export function CandidateDetailSheet({
                 Weekend Title
               </Typography>
               <Typography variant="p">
-                {candidate.weekends?.title || 'N/A'}
+                {candidate.weekends?.title ?? 'N/A'}
               </Typography>
             </div>
           </div>*/}
@@ -206,7 +206,7 @@ export function CandidateDetailSheet({
                     Age
                   </Typography>
                   <Typography variant="p">
-                    {candidate.candidate_info.age || 'Not provided'}
+                    {candidate.candidate_info.age ?? 'Not provided'}
                   </Typography>
                 </div>
               </div>
@@ -325,13 +325,13 @@ export function CandidateDetailSheet({
                 </Typography>
                 <Typography variant="p">
                   {candidate.candidate_sponsorship_info?.attends_secuela ===
-                    'yes'
+                  'yes'
                     ? 'Yes'
                     : candidate.candidate_sponsorship_info?.attends_secuela ===
-                      'no'
+                        'no'
                       ? 'No'
                       : candidate.candidate_sponsorship_info?.attends_secuela ||
-                      'Not specified'}
+                        'Not specified'}
                 </Typography>
               </div>
               <div>
@@ -344,17 +344,20 @@ export function CandidateDetailSheet({
               </div>
             </div>
 
-
-
             {/* Payment Information */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
               <div>
-                <Typography variant="small" className="text-muted-foreground mb-2 block">
+                <Typography
+                  variant="small"
+                  className="text-muted-foreground mb-2 block"
+                >
                   Payment Owner
                 </Typography>
                 <PaymentOwnerForm
                   candidateId={candidate.id}
-                  initialPaymentOwner={candidate.candidate_sponsorship_info?.payment_owner}
+                  initialPaymentOwner={
+                    candidate.candidate_sponsorship_info?.payment_owner
+                  }
                   onUpdate={onDataChange}
                 />
               </div>
@@ -365,7 +368,7 @@ export function CandidateDetailSheet({
         <SheetFooter>
           <CandidateActions onClose={onClose} />
         </SheetFooter>
-      </SheetContent >
-    </Sheet >
+      </SheetContent>
+    </Sheet>
   )
 }

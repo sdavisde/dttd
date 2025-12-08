@@ -70,12 +70,12 @@ export function WeekendRosterTable({
 
       result = result.filter((member) => {
         const name =
-          `${member.users?.first_name || ''} ${member.users?.last_name || ''}`.toLowerCase()
-        const email = (member.users?.email || '').toLowerCase()
-        const phone = (member.users?.phone_number || '').toLowerCase()
+          `${member.users?.first_name ?? ''} ${member.users?.last_name ?? ''}`.toLowerCase()
+        const email = (member.users?.email ?? '').toLowerCase()
+        const phone = (member.users?.phone_number ?? '').toLowerCase()
         const role = formatRole(member.cha_role).toLowerCase()
-        const status = (member.status || '').toLowerCase()
-        const rollo = (member.rollo || '').toLowerCase()
+        const status = (member.status ?? '').toLowerCase()
+        const rollo = (member.rollo ?? '').toLowerCase()
 
         // Check if query matches any field (fuzzy search)
         return (
@@ -100,9 +100,9 @@ export function WeekendRosterTable({
 
       // If same role, sort by name
       const nameA =
-        `${a.users?.first_name || ''} ${a.users?.last_name || ''}`.toLowerCase()
+        `${a.users?.first_name ?? ''} ${a.users?.last_name ?? ''}`.toLowerCase()
       const nameB =
-        `${b.users?.first_name || ''} ${b.users?.last_name || ''}`.toLowerCase()
+        `${b.users?.first_name ?? ''} ${b.users?.last_name ?? ''}`.toLowerCase()
       return nameA.localeCompare(nameB)
     })
   }, [roster, searchQuery])
@@ -188,10 +188,10 @@ export function WeekendRosterTable({
                           : 'Unknown User'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {member.users?.email || '-'}
+                        {member.users?.email ?? '-'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {member.users?.phone_number || '-'}
+                        {member.users?.phone_number ?? '-'}
                       </TableCell>
                       <TableCell>
                         <span>{formatRole(member.cha_role)}</span>
@@ -276,13 +276,13 @@ export function WeekendRosterTable({
                   <div className="flex items-center text-sm">
                     <span className="text-muted-foreground w-16">Email:</span>
                     <span className="text-foreground">
-                      {member.users?.email || '-'}
+                      {member.users?.email ?? '-'}
                     </span>
                   </div>
                   <div className="flex items-center text-sm">
                     <span className="text-muted-foreground w-16">Phone:</span>
                     <span className="text-foreground">
-                      {member.users?.phone_number || '-'}
+                      {member.users?.phone_number ?? '-'}
                     </span>
                   </div>
                 </div>

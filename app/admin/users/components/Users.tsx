@@ -1,7 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Edit, User as UserIcon, Trash2, Users as UsersIcon } from 'lucide-react'
+import {
+  Search,
+  Edit,
+  User as UserIcon,
+  Trash2,
+  Users as UsersIcon,
+} from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import { User } from '@/lib/users/types'
 import {
@@ -54,10 +60,10 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
 
     return users.filter((user) => {
       const name =
-        `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase()
-      const email = (user.email || '').toLowerCase()
-      const phone = (user.phone_number || '').toLowerCase()
-      const role = (user.role?.label || '').toLowerCase()
+        `${user.first_name ?? ''} ${user.last_name ?? ''}`.toLowerCase()
+      const email = (user.email ?? '').toLowerCase()
+      const phone = (user.phone_number ?? '').toLowerCase()
+      const role = (user.role?.label ?? '').toLowerCase()
 
       // Check if query matches any field (fuzzy search)
       return (
@@ -70,15 +76,11 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
   }, [searchTerm, users])
 
   // Pagination setup
-  const {
-    paginatedData,
-    pagination,
-    setPage,
-    setPageSize,
-  } = useTablePagination(filteredUsers, {
-    initialPageSize: 10,
-    initialPage: 1,
-  })
+  const { paginatedData, pagination, setPage, setPageSize } =
+    useTablePagination(filteredUsers, {
+      initialPageSize: 10,
+      initialPage: 1,
+    })
 
   const handleUserClick = (user: User) => {
     if (!canEditUsers) return
@@ -123,9 +125,7 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
     <div className="my-4">
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <Typography variant="h4">
-            User Management
-          </Typography>
+          <Typography variant="h4">User Management</Typography>
           <Card className="px-3 py-1.5">
             <CardContent className="p-0">
               <div className="flex items-center gap-2 text-sm">
@@ -187,16 +187,16 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <UserIcon className="h-4 w-4 text-gray-500" />
-                      {user.first_name || user.last_name
-                        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+                      {(user.first_name ?? user.last_name)
+                        ? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
                         : 'Unknown User'}
                     </div>
                   </TableCell>
-                  <TableCell>{user.email || '-'}</TableCell>
+                  <TableCell>{user.email ?? '-'}</TableCell>
                   <TableCell>{formatPhoneNumber(user.phone_number)}</TableCell>
                   <TableCell>
                     <span className="text-muted-foreground">
-                      {user.role?.label || '-'}
+                      {user.role?.label ?? '-'}
                     </span>
                   </TableCell>
                   <TableCell className="sticky right-0 bg-background text-right border-l">
@@ -243,7 +243,7 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
             </TableBody>
           </Table>
         </div>
-        
+
         {/* Pagination */}
         <TablePagination
           pagination={pagination}

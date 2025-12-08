@@ -90,13 +90,13 @@ export function useCandidateReviewTable(
 
       result = result.filter((candidate) => {
         const candidateName = (
-          candidate.candidate_sponsorship_info?.candidate_name || ''
+          candidate.candidate_sponsorship_info?.candidate_name ?? ''
         ).toLowerCase()
         const candidateEmail = (
-          candidate.candidate_sponsorship_info?.candidate_email || ''
+          candidate.candidate_sponsorship_info?.candidate_email ?? ''
         ).toLowerCase()
         const sponsorName = (
-          candidate.candidate_sponsorship_info?.sponsor_name || ''
+          candidate.candidate_sponsorship_info?.sponsor_name ?? ''
         ).toLowerCase()
 
         return (
@@ -115,20 +115,20 @@ export function useCandidateReviewTable(
         switch (sortColumn) {
           case 'name': {
             const nameA = (
-              a.candidate_sponsorship_info?.candidate_name || ''
+              a.candidate_sponsorship_info?.candidate_name ?? ''
             ).toLowerCase()
             const nameB = (
-              b.candidate_sponsorship_info?.candidate_name || ''
+              b.candidate_sponsorship_info?.candidate_name ?? ''
             ).toLowerCase()
             compareValue = nameA.localeCompare(nameB)
             break
           }
           case 'sponsor': {
             const sponsorA = (
-              a.candidate_sponsorship_info?.sponsor_name || ''
+              a.candidate_sponsorship_info?.sponsor_name ?? ''
             ).toLowerCase()
             const sponsorB = (
-              b.candidate_sponsorship_info?.sponsor_name || ''
+              b.candidate_sponsorship_info?.sponsor_name ?? ''
             ).toLowerCase()
             compareValue = sponsorA.localeCompare(sponsorB)
             break
@@ -150,14 +150,29 @@ export function useCandidateReviewTable(
     }
 
     return result
-  }, [candidates, searchQuery, statusFilters, showArchived, sortColumn, sortDirection])
+  }, [
+    candidates,
+    searchQuery,
+    statusFilters,
+    showArchived,
+    sortColumn,
+    sortDirection,
+  ])
 
   // Pagination
-  const { paginatedData, pagination, setPage, setPageSize, nextPage, previousPage, goToFirstPage, goToLastPage } =
-    useTablePagination(filteredAndSortedCandidates, {
-      initialPageSize,
-      initialPage,
-    })
+  const {
+    paginatedData,
+    pagination,
+    setPage,
+    setPageSize,
+    nextPage,
+    previousPage,
+    goToFirstPage,
+    goToLastPage,
+  } = useTablePagination(filteredAndSortedCandidates, {
+    initialPageSize,
+    initialPage,
+  })
 
   return {
     // Processed data

@@ -11,7 +11,11 @@ import { StatusChip } from '@/components/candidates/status-chip'
 import { cn } from '@/lib/utils'
 import { ArrowUp, ArrowDown, Users, Info, MoreHorizontal } from 'lucide-react'
 import { isEmpty } from 'lodash'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -107,7 +111,7 @@ export function CandidateTable({
                 <span>Status</span>
 
                 <Popover>
-                  <PopoverTrigger asChild onClick={e => e.stopPropagation()}>
+                  <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Info className="h-4 w-4 text-muted-foreground" />
                       <span className="sr-only">Status Reference</span>
@@ -115,7 +119,9 @@ export function CandidateTable({
                   </PopoverTrigger>
                   <PopoverContent className="w-80" align="start">
                     <div className="space-y-4">
-                      <h4 className="font-medium leading-none">Status Reference</h4>
+                      <h4 className="font-medium leading-none">
+                        Status Reference
+                      </h4>
                       <StatusLegend />
                     </div>
                   </PopoverContent>
@@ -135,8 +141,8 @@ export function CandidateTable({
                   index % 2 === 0 ? 'bg-transparent' : 'bg-muted',
                   'hover:bg-muted/50 cursor-pointer',
                   candidate.status === 'rejected' &&
-                  showArchived &&
-                  'opacity-50 bg-muted/30'
+                    showArchived &&
+                    'opacity-50 bg-muted/30'
                 )}
               >
                 <TableCell>
@@ -160,10 +166,7 @@ export function CandidateTable({
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                      >
+                      <Button variant="ghost" className="h-8 w-8 p-0">
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
@@ -186,12 +189,15 @@ export function CandidateTable({
                         className="flex justify-between items-center cursor-pointer"
                       >
                         Request Payment
-                        {candidate.candidate_sponsorship_info?.payment_owner === 'sponsor' && (
-                          <span className="ml-2 text-xs text-muted-foreground">(sponsor)</span>
+                        {candidate.candidate_sponsorship_info?.payment_owner ===
+                          'sponsor' && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            (sponsor)
+                          </span>
                         )}
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        variant='destructive'
+                        variant="destructive"
                         className="cursor-pointer"
                         onClick={() => onReject?.(candidate)}
                       >
@@ -217,7 +223,7 @@ export function CandidateTable({
             {/* Header with name and status */}
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">
-                {candidate.candidate_sponsorship_info?.candidate_name ||
+                {candidate.candidate_sponsorship_info?.candidate_name ??
                   'Unknown Candidate'}
               </h3>
               <StatusChip status={candidate.status} />
@@ -228,14 +234,14 @@ export function CandidateTable({
               <div className="flex">
                 <span className="text-muted-foreground w-16">Email:</span>
                 <span>
-                  {candidate.candidate_sponsorship_info?.candidate_email ||
+                  {candidate.candidate_sponsorship_info?.candidate_email ??
                     'Not provided'}
                 </span>
               </div>
               <div className="flex">
                 <span className="text-muted-foreground w-16">Sponsor:</span>
                 <span>
-                  {candidate.candidate_sponsorship_info?.sponsor_name ||
+                  {candidate.candidate_sponsorship_info?.sponsor_name ??
                     'Unknown'}
                 </span>
               </div>

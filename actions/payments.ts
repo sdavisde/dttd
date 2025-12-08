@@ -82,11 +82,11 @@ export async function getAllPayments(): Promise<
         (payment): PaymentRecord => ({
           id: payment.id,
           type: 'team_fee',
-          payment_amount: payment.payment_amount || 0,
-          payment_method: payment.payment_method || 'stripe',
+          payment_amount: payment.payment_amount ?? 0,
+          payment_method: payment.payment_method ?? 'stripe',
           payment_intent_id: payment.payment_intent_id,
           created_at: payment.created_at,
-          notes: payment.notes || undefined,
+          notes: payment.notes ?? undefined,
           payer_name: `${payment.weekend_roster.users.first_name} ${payment.weekend_roster.users.last_name}`,
           payer_email: payment.weekend_roster.users.email,
         })

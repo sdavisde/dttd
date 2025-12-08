@@ -48,7 +48,10 @@ export function PaymentInfoModal({
     return `https://dashboard.stripe.com/payments/${paymentIntentId}`
   }
 
-  const totalPaid = all_payments.reduce((sum, payment) => sum + (payment.payment_amount || 0), 0)
+  const totalPaid = all_payments.reduce(
+    (sum, payment) => sum + (payment.payment_amount ?? 0),
+    0
+  )
   const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
   const remainingBalance = totalFee - totalPaid
 
@@ -60,7 +63,10 @@ export function PaymentInfoModal({
     })
   }
 
-  const getPaymentTypeDisplay = (method: string | null, paymentIntentId: string | null) => {
+  const getPaymentTypeDisplay = (
+    method: string | null,
+    paymentIntentId: string | null
+  ) => {
     if (!method) return 'Unknown'
     if (paymentIntentId?.startsWith('manual_')) {
       return method.charAt(0).toUpperCase() + method.slice(1)
@@ -97,7 +103,11 @@ export function PaymentInfoModal({
             </div>
             <div className="flex justify-between text-sm font-semibold border-t pt-2">
               <span>Balance Remaining:</span>
-              <span className={remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'}>
+              <span
+                className={
+                  remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
+                }
+              >
                 ${remainingBalance}
               </span>
             </div>
@@ -106,15 +116,25 @@ export function PaymentInfoModal({
           {/* Payment History */}
           {all_payments.length > 0 ? (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Payment History</h4>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Payment History
+              </h4>
               {all_payments.map((payment, index) => {
-                const stripeUrl = getStripeDashboardUrl(payment.payment_intent_id)
+                const stripeUrl = getStripeDashboardUrl(
+                  payment.payment_intent_id
+                )
                 return (
-                  <div key={payment.id} className="border rounded-lg p-3 space-y-2">
+                  <div
+                    key={payment.id}
+                    className="border rounded-lg p-3 space-y-2"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">
-                          {getPaymentTypeDisplay(payment.payment_method, payment.payment_intent_id)}
+                          {getPaymentTypeDisplay(
+                            payment.payment_method,
+                            payment.payment_intent_id
+                          )}
                         </Badge>
                         <span className="font-medium">
                           {formatAmount(payment.payment_amount)}
@@ -124,29 +144,31 @@ export function PaymentInfoModal({
                         {formatDate(payment.created_at)}
                       </span>
                     </div>
-                    
-                    {payment.payment_intent_id && !payment.payment_intent_id.startsWith('manual_') && (
-                      <div className="flex items-center gap-2">
-                        <Hash className="h-3 w-3 text-muted-foreground" />
-                        <code className="text-xs bg-muted px-2 py-1 rounded">
-                          {payment.payment_intent_id}
-                        </code>
-                        {stripeUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2"
-                            onClick={() => window.open(stripeUrl, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    
+
+                    {payment.payment_intent_id &&
+                      !payment.payment_intent_id.startsWith('manual_') && (
+                        <div className="flex items-center gap-2">
+                          <Hash className="h-3 w-3 text-muted-foreground" />
+                          <code className="text-xs bg-muted px-2 py-1 rounded">
+                            {payment.payment_intent_id}
+                          </code>
+                          {stripeUrl && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => window.open(stripeUrl, '_blank')}
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
                     {payment.notes && (
                       <div className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1">
-                        <span className="font-medium">Notes:</span> {payment.notes}
+                        <span className="font-medium">Notes:</span>{' '}
+                        {payment.notes}
                       </div>
                     )}
                   </div>

@@ -83,7 +83,8 @@ export function UserRoleSidebar({
       router.refresh()
       onClose()
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update user role'
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to update user role'
       setError(errorMessage)
     } finally {
       setIsLoading(false)
@@ -112,8 +113,8 @@ export function UserRoleSidebar({
                     Name
                   </Typography>
                   <Typography variant="h6" className="font-medium">
-                    {user?.first_name || user?.last_name
-                      ? `${user?.first_name || ''} ${user?.last_name || ''}`.trim()
+                    {(user?.first_name ?? user?.last_name)
+                      ? `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim()
                       : 'Unknown User'}
                   </Typography>
                 </div>
@@ -125,7 +126,7 @@ export function UserRoleSidebar({
                     Gender
                   </Typography>
                   <Typography className="text-sm">
-                    {user?.gender || '-'}
+                    {user?.gender ?? '-'}
                   </Typography>
                 </div>
                 <div>
@@ -136,7 +137,7 @@ export function UserRoleSidebar({
                     Email
                   </Typography>
                   <Typography className="text-sm break-all">
-                    {user?.email || '-'}
+                    {user?.email ?? '-'}
                   </Typography>
                 </div>
                 <div>
@@ -168,7 +169,7 @@ export function UserRoleSidebar({
                     User Role
                   </Typography>
                   <Select
-                    value={selectedRoleId || 'No role'}
+                    value={selectedRoleId ?? 'No role'}
                     onValueChange={(value) =>
                       setSelectedRoleId(value === 'No role' ? null : value)
                     }
@@ -196,9 +197,7 @@ export function UserRoleSidebar({
           {error && (
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
-              <AlertDescription>
-                {error}
-              </AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
         </div>
@@ -209,7 +208,7 @@ export function UserRoleSidebar({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isLoading || selectedRoleId === (user?.role?.id || null)}
+            disabled={isLoading || selectedRoleId === (user?.role?.id ?? null)}
           >
             {isLoading ? 'Updating...' : 'Update Role'}
           </Button>

@@ -54,7 +54,7 @@ export function CashCheckPaymentModal({
       : 'Unknown User'
 
   const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
-  const currentPaid = rosterMember.total_paid || 0
+  const currentPaid = rosterMember.total_paid ?? 0
   const remainingBalance = totalFee - currentPaid
 
   const handleSubmit = async (e: React.FormEvent) => {

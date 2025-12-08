@@ -105,7 +105,7 @@ export const PaymentInfo = ({ member, isEditable }: PaymentInfoProps) => {
 // Format payment summary for display
 function formatPaymentSummary(member: WeekendRosterMember) {
   const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
-  const paid = member.total_paid || 0
+  const paid = member.total_paid ?? 0
   const balance = totalFee - paid
 
   return {
