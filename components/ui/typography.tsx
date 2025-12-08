@@ -42,7 +42,9 @@ const typographyVariants = cva('', {
   },
 })
 
-export interface TypographyProps extends React.HTMLAttributes<HTMLElement>, VariantProps<typeof typographyVariants> {
+export interface TypographyProps
+  extends React.HTMLAttributes<HTMLElement>,
+    VariantProps<typeof typographyVariants> {
   as?: React.ElementType
   children: React.ReactNode
 }
@@ -79,16 +81,16 @@ const Typography = React.forwardRef<HTMLElement, TypographyProps>(
       }
     }
 
-    const Component = as || getDefaultTag(variant)
+    const Component = as ?? getDefaultTag(variant)
 
-    return (
-      <Component
-        ref={ref}
-        className={cn(typographyVariants({ variant, align, className }))}
-        {...props}
-      >
-        {children}
-      </Component>
+    return React.createElement(
+      Component,
+      {
+        ref,
+        className: cn(typographyVariants({ variant, align, className })),
+        ...props,
+      },
+      children
     )
   }
 )
