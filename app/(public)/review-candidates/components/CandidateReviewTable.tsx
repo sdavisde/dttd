@@ -152,6 +152,11 @@ export function CandidateReviewTable({
     router.refresh()
   }
 
+  // Refresh data when changes happen in the sheet
+  const handleDataChange = () => {
+    router.refresh()
+  }
+
   return (
     <>
       <div className="space-y-4">
@@ -191,6 +196,7 @@ export function CandidateReviewTable({
         candidate={selectedCandidate}
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
+        onDataChange={handleDataChange}
       />
 
       <DeleteConfirmationDialog

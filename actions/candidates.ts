@@ -237,3 +237,30 @@ export async function addCandidateInfo(candidateId: string, data: CandidateFormD
     )
   }
 }
+
+/**
+ * Update the payment owner for a candidate
+ */
+export async function updateCandidatePaymentOwner(
+  candidateId: string,
+  paymentOwner: string
+): Promise<Result<Error, { success: boolean }>> {
+  try {
+    const supabase = await createClient()
+
+    const { error: updateError } = await supabase
+      .from('candidate_sponsorship_info')
+      .update({ payment_owner: paymentOwner })
+      .eq('candidate_id', candidateId)
+
+    if (updateError) {
+      return err(new Error(`Failed to update payment owner: ${updateError.message}`))
+    }
+
+    return ok({ success: true })
+  } catch (error) {
+    return err(
+      new Error(`Error while updating payment owner: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    )
+  }
+}

@@ -10,17 +10,20 @@ import { Typography } from '@/components/ui/typography'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { CandidateActions } from './CandidateActions'
+import { PaymentOwnerForm } from './PaymentOwnerForm'
 
 interface CandidateDetailSheetProps {
   candidate: HydratedCandidate | null
   isOpen: boolean
   onClose: () => void
+  onDataChange?: () => void
 }
 
 export function CandidateDetailSheet({
   candidate,
   isOpen,
   onClose,
+  onDataChange,
 }: CandidateDetailSheetProps) {
   if (!candidate) return null
 
@@ -341,22 +344,19 @@ export function CandidateDetailSheet({
               </div>
             </div>
 
+
+
             {/* Payment Information */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
               <div>
-                <Typography variant="small" className="text-muted-foreground">
+                <Typography variant="small" className="text-muted-foreground mb-2 block">
                   Payment Owner
                 </Typography>
-                <Typography variant="p">
-                  {candidate.candidate_sponsorship_info?.payment_owner ===
-                    'sponsor'
-                    ? 'Sponsor'
-                    : candidate.candidate_sponsorship_info?.payment_owner ===
-                      'candidate'
-                      ? 'Candidate'
-                      : candidate.candidate_sponsorship_info?.payment_owner ||
-                      'Not specified'}
-                </Typography>
+                <PaymentOwnerForm
+                  candidateId={candidate.id}
+                  initialPaymentOwner={candidate.candidate_sponsorship_info?.payment_owner}
+                  onUpdate={onDataChange}
+                />
               </div>
             </div>
           </div>
@@ -365,7 +365,7 @@ export function CandidateDetailSheet({
         <SheetFooter>
           <CandidateActions onClose={onClose} />
         </SheetFooter>
-      </SheetContent>
-    </Sheet>
+      </SheetContent >
+    </Sheet >
   )
 }
