@@ -15,6 +15,7 @@ import { sendCandidateForms } from '@/actions/emails'
 import { sendPaymentRequestEmail } from '@/actions/emails'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { SendFormsConfirmationModal } from './SendFormsConfirmationModal'
 
 interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
@@ -28,6 +29,9 @@ export function CandidateReviewTable({
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isSendFormsModalOpen, setIsSendFormsModalOpen] = useState(false)
+  const [candidateForSendForms, setCandidateForSendForms] =
+    useState<HydratedCandidate | null>(null)
   const router = useRouter()
 
   // Table controls hook
@@ -100,10 +104,18 @@ export function CandidateReviewTable({
     router.refresh()
   }
 
-  const onSendForms = async (candidate: HydratedCandidate) => {
-    logger.info(`Sending candidate forms: ${candidate.id}`)
+  const onSendForms = (candidate: HydratedCandidate) => {
+    setCandidateForSendForms(candidate)
+    setIsSendFormsModalOpen(true)
+  }
 
-    const candidateSponsorshipInfo = candidate.candidate_sponsorship_info
+  const handleSendFormsConfirm = async () => {
+    if (!candidateForSendForms) return
+
+    logger.info(`Sending candidate forms: ${candidateForSendForms.id}`)
+
+    const candidateSponsorshipInfo =
+      candidateForSendForms.candidate_sponsorship_info
     if (!candidateSponsorshipInfo) {
       logger.error('Candidate sponsorship info not found')
       return
@@ -111,7 +123,7 @@ export function CandidateReviewTable({
 
     // Set the candidate status to awaiting_forms
     const result = await updateCandidateStatus(
-      candidate.id,
+      candidateForSendForms.id,
       'awaiting_forms'
     )
     if (Results.isErr(result)) {
@@ -127,12 +139,21 @@ export function CandidateReviewTable({
       logger.error(
         `Failed to send candidate forms: ${candidateFormsResult.error.message}`
       )
-      toast.error(`Failed to send forms email: ${candidateFormsResult.error.message}`)
+      toast.error(
+        `Failed to send forms email: ${candidateFormsResult.error.message}`
+      )
       return
     }
 
     toast.success('Candidate forms sent successfully')
+    setIsSendFormsModalOpen(false)
+    setCandidateForSendForms(null)
     router.refresh()
+  }
+
+  const handleSendFormsCancel = () => {
+    setIsSendFormsModalOpen(false)
+    setCandidateForSendForms(null)
   }
 
   const onSendPaymentRequest = async (candidate: HydratedCandidate) => {
@@ -144,7 +165,9 @@ export function CandidateReviewTable({
       logger.error(
         `Failed to send payment request email: ${result.error.message}`
       )
-      toast.error(`Failed to send payment request email: ${result.error.message}`)
+      toast.error(
+        `Failed to send payment request email: ${result.error.message}`
+      )
       return
     }
 
@@ -188,8 +211,6 @@ export function CandidateReviewTable({
           onPageSizeChange={setPageSize}
           pageSizeOptions={[10, 25, 50, 100]}
         />
-
-
       </div>
 
       <CandidateDetailSheet
@@ -207,6 +228,13 @@ export function CandidateReviewTable({
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         confirmText="Delete Candidate"
+      />
+
+      <SendFormsConfirmationModal
+        isOpen={isSendFormsModalOpen}
+        candidate={candidateForSendForms}
+        onCancel={handleSendFormsCancel}
+        onConfirm={handleSendFormsConfirm}
       />
     </>
   )
