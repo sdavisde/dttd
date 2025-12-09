@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import * as Results from '@/lib/results'
 import { getUrl } from '@/lib/url'
+import { Errors } from '@/lib/error'
 
 interface CandidateFeesPaymentPageProps {
   searchParams: Promise<{
@@ -33,28 +34,48 @@ export default async function CandidateFeesPaymentPage({
   }
 
   if (!candidate_id) {
-    redirect('/home?error=missing_candidate_id')
+    logger.error({
+      path: '/payment/candidate-fee',
+      error: Errors.MISSING_CANDIDATE_ID,
+      msg: 'Payment page accessed without candidate_id',
+    })
+    redirect(`/home?error=${Errors.MISSING_CANDIDATE_ID}`)
   }
 
   const candidateResult = await getHydratedCandidate(candidate_id)
   if (Results.isErr(candidateResult)) {
-    logger.error(
-      `Failed to fetch candidate ${candidate_id}: ${candidateResult.error.message}`
-    )
-    return Results.err(
-      new Error(`Failed to fetch candidate: ${candidateResult.error.message}`)
-    )
+    logger.error({
+      path: '/payment/candidate-fee',
+      candidate_id,
+      error: Errors.FAILED_TO_FETCH_CANDIDATE,
+      errorMessage: candidateResult.error.message,
+      msg: 'Failed to fetch candidate for payment page',
+    })
+    redirect(`/home?error=${Errors.FAILED_TO_FETCH_CANDIDATE}`)
   }
 
   const candidate = candidateResult.data
 
   if (!candidate) {
-    redirect('/home?error=invalid_candidate')
+    logger.error({
+      path: '/payment/candidate-fee',
+      candidate_id,
+      error: Errors.INVALID_CANDIDATE,
+      msg: 'Candidate not found for payment page',
+    })
+    redirect(`/home?error=${Errors.INVALID_CANDIDATE}`)
   }
 
   // Check if candidate is in the correct status for payment
   if (candidate.status !== 'awaiting_payment') {
-    redirect('/home?error=invalid_candidate_status')
+    logger.error({
+      path: '/payment/candidate-fee',
+      candidate_id,
+      currentStatus: candidate.status,
+      error: Errors.INVALID_CANDIDATE_STATUS,
+      msg: 'Candidate not in awaiting_payment status',
+    })
+    redirect(`/home?error=${Errors.INVALID_CANDIDATE_STATUS}`)
   }
 
   // Validate payment_owner parameter
@@ -64,7 +85,14 @@ export default async function CandidateFeesPaymentPage({
       candidate.candidate_sponsorship_info.payment_owner
     )
   ) {
-    redirect('/home?error=invalid_payment_owner')
+    logger.error({
+      path: '/payment/candidate-fee',
+      candidate_id,
+      payment_owner: candidate.candidate_sponsorship_info.payment_owner,
+      error: Errors.INVALID_PAYMENT_OWNER,
+      msg: 'Invalid payment_owner value',
+    })
+    redirect(`/home?error=${Errors.INVALID_PAYMENT_OWNER}`)
   }
 
   return (
