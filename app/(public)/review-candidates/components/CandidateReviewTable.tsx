@@ -16,6 +16,7 @@ import { sendPaymentRequestEmail } from '@/actions/emails'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { SendFormsConfirmationModal } from './SendFormsConfirmationModal'
+import { SendPaymentRequestConfirmationModal } from './SendPaymentRequestConfirmationModal'
 
 interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
@@ -31,6 +32,9 @@ export function CandidateReviewTable({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSendFormsModalOpen, setIsSendFormsModalOpen] = useState(false)
   const [candidateForSendForms, setCandidateForSendForms] =
+    useState<HydratedCandidate | null>(null)
+  const [isSendPaymentModalOpen, setIsSendPaymentModalOpen] = useState(false)
+  const [candidateForSendPayment, setCandidateForSendPayment] =
     useState<HydratedCandidate | null>(null)
   const router = useRouter()
 
@@ -156,10 +160,17 @@ export function CandidateReviewTable({
     setCandidateForSendForms(null)
   }
 
-  const onSendPaymentRequest = async (candidate: HydratedCandidate) => {
-    logger.info(`Sending payment request: ${candidate.id}`)
+  const onSendPaymentRequest = (candidate: HydratedCandidate) => {
+    setCandidateForSendPayment(candidate)
+    setIsSendPaymentModalOpen(true)
+  }
 
-    const result = await sendPaymentRequestEmail(candidate.id)
+  const handleSendPaymentRequestConfirm = async () => {
+    if (!candidateForSendPayment) return
+
+    logger.info(`Sending payment request: ${candidateForSendPayment.id}`)
+
+    const result = await sendPaymentRequestEmail(candidateForSendPayment.id)
 
     if (Results.isErr(result)) {
       logger.error(
@@ -172,7 +183,14 @@ export function CandidateReviewTable({
     }
 
     toast.success('Payment request sent successfully')
+    setIsSendPaymentModalOpen(false)
+    setCandidateForSendPayment(null)
     router.refresh()
+  }
+
+  const handleSendPaymentRequestCancel = () => {
+    setIsSendPaymentModalOpen(false)
+    setCandidateForSendPayment(null)
   }
 
   // Refresh data when changes happen in the sheet
@@ -235,6 +253,13 @@ export function CandidateReviewTable({
         candidate={candidateForSendForms}
         onCancel={handleSendFormsCancel}
         onConfirm={handleSendFormsConfirm}
+      />
+
+      <SendPaymentRequestConfirmationModal
+        isOpen={isSendPaymentModalOpen}
+        candidate={candidateForSendPayment}
+        onCancel={handleSendPaymentRequestCancel}
+        onConfirm={handleSendPaymentRequestConfirm}
       />
     </>
   )

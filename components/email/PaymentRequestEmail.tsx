@@ -61,30 +61,32 @@ export default function CandidateFeePaymentRequestEmail({
 
               <Text className="text-gray-700 mb-6">
                 {paymentOwner === 'candidate'
-                  ? `Your sponsorship request for the Dusty Trails Tres Dias weekend has been approved! We're excited to have you join us for this spiritual renewal experience.`
+                  ? `We're so excited to have you join us for the upcoming Dusty Trails Tres Dias weekend.`
                   : `The sponsorship request for ${candidate.candidate_sponsorship_info?.candidate_name} has been approved for the Dusty Trails Tres Dias weekend. As the designated payment owner, we need you to complete the payment to confirm their spot.`}
               </Text>
 
-              {/* Candidate Information */}
-              <Section className="bg-gray-50 p-6 rounded-lg mb-6">
-                <Heading className="text-lg font-semibold text-gray-900 mb-4">
-                  Candidate Information
-                </Heading>
-                <Text className="text-gray-700 mb-2">
-                  <strong>Candidate Name:</strong>{' '}
-                  {candidate.candidate_sponsorship_info?.candidate_name ??
-                    'No name'}
-                </Text>
-                {candidate.candidate_sponsorship_info?.sponsor_name && (
+              {/* Candidate Information - only show if sponsor is paying */}
+              {paymentOwner === 'sponsor' && (
+                <Section className="bg-gray-50 p-6 rounded-lg mb-6">
+                  <Heading className="text-lg font-semibold text-gray-900 mb-4">
+                    Candidate Information
+                  </Heading>
                   <Text className="text-gray-700 mb-2">
-                    <strong>Sponsor Name:</strong>{' '}
-                    {candidate.candidate_sponsorship_info?.sponsor_name}
+                    <strong>Candidate Name:</strong>{' '}
+                    {candidate.candidate_sponsorship_info?.candidate_name ??
+                      'No name'}
                   </Text>
-                )}
-                <Text className="text-gray-700 mb-2">
-                  <strong>Status:</strong> Awaiting Payment
-                </Text>
-              </Section>
+                  {candidate.candidate_sponsorship_info?.sponsor_name && (
+                    <Text className="text-gray-700 mb-2">
+                      <strong>Sponsor Name:</strong>{' '}
+                      {candidate.candidate_sponsorship_info?.sponsor_name}
+                    </Text>
+                  )}
+                  <Text className="text-gray-700 mb-2">
+                    <strong>Status:</strong> Awaiting Payment
+                  </Text>
+                </Section>
+              )}
 
               <Text className="text-gray-700 mb-6">
                 To complete the registration process and secure your spot for
