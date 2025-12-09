@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { assignUserRole, removeUserRole } from '@/actions/users'
 import { User } from '@/lib/users/types'
