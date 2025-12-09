@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { Toaster } from './ui/sonner'
+import { isNil } from 'lodash'
 
 export function Toastbox() {
   return <Toaster position="top-center" richColors />
@@ -16,7 +17,7 @@ export function useToastListener() {
   const error = searchParams.get('error')
 
   useEffect(() => {
-    if (!error || !(error in Errors)) {
+    if (isNil(error) || !(error in Errors)) {
       return
     }
     toast.error(getErrorMessage(Errors[error as keyof typeof Errors]))
