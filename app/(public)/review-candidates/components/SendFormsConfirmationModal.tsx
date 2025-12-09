@@ -41,7 +41,12 @@ export function SendFormsConfirmationModal({
     setIsLoading(true)
     try {
       await onConfirm()
+    } catch (error) {
+      // If there's an error, keep modal open
+      console.error('Error in onConfirm:', error)
     } finally {
+      // Always reset loading state
+      // The parent will close the modal on success
       setIsLoading(false)
     }
   }
@@ -52,8 +57,15 @@ export function SendFormsConfirmationModal({
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    // Only allow closing if not loading
+    if (!open && !isLoading) {
+      onCancel()
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleCancel}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Send Candidate Forms Email</DialogTitle>
