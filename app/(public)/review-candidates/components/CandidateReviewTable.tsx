@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { SendFormsConfirmationModal } from './SendFormsConfirmationModal'
 import { SendPaymentRequestConfirmationModal } from './SendPaymentRequestConfirmationModal'
+import { RejectCandidateConfirmationModal } from './RejectCandidateConfirmationModal'
 
 interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
@@ -35,6 +36,9 @@ export function CandidateReviewTable({
     useState<HydratedCandidate | null>(null)
   const [isSendPaymentModalOpen, setIsSendPaymentModalOpen] = useState(false)
   const [candidateForSendPayment, setCandidateForSendPayment] =
+    useState<HydratedCandidate | null>(null)
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
+  const [candidateForReject, setCandidateForReject] =
     useState<HydratedCandidate | null>(null)
   const router = useRouter()
 
@@ -93,10 +97,20 @@ export function CandidateReviewTable({
     setIsDeleteDialogOpen(false)
   }
 
-  const handleReject = async (candidate: HydratedCandidate) => {
-    logger.info(`Rejecting candidate: ${candidate.id}`)
+  const handleReject = (candidate: HydratedCandidate) => {
+    setCandidateForReject(candidate)
+    setIsRejectModalOpen(true)
+  }
 
-    const result = await updateCandidateStatus(candidate.id, 'rejected')
+  const handleRejectConfirm = async () => {
+    if (!candidateForReject) return
+
+    logger.info(`Rejecting candidate: ${candidateForReject.id}`)
+
+    const result = await updateCandidateStatus(
+      candidateForReject.id,
+      'rejected'
+    )
 
     if (Results.isErr(result)) {
       logger.error(`Failed to reject candidate: ${result.error.message}`)
@@ -105,7 +119,14 @@ export function CandidateReviewTable({
     }
 
     toast.success('Candidate rejected')
+    setIsRejectModalOpen(false)
+    setCandidateForReject(null)
     router.refresh()
+  }
+
+  const handleRejectCancel = () => {
+    setIsRejectModalOpen(false)
+    setCandidateForReject(null)
   }
 
   const onSendForms = (candidate: HydratedCandidate) => {
@@ -260,6 +281,13 @@ export function CandidateReviewTable({
         candidate={candidateForSendPayment}
         onCancel={handleSendPaymentRequestCancel}
         onConfirm={handleSendPaymentRequestConfirm}
+      />
+
+      <RejectCandidateConfirmationModal
+        isOpen={isRejectModalOpen}
+        candidate={candidateForReject}
+        onCancel={handleRejectCancel}
+        onConfirm={handleRejectConfirm}
       />
     </>
   )
