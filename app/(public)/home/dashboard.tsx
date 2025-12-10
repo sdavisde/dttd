@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { BookOpen, DollarSign, File, UserPlus, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { User } from '@/lib/users/types'
@@ -5,6 +6,7 @@ import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'
 import { isUserOnActiveTeam } from '@/lib/users'
+import { TeamMemberTodo, TeamMemberTodoLoading } from '@/components/team-todos'
 
 interface DashboardProps {
   user: User
@@ -27,6 +29,12 @@ export function Dashboard({ user }: DashboardProps) {
         </div>
 
         <UpcomingEvents />
+
+        {isUserOnActiveTeam(user) && (
+          <Suspense fallback={<TeamMemberTodoLoading />}>
+            <TeamMemberTodo user={user} />
+          </Suspense>
+        )}
 
         {/* Dynamic Action Section */}
 

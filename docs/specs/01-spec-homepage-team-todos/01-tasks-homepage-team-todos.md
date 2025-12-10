@@ -7,7 +7,7 @@
 #### 1.0 Proof Artifact(s)
 
 - CLI: `yarn build` completes successfully demonstrates no TypeScript errors
-- Code snippet: Server action `isUserOnActiveWeekendRoster()` exported from `actions/roster.ts` demonstrates function signature and logic
+- Code snippet: Server action `isUserOnActiveTeam()` exported from `@/lib/users/index.ts` demonstrates function signature and logic
 - Test execution: Manual test by calling action with authenticated user returns correct boolean demonstrates function works correctly
 
 #### 1.0 Tasks
@@ -19,8 +19,9 @@ TBD
 #### 2.0 Proof Artifact(s)
 
 - CLI: `yarn build` completes successfully demonstrates no TypeScript errors
-- Code snippet: Configuration object in `lib/team-todos/config.ts` showing all three TODO items with structure demonstrates configuration is complete
-- Code snippet: TypeScript types exported from `lib/team-todos/types.ts` demonstrates type safety for configuration
+- Code snippet: Configuration object in `lib/weekend/team/todos.config.ts` showing all three TODO items with structure demonstrates configuration is complete
+- Code snippet: TypeScript types exported from `lib/weekend/team/todos.types.ts` demonstrates type safety for configuration
+- Code snippet: Helper functions in `lib/weekend/team/todos.helpers.ts` demonstrates utility functions for TODO operations
 
 #### 2.0 Tasks
 
