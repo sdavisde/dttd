@@ -9,12 +9,17 @@ import { Result, err, ok } from '@/lib/results'
  * Checks if the current user is serving as RECTOR on the upcoming weekend
  * that matches their gender
  */
-export async function isUserRectorOnUpcomingWeekend(): Promise<Result<Error, boolean>> {
+export async function isUserRectorOnUpcomingWeekend(): Promise<
+  Result<Error, boolean>
+> {
   const supabase = await createClient()
-  
+
   // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
   if (userError || !user) {
     return ok(false)
   }
@@ -37,8 +42,9 @@ export async function isUserRectorOnUpcomingWeekend(): Promise<Result<Error, boo
   }
 
   // Get the upcoming weekend that matches user's gender
-  const upcomingWeekend = activeWeekendsResult.data[userDetails.gender as 'MENS' | 'WOMENS']
-  
+  const upcomingWeekend =
+    activeWeekendsResult.data[userDetails.gender as 'MENS' | 'WOMENS']
+
   if (!upcomingWeekend) {
     return ok(false)
   }

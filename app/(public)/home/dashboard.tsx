@@ -1,16 +1,10 @@
-import {
-  BookOpen,
-  Calendar,
-  DollarSign,
-  File,
-  UserPlus,
-  CheckCircle,
-} from 'lucide-react'
+import { BookOpen, DollarSign, File, UserPlus, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { User } from '@/lib/users/types'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'
+import { isUserOnActiveTeam } from '@/lib/users'
 
 interface DashboardProps {
   user: User
@@ -41,35 +35,37 @@ export function Dashboard({ user }: DashboardProps) {
         </div>
 
         <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4">
-          {user.team_member_info && user.team_member_info.status === 'paid' && (
-            <div className="w-full h-full">
-              <Button
-                variant="outline"
-                className="w-full h-52 flex flex-col items-center justify-center gap-2 bg-green-50 border-green-200 cursor-default"
-                disabled
+          {isUserOnActiveTeam(user) &&
+            user.team_member_info.status === 'paid' && (
+              <div className="w-full h-full">
+                <Button
+                  variant="outline"
+                  className="w-full h-52 flex flex-col items-center justify-center gap-2 bg-green-50 border-green-200 cursor-default"
+                  disabled
+                >
+                  <CheckCircle className="w-10 h-10 text-green-600" />
+                  <span className="text-lg font-semibold text-green-700">
+                    Team Fees Paid
+                  </span>
+                  <span className="text-sm text-green-600">Thank you!</span>
+                </Button>
+              </div>
+            )}
+          {isUserOnActiveTeam(user) &&
+            user.team_member_info.status !== 'paid' && (
+              <Link
+                href={`/payment/team-fee?weekend_id=${user.team_member_info?.weekend_id}`}
+                className="w-full h-full"
               >
-                <CheckCircle className="w-10 h-10 text-green-600" />
-                <span className="text-lg font-semibold text-green-700">
-                  Team Fees Paid
-                </span>
-                <span className="text-sm text-green-600">Thank you!</span>
-              </Button>
-            </div>
-          )}
-          {user.team_member_info && user.team_member_info.status !== 'paid' && (
-            <Link
-              href={`/payment/team-fee?weekend_id=${user.team_member_info.weekend_id}`}
-              className="w-full h-full"
-            >
-              <Button
-                variant="outline"
-                className="w-full h-52 flex flex-col items-center justify-center gap-2"
-              >
-                <DollarSign className="w-10 h-10" />
-                <span className="text-lg font-semibold">Pay Team Fees</span>
-              </Button>
-            </Link>
-          )}
+                <Button
+                  variant="outline"
+                  className="w-full h-52 flex flex-col items-center justify-center gap-2"
+                >
+                  <DollarSign className="w-10 h-10" />
+                  <span className="text-lg font-semibold">Pay Team Fees</span>
+                </Button>
+              </Link>
+            )}
           <Button
             variant="outline"
             className="w-full h-52 flex flex-col items-center justify-center gap-2"

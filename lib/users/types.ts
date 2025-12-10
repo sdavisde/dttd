@@ -12,6 +12,10 @@ export type User = {
   team_member_info: TeamMemberInfo | null
 }
 
+export type TeamMemberUser = Omit<User, 'team_member_info'> & {
+  team_member_info: TeamMemberInfo
+}
+
 export type UserRoleInfo = {
   id: string
   label: string
