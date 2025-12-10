@@ -445,6 +445,57 @@ export type Database = {
         }
         Relationships: []
       }
+      users_experience: {
+        Row: {
+          cha_role: string
+          created_at: string
+          external_community_weekend: string | null
+          id: string
+          rollo: string | null
+          served_date: string
+          updated_at: string
+          user_id: string
+          weekend_id: string | null
+        }
+        Insert: {
+          cha_role: string
+          created_at?: string
+          external_community_weekend?: string | null
+          id?: string
+          rollo?: string | null
+          served_date: string
+          updated_at?: string
+          user_id: string
+          weekend_id?: string | null
+        }
+        Update: {
+          cha_role?: string
+          created_at?: string
+          external_community_weekend?: string | null
+          id?: string
+          rollo?: string | null
+          served_date?: string
+          updated_at?: string
+          user_id?: string
+          weekend_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_experience_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_experience_weekend_id_fkey"
+            columns: ["weekend_id"]
+            isOneToOne: false
+            referencedRelation: "weekends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weekend_roster: {
         Row: {
           cha_role: string | null
