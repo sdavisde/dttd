@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Square, CheckSquare, Info } from 'lucide-react'
+import { Square, CheckSquare, Info, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   Tooltip,
@@ -23,6 +23,7 @@ type TodoItemProps = {
 
 export function TodoItem({ label, href, isComplete, tooltip }: TodoItemProps) {
   const CheckIcon = isComplete ? CheckSquare : Square
+  const isClickable = !isNil(href) && !isComplete
 
   const content = (
     <div
@@ -43,6 +44,12 @@ export function TodoItem({ label, href, isComplete, tooltip }: TodoItemProps) {
           </TooltipTrigger>
           <TooltipContent>{tooltip}</TooltipContent>
         </Tooltip>
+      )}
+      {isClickable && (
+        <ChevronRight
+          className="size-5 shrink-0 text-muted-foreground"
+          aria-hidden="true"
+        />
       )}
     </div>
   )
