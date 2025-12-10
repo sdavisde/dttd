@@ -9,14 +9,33 @@ export const UserExperienceSchema = z
     cha_role: z.enum(CHARole),
     external_community_weekend: z.string().nullable(),
     rollo: z.string().nullable(),
-    served_date: z.date(),
-    created_at: z.date(),
-    updated_at: z.date(),
+    served_date: z.string().transform((str) => {
+      const date = new Date(str)
+      if (isNaN(date.getTime())) {
+        throw new Error(`Invalid date: ${str}`)
+      }
+      return date
+    }),
+    created_at: z.string().transform((str) => {
+      const date = new Date(str)
+      if (isNaN(date.getTime())) {
+        throw new Error(`Invalid date: ${str}`)
+      }
+      return date
+    }),
+    updated_at: z.string().transform((str) => {
+      const date = new Date(str)
+      if (isNaN(date.getTime())) {
+        throw new Error(`Invalid date: ${str}`)
+      }
+      return date
+    }),
   })
   .refine(
     (data) => data.weekend_id !== null || data.external_community_weekend !== null,
     {
-      message: 'Either weekend_id or external_community_weekend must be provided',
+      message:
+        'Either weekend_id or external_community_weekend must be provided',
       path: ['weekend_id'],
     }
   )
@@ -24,9 +43,8 @@ export const UserExperienceSchema = z
     (data) => !(data.weekend_id !== null && data.external_community_weekend !== null),
     {
       message: 'Cannot have both weekend_id and external_community_weekend',
-      path: ['external_community_weekend'],
+      path: ['weekend_id'],
     }
   )
 
 export type UserExperience = z.infer<typeof UserExperienceSchema>
-

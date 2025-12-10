@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { assignUserRole, removeUserRole } from '@/actions/users'
+import { getUserServiceHistory } from '@/actions/user-experience'
+import { UserServiceHistory } from '@/lib/users/experience'
 import { User } from '@/lib/users/types'
 import {
   Sheet,
@@ -22,6 +24,14 @@ import { formatPhoneNumber } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { isErr } from '@/lib/results'
+import { ExperienceLevelSection } from './experience-level-section'
+import { RectorReadySection } from './rector-ready-section'
+import { PreviousExperienceSection } from './previous-experience-section'
+import { Loader2 } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
+import { Permission, userHasPermission } from '@/lib/security'
+import { isNil } from 'lodash'
+
 
 interface UserRoleSidebarProps {
   user: User | null
@@ -39,7 +49,13 @@ export function UserRoleSidebar({
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [serviceHistory, setServiceHistory] = useState<UserServiceHistory | null>(null)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+
   const router = useRouter()
+
+  const showSecuritySettings = !isNil(user) && userHasPermission(user, [Permission.WRITE_USER_ROLES])
 
   // Update selected role when user changes
   useEffect(() => {
@@ -51,10 +67,31 @@ export function UserRoleSidebar({
     if (isOpen) {
       setError(null)
       setIsLoading(false)
+
+      // Fetch service history
+      if (user) {
+        const fetchHistory = async () => {
+          setIsLoadingHistory(true)
+          const result = await getUserServiceHistory(user.id)
+
+          if (!isErr(result)) {
+            setServiceHistory(result.data)
+          } else {
+            console.error('Failed to fetch service history:', result.error)
+          }
+          setIsLoadingHistory(false)
+        }
+
+        fetchHistory()
+      } else {
+        setServiceHistory(null)
+      }
+
     } else {
       // Reset form state when modal closes
       setSelectedRoleId(user?.role?.id ?? null)
       setError(null)
+      setServiceHistory(null)
     }
   }, [isOpen, user])
 
@@ -91,7 +128,7 @@ export function UserRoleSidebar({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Manage User</SheetTitle>
         </SheetHeader>
@@ -101,9 +138,9 @@ export function UserRoleSidebar({
             <Typography variant="muted" className="text-sm font-bold">
               Personal Information
             </Typography>
-            <div className="bg-muted/20 rounded-md space-y-3 w-full">
-              <div className="space-y-3">
-                <div>
+            <div className="bg-muted/20 rounded-md p-4 space-y-3 w-full border">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
                   <Typography
                     variant="muted"
                     className="text-xs uppercase tracking-wide font-medium"
@@ -132,32 +169,67 @@ export function UserRoleSidebar({
                     variant="muted"
                     className="text-xs uppercase tracking-wide font-medium"
                   >
-                    Email
-                  </Typography>
-                  <Typography className="text-sm break-all">
-                    {user?.email ?? '-'}
-                  </Typography>
-                </div>
-                <div>
-                  <Typography
-                    variant="muted"
-                    className="text-xs uppercase tracking-wide font-medium"
-                  >
                     Phone
                   </Typography>
                   <Typography className="text-sm">
                     {formatPhoneNumber(user?.phone_number)}
                   </Typography>
                 </div>
+                <div className="col-span-2">
+                  <Typography
+                    variant="muted"
+                    className="text-xs uppercase tracking-wide font-medium"
+                  >
+                    Email
+                  </Typography>
+                  <Typography className="text-sm break-all">
+                    {user?.email ?? '-'}
+                  </Typography>
+                </div>
               </div>
+            </div>
+          </div>
 
-              <div className="pt-3 border-t">
-                <Typography
-                  variant="muted"
-                  className="text-xs uppercase tracking-wide mb-3 font-bold"
-                >
-                  Security Settings
-                </Typography>
+          <div className="space-y-2">
+            <Typography variant="muted" className="text-sm font-bold">
+              Experience & Qualifications
+            </Typography>
+
+            <div className="bg-muted/20 rounded-md p-4 space-y-6 w-full border">
+              {isLoadingHistory ? (
+                <div className="flex justify-center py-8 text-muted-foreground">
+                  <Loader2 className="w-8 h-8 animate-spin" />
+                </div>
+              ) : serviceHistory ? (
+                <>
+                  <ExperienceLevelSection
+                    level={serviceHistory.level}
+                    totalWeekends={serviceHistory.totalDTTDWeekends}
+                  />
+
+                  <Separator className="my-2" />
+
+                  <RectorReadySection status={serviceHistory.rectorReady} />
+
+                  <Separator className="my-2" />
+
+                  <PreviousExperienceSection experience={serviceHistory.groupedExperience} />
+                </>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground text-sm">
+                  Unable to load experience data.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {showSecuritySettings && (
+            <div className="space-y-2">
+              <Typography variant="muted" className="text-sm font-bold">
+                Security Settings
+              </Typography>
+
+              <div className="bg-muted/20 rounded-md p-4 space-y-3 w-full border">
                 <div className="space-y-2">
                   <Typography
                     variant="muted"
@@ -190,7 +262,7 @@ export function UserRoleSidebar({
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {error && (
             <Alert variant="destructive">
@@ -200,7 +272,7 @@ export function UserRoleSidebar({
           )}
         </div>
 
-        <SheetFooter>
+        <SheetFooter className="mt-6 mb-2">
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
@@ -215,3 +287,4 @@ export function UserRoleSidebar({
     </Sheet>
   )
 }
+
