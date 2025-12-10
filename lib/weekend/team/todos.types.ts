@@ -28,6 +28,8 @@ export type TodoItemConfig = {
   checkCompletion?: (
     context: TodoCompletionContext
   ) => Promise<boolean> | boolean
+  /** If true, completion is tracked client-side via localStorage */
+  clientSideCompletion?: boolean
 }
 
 /**

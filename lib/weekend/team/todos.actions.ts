@@ -16,6 +16,7 @@ export type TeamTodoData = {
   completionState: Record<string, boolean>
   allComplete: boolean
   items: typeof teamTodoItems
+  weekendId: string
 }
 
 /**
@@ -55,5 +56,6 @@ export async function getTeamTodoData(
     completionState,
     allComplete,
     items: teamTodoItems,
+    weekendId,
   }
 }

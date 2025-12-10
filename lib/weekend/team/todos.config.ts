@@ -28,6 +28,6 @@ export const teamTodoItems: TodoItemConfig[] = [
     id: 'review-job-description',
     label: 'Review Job Description',
     href: '/files/job-descriptions',
-    // No completion check - this is informational only
+    clientSideCompletion: true,
   },
 ]

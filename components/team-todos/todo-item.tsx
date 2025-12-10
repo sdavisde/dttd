@@ -19,9 +19,17 @@ type TodoItemProps = {
   isComplete: boolean
   /** Tooltip text shown when item is disabled */
   tooltip?: string
+  /** Callback when link is clicked */
+  onLinkClick?: () => void
 }
 
-export function TodoItem({ label, href, isComplete, tooltip }: TodoItemProps) {
+export function TodoItem({
+  label,
+  href,
+  isComplete,
+  tooltip,
+  onLinkClick,
+}: TodoItemProps) {
   const CheckIcon = isComplete ? CheckSquare : Square
   const isClickable = !isNil(href) && !isComplete
 
@@ -71,6 +79,7 @@ export function TodoItem({ label, href, isComplete, tooltip }: TodoItemProps) {
         'block hover:bg-muted/50 rounded-md -mx-2 px-2 transition-colors',
         isComplete && 'pointer-events-none'
       )}
+      onClick={onLinkClick}
     >
       {content}
     </Link>

@@ -1,10 +1,8 @@
 import { TeamMemberUser } from '@/lib/users/types'
 import { getTeamTodoData } from '@/lib/weekend/team/todos.actions'
 import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { isNil } from 'lodash'
-import { PartyPopper } from 'lucide-react'
-import { TodoItem } from './todo-item'
+import { TeamMemberTodoClient } from './team-member-todo.client'
 
 type TeamMemberTodoProps = {
   user: TeamMemberUser
@@ -12,7 +10,7 @@ type TeamMemberTodoProps = {
 
 /**
  * Displays team member TODO list for their active weekend.
- * Server component that fetches and displays preparation tasks.
+ * Server component that fetches data and delegates rendering to client wrapper.
  */
 export async function TeamMemberTodo({ user }: TeamMemberTodoProps) {
   const todoData = await getTeamTodoData(user)
@@ -21,7 +19,12 @@ export async function TeamMemberTodo({ user }: TeamMemberTodoProps) {
     return null
   }
 
-  const { urls, completionState, allComplete, items } = todoData
+  const { urls, completionState, items, weekendId } = todoData
+  const serializableItems = items.map((item) => ({
+    ...item,
+    checkCompletion: undefined,
+    params: undefined,
+  }))
 
   return (
     <div className="w-full">
@@ -29,24 +32,18 @@ export async function TeamMemberTodo({ user }: TeamMemberTodoProps) {
         <Typography variant="h2">Team Member Checklist</Typography>
       </div>
       <div className="space-y-1">
-        {allComplete && (
-          <Alert variant="success" className="mb-4">
-            <PartyPopper className="size-5" />
-            <AlertTitle>All Set!</AlertTitle>
-            <AlertDescription>
-              You&apos;ve completed all preparation tasks.
-            </AlertDescription>
-          </Alert>
-        )}
-        {items.map((item) => (
-          <TodoItem
-            key={item.id}
-            label={item.label}
-            href={urls[item.id]}
-            isComplete={completionState[item.id] ?? false}
-            tooltip={item.tooltip}
-          />
-        ))}
+        {/*
+         * this server / client boundary only exists because we chose to allow
+         * some TODO items to be marked off from the client side.
+         * If we remove this assumption and save everything in the DB, we can remove this
+         * in favor of a simpler, single component
+         */}
+        <TeamMemberTodoClient
+          items={serializableItems}
+          urls={urls}
+          completionState={completionState}
+          weekendId={weekendId}
+        />
       </div>
     </div>
   )
