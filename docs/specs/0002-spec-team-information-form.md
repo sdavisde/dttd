@@ -14,11 +14,81 @@ The Team Information Form collects comprehensive information from weekend team m
 
 ## User Stories
 
+### 1. Submit Team Member Information
+
 **As a weekend team member**, I want to submit my contact information, church affiliation, and past weekend experience so that the weekend leadership has the information they need to plan effectively.
+
+**Description:**
+Weekend leadership requires comprehensive information about each team member to plan logistics, understand member backgrounds, and make informed decisions about team assignments. Team members need a straightforward way to provide this essential information.
+
+**Acceptance Criteria:**
+- Access team information form from /team-info route when assigned to an active weekend
+- Submit address (street, city, state, zip), church affiliation, past weekend attended details, and essentials training date
+- All required fields are validated before submission
+- Receive confirmation that information was successfully submitted
+- Redirected to homepage with success notification after submission
+- Cannot access form if not assigned to an active weekend roster
+
+### 2. Reuse Saved Address Information
+
+**As a returning team member**, I want the system to remember my address from previous weekends so that I don't have to re-enter the same information every time.
+
+**Description:**
+Many team members serve on multiple weekends over time. Re-entering the same address information for each weekend is tedious and error-prone. The system should remember and offer to reuse previously submitted address data.
+
+**Acceptance Criteria:**
+- Form displays "Do you want to use this saved address or change it?" when saved address exists
+- Saved address automatically pre-fills all address fields when choosing to use it
+- Option to modify saved address if information has changed
+- Updated address is saved for future form submissions
+- New team members see empty address fields without the reuse prompt
+- Address Line 2 is optional while all other address fields are required
+
+### 3. Document External Community Experience
 
 **As a weekend team member with varied Tres Dias experience**, I want to document my roles across different communities and weekends so that leadership understands my background and can assign me appropriately.
 
-**As a returning team member**, I want the system to remember my address from previous weekends so that I don't have to re-enter the same information every time.
+**Description:**
+Team members often have experience serving in other Tres Dias communities or serving multiple roles across different weekends. Leadership needs visibility into this varied experience to understand each member's full background and capabilities.
+
+**Acceptance Criteria:**
+- Add multiple experience entries dynamically (no fixed limit)
+- Each entry includes CHA role, community + weekend number, and date (month/year)
+- Remove experience entries that were added in error
+- Experience entries are saved and linked to the user's profile
+- Same role can appear multiple times with different dates (repeated service)
+- System prevents duplicate entries (same role + date) through upsert logic
+- All experience entries persist when form is re-accessed for editing
+
+### 4. Identify Special Skills and Abilities
+
+**As a weekend team member**, I want to indicate my special skills and abilities so that leadership can utilize my talents effectively during the weekend.
+
+**Description:**
+Weekend planning is more effective when leadership knows what special skills and abilities team members possess (audio/visual, carpentry, music, medical, etc.). Team members need an easy way to indicate their relevant skills.
+
+**Acceptance Criteria:**
+- Select multiple skills from predefined list using multi-select dropdown
+- Predefined options include: Audio/video, Carpenter, Crafts, Music (vocal), Music (instrument), Sewing, Computer skills, Nurse/medical, Clergy, Plumber, Electrician, Photography
+- Option to add custom skills not in the predefined list
+- Custom skills are saved but not added to the global options list
+- Selected skills display as tags/chips for easy visualization
+- Skills are saved as comma-separated values linked to weekend roster assignment
+
+### 5. Edit Previously Submitted Information
+
+**As a weekend team member**, I want to update my team information after initial submission if my circumstances change.
+
+**Description:**
+Team member circumstances may change between initial form submission and the weekend event (address change, new skills acquired, etc.). The system should allow editing previously submitted information at any time.
+
+**Acceptance Criteria:**
+- Re-access /team-info form after initial submission
+- All previously submitted data pre-fills in the form
+- Edit any field including address, church, past weekend, essentials training, experience, and skills
+- Changes are saved and update the existing record (not create duplicate)
+- Success notification confirms updates were saved
+- Experience entries can be added or removed when editing
 
 ## Demoable Units of Work
 

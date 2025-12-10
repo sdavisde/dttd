@@ -19,19 +19,110 @@ The solution introduces a comprehensive experience tracking system that automati
 
 ## User Stories
 
-1. **As a Rector**, I want to see each community member's experience level and service history so I can make informed decisions when building my weekend team.
+### 1. View Member Experience and Service History
 
-2. **As a Pre-Weekend Couple member**, I want to see which community members are "Rector Ready" so I can identify potential future Rectors and encourage their development.
+**As a Rector**, I want to see each community member's experience level and service history so I can make informed decisions when building my weekend team.
 
-3. **As a community member**, I want my service experience across multiple weekends to be automatically tracked so I don't have to manually maintain my service record.
+**Description:**
+When building a weekend team, Rectors need comprehensive visibility into each member's qualifications, past roles, and experience level to make appropriate team assignments and ensure a balanced, capable team.
 
-4. **As a community member**, I want to add experience from other Tres Dias communities or roles I served outside the normal roster so my complete service history is visible.
+**Acceptance Criteria:**
+- View complete service history for any community member from Master Roster
+- See experience level (1, 2, or 3) calculated based on weekend participation count
+- View previous roles grouped by community (DTTD and external)
+- See dates and specific roles for each weekend served
+- Access this information from the Master Roster user detail sheet
 
-5. **As an administrator**, I want to be warned before finalizing a weekend roster if required positions are unfilled so I can ensure the weekend team is complete.
+### 2. Identify Rector-Ready Candidates
 
-6. **As an administrator**, I want weekend rosters to become read-only after finalization so historical records remain accurate and unchanged.
+**As a Pre-Weekend Couple member**, I want to see which community members are "Rector Ready" so I can identify potential future Rectors and encourage their development.
 
-7. **As a Leaders Committee member**, I want to see experience levels on the Weekend Roster page so I can assess team composition during planning.
+**Description:**
+Pre-Weekend Couple members are responsible for identifying and mentoring future leadership. They need clear visibility into which community members meet the qualifications to serve as Rector based on defined criteria.
+
+**Acceptance Criteria:**
+- See overall "Rector Ready" status (yes/no) for each community member
+- View four individual criteria with pass/fail status:
+  - Has served as Head or Assistant Head
+  - Has served as Team Head
+  - Has given 2+ talks (rollos)
+  - Has worked Dining
+- Status updates automatically as members gain experience
+- Accessible from Master Roster user detail sheet
+
+### 3. Automatic Service History Tracking
+
+**As a community member**, I want my service experience across multiple weekends to be automatically tracked so I don't have to manually maintain my service record.
+
+**Description:**
+Community members serve in various roles across multiple weekends. The system should automatically capture and maintain their complete service history without requiring manual entry or maintenance.
+
+**Acceptance Criteria:**
+- Experience records created automatically when weekend is finalized
+- All roles served during the weekend are captured
+- Rollos (talks given) are recorded for speaking roles
+- Service history visible in Master Roster shows all automatically-tracked experience
+- No manual intervention required for DTTD weekend experience tracking
+
+### 4. Add External Community Experience
+
+**As a community member**, I want to add experience from other Tres Dias communities or roles I served outside the normal roster so my complete service history is visible.
+
+**Description:**
+Many community members have served in other Tres Dias communities or may have served roles that weren't captured in the system. They need the ability to manually add this experience to their profile for a complete service record.
+
+**Acceptance Criteria:**
+- Access manual experience entry form from Master Roster
+- Select role from dropdown (excluding Head/Assistant Head)
+- Choose between DTTD weekend or enter external community location
+- Specify month/year of service
+- Optionally add rollo name if a talk was given
+- New experience immediately appears in service history
+- Can add multiple experiences for the same time period (different roles)
+
+### 5. Weekend Finalization Validation
+
+**As an administrator**, I want to be warned before finalizing a weekend roster if required positions are unfilled so I can ensure the weekend team is complete.
+
+**Description:**
+Before a weekend is finalized, administrators need to verify that all critical leadership positions are filled. The system should validate roster completeness and warn if required positions are missing.
+
+**Acceptance Criteria:**
+- System validates all required leadership positions before finalization
+- Display warning modal if any required positions are unfilled
+- List specific missing positions in the warning
+- Provide option to override and proceed with finalization
+- Provide option to cancel and return to roster editing
+- Required positions include all CHA leadership roles
+
+### 6. Protect Historical Weekend Data
+
+**As an administrator**, I want weekend rosters to become read-only after finalization so historical records remain accurate and unchanged.
+
+**Description:**
+Once a weekend is complete and finalized, its roster and related data should be permanently protected from accidental modifications to maintain historical accuracy and data integrity.
+
+**Acceptance Criteria:**
+- All weekend data becomes read-only after finalization (roster, candidates, files)
+- Clear visual indication of read-only status (banner/message)
+- All edit buttons, dropdowns, and form fields are disabled
+- Server actions reject modification attempts with appropriate errors
+- No ability to "un-finalize" or reopen a weekend
+- Confirmation modal required before finalization explaining permanence
+
+### 7. Permission-Based Experience Visibility
+
+**As a Leaders Committee member**, I want to see experience levels on the Weekend Roster page so I can assess team composition during planning.
+
+**Description:**
+When planning a weekend, Leaders Committee members need to see the experience level of team members directly on the Weekend Roster page to ensure appropriate balance of experienced and newer members.
+
+**Acceptance Criteria:**
+- Experience level (1, 2, or 3) displays next to each person's name on Weekend Roster page
+- Only visible to users with VIEW_ROSTER_EXPERIENCE_LEVEL permission
+- Users without permission see Weekend Roster without experience levels
+- Experience level updates automatically as members gain experience
+- Permission applies only to Weekend Roster page (Master Roster has no restrictions)
 
 ## Demoable Units of Work
 
@@ -157,7 +248,7 @@ The solution introduces a comprehensive experience tracking system that automati
    - `user_id` (UUID, foreign key to users table, required)
    - `weekend_id` (UUID, foreign key to weekend table, nullable)
    - `cha_role` (string, required) - stores CHA role enum values
-   - `external_community_location` (string, nullable) - mutually exclusive with weekend_id (not enforced at DB level)
+   - `external_community_weekend` (string, nullable) - mutually exclusive with weekend_id (not enforced at DB level)
    - `rollo` (string, nullable) - stores the name of the rollo given (if applicable)
    - `served_at` (date, required) - stores midnight of the first day of the month (or start date of the weekend, for DTTD weekends) for month/year tracking
    - `created_at` (timestamp)
@@ -273,7 +364,7 @@ The solution introduces a comprehensive experience tracking system that automati
     - `cha_role` = the role they served in
     - `rollo` = populated if the role was a speaking role (application logic determines this)
     - `served_at` = the weekend's start date
-    - `external_community_location` = null
+    - `external_community_weekend` = null
 
 ### Read-Only Weekend Data
 
@@ -319,7 +410,7 @@ The solution introduces a comprehensive experience tracking system that automati
 
 5. **Weekend Un-Finishing:** Once a weekend is marked as "finished", it cannot be un-finished or re-opened. No rollback mechanism is provided.
 
-6. **Database Enforcement of Mutual Exclusivity:** The mutual exclusivity between `weekend_id` and `external_community_location` is not enforced at the database level (no check constraint).
+6. **Database Enforcement of Mutual Exclusivity:** The mutual exclusivity between `weekend_id` and `external_community_weekend` is not enforced at the database level (no check constraint).
 
 7. **Leaders Committee Role Creation:** This spec includes the permission creation but not the actual role setup. Product owner will create the Leaders Committee role manually.
 
