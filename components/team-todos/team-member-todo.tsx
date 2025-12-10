@@ -1,6 +1,6 @@
 import { TeamMemberUser } from '@/lib/users/types'
 import { getTeamTodoData } from '@/lib/weekend/team/todos.actions'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Typography } from '@/components/ui/typography'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { isNil } from 'lodash'
 import { PartyPopper } from 'lucide-react'
@@ -24,11 +24,11 @@ export async function TeamMemberTodo({ user }: TeamMemberTodoProps) {
   const { urls, completionState, allComplete, items } = todoData
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Before the Third Team Meeting</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-1">
+    <div className="w-full">
+      <div className="w-full mt-4 mb-2">
+        <Typography variant="h2">Before the Third Team Meeting</Typography>
+      </div>
+      <div className="space-y-1">
         {allComplete && (
           <Alert variant="success" className="mb-4">
             <PartyPopper className="size-5" />
@@ -47,7 +47,7 @@ export async function TeamMemberTodo({ user }: TeamMemberTodoProps) {
             tooltip={item.tooltip}
           />
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

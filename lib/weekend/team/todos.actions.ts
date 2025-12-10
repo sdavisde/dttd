@@ -1,4 +1,5 @@
-import 'server-only'
+'use server'
+
 import { isNil } from 'lodash'
 import { getWeekendById } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
