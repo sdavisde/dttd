@@ -6,6 +6,28 @@ import { Result, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { PaymentRecord } from '@/lib/payments/types'
 
+/**
+ * Checks if a team member has made any payment for the given weekend roster.
+ */
+export async function hasTeamPayment(
+  weekendRosterId: string
+): Promise<Result<Error, boolean>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster_payments')
+    .select('id')
+    .eq('weekend_roster_id', weekendRosterId)
+    .limit(1)
+
+  if (isSupabaseError(error)) {
+    logger.error(error, '💢 failed to check team payment status')
+    return err(new Error(error.message))
+  }
+
+  return ok(data !== null && data.length > 0)
+}
+
 export async function getAllPayments(): Promise<
   Result<Error, PaymentRecord[]>
 > {
