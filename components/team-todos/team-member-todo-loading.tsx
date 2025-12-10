@@ -9,7 +9,7 @@ export function TeamMemberTodoLoading() {
   return (
     <div className="w-full">
       <div className="w-full mt-4 mb-2">
-        <Typography variant="h2">Before the Third Team Meeting</Typography>
+        <Typography variant="h2">Team Member Checklist</Typography>
       </div>
       <div className="space-y-1">
         {/* Simulate 3 TODO items loading */}

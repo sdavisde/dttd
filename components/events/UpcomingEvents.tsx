@@ -13,7 +13,7 @@ export async function UpcomingEvents() {
     logger.error(eventResult.error)
   }
 
-  const topFour = eventResult.data?.slice(0, 4) ?? []
+  const topThree = eventResult.data?.slice(0, 3) ?? []
 
   return (
     <div className='w-full'>
@@ -21,7 +21,7 @@ export async function UpcomingEvents() {
         <Typography variant='h2'>Upcoming Events</Typography>
       </div>
 
-      {topFour.length === 0 ?
+      {topThree.length === 0 ?
         <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
           <Alert>
             <Calendar className='w-6 h-6' />
@@ -32,7 +32,7 @@ export async function UpcomingEvents() {
           </Alert>
         </div> :
         <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4'>
-          {topFour.map((event) => (
+          {topThree.map((event) => (
             <EventCard key={event.id} event={event} canEdit={false} />
           ))}
         </div>

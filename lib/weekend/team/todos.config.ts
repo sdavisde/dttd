@@ -16,7 +16,7 @@ export const teamTodoItems: TodoItemConfig[] = [
   },
   {
     id: 'team-payment',
-    label: 'Complete team payment',
+    label: 'Pay team fees',
     href: '/payment/team-fee',
     params: ({ weekend }) => `?weekend_id=${weekend.id}`,
     checkCompletion: async ({ user }) => {
