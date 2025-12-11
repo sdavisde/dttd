@@ -31,6 +31,7 @@ import { Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Permission, userHasPermission } from '@/lib/security'
 import { isNil } from 'lodash'
+import { useSession } from '@/components/auth/session-provider'
 
 
 interface UserRoleSidebarProps {
@@ -46,6 +47,8 @@ export function UserRoleSidebar({
   isOpen,
   onClose,
 }: UserRoleSidebarProps) {
+  // currentUser is the user browsing the site. user is the user being edited
+  const { user: currentUser } = useSession()
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,7 +58,8 @@ export function UserRoleSidebar({
 
   const router = useRouter()
 
-  const showSecuritySettings = !isNil(user) && userHasPermission(user, [Permission.WRITE_USER_ROLES])
+  const showSecuritySettings = !isNil(currentUser) && userHasPermission(currentUser, [Permission.WRITE_USER_ROLES])
+  const showExperience = !isNil(currentUser) && userHasPermission(currentUser, [Permission.READ_USER_EXPERIENCE])
 
   // Update selected role when user changes
   useEffect(() => {
@@ -69,7 +73,7 @@ export function UserRoleSidebar({
       setIsLoading(false)
 
       // Fetch service history
-      if (user) {
+      if (user && showExperience) {
         const fetchHistory = async () => {
           setIsLoadingHistory(true)
           const result = await getUserServiceHistory(user.id)
@@ -190,38 +194,41 @@ export function UserRoleSidebar({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Typography variant="muted" className="text-sm font-bold">
-              Experience & Qualifications
-            </Typography>
 
-            <div className="bg-muted/20 rounded-md p-4 space-y-6 w-full border">
-              {isLoadingHistory ? (
-                <div className="flex justify-center py-8 text-muted-foreground">
-                  <Loader2 className="w-8 h-8 animate-spin" />
-                </div>
-              ) : serviceHistory ? (
-                <>
-                  <ExperienceLevelSection
-                    level={serviceHistory.level}
-                    totalWeekends={serviceHistory.totalDTTDWeekends}
-                  />
+          {showExperience && (
+            <div className="space-y-2">
+              <Typography variant="muted" className="text-sm font-bold">
+                Experience & Qualifications
+              </Typography>
 
-                  <Separator className="my-2" />
+              <div className="bg-muted/20 rounded-md p-4 space-y-6 w-full border">
+                {isLoadingHistory ? (
+                  <div className="flex justify-center py-8 text-muted-foreground">
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                  </div>
+                ) : serviceHistory ? (
+                  <>
+                    <ExperienceLevelSection
+                      level={serviceHistory.level}
+                      totalWeekends={serviceHistory.totalDTTDWeekends}
+                    />
 
-                  <RectorReadySection status={serviceHistory.rectorReady} />
+                    <Separator className="my-2" />
 
-                  <Separator className="my-2" />
+                    <RectorReadySection status={serviceHistory.rectorReady} />
 
-                  <PreviousExperienceSection experience={serviceHistory.groupedExperience} />
-                </>
-              ) : (
-                <div className="text-center py-4 text-muted-foreground text-sm">
-                  Unable to load experience data.
-                </div>
-              )}
+                    <Separator className="my-2" />
+
+                    <PreviousExperienceSection experience={serviceHistory.groupedExperience} />
+                  </>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground text-sm">
+                    Unable to load experience data.
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {showSecuritySettings && (
             <div className="space-y-2">

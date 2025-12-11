@@ -45,6 +45,7 @@ export enum Permission {
 
   // User management
   USER_MANAGEMENT = 'USER_MANAGEMENT',
+  READ_USER_EXPERIENCE = 'READ_USER_EXPERIENCE',
 
   // Candidate management
   READ_CANDIDATES = 'READ_CANDIDATES',
