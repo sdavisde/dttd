@@ -15,8 +15,8 @@ export type BasicInfo = z.infer<typeof basicInfoSchema>
 
 export const userExperienceSchema = z.object({
   id: z.string().optional(),
-  cha_role: z.nativeEnum(CHARole, { message: 'Please select a valid role' }),
-  community_weekend: z.string().min(1, 'Community/Weekend is required'),
+  cha_role: z.enum(CHARole, { message: 'Please select a role' }),
+  community_weekend: z.string().min(1, 'Weekend is required'),
   date: z.string().min(1, 'Date is required'),
 })
 

@@ -18,7 +18,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { Briefcase, Plus, Trash2 } from 'lucide-react'
+import { History, Plus, Trash2 } from 'lucide-react'
 import { CHARole } from '@/lib/weekend/types'
 import { MonthPickerPopover } from '@/components/ui/month-picker'
 import {
@@ -41,12 +41,20 @@ export function ExperienceSection() {
       <Card>
         <CardHeader className="relative">
           <CardTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-primary" />
-            <Typography variant="h3">Past Experience</Typography>
+            <History />
+            <Typography variant="h3">Previous Roles</Typography>
           </CardTitle>
           <CardDescription>
             Please let us know of any previous weekends you have served on
-            outside of Dusty Trails
+            outside of Dusty Trails.
+            <br />
+            If you have filled out this form in the past (paper or online),
+            please only include experience you have not already told us about.
+            <br />
+            <i>
+              This helps our leaders committee and Rectors make informed
+              decisions about how to best use your experience.
+            </i>
           </CardDescription>
           <Button
             onClick={() =>
@@ -59,7 +67,7 @@ export function ExperienceSection() {
             <Plus className="mr-2 h-4 w-4" /> Add Experience
           </Button>
         </CardHeader>
-        <CardContent className="space-y-4 pt-4">
+        <CardContent className="space-y-4">
           {fields.length === 0 && (
             <Typography variant="muted" className="text-sm italic">
               No external experience added. Click &quot;Add Experience&quot; to
@@ -70,7 +78,7 @@ export function ExperienceSection() {
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end border p-4 rounded-md bg-muted/10 relative"
+              className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end relative"
             >
               <div className="col-span-12 md:col-span-4">
                 <FormField
@@ -88,7 +96,7 @@ export function ExperienceSection() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select Role" />
                           </SelectTrigger>
                         </FormControl>
@@ -142,6 +150,7 @@ export function ExperienceSection() {
                           value={field.value}
                           onChange={field.onChange}
                           placeholder="Pick a date"
+                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage />
@@ -150,7 +159,7 @@ export function ExperienceSection() {
                 />
               </div>
 
-              <div className="col-span-12 md:col-span-1 flex justify-end">
+              <div className="col-span-12 md:col-span-1 flex items-center h-full">
                 <Button
                   type="button"
                   variant="ghost"
