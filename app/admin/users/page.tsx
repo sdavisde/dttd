@@ -2,6 +2,7 @@ import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser, getUsers } from '@/actions/users'
 import { getRoles } from '@/actions/roles'
+import { getAllUsersServiceHistory } from '@/actions/user-experience'
 import Users from './components/Users'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
@@ -14,6 +15,7 @@ export default async function UsersPage() {
     if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
+    permissionLock([Permission.READ_USERS])(user)
   } catch (error) {
     redirect('/')
   }
@@ -29,7 +31,16 @@ export default async function UsersPage() {
     throw new Error(`Failed to fetch roles: ${rolesResult.error.message}`)
   }
 
-  const canEditUsers = userHasPermission(user, [Permission.USER_MANAGEMENT])
+  const canViewExperience = userHasPermission(user, [Permission.READ_USER_EXPERIENCE])
+
+  // Fetch experience data if user has permission
+  let userExperienceMap = new Map()
+  if (canViewExperience) {
+    const experienceResult = await getAllUsersServiceHistory()
+    if (!isErr(experienceResult)) {
+      userExperienceMap = experienceResult.data
+    }
+  }
 
   return (
     <>
@@ -41,7 +52,8 @@ export default async function UsersPage() {
         <Users
           users={usersResult.data}
           roles={rolesResult.data}
-          canEditUsers={canEditUsers}
+          canViewExperience={canViewExperience}
+          userExperienceMap={userExperienceMap}
         />
       </div>
     </>

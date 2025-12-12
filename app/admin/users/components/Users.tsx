@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import { User } from '@/lib/users/types'
+import { UserServiceHistory } from '@/lib/users/experience'
 import {
   Table,
   TableBody,
@@ -33,18 +34,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { userHasPermission } from '@/lib/security'
+import { Permission, userHasPermission } from '@/lib/security'
 import { useTablePagination } from '@/hooks/use-table-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { Card, CardContent } from '@/components/ui/card'
+import { Check, Minus } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { isNil } from 'lodash'
 
 interface UsersProps {
   users: User[]
   roles: Array<{ id: string; label: string; permissions: string[] }>
-  canEditUsers: boolean
+  canViewExperience: boolean
+  userExperienceMap: Map<string, UserServiceHistory>
 }
 
-export default function Users({ users, roles, canEditUsers }: UsersProps) {
+export default function Users({ users, roles, canViewExperience, userExperienceMap }: UsersProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -83,8 +88,6 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
     })
 
   const handleUserClick = (user: User) => {
-    if (!canEditUsers) return
-
     setSelectedUser(user)
     setIsModalOpen(true)
   }
@@ -125,13 +128,13 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
     <div className="my-4">
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <Typography variant="h4">User Management</Typography>
+          <Typography variant="h4">Master Roster</Typography>
           <Card className="px-3 py-1.5">
             <CardContent className="p-0">
               <div className="flex items-center gap-2 text-sm">
                 <UsersIcon className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">{users.length}</span>
-                <span className="text-muted-foreground">total users</span>
+                <span className="text-muted-foreground">total members</span>
               </div>
             </CardContent>
           </Card>
@@ -172,66 +175,117 @@ export default function Users({ users, roles, canEditUsers }: UsersProps) {
                 <TableHead className="min-w-[100px]">Email</TableHead>
                 <TableHead className="min-w-[120px]">Phone</TableHead>
                 <TableHead className="min-w-[120px]">Role</TableHead>
+                {canViewExperience && (
+                  <>
+                    <TableHead className="min-w-[80px] text-center">Level</TableHead>
+                    <TableHead className="min-w-[100px] text-center">Rector Ready</TableHead>
+                    <TableHead className="min-w-[100px] text-center">Weekends</TableHead>
+                  </>
+                )}
                 <TableHead className="sticky right-0 bg-background text-right min-w-[80px] border-l">
                   Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedData.map((user, index) => (
-                <TableRow
-                  key={user.id}
-                  className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
-                  onClick={() => handleUserClick(user)}
-                >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <UserIcon className="h-4 w-4 text-gray-500" />
-                      {(user.first_name ?? user.last_name)
-                        ? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
-                        : 'Unknown User'}
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.email ?? '-'}</TableCell>
-                  <TableCell>{formatPhoneNumber(user.phone_number)}</TableCell>
-                  <TableCell>
-                    <span className="text-muted-foreground">
-                      {user.role?.label ?? '-'}
-                    </span>
-                  </TableCell>
-                  <TableCell className="sticky right-0 bg-background text-right border-l">
-                    {canEditUsers && (
+              {paginatedData.map((user, index) => {
+                const userExperience = userExperienceMap.get(user.id)
+                return (
+                  <TableRow
+                    key={user.id}
+                    className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
+                    onClick={() => handleUserClick(user)}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <UserIcon className="h-4 w-4 text-gray-500" />
+                        {(user.first_name ?? user.last_name)
+                          ? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
+                          : 'Unknown User'}
+                      </div>
+                    </TableCell>
+                    <TableCell>{user.email ?? '-'}</TableCell>
+                    <TableCell>{formatPhoneNumber(user.phone_number)}</TableCell>
+                    <TableCell>
+                      <span className="text-muted-foreground">
+                        {user.role?.label ?? '-'}
+                      </span>
+                    </TableCell>
+                    {canViewExperience && (
+                      <>
+                        <TableCell className="text-center">
+                          {!isNil(userExperience) ? (
+                            <Badge
+                              variant="secondary"
+                              className={`font-semibold ${userExperience.level === 1
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                : userExperience.level === 2
+                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                  : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                }`}
+                            >
+                              {userExperience.level}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {!isNil(userExperience) ? (
+                            userExperience.rectorReady.isReady ? (
+                              <Check className="h-5 w-5 text-green-600 mx-auto" />
+                            ) : (
+                              <Minus className="h-5 w-5 text-muted-foreground mx-auto" />
+                            )
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {!isNil(userExperience) ? (
+                            <span className="font-medium">
+                              {userExperience.totalWeekends}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      </>
+                    )}
+                    <TableCell className="sticky right-0 bg-background text-right border-l">
+                      {userHasPermission(user, [Permission.WRITE_USER_ROLES]) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleUserClick(user)
+                          }}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Edit user role</span>
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleUserClick(user)
+                          handleDeleteClick(user)
                         }}
                         className="h-8 w-8 p-0"
                       >
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit user role</span>
+                        <Trash2 className="h-4 w-4 text-red-700" />
+                        <span className="sr-only">Delete user</span>
                       </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteClick(user)
-                      }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-700" />
-                      <span className="sr-only">Delete user</span>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
               {paginatedData.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={canViewExperience ? 8 : 5} className="text-center py-8">
                     <p className="text-muted-foreground">
                       {searchTerm
                         ? 'No users found matching your search.'

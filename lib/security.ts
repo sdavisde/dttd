@@ -44,7 +44,7 @@ export enum Permission {
   FILES_DELETE = 'FILES_DELETE',
 
   // User management
-  USER_MANAGEMENT = 'USER_MANAGEMENT',
+  READ_USERS = 'READ_USERS',
   READ_USER_EXPERIENCE = 'READ_USER_EXPERIENCE',
 
   // Candidate management

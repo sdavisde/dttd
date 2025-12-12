@@ -32,5 +32,6 @@ export type UserServiceHistory = {
   level: ExperienceLevel
   rectorReady: RectorReadyStatus
   groupedExperience: GroupedExperience[]
+  totalWeekends: number
   totalDTTDWeekends: number
 }
