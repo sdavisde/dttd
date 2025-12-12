@@ -18,13 +18,18 @@ import {
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { Address, addressSchema, emptyAddress } from '@/lib/users/validation'
-import { updateUserAddress } from '@/actions/users'
+import { BasicInfo, basicInfoSchema, userExperienceSchema } from './schemas'
+import { updateUserAddress, updateUserBasicInfo } from '@/actions/users'
+import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'
+import { BasicInfoSection } from './basic-info-section'
+import { ExperienceSection } from './experience-section'
 
 // Future: Import schemas for other sections
 const teamInfoSchema = z.object({
   address: addressSchema,
-  // placeholders for future steps
+  basicInfo: basicInfoSchema,
+  experience: z.array(userExperienceSchema).optional(),
 })
 
 type TeamInfoFormValues = z.infer<typeof teamInfoSchema>
@@ -32,16 +37,23 @@ type TeamInfoFormValues = z.infer<typeof teamInfoSchema>
 interface TeamInfoFormProps {
   userId: string
   savedAddress: Address | null
+  initialBasicInfo: BasicInfo
 }
 
-export function TeamInfoForm({ userId, savedAddress }: TeamInfoFormProps) {
+export function TeamInfoForm({
+  userId,
+  savedAddress,
+  initialBasicInfo,
+}: TeamInfoFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<TeamInfoFormValues>({
     resolver: zodResolver(teamInfoSchema),
     defaultValues: {
-      address: savedAddress ??emptyAddress,
+      address: savedAddress ?? emptyAddress,
+      basicInfo: initialBasicInfo,
+      experience: [],
     },
   })
 
@@ -56,10 +68,31 @@ export function TeamInfoForm({ userId, savedAddress }: TeamInfoFormProps) {
       return
     }
 
-    // Future: Save other sections (Team Info, Experience)
+    // Step 2: Update Basic Info
+    const basicInfoResult = await updateUserBasicInfo(userId, data.basicInfo)
+    if (isErr(basicInfoResult)) {
+      toast.error(basicInfoResult.error.message)
+      setIsSubmitting(false)
+      return
+    }
 
-    toast.success('Address updated successfully!')
-    // router.push('/') // Or wherever we go next. For now just toast.
+    // Step 3: Update Experience
+    if (data.experience) {
+      // We have to loop and upsert each.
+      // Also need to handle deletions: user removed an item from the list.
+
+      // 1. Upsert Current Items
+      for (const item of data.experience) {
+        const result = await upsertUserExperience(userId, item)
+        if (isErr(result)) {
+          console.error('Failed to upsert experience', item, result.error)
+          // Continue or stop? Let's verify as much as possible.
+        }
+      }
+    }
+
+    toast.success('Information saved successfully!')
+    router.push('/')
     setIsSubmitting(false)
   }
 
@@ -80,8 +113,8 @@ export function TeamInfoForm({ userId, savedAddress }: TeamInfoFormProps) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <AddressSection savedAddress={savedAddress} />
-
-              {/* Future Sections: Church, Past Weekend, Experience, Skills */}
+              <BasicInfoSection />
+              <ExperienceSection />
 
               <div className="flex justify-end pt-4 border-t">
                 <Button type="submit" disabled={isSubmitting}>

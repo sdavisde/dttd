@@ -421,30 +421,39 @@ export type Database = {
       users: {
         Row: {
           address: Json | null
+          church_affiliation: string | null
           email: string | null
+          essentials_training_date: string | null
           first_name: string | null
           gender: string | null
           id: string
           last_name: string | null
           phone_number: string | null
+          weekend_attended: string | null
         }
         Insert: {
           address?: Json | null
+          church_affiliation?: string | null
           email?: string | null
+          essentials_training_date?: string | null
           first_name?: string | null
           gender?: string | null
           id: string
           last_name?: string | null
           phone_number?: string | null
+          weekend_attended?: string | null
         }
         Update: {
           address?: Json | null
+          church_affiliation?: string | null
           email?: string | null
+          essentials_training_date?: string | null
           first_name?: string | null
           gender?: string | null
           id?: string
           last_name?: string | null
           phone_number?: string | null
+          weekend_attended?: string | null
         }
         Relationships: []
       }

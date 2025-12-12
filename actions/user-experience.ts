@@ -83,7 +83,9 @@ export async function getUserServiceHistory(
     const level = calculateExperienceLevel(totalWeekends)
     const rectorReady = calculateRectorReadyStatus(records)
     const groupedExperience = groupExperienceByCommunity(records)
-    const totalDTTDWeekends = groupedExperience.filter((g) => g.community === 'DTTD').length
+    const totalDTTDWeekends = groupedExperience.filter(
+      (g) => g.community === 'DTTD'
+    ).length
 
     return ok({
       level,
@@ -125,7 +127,9 @@ export async function getAllUsersServiceHistory(): Promise<
       .order('served_date', { ascending: false })
 
     if (error) {
-      return err(new Error(`Failed to fetch users experience: ${error.message}`))
+      return err(
+        new Error(`Failed to fetch users experience: ${error.message}`)
+      )
     }
 
     if (isNil(data)) {
@@ -159,7 +163,9 @@ export async function getAllUsersServiceHistory(): Promise<
       const level = calculateExperienceLevel(totalWeekends)
       const rectorReady = calculateRectorReadyStatus(userRecords)
       const groupedExperience = groupExperienceByCommunity(userRecords)
-      const totalDTTDWeekends = groupedExperience.filter((g) => g.community === 'DTTD').length
+      const totalDTTDWeekends = groupedExperience.filter(
+        (g) => g.community === 'DTTD'
+      ).length
 
       resultMap.set(userId, {
         level,
@@ -177,5 +183,49 @@ export async function getAllUsersServiceHistory(): Promise<
         `Error while fetching users experience: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     )
+  }
+}
+
+/**
+ * Upserts a single user experience entry (External)
+ */
+export async function upsertUserExperience(
+  userId: string,
+  entry: {
+    cha_role: string
+    community_weekend: string
+    date: string
+    id?: string
+  }
+): Promise<Result<Error, void>> {
+  try {
+    const supabase = await createClient()
+
+    // Parse date from "YYYY-MM" to Date object (1st of month)
+    // new Date('2023-12') usually works as UTC or local. Let's append '-01' to be safe for a date column
+    const servedDate = new Date(`${entry.date}-01`).toISOString()
+
+    const payload = {
+      user_id: userId,
+      cha_role: entry.cha_role, // Enum string
+      external_community_weekend: entry.community_weekend,
+      served_date: servedDate,
+      updated_at: new Date().toISOString(),
+      // Ensure weekend_id is null for external
+      weekend_id: null,
+    }
+
+    const { error } = await supabase
+      .from('users_experience')
+      .upsert(payload, { onConflict: 'user_id, cha_role, served_date' }) // Check constraint
+
+    if (error) {
+      // Check for specific unique violation if constraint name differs
+      return err(new Error(`Failed to save experience: ${error.message}`))
+    }
+
+    return ok(undefined)
+  } catch (e) {
+    return err(new Error('Unexpected error'))
   }
 }

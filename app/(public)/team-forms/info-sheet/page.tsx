@@ -20,5 +20,24 @@ export default async function TeamInfoPage() {
     redirect('/?error=UserNotOnRoster')
   }
 
-  return <TeamInfoForm userId={user.id} savedAddress={user.address} />
+const parseWeekend = (val: string | null) => {
+    if (isNil(val)) return { community: '', number: '', location: '' }
+    const [commNum, loc] = val.split('|')
+    const [comm, num] = (commNum ?? '').split('#')
+    return { community: comm ?? '', number: num ?? '', location: loc ?? '' }
+}
+
+  const basicInfo = {
+    church_affiliation: user.church_affiliation ?? '',
+    weekend_attended: parseWeekend(user.weekend_attended),
+    essentials_training_date: user.essentials_training_date ?? '',
+  }
+
+  return (
+    <TeamInfoForm
+      userId={user.id}
+      savedAddress={user.address}
+      initialBasicInfo={basicInfo}
+    />
+  )
 }
