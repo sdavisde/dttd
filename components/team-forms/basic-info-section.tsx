@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { User, Building, Calendar } from 'lucide-react'
-import { isEmpty } from 'lodash'
+import { User, Building } from 'lucide-react'
+import { MonthPickerPopover } from '@/components/ui/month-picker'
+import * as React from 'react'
 
 export function BasicInfoSection() {
   const { control } = useFormContext()
@@ -116,21 +117,15 @@ export function BasicInfoSection() {
             control={control}
             name="basicInfo.essentials_training_date"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>
                   Essentials Training Completed (Month/Year)
                 </FormLabel>
-                <FormControl>
-                  <div className="flex items-center relative">
-                    <Calendar className="absolute left-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="month"
-                      placeholder="Select date"
-                      {...field}
-                      className="pl-9"
-                    />
-                  </div>
-                </FormControl>
+                <MonthPickerPopover
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Pick a date"
+                />
                 <FormMessage />
               </FormItem>
             )}
