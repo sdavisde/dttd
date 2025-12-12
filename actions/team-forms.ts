@@ -129,3 +129,45 @@ export async function completeInfoSheet(
 
     return ok(undefined)
 }
+
+/**
+ * Checks if a team member has completed all 5 required forms.
+ */
+export async function hasCompletedAllTeamForms(
+    rosterId: string
+): Promise<Result<string, boolean>> {
+    if (isNil(rosterId) || isEmpty(rosterId)) {
+        return err('Roster ID is required')
+    }
+
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+        .from('weekend_roster')
+        .select(`
+            completed_statement_of_belief_at,
+            completed_commitment_form_at,
+            completed_release_of_claim_at,
+            completed_camp_waiver_at,
+            completed_info_sheet_at
+        `)
+        .eq('id', rosterId)
+        .single()
+
+    if (isSupabaseError(error)) {
+        return err(`Failed to check form completion status: ${error.message}`)
+    }
+
+    if (!data) {
+        return err('Roster record not found')
+    }
+
+    const allCompleted = 
+        !isNil(data.completed_statement_of_belief_at) &&
+        !isNil(data.completed_commitment_form_at) &&
+        !isNil(data.completed_release_of_claim_at) &&
+        !isNil(data.completed_camp_waiver_at) &&
+        !isNil(data.completed_info_sheet_at)
+
+    return ok(allCompleted)
+}
