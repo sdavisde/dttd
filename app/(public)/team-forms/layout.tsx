@@ -9,9 +9,9 @@ export default function TeamFormsLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background pt-6 gap-6">
       <TeamFormsStepper steps={teamFormSteps} />
-      <div className="flex-1 container max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 container max-w-5xl mx-auto">
         {children}
       </div>
     </div>

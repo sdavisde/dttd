@@ -16,11 +16,11 @@ export function TeamFormsStepper({ steps }: TeamFormsStepperProps) {
   const currentStepIndex = steps.findIndex((step) => pathname === step.path)
 
   return (
-    <div className="w-full py-6">
+    <div className="w-full">
       <nav aria-label="Progress">
         <ol
           role="list"
-          className="flex items-center justify-center space-x-2 sm:space-x-8 max-w-4xl mx-auto overflow-x-auto px-4 pb-10 overflow-visible"
+          className="flex items-start justify-between w-full max-w-4xl mx-auto px-4"
         >
           {steps.map((step, index) => {
             const isCompleted = index < currentStepIndex
@@ -28,12 +28,12 @@ export function TeamFormsStepper({ steps }: TeamFormsStepperProps) {
             const isFuture = index > currentStepIndex
 
             return (
-              <li key={step.name} className="flex items-center relative">
+              <li key={step.name} className="flex-1 flex flex-col items-center relative">
                 {/* Connector Line (except for first item) */}
                 {index !== 0 && (
                   <div
                     className={cn(
-                      'absolute right-full top-1/2 -translate-y-1/2 h-0.5 w-8 sm:w-16 mr-2 sm:mr-4',
+                      'absolute top-4 sm:top-5 left-[-50%] w-full h-0.5 z-0',
                       index <= currentStepIndex ? 'bg-primary' : 'bg-muted'
                     )}
                     aria-hidden="true"

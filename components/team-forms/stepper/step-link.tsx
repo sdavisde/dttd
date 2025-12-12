@@ -15,10 +15,10 @@ export type StepLinkProps = {
 export function StepLink({ step, index, state, disabled }: StepLinkProps) {
   const content = (
     <>
-      <span className="flex items-center justify-center">
+      <span className="flex items-center justify-center relative z-10">
         <span
           className={cn(
-            'flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 text-xs sm:text-sm font-medium transition-colors',
+            'flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 text-xs sm:text-sm font-medium transition-colors bg-background',
             state === 'completed'
               ? 'border-primary bg-primary text-primary-foreground'
               : state === 'current'
@@ -35,7 +35,7 @@ export function StepLink({ step, index, state, disabled }: StepLinkProps) {
       </span>
       <span
         className={cn(
-          'mt-2 text-[10px] sm:text-xs font-medium text-center absolute -bottom-6 w-32 left-1/2 -translate-x-1/2',
+          'mt-2 text-[10px] sm:text-xs font-medium text-center',
           state === 'current' ? 'text-foreground' : 'text-muted-foreground'
         )}
       >
