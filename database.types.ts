@@ -420,6 +420,7 @@ export type Database = {
       }
       users: {
         Row: {
+          address: Json | null
           email: string | null
           first_name: string | null
           gender: string | null
@@ -428,6 +429,7 @@ export type Database = {
           phone_number: string | null
         }
         Insert: {
+          address?: Json | null
           email?: string | null
           first_name?: string | null
           gender?: string | null
@@ -436,6 +438,7 @@ export type Database = {
           phone_number?: string | null
         }
         Update: {
+          address?: Json | null
           email?: string | null
           first_name?: string | null
           gender?: string | null
