@@ -70,7 +70,7 @@ export function ExperienceSection() {
         <CardContent className="space-y-4">
           {fields.length === 0 && (
             <Typography variant="muted" className="text-sm italic">
-              No external experience added. Click &quot;Add Experience&quot; to
+              No roles added. Click &quot;Add Experience&quot; to
               add entries.
             </Typography>
           )}

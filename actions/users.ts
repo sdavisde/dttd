@@ -374,7 +374,7 @@ export async function updateUserBasicInfo(userId: string, data: BasicInfo): Prom
       const { error } = await supabase.from('users').update({
         church_affiliation: data.church_affiliation,
         weekend_attended: weekendAttendedStr,
-        essentials_training_date: data.essentials_training_date,
+        essentials_training_date: data.essentials_training_date ?? null,
       }).eq('id', userId)
   
       if (error) {
