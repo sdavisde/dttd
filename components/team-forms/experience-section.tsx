@@ -20,6 +20,7 @@ import {
 import { Typography } from '@/components/ui/typography'
 import { Briefcase, Plus, Trash2 } from 'lucide-react'
 import { CHARole } from '@/lib/weekend/types'
+import { MonthPickerPopover } from '@/components/ui/month-picker'
 import {
   Select,
   SelectContent,
@@ -137,7 +138,11 @@ export function ExperienceSection() {
                         Date (Month/Year)
                       </FormLabel>
                       <FormControl>
-                        <Input type="month" {...field} />
+                        <MonthPickerPopover
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Pick a date"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

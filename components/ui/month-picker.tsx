@@ -99,7 +99,7 @@ export function MonthPickerPopover({
         <Button
           variant={'outline'}
           className={cn(
-            'w-[240px] pl-3 text-left font-normal',
+            'pl-3 text-left font-normal',
             !date && 'text-muted-foreground',
             className
           )}

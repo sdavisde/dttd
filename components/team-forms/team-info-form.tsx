@@ -23,6 +23,7 @@ import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'
 import { BasicInfoSection } from './basic-info-section'
 import { ExperienceSection } from './experience-section'
+import { isNil } from 'lodash'
 
 // Future: Import schemas for other sections
 const teamInfoSchema = z.object({
@@ -76,16 +77,15 @@ export function TeamInfoForm({
     }
 
     // Step 3: Update Experience
-    if (data.experience) {
+    if (!isNil(data.experience)) {
       // We have to loop and upsert each.
-      // Also need to handle deletions: user removed an item from the list.
-
-      // 1. Upsert Current Items
       for (const item of data.experience) {
         const result = await upsertUserExperience(userId, item)
         if (isErr(result)) {
           console.error('Failed to upsert experience', item, result.error)
-          // Continue or stop? Let's verify as much as possible.
+          toast.error(result.error.message)
+          setIsSubmitting(false)
+          return
         }
       }
     }

@@ -8,7 +8,7 @@ export const basicInfoSchema = z.object({
     number: z.string().min(1, 'Weekend number is required'),
     location: z.string().min(1, 'Location is required'),
   }),
-  essentials_training_date: z.string().min(1, 'Essentials training date is required'),
+  essentials_training_date: z.string().optional(),
 })
 
 export type BasicInfo = z.infer<typeof basicInfoSchema>
