@@ -46,7 +46,7 @@ export function StepLink({ step, index, state, disabled }: StepLinkProps) {
 
   if (disabled) {
     return (
-      <div className="group relative flex items-center justify-center flex-col opacity-100 cursor-not-allowed">
+      <div className="group relative flex items-center justify-center flex-col opacity-50 cursor-not-allowed">
         {content}
       </div>
     )
