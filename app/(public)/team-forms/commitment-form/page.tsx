@@ -36,6 +36,7 @@ export default async function CommitmentFormPage() {
             userName={userName}
             weekendTitle={weekendTitle}
             userRole={userRole}
+            rosterId={user.team_member_info.id}
         />
     )
 }

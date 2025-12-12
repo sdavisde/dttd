@@ -1,0 +1,84 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { Result, err, ok } from '@/lib/results'
+import { isSupabaseError } from '@/lib/supabase/utils'
+import { isNil, isEmpty } from 'lodash'
+
+/**
+ * Marks the Statement of Belief as completed for a given roster record.
+ */
+export async function signStatementOfBelief(
+    rosterId: string
+): Promise<Result<string, void>> {
+    if (isNil(rosterId) || isEmpty(rosterId)) {
+        return err('Roster ID is required')
+    }
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('weekend_roster')
+        .update({ completed_statement_of_belief: true })
+        .eq('id', rosterId)
+
+    if (isSupabaseError(error)) {
+        return err(`Failed to sign Statement of Belief: ${error.message}`)
+    }
+
+    return ok(undefined)
+}
+
+/**
+ * Marks the Commitment Form as completed for a given roster record.
+ */
+export async function signCommitmentForm(
+    rosterId: string
+): Promise<Result<string, void>> {
+    if (isNil(rosterId) || isEmpty(rosterId)) {
+        return err('Roster ID is required')
+    }
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('weekend_roster')
+        .update({ completed_commitment_form: true })
+        .eq('id', rosterId)
+
+    if (isSupabaseError(error)) {
+        return err(`Failed to sign Commitment Form: ${error.message}`)
+    }
+
+    return ok(undefined)
+}
+
+/**
+ * Submits the Release of Claim form, saving special needs information.
+ * If no special needs, saves "None".
+ */
+export async function submitReleaseOfClaim(
+    rosterId: string,
+    specialNeeds: string | null
+): Promise<Result<string, void>> {
+    if (isNil(rosterId) || isEmpty(rosterId)) {
+        return err('Roster ID is required')
+    }
+
+    const supabase = await createClient()
+
+    const finalSpecialNeeds = !isNil(specialNeeds) && !isEmpty(specialNeeds.trim())
+        ? specialNeeds.trim()
+        : 'None'
+
+    const { error } = await supabase
+        .from('weekend_roster')
+        .update({ special_needs: finalSpecialNeeds })
+        .eq('id', rosterId)
+
+    if (isSupabaseError(error)) {
+        return err(`Failed to submit Release of Claim: ${error.message}`)
+    }
+
+    return ok(undefined)
+}

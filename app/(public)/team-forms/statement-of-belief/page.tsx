@@ -30,5 +30,5 @@ export default async function StatementOfBeliefPage() {
     const weekendTitle = formatWeekendTitle(weekend)
     const userName = `${user.first_name} ${user.last_name}`.trim()
 
-    return <StatementOfBeliefForm userName={userName} weekendTitle={weekendTitle} />
+    return <StatementOfBeliefForm userName={userName} weekendTitle={weekendTitle} rosterId={user.team_member_info.id} />
 }

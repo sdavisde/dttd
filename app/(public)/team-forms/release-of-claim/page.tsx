@@ -18,5 +18,5 @@ export default async function ReleaseOfClaimPage() {
         redirect('/')
     }
 
-    return <ReleaseOfClaimForm />
+    return <ReleaseOfClaimForm rosterId={user.team_member_info.id} />
 }

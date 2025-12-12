@@ -7,6 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { signStatementOfBelief } from '@/actions/team-forms'
+import { isErr } from '@/lib/results'
+import { toast } from 'sonner'
 import {
     Form,
     FormControl,
@@ -34,9 +37,10 @@ type StatementOfBeliefFormValues = z.infer<typeof statementOfBeliefSchema>
 interface StatementOfBeliefFormProps {
     userName: string
     weekendTitle: string
+    rosterId: string
 }
 
-export function StatementOfBeliefForm({ userName, weekendTitle }: StatementOfBeliefFormProps) {
+export function StatementOfBeliefForm({ userName, weekendTitle, rosterId }: StatementOfBeliefFormProps) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -49,11 +53,14 @@ export function StatementOfBeliefForm({ userName, weekendTitle }: StatementOfBel
 
     const onSubmit = async (data: StatementOfBeliefFormValues) => {
         setIsSubmitting(true)
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
 
-        // In a real implementation we would save to database here
-        console.log('Statement of Belief signed:', data)
+        const result = await signStatementOfBelief(rosterId)
+
+        if (isErr(result)) {
+            toast.error(result.error)
+            setIsSubmitting(false)
+            return
+        }
 
         // Navigation to next step
         router.push('/team-forms/commitment-form')

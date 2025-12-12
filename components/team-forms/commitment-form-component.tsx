@@ -8,6 +8,9 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { signCommitmentForm } from '@/actions/team-forms'
+import { isErr } from '@/lib/results'
+import { toast } from 'sonner'
 import {
     Form,
     FormControl,
@@ -54,9 +57,10 @@ interface CommitmentFormProps {
     userName: string
     weekendTitle: string
     userRole: string
+    rosterId: string
 }
 
-export function CommitmentFormComponent({ userName, weekendTitle, userRole }: CommitmentFormProps) {
+export function CommitmentFormComponent({ userName, weekendTitle, userRole, rosterId }: CommitmentFormProps) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -70,11 +74,14 @@ export function CommitmentFormComponent({ userName, weekendTitle, userRole }: Co
 
     const onSubmit = async (data: CommitmentFormValues) => {
         setIsSubmitting(true)
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
 
-        // In a real implementation we would save to database here
-        console.log('Commitments agreed:', data)
+        const result = await signCommitmentForm(rosterId)
+
+        if (isErr(result)) {
+            toast.error(result.error)
+            setIsSubmitting(false)
+            return
+        }
 
         // Navigation to next step
         router.push('/team-forms/release-of-claim')

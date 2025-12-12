@@ -498,28 +498,40 @@ export type Database = {
       }
       weekend_roster: {
         Row: {
+          additional_cha_role: string | null
           cha_role: string | null
+          completed_commitment_form: boolean
+          completed_statement_of_belief: boolean
           created_at: string
           id: string
           rollo: string | null
+          special_needs: string | null
           status: string | null
           user_id: string | null
           weekend_id: string | null
         }
         Insert: {
+          additional_cha_role?: string | null
           cha_role?: string | null
+          completed_commitment_form?: boolean
+          completed_statement_of_belief?: boolean
           created_at?: string
           id?: string
           rollo?: string | null
+          special_needs?: string | null
           status?: string | null
           user_id?: string | null
           weekend_id?: string | null
         }
         Update: {
+          additional_cha_role?: string | null
           cha_role?: string | null
+          completed_commitment_form?: boolean
+          completed_statement_of_belief?: boolean
           created_at?: string
           id?: string
           rollo?: string | null
+          special_needs?: string | null
           status?: string | null
           user_id?: string | null
           weekend_id?: string | null

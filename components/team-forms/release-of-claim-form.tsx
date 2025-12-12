@@ -25,15 +25,17 @@ import {
     CardTitle,
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { submitReleaseOfClaim } from '@/actions/team-forms'
+import { isErr } from '@/lib/results'
+import { toast } from 'sonner'
+import { isEmpty } from 'lodash'
 
 const releaseOfClaimSchema = z.object({
-    has_special_needs: z.enum(['yes', 'no'], {
-        required_error: 'Please select yes or no.',
-    }),
+    has_special_needs: z.enum(['yes', 'no'], { error: 'Please select yes or no.' }),
     special_needs_description: z.string().optional(),
     signature: z.string().min(2, 'Signature is required'),
 }).refine((data) => {
-    if (data.has_special_needs === 'yes' && !data.special_needs_description) {
+    if (data.has_special_needs === 'yes' && isEmpty(data.special_needs_description)) {
         return false
     }
     return true
@@ -42,9 +44,14 @@ const releaseOfClaimSchema = z.object({
     path: ['special_needs_description'],
 })
 
+
 type ReleaseOfClaimFormValues = z.infer<typeof releaseOfClaimSchema>
 
-export function ReleaseOfClaimForm() {
+interface ReleaseOfClaimFormProps {
+    rosterId: string
+}
+
+export function ReleaseOfClaimForm({ rosterId }: ReleaseOfClaimFormProps) {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -61,13 +68,17 @@ export function ReleaseOfClaimForm() {
 
     const onSubmit = async (data: ReleaseOfClaimFormValues) => {
         setIsSubmitting(true)
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
 
-        // In a real implementation we would save to database here
-        console.log('Release of claim agreed:', data)
+        const specialNeeds = data.has_special_needs === 'yes' ? data.special_needs_description : null
+        const result = await submitReleaseOfClaim(rosterId, specialNeeds ?? null)
 
-        // Navigation to final step (this route will 404 for now as expected)
+        if (isErr(result)) {
+            toast.error(result.error)
+            setIsSubmitting(false)
+            return
+        }
+
+        // Navigation to final step
         router.push('/team-info/info-sheet')
         setIsSubmitting(false)
     }
