@@ -41,6 +41,9 @@ export default async function TeamFormsPage() {
     )
   }
 
+  // if user has completed steps 1 and 2 (index 0 and 1), they should only be able to access steps 0-2
+  const maxReachableStepIndex = progressResult.data.completedCount
+
   const progress = progressResult.data
   const { steps } = progress
 
@@ -49,26 +52,31 @@ export default async function TeamFormsPage() {
       label: 'Statement of Belief',
       isComplete: steps.statementOfBelief,
       href: '/team-forms/statement-of-belief',
+      isDisabled: maxReachableStepIndex < 0,
     },
     {
       label: 'Commitment Form',
       isComplete: steps.commitmentForm,
       href: '/team-forms/commitment-form',
+      isDisabled: maxReachableStepIndex < 1,
     },
     {
       label: 'Release of Claim',
       isComplete: steps.releaseOfClaim,
       href: '/team-forms/release-of-claim',
+      isDisabled: maxReachableStepIndex < 2,
     },
     {
       label: 'Camp Waiver',
       isComplete: steps.campWaiver,
       href: '/team-forms/camp-waiver',
+      isDisabled: maxReachableStepIndex < 3,
     },
     {
       label: 'Team Info',
       isComplete: steps.infoSheet,
       href: '/team-forms/info-sheet',
+      isDisabled: maxReachableStepIndex < 4,
     },
   ]
 
@@ -111,7 +119,8 @@ export default async function TeamFormsPage() {
                 'flex items-center justify-between p-4 rounded-lg border transition-colors hover:bg-muted/50',
                 step.isComplete
                   ? 'bg-muted/20 border-border'
-                  : 'bg-card border-border shadow-sm'
+                  : 'bg-card border-border shadow-sm',
+                step.isDisabled && 'opacity-50 cursor-not-allowed pointer-events-none'
               )}
             >
               <div className="flex items-center gap-4">
