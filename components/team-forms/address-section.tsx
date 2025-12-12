@@ -23,13 +23,14 @@ import {
 import { MapPin } from 'lucide-react'
 import { Typography } from '@/components/ui/typography'
 import { isNil } from 'lodash'
+import { TeamInfoFormValues } from './schemas'
 
 interface AddressSectionProps {
   savedAddress: Address | null
 }
 
 export function AddressSection({ savedAddress }: AddressSectionProps) {
-  const { control, setValue, trigger } = useFormContext()
+  const { control, setValue, trigger } = useFormContext<TeamInfoFormValues>()
   const [useSavedAddress, setUseSavedAddress] = useState(!isNil(savedAddress))
 
   // Initialize form with saved address if available and user chooses to use it

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { CHARole } from '@/lib/weekend/types'
+import { addressSchema } from '@/lib/users/validation'
 
 export const basicInfoSchema = z.object({
   church_affiliation: z.string().min(1, 'Church affiliation is required'),
@@ -9,6 +10,7 @@ export const basicInfoSchema = z.object({
     location: z.string().min(1, 'Location is required'),
   }),
   essentials_training_date: z.string().optional(),
+  special_gifts_and_skills: z.array(z.string()).optional(),
 })
 
 export type BasicInfo = z.infer<typeof basicInfoSchema>
@@ -21,3 +23,11 @@ export const userExperienceSchema = z.object({
 })
 
 export type UserExperience = z.infer<typeof userExperienceSchema>
+
+export const teamInfoSchema = z.object({
+  address: addressSchema,
+  basicInfo: basicInfoSchema,
+  experience: z.array(userExperienceSchema).optional(),
+})
+
+export type TeamInfoFormValues = z.infer<typeof teamInfoSchema>

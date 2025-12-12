@@ -429,6 +429,7 @@ export type Database = {
           id: string
           last_name: string | null
           phone_number: string | null
+          special_gifts_and_skills: string[] | null
           weekend_attended: string | null
         }
         Insert: {
@@ -441,6 +442,7 @@ export type Database = {
           id: string
           last_name?: string | null
           phone_number?: string | null
+          special_gifts_and_skills?: string[] | null
           weekend_attended?: string | null
         }
         Update: {
@@ -453,6 +455,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone_number?: string | null
+          special_gifts_and_skills?: string[] | null
           weekend_attended?: string | null
         }
         Relationships: []

@@ -31,6 +31,7 @@ const parseWeekend = (val: string | null) => {
     church_affiliation: user.church_affiliation ?? '',
     weekend_attended: parseWeekend(user.weekend_attended),
     essentials_training_date: user.essentials_training_date ?? '',
+    special_gifts_and_skills: user.special_gifts_and_skills ?? [],
   }
 
   return (

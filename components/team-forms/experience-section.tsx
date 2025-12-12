@@ -28,9 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { TeamInfoFormValues } from './schemas'
 
 export function ExperienceSection() {
-  const { control } = useFormContext()
+  const { control } = useFormContext<TeamInfoFormValues>()
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'experience',
@@ -58,7 +59,11 @@ export function ExperienceSection() {
           </CardDescription>
           <Button
             onClick={() =>
-              append({ cha_role: '', community_weekend: '', date: '' })
+              append({
+                cha_role: '' as CHARole,
+                community_weekend: '',
+                date: '',
+              })
             }
             variant="outline"
             size="sm"
@@ -70,8 +75,7 @@ export function ExperienceSection() {
         <CardContent className="space-y-4">
           {fields.length === 0 && (
             <Typography variant="muted" className="text-sm italic">
-              No roles added. Click &quot;Add Experience&quot; to
-              add entries.
+              No roles added. Click &quot;Add Experience&quot; to add entries.
             </Typography>
           )}
 

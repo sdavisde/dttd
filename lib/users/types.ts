@@ -12,6 +12,7 @@ export type User = {
   church_affiliation: string | null
   weekend_attended: string | null
   essentials_training_date: string | null
+  special_gifts_and_skills: string[] | null
   role: UserRoleInfo | null
   /** Contains information about this user's CHA role and status if they are on the upcoming weekend team roster */
   team_member_info: TeamMemberInfo | null

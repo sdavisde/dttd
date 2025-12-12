@@ -26,6 +26,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
         church_affiliation,
         weekend_attended,
         essentials_training_date,
+        special_gifts_and_skills,
         user_roles:user_roles (
           roles (
             id,
@@ -88,6 +89,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
           church_affiliation: u.church_affiliation,
           weekend_attended: u.weekend_attended,
           essentials_training_date: u.essentials_training_date,
+          special_gifts_and_skills: u.special_gifts_and_skills,
           role,
           team_member_info: rosterRecord ?? null,
         }
@@ -131,6 +133,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
           church_affiliation,
           weekend_attended,
           essentials_training_date,
+          special_gifts_and_skills,
           user_roles:user_roles (
             roles (
               id,
@@ -191,6 +194,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
       church_affiliation: user.church_affiliation,
       weekend_attended: user.weekend_attended,
       essentials_training_date: user.essentials_training_date,
+      special_gifts_and_skills: user.special_gifts_and_skills,
       role,
       team_member_info: rosterRecord ?? null,
     })
@@ -368,15 +372,16 @@ export async function updateUserBasicInfo(userId: string, data: BasicInfo): Prom
   
       const supabase = await createClient()
 
-      // Serialize weekend_attended object to string
-      const { community, number, location } = data.weekend_attended
-      const weekendAttendedStr = `${community}#${number}|${location}`
-  
-      const { error } = await supabase.from('users').update({
-        church_affiliation: data.church_affiliation,
-        weekend_attended: weekendAttendedStr,
-        essentials_training_date: !isEmpty(data.essentials_training_date) ? data.essentials_training_date : null,
-      }).eq('id', userId)
+    // Serialize weekend_attended object to string
+    const { community, number, location } = data.weekend_attended
+    const weekendAttendedStr = `${community}#${number}|${location}`
+
+    const { error } = await supabase.from('users').update({
+      church_affiliation: data.church_affiliation,
+      weekend_attended: weekendAttendedStr,
+      essentials_training_date: !isEmpty(data.essentials_training_date) ? data.essentials_training_date : null,
+      special_gifts_and_skills: data.special_gifts_and_skills ?? null,
+    }).eq('id', userId)
   
       if (error) {
         logger.error({ error, userId }, 'Error updating user basic info')

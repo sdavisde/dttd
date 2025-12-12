@@ -16,24 +16,16 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { Address, addressSchema, emptyAddress } from '@/lib/users/validation'
-import { BasicInfo, basicInfoSchema, userExperienceSchema } from './schemas'
+import { Address, emptyAddress } from '@/lib/users/validation'
+import { BasicInfo, TeamInfoFormValues, teamInfoSchema } from './schemas'
 import { updateUserAddress, updateUserBasicInfo } from '@/actions/users'
 import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'
 import { BasicInfoSection } from './basic-info-section'
 import { ExperienceSection } from './experience-section'
+import { SkillsSection } from './skills-section'
 import { isNil } from 'lodash'
 import { completeInfoSheet } from '@/actions/team-forms'
-
-// Future: Import schemas for other sections
-const teamInfoSchema = z.object({
-  address: addressSchema,
-  basicInfo: basicInfoSchema,
-  experience: z.array(userExperienceSchema).optional(),
-})
-
-type TeamInfoFormValues = z.infer<typeof teamInfoSchema>
 
 interface TeamInfoFormProps {
   userId: string
@@ -124,6 +116,7 @@ export function TeamInfoForm({
             <AddressSection savedAddress={savedAddress} />
             <BasicInfoSection />
             <ExperienceSection />
+            <SkillsSection />
 
             <div className="flex justify-end pt-4 border-t">
               <Button type="submit" disabled={isSubmitting}>
