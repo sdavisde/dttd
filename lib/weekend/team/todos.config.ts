@@ -11,7 +11,7 @@ export const teamTodoItems: TodoItemConfig[] = [
   {
     id: 'team-info',
     label: 'Complete team forms',
-    href: '/team-forms/statement-of-belief',
+    href: '/team-forms',
     checkCompletion: async ({ user }) => {
       const result = await hasCompletedAllTeamForms(user.team_member_info.id)
       return isOk(result) && result.data

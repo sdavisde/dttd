@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok } from '@/lib/results'
+import { Result, err, ok, isOk, isErr } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { isNil, isEmpty } from 'lodash'
 
@@ -130,12 +130,26 @@ export async function completeInfoSheet(
     return ok(undefined)
 }
 
+export type TeamFormsProgress = {
+    steps: {
+        statementOfBelief: boolean
+        commitmentForm: boolean
+        releaseOfClaim: boolean
+        campWaiver: boolean
+        infoSheet: boolean
+    }
+    completedSteps: string[]
+    totalSteps: number
+    completedCount: number
+    isComplete: boolean
+}
+
 /**
- * Checks if a team member has completed all 5 required forms.
+ * Returns granular progress for team forms.
  */
-export async function hasCompletedAllTeamForms(
+export async function getTeamFormsProgress(
     rosterId: string
-): Promise<Result<string, boolean>> {
+): Promise<Result<string, TeamFormsProgress>> {
     if (isNil(rosterId) || isEmpty(rosterId)) {
         return err('Roster ID is required')
     }
@@ -162,12 +176,52 @@ export async function hasCompletedAllTeamForms(
         return err('Roster record not found')
     }
 
-    const allCompleted = 
-        !isNil(data.completed_statement_of_belief_at) &&
-        !isNil(data.completed_commitment_form_at) &&
-        !isNil(data.completed_release_of_claim_at) &&
-        !isNil(data.completed_camp_waiver_at) &&
-        !isNil(data.completed_info_sheet_at)
+    const steps = {
+        statementOfBelief: !isNil(data.completed_statement_of_belief_at),
+        commitmentForm: !isNil(data.completed_commitment_form_at),
+        releaseOfClaim: !isNil(data.completed_release_of_claim_at),
+        campWaiver: !isNil(data.completed_camp_waiver_at),
+        infoSheet: !isNil(data.completed_info_sheet_at),
+    }
 
-    return ok(allCompleted)
+    const stepIds = {
+        statementOfBelief: 'statement-of-belief',
+        commitmentForm: 'commitment-form',
+        releaseOfClaim: 'release-of-claim',
+        campWaiver: 'camp-waiver',
+        infoSheet: 'info-sheet',
+    }
+
+    const completedSteps: string[] = []
+    if (steps.statementOfBelief) completedSteps.push(stepIds.statementOfBelief)
+    if (steps.commitmentForm) completedSteps.push(stepIds.commitmentForm)
+    if (steps.releaseOfClaim) completedSteps.push(stepIds.releaseOfClaim)
+    if (steps.campWaiver) completedSteps.push(stepIds.campWaiver)
+    if (steps.infoSheet) completedSteps.push(stepIds.infoSheet)
+
+    // Total steps is 5
+    const totalSteps = 5
+    const completedCount = completedSteps.length
+    const isComplete = completedCount === totalSteps
+
+    return ok({
+        steps,
+        completedSteps,
+        totalSteps,
+        completedCount,
+        isComplete,
+    })
+}
+
+/**
+ * Checks if a team member has completed all 5 required forms.
+ */
+export async function hasCompletedAllTeamForms(
+    rosterId: string
+): Promise<Result<string, boolean>> {
+    const result = await getTeamFormsProgress(rosterId)
+    if (isErr(result)) {
+        return err(result.error)
+    }
+    return ok(result.data.isComplete)
 }
