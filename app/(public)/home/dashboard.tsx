@@ -59,21 +59,7 @@ export function Dashboard({ user }: DashboardProps) {
                 </Button>
               </div>
             )}
-          {isUserOnActiveTeam(user) &&
-            user.team_member_info.status !== 'paid' && (
-              <Link
-                href={`/payment/team-fee?weekend_id=${user.team_member_info?.weekend_id}`}
-                className="w-full h-full"
-              >
-                <Button
-                  variant="outline"
-                  className="w-full h-52 flex flex-col items-center justify-center gap-2"
-                >
-                  <DollarSign className="w-10 h-10" />
-                  <span className="text-lg font-semibold">Pay Team Fees</span>
-                </Button>
-              </Link>
-            )}
+
           <Button
             variant="outline"
             className="w-full h-52 flex flex-col items-center justify-center gap-2"
