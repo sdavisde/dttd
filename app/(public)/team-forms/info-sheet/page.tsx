@@ -36,6 +36,7 @@ const parseWeekend = (val: string | null) => {
   return (
     <TeamInfoForm
       userId={user.id}
+      rosterId={user.team_member_info.id}
       savedAddress={user.address}
       initialBasicInfo={basicInfo}
     />

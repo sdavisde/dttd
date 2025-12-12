@@ -37,12 +37,14 @@ type TeamInfoFormValues = z.infer<typeof teamInfoSchema>
 
 interface TeamInfoFormProps {
   userId: string
+  rosterId: string
   savedAddress: Address | null
   initialBasicInfo: BasicInfo
 }
 
 export function TeamInfoForm({
   userId,
+  rosterId,
   savedAddress,
   initialBasicInfo,
 }: TeamInfoFormProps) {
@@ -92,7 +94,7 @@ export function TeamInfoForm({
     }
 
     // Step 4: Update Info Sheet
-    const infoSheetResult = await completeInfoSheet(userId)
+    const infoSheetResult = await completeInfoSheet(rosterId)
     if (isErr(infoSheetResult)) {
       toast.error(infoSheetResult.error)
       setIsSubmitting(false)
