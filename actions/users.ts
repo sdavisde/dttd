@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger'
 import { genderMatchesWeekend } from '@/lib/weekend'
 import { Address, addressSchema } from '@/lib/users/validation'
 import { BasicInfo, basicInfoSchema } from '@/components/team-forms/schemas'
+import { isEmpty } from 'lodash'
 
 export async function getUsers(): Promise<Result<Error, Array<User>>> {
   try {
@@ -374,7 +375,7 @@ export async function updateUserBasicInfo(userId: string, data: BasicInfo): Prom
       const { error } = await supabase.from('users').update({
         church_affiliation: data.church_affiliation,
         weekend_attended: weekendAttendedStr,
-        essentials_training_date: data.essentials_training_date ?? null,
+        essentials_training_date: !isEmpty(data.essentials_training_date) ? data.essentials_training_date : null,
       }).eq('id', userId)
   
       if (error) {
