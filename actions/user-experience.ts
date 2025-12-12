@@ -213,11 +213,12 @@ export async function upsertUserExperience(
       updated_at: new Date().toISOString(),
       // Ensure weekend_id is null for external
       weekend_id: null,
+      ...(entry.id ? { id: entry.id } : {}),
     }
 
     const { error } = await supabase
       .from('users_experience')
-      .upsert(payload, { onConflict: 'user_id, cha_role, served_date' }) // Check constraint
+      .upsert(payload) // Upsert on ID (primary key)
 
     if (error) {
       // Check for specific unique violation if constraint name differs
