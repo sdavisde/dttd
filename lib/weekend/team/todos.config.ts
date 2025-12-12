@@ -10,8 +10,7 @@ export const teamTodoItems: TodoItemConfig[] = [
   {
     id: 'team-info',
     label: 'Complete team forms',
-    href: null,
-    tooltip: 'Coming soon',
+    href: '/team-forms/statement-of-belief',
     // checkCompletion will be added when team info form is implemented (spec 0002)
   },
   {
