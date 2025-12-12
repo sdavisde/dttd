@@ -512,9 +512,11 @@ export type Database = {
         Row: {
           additional_cha_role: string | null
           cha_role: string | null
-          completed_camp_waiver: boolean
-          completed_commitment_form: boolean
-          completed_statement_of_belief: boolean
+          completed_camp_waiver_at: string | null
+          completed_commitment_form_at: string | null
+          completed_info_sheet_at: string | null
+          completed_release_of_claim_at: string | null
+          completed_statement_of_belief_at: string | null
           created_at: string
           id: string
           rollo: string | null
@@ -526,9 +528,11 @@ export type Database = {
         Insert: {
           additional_cha_role?: string | null
           cha_role?: string | null
-          completed_camp_waiver?: boolean
-          completed_commitment_form?: boolean
-          completed_statement_of_belief?: boolean
+          completed_camp_waiver_at?: string | null
+          completed_commitment_form_at?: string | null
+          completed_info_sheet_at?: string | null
+          completed_release_of_claim_at?: string | null
+          completed_statement_of_belief_at?: string | null
           created_at?: string
           id?: string
           rollo?: string | null
@@ -540,9 +544,11 @@ export type Database = {
         Update: {
           additional_cha_role?: string | null
           cha_role?: string | null
-          completed_camp_waiver?: boolean
-          completed_commitment_form?: boolean
-          completed_statement_of_belief?: boolean
+          completed_camp_waiver_at?: string | null
+          completed_commitment_form_at?: string | null
+          completed_info_sheet_at?: string | null
+          completed_release_of_claim_at?: string | null
+          completed_statement_of_belief_at?: string | null
           created_at?: string
           id?: string
           rollo?: string | null

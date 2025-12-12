@@ -24,6 +24,7 @@ import { AddressSection } from './address-section'
 import { BasicInfoSection } from './basic-info-section'
 import { ExperienceSection } from './experience-section'
 import { isNil } from 'lodash'
+import { completeInfoSheet } from '@/actions/team-forms'
 
 // Future: Import schemas for other sections
 const teamInfoSchema = z.object({
@@ -88,6 +89,14 @@ export function TeamInfoForm({
           return
         }
       }
+    }
+
+    // Step 4: Update Info Sheet
+    const infoSheetResult = await completeInfoSheet(userId)
+    if (isErr(infoSheetResult)) {
+      toast.error(infoSheetResult.error)
+      setIsSubmitting(false)
+      return
     }
 
     toast.success('Information saved successfully!')

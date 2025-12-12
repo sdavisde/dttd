@@ -19,7 +19,7 @@ export async function signStatementOfBelief(
 
     const { error } = await supabase
         .from('weekend_roster')
-        .update({ completed_statement_of_belief: true })
+        .update({ completed_statement_of_belief_at: new Date().toISOString() })
         .eq('id', rosterId)
 
     if (isSupabaseError(error)) {
@@ -43,7 +43,7 @@ export async function signCommitmentForm(
 
     const { error } = await supabase
         .from('weekend_roster')
-        .update({ completed_commitment_form: true })
+        .update({ completed_commitment_form_at: new Date().toISOString() })
         .eq('id', rosterId)
 
     if (isSupabaseError(error)) {
@@ -73,7 +73,7 @@ export async function submitReleaseOfClaim(
 
     const { error } = await supabase
         .from('weekend_roster')
-        .update({ special_needs: finalSpecialNeeds })
+        .update({ special_needs: finalSpecialNeeds, completed_release_of_claim_at: new Date().toISOString() })
         .eq('id', rosterId)
 
     if (isSupabaseError(error)) {
@@ -98,11 +98,33 @@ export async function signCampWaiver(
     // Note: assuming column name is completed_camp_waiver
     const { error } = await supabase
         .from('weekend_roster')
-        .update({ completed_camp_waiver: true })
+        .update({ completed_camp_waiver_at: new Date().toISOString() })
         .eq('id', rosterId)
 
     if (isSupabaseError(error)) {
         return err(`Failed to sign Camp Waiver: ${error.message}`)
+    }
+
+    return ok(undefined)
+}
+
+export async function completeInfoSheet(
+    rosterId: string
+): Promise<Result<string, void>> {
+    if (isNil(rosterId) || isEmpty(rosterId)) {
+        return err('Roster ID is required')
+    }
+
+    const supabase = await createClient()
+
+    // Note: assuming column name is completed_info_sheet
+    const { error } = await supabase
+        .from('weekend_roster')
+        .update({ completed_info_sheet_at: new Date().toISOString() })
+        .eq('id', rosterId)
+
+    if (isSupabaseError(error)) {
+        return err(`Failed to complete Info Sheet: ${error.message}`)
     }
 
     return ok(undefined)
