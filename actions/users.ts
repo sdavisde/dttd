@@ -5,6 +5,7 @@ import { Result, err, ok } from '@/lib/results'
 import { User } from '@/lib/users/types'
 import { logger } from '@/lib/logger'
 import { genderMatchesWeekend } from '@/lib/weekend'
+import { Address, addressSchema } from '@/lib/users/validation'
 
 export async function getUsers(): Promise<Result<Error, Array<User>>> {
   try {
@@ -19,6 +20,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
         gender,
         email,
         phone_number,
+        address,
         user_roles:user_roles (
           roles (
             id,
@@ -51,10 +53,10 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
         const roleRow = u.user_roles?.[0]?.roles ?? null
         const role = roleRow
           ? {
-              id: roleRow.id,
-              label: roleRow.label,
-              permissions: roleRow.permissions ?? [],
-            }
+            id: roleRow.id,
+            label: roleRow.label,
+            permissions: roleRow.permissions ?? [],
+          }
           : null
 
         // team_member_info: find roster record for active weekend & matching gender
@@ -66,6 +68,10 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
           )
         })
 
+        // Normalize address
+        const addressResult = addressSchema.safeParse(u.address)
+        const address = addressResult.success ? addressResult.data : null
+
         return {
           id: u.id,
           first_name: u.first_name,
@@ -73,6 +79,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
           gender: u.gender,
           email: u.email,
           phone_number: u.phone_number,
+          address,
           role,
           team_member_info: rosterRecord ?? null,
         }
@@ -112,6 +119,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
           gender,
           email,
           phone_number,
+          address,
           user_roles:user_roles (
             roles (
               id,
@@ -143,10 +151,10 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
     const roleRow = user.user_roles?.[0]?.roles ?? null
     const role = roleRow
       ? {
-          id: roleRow.id,
-          label: roleRow.label,
-          permissions: roleRow.permissions ?? [],
-        }
+        id: roleRow.id,
+        label: roleRow.label,
+        permissions: roleRow.permissions ?? [],
+      }
       : null
 
     // team_member_info: find roster record for active weekend & matching gender
@@ -158,6 +166,9 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
       )
     })
 
+    const addressResult = addressSchema.safeParse(user.address)
+    const address = addressResult.success ? addressResult.data : null
+
     return ok({
       id: user.id,
       first_name: user.first_name,
@@ -165,6 +176,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
       gender: user.gender,
       email: user.email,
       phone_number: user.phone_number,
+      address,
       role,
       team_member_info: rosterRecord ?? null,
     })
@@ -176,6 +188,38 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
     )
   }
 }
+
+/**
+ * PATCH's a users address
+ * @param userId 
+ * @param address 
+ * @returns 
+ */
+export async function updateUserAddress(userId: string, address: Address): Promise<Result<Error, void>> {
+  try {
+    // Validate input
+    const validation = addressSchema.safeParse(address)
+    if (!validation.success) {
+      return err(new Error(`Invalid address: ${validation.error.message}`))
+    }
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('users')
+      .update({ address: address })
+      .eq('id', userId)
+
+    if (error) {
+      return err(new Error(`Failed to update address: ${error.message}`))
+    }
+
+    return ok(undefined)
+  } catch (error) {
+    return err(new Error(`Error updating address: ${error instanceof Error ? error.message : 'Unknown error'}`))
+  }
+}
+
 
 export async function deleteUser(
   userId: string

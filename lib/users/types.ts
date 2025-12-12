@@ -1,4 +1,5 @@
 import { TeamMemberInfo } from '@/lib/weekend/types'
+import { Address } from './validation'
 
 export type User = {
   id: string
@@ -7,6 +8,7 @@ export type User = {
   gender: string | null
   email: string
   phone_number: string | null
+  address: Address | null
   role: UserRoleInfo | null
   /** Contains information about this user's CHA role and status if they are on the upcoming weekend team roster */
   team_member_info: TeamMemberInfo | null
