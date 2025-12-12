@@ -10,7 +10,6 @@ import { toast } from 'sonner'
 import { isErr } from '@/lib/results'
 import { Form } from '@/components/ui/form'
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -97,34 +96,32 @@ export function TeamInfoForm({
   }
 
   return (
-    <div className="container max-w-3xl mx-auto py-8 px-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <Typography variant="h2">Team Information</Typography>
-          </CardTitle>
-          <CardDescription>
-            <Typography variant="muted">
-              Please complete your team member profile.
-            </Typography>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <AddressSection savedAddress={savedAddress} />
-              <BasicInfoSection />
-              <ExperienceSection />
+    <>
+      <CardHeader>
+        <CardTitle>
+          <Typography variant="h2">Team Information</Typography>
+        </CardTitle>
+        <CardDescription>
+          <Typography variant="muted">
+            Please complete your team member profile.
+          </Typography>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <AddressSection savedAddress={savedAddress} />
+            <BasicInfoSection />
+            <ExperienceSection />
 
-              <div className="flex justify-end pt-4 border-t">
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : 'Save Information'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+            <div className="flex justify-end pt-4 border-t">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Information'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </>
   )
 }

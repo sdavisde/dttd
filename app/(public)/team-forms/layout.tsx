@@ -1,5 +1,6 @@
 'use client'
 
+import { Card } from '@/components/ui/card'
 import { TeamFormsStepper } from '@/components/team-forms/stepper'
 import { teamFormSteps } from '@/components/team-forms/steps.config'
 
@@ -11,8 +12,10 @@ export default function TeamFormsLayout({
   return (
     <div className="flex flex-col min-h-screen bg-background pt-6 gap-6">
       <TeamFormsStepper steps={teamFormSteps} />
-      <div className="flex-1 container max-w-5xl mx-auto">
-        {children}
+      <div className="flex-1 container max-w-3xl mx-auto px-4">
+        <Card className='shadow-none md:shadow-sm'>
+          {children}
+        </Card>
       </div>
     </div>
   )

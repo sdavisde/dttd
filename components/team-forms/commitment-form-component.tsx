@@ -20,7 +20,6 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import {
-    Card,
     CardContent,
     CardDescription,
     CardHeader,
@@ -91,94 +90,92 @@ export function CommitmentFormComponent({ userName, weekendTitle, userRole, rost
     const currentDate = new Date().toLocaleDateString()
 
     return (
-        <div className="container max-w-3xl mx-auto py-8 px-4">
-            <Card>
-                <CardHeader>
-                    <CardTitle>
-                        <Typography variant="h2">Team Commitment Form</Typography>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="bg-muted/30 p-6 rounded-lg border space-y-4">
-                        <Typography variant="p">
-                            I, <strong>{userName}</strong>, affirm that I am a Lay / Clergy person who is consistent in my walk with Christ, faithful in my local church, supportive of my pastor and an active participant, endeavoring to be an Authentic Christian Leader in my personal Piety, Study and Action and will strive to present the highest moral standard before the team and candidates; have attended a Tres Dias or other approved similar weekend; have been selected by the rector and approved by the Tres Dias Secretariat, agree to serve as <strong>{userRole}</strong> on <strong>{weekendTitle}</strong>.
-                        </Typography>
-                        <Typography variant="p" className="font-medium italic">
-                            Please read and check each blank affirming that you are in compliance.
-                        </Typography>
-                    </div>
+        <>
+            <CardHeader>
+                <CardTitle>
+                    <Typography variant="h2">Team Commitment Form</Typography>
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="bg-muted/30 p-6 rounded-lg border space-y-4">
+                    <Typography variant="p">
+                        I, <strong>{userName}</strong>, affirm that I am a Lay / Clergy person who is consistent in my walk with Christ, faithful in my local church, supportive of my pastor and an active participant, endeavoring to be an Authentic Christian Leader in my personal Piety, Study and Action and will strive to present the highest moral standard before the team and candidates; have attended a Tres Dias or other approved similar weekend; have been selected by the rector and approved by the Tres Dias Secretariat, agree to serve as <strong>{userRole}</strong> on <strong>{weekendTitle}</strong>.
+                    </Typography>
+                    <Typography variant="p" className="font-medium italic">
+                        Please read and check each blank affirming that you are in compliance.
+                    </Typography>
+                </div>
 
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <div className="space-y-4">
-                                {COMMITMENTS.map((commitment, index) => (
-                                    <FormField
-                                        key={index}
-                                        control={form.control}
-                                        name={`commitments.${index}`}
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                                                <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
-                                                </FormControl>
-                                                <div className="space-y-1 leading-none pt-1">
-                                                    <FormLabel className="text-sm font-normal cursor-pointer">
-                                                        {commitment}
-                                                    </FormLabel>
-                                                </div>
-                                            </FormItem>
-                                        )}
-                                    />
-                                ))}
-                            </div>
-
-                            {form.formState.errors.commitments && (
-                                <p className="text-sm font-medium text-destructive">
-                                    {form.formState.errors.commitments.message || "You must agree to all commitments."}
-                                </p>
-                            )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-secondary/10 rounded-md items-end">
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="space-y-4">
+                            {COMMITMENTS.map((commitment, index) => (
                                 <FormField
+                                    key={index}
                                     control={form.control}
-                                    name="signature"
+                                    name={`commitments.${index}`}
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Signature (Type your full name)</FormLabel>
+                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                                             <FormControl>
-                                                <Input placeholder="John Doe" {...field} />
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
                                             </FormControl>
-                                            <FormMessage />
+                                            <div className="space-y-1 leading-none pt-1">
+                                                <FormLabel className="text-sm font-normal cursor-pointer">
+                                                    {commitment}
+                                                </FormLabel>
+                                            </div>
                                         </FormItem>
                                     )}
                                 />
-                                <div className="mb-2">
-                                    <Typography variant="small" className="text-muted-foreground block mb-1">Date</Typography>
-                                    <div className="h-10 flex items-center px-3 border rounded-md bg-muted text-muted-foreground">
-                                        {currentDate}
-                                    </div>
+                            ))}
+                        </div>
+
+                        {form.formState.errors.commitments && (
+                            <p className="text-sm font-medium text-destructive">
+                                {form.formState.errors.commitments.message || "You must agree to all commitments."}
+                            </p>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-secondary/10 rounded-md items-end">
+                            <FormField
+                                control={form.control}
+                                name="signature"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Signature (Type your full name)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="John Doe" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="mb-2">
+                                <Typography variant="small" className="text-muted-foreground block mb-1">Date</Typography>
+                                <div className="h-10 flex items-center px-3 border rounded-md bg-muted text-muted-foreground">
+                                    {currentDate}
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="flex justify-end gap-4">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => router.push('/team-forms/statement-of-belief')}
-                                >
-                                    Back
-                                </Button>
-                                <Button type="submit" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Processing...' : 'Agree and Continue'}
-                                </Button>
-                            </div>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
-        </div>
+                        <div className="flex justify-end gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.push('/team-forms/statement-of-belief')}
+                            >
+                                Back
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? 'Processing...' : 'Agree and Continue'}
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </>
     )
 }

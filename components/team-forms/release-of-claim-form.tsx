@@ -18,7 +18,6 @@ import {
     FormMessage,
 } from '@/components/ui/form'
 import {
-    Card,
     CardContent,
     CardDescription,
     CardHeader,
@@ -84,130 +83,128 @@ export function ReleaseOfClaimForm({ rosterId }: ReleaseOfClaimFormProps) {
     }
 
     return (
-        <div className="container max-w-3xl mx-auto py-8 px-4">
-            <Card>
-                <CardHeader>
-                    <CardTitle>
-                        <Typography variant="h2">Release of Claim</Typography>
-                    </CardTitle>
-                    <CardDescription>
-                        <Typography variant="muted">
-                            Please read carefully and complete the release of claim.
-                        </Typography>
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="bg-muted/30 p-6 rounded-lg border space-y-4 text-sm">
-                        <Typography variant="p">
-                            I understand that Dusty Trails Tres Dias (DTTD) does not own Tanglewood Christian Camp where my Tres Dias Weekend will take place, and has limited control over the facility.
-                        </Typography>
-                        <Typography variant="p">
-                            I therefore agree to <strong>RELEASE AND INDEMNIFY DTTD</strong> to the same extent that I <strong>RELEASE AND INDEMNIFY Tanglewood Christian Camp</strong> for any and all injuries which I may receive while participating in the Weekend.
-                        </Typography>
-                        <Typography variant="p">
-                            I further and expressly <strong>RELEASE, INDEMNIFY AND HOLD HARMLESS DTTD</strong>, its officers and directors, and any volunteers participating in/on the weekend from any and all claims for personal injury, death, or loss or destruction of property.
-                        </Typography>
-                        <Typography variant="p">
-                            I further represent and warrant that I have disclosed in writing to DTTD, on this form, each and every medical condition or issue I am aware of having which does or could require medications, special diets, sleeping accommodations, restrooms or other special considerations or facilities.
-                        </Typography>
-                        <Typography variant="p">
-                            I am not aware of any physical, mental, or emotional limitations I have which would make it difficult for me to participate in normal day-to-day activities.
-                        </Typography>
-                    </div>
+        <>
+            <CardHeader>
+                <CardTitle>
+                    <Typography variant="h2">Release of Claim</Typography>
+                </CardTitle>
+                <CardDescription>
+                    <Typography variant="muted">
+                        Please read carefully and complete the release of claim.
+                    </Typography>
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="bg-muted/30 p-6 rounded-lg border space-y-4 text-sm">
+                    <Typography variant="p">
+                        I understand that Dusty Trails Tres Dias (DTTD) does not own Tanglewood Christian Camp where my Tres Dias Weekend will take place, and has limited control over the facility.
+                    </Typography>
+                    <Typography variant="p">
+                        I therefore agree to <strong>RELEASE AND INDEMNIFY DTTD</strong> to the same extent that I <strong>RELEASE AND INDEMNIFY Tanglewood Christian Camp</strong> for any and all injuries which I may receive while participating in the Weekend.
+                    </Typography>
+                    <Typography variant="p">
+                        I further and expressly <strong>RELEASE, INDEMNIFY AND HOLD HARMLESS DTTD</strong>, its officers and directors, and any volunteers participating in/on the weekend from any and all claims for personal injury, death, or loss or destruction of property.
+                    </Typography>
+                    <Typography variant="p">
+                        I further represent and warrant that I have disclosed in writing to DTTD, on this form, each and every medical condition or issue I am aware of having which does or could require medications, special diets, sleeping accommodations, restrooms or other special considerations or facilities.
+                    </Typography>
+                    <Typography variant="p">
+                        I am not aware of any physical, mental, or emotional limitations I have which would make it difficult for me to participate in normal day-to-day activities.
+                    </Typography>
+                </div>
 
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <div className="space-y-4 p-4 border rounded-md">
-                                <FormField
-                                    control={form.control}
-                                    name="has_special_needs"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-3">
-                                            <FormLabel>Do you have any special needs (bottom bunk, mobility issues, special diet or medications)?</FormLabel>
-                                            <FormControl>
-                                                <RadioGroup
-                                                    onValueChange={field.onChange}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-col space-y-1"
-                                                >
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="yes" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">Yes</FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                                        <FormControl>
-                                                            <RadioGroupItem value="no" />
-                                                        </FormControl>
-                                                        <FormLabel className="font-normal">No</FormLabel>
-                                                    </FormItem>
-                                                </RadioGroup>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                {hasSpecialNeeds === 'yes' && (
-                                    <FormField
-                                        control={form.control}
-                                        name="special_needs_description"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>If yes please describe:</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        placeholder="Please describe your special needs..."
-                                                        className="resize-none"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <div className="space-y-4 p-4 border rounded-md">
+                            <FormField
+                                control={form.control}
+                                name="has_special_needs"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                        <FormLabel>Do you have any special needs (bottom bunk, mobility issues, special diet or medications)?</FormLabel>
+                                        <FormControl>
+                                            <RadioGroup
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                                className="flex flex-col space-y-1"
+                                            >
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                    <FormControl>
+                                                        <RadioGroupItem value="yes" />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">Yes</FormLabel>
+                                                </FormItem>
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                    <FormControl>
+                                                        <RadioGroupItem value="no" />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">No</FormLabel>
+                                                </FormItem>
+                                            </RadioGroup>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
-                            </div>
+                            />
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-secondary/10 rounded-md items-end">
+                            {hasSpecialNeeds === 'yes' && (
                                 <FormField
                                     control={form.control}
-                                    name="signature"
+                                    name="special_needs_description"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Signature (Type your full name)</FormLabel>
+                                            <FormLabel>If yes please describe:</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="John Doe" {...field} />
+                                                <Textarea
+                                                    placeholder="Please describe your special needs..."
+                                                    className="resize-none"
+                                                    {...field}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                                <div className="mb-2">
-                                    <Typography variant="small" className="text-muted-foreground block mb-1">Date</Typography>
-                                    <div className="h-10 flex items-center px-3 border rounded-md bg-muted text-muted-foreground">
-                                        {currentDate}
-                                    </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-secondary/10 rounded-md items-end">
+                            <FormField
+                                control={form.control}
+                                name="signature"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Signature (Type your full name)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="John Doe" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="mb-2">
+                                <Typography variant="small" className="text-muted-foreground block mb-1">Date</Typography>
+                                <div className="h-10 flex items-center px-3 border rounded-md bg-muted text-muted-foreground">
+                                    {currentDate}
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="flex justify-end gap-4">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => router.push('/team-forms/commitment-form')}
-                                >
-                                    Back
-                                </Button>
-                                <Button type="submit" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Processing...' : 'Agree and Submit'}
-                                </Button>
-                            </div>
-                        </form>
-                    </Form>
-                </CardContent>
-            </Card>
-        </div>
+                        <div className="flex justify-end gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.push('/team-forms/commitment-form')}
+                            >
+                                Back
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? 'Processing...' : 'Agree and Submit'}
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </>
     )
 }
