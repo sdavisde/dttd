@@ -65,7 +65,7 @@ export function CampWaiverForm({ userName, rosterId }: CampWaiverFormProps) {
         }
 
         // Navigation to final step
-        router.push('/team-info/info-sheet')
+        router.push('/team-forms/info-sheet')
         setIsSubmitting(false)
     }
 

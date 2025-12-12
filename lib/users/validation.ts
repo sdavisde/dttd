@@ -8,4 +8,13 @@ export const addressSchema = z.object({
     zip: z.string().min(5, 'Zip code is required'),
 })
 
+
 export type Address = z.infer<typeof addressSchema>
+
+export const emptyAddress: Address = {
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    zip: '',
+}
