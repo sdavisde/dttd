@@ -82,3 +82,28 @@ export async function submitReleaseOfClaim(
 
     return ok(undefined)
 }
+
+/**
+ * Marks the Camp Waiver as completed for a given roster record.
+ */
+export async function signCampWaiver(
+    rosterId: string
+): Promise<Result<string, void>> {
+    if (isNil(rosterId) || isEmpty(rosterId)) {
+        return err('Roster ID is required')
+    }
+
+    const supabase = await createClient()
+
+    // Note: assuming column name is completed_camp_waiver
+    const { error } = await supabase
+        .from('weekend_roster')
+        .update({ completed_camp_waiver: true })
+        .eq('id', rosterId)
+
+    if (isSupabaseError(error)) {
+        return err(`Failed to sign Camp Waiver: ${error.message}`)
+    }
+
+    return ok(undefined)
+}

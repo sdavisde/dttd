@@ -500,6 +500,7 @@ export type Database = {
         Row: {
           additional_cha_role: string | null
           cha_role: string | null
+          completed_camp_waiver: boolean
           completed_commitment_form: boolean
           completed_statement_of_belief: boolean
           created_at: string
@@ -513,6 +514,7 @@ export type Database = {
         Insert: {
           additional_cha_role?: string | null
           cha_role?: string | null
+          completed_camp_waiver?: boolean
           completed_commitment_form?: boolean
           completed_statement_of_belief?: boolean
           created_at?: string
@@ -526,6 +528,7 @@ export type Database = {
         Update: {
           additional_cha_role?: string | null
           cha_role?: string | null
+          completed_camp_waiver?: boolean
           completed_commitment_form?: boolean
           completed_statement_of_belief?: boolean
           created_at?: string

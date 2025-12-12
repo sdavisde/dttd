@@ -78,8 +78,8 @@ export function ReleaseOfClaimForm({ rosterId }: ReleaseOfClaimFormProps) {
             return
         }
 
-        // Navigation to final step
-        router.push('/team-info/info-sheet')
+        // Navigation to next step
+        router.push('/team-forms/camp-waiver')
         setIsSubmitting(false)
     }
 
