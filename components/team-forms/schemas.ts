@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { CHARole } from '@/lib/weekend/types'
 import { addressSchema } from '@/lib/users/validation'
+import { UserExperienceSchema } from '@/lib/users/experience'
 
-export const basicInfoSchema = z.object({
+export const BasicInfoSchema = z.object({
   church_affiliation: z.string().min(1, 'Church affiliation is required'),
   weekend_attended: z.object({
     community: z.string().min(1, 'Community is required'),
@@ -13,21 +13,28 @@ export const basicInfoSchema = z.object({
   special_gifts_and_skills: z.array(z.string()).optional(),
 })
 
-export type BasicInfo = z.infer<typeof basicInfoSchema>
+export type BasicInfo = z.infer<typeof BasicInfoSchema>
 
-export const userExperienceSchema = z.object({
-  id: z.string().optional(),
-  cha_role: z.enum(CHARole, { message: 'Please select a role' }),
-  community_weekend: z.string().min(1, 'Weekend is required'),
-  date: z.string().min(1, 'Date is required'),
+const ExperienceEntrySchema = UserExperienceSchema.omit({
+  id: true,
+  user_id: true,
+  created_at: true,
+  updated_at: true,
+  weekend_id: true,
+}).extend({
+  id: z.uuid().optional(),
 })
 
-export type UserExperience = z.infer<typeof userExperienceSchema>
+/**
+ * A thinner version of UserExperience, to be used when rendering
+ * experience in a form.
+ */
+export type UserExperienceFormValue = z.infer<typeof ExperienceEntrySchema>
 
-export const teamInfoSchema = z.object({
+export const TeamInfoSchema = z.object({
   address: addressSchema,
-  basicInfo: basicInfoSchema,
-  experience: z.array(userExperienceSchema).optional(),
+  basicInfo: BasicInfoSchema,
+  experience: z.array(ExperienceEntrySchema).optional(),
 })
 
-export type TeamInfoFormValues = z.infer<typeof teamInfoSchema>
+export type TeamInfoFormValues = z.infer<typeof TeamInfoSchema>

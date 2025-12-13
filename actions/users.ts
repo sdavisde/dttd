@@ -6,7 +6,7 @@ import { User } from '@/lib/users/types'
 import { logger } from '@/lib/logger'
 import { genderMatchesWeekend } from '@/lib/weekend'
 import { Address, addressSchema } from '@/lib/users/validation'
-import { BasicInfo, basicInfoSchema } from '@/components/team-forms/schemas'
+import { BasicInfo, BasicInfoSchema } from '@/components/team-forms/schemas'
 import { isEmpty } from 'lodash'
 
 export async function getUsers(): Promise<Result<string, Array<User>>> {
@@ -59,10 +59,10 @@ export async function getUsers(): Promise<Result<string, Array<User>>> {
         const roleRow = u.user_roles?.[0]?.roles ?? null
         const role = roleRow
           ? {
-            id: roleRow.id,
-            label: roleRow.label,
-            permissions: roleRow.permissions ?? [],
-          }
+              id: roleRow.id,
+              label: roleRow.label,
+              permissions: roleRow.permissions ?? [],
+            }
           : null
 
         // team_member_info: find roster record for active weekend & matching gender
@@ -163,10 +163,10 @@ export async function getLoggedInUser(): Promise<Result<string, User>> {
     const roleRow = user.user_roles?.[0]?.roles ?? null
     const role = roleRow
       ? {
-        id: roleRow.id,
-        label: roleRow.label,
-        permissions: roleRow.permissions ?? [],
-      }
+          id: roleRow.id,
+          label: roleRow.label,
+          permissions: roleRow.permissions ?? [],
+        }
       : null
 
     // team_member_info: find roster record for active weekend & matching gender
@@ -205,11 +205,14 @@ export async function getLoggedInUser(): Promise<Result<string, User>> {
 
 /**
  * PATCH's a users address
- * @param userId 
- * @param address 
- * @returns 
+ * @param userId
+ * @param address
+ * @returns
  */
-export async function updateUserAddress(userId: string, address: Address): Promise<Result<string, void>> {
+export async function updateUserAddress(
+  userId: string,
+  address: Address
+): Promise<Result<string, void>> {
   try {
     // Validate input
     const validation = addressSchema.safeParse(address)
@@ -232,10 +235,11 @@ export async function updateUserAddress(userId: string, address: Address): Promi
     return ok(undefined)
   } catch (error) {
     console.error('Unexpected error updating address:', error)
-    return err(`Error updating address: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    return err(
+      `Error updating address: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 }
-
 
 export async function deleteUser(
   userId: string
@@ -298,9 +302,7 @@ export async function assignUserRole(
       .eq('user_id', userId)
 
     if (deleteError) {
-      return err(
-        `Failed to remove existing user role: ${deleteError.message}`
-      )
+      return err(`Failed to remove existing user role: ${deleteError.message}`)
     }
 
     // Insert the new role
@@ -309,9 +311,7 @@ export async function assignUserRole(
       .insert({ user_id: userId, role_id: roleId })
 
     if (insertError) {
-      return err(
-        `Failed to assign user role: ${insertError.message}`
-      )
+      return err(`Failed to assign user role: ${insertError.message}`)
     }
 
     return ok(true)
@@ -347,40 +347,48 @@ export async function removeUserRole(
 
 /**
  * PATCH's a users basic info (church, past weekend, essentials date)
- * @param userId 
- * @param data 
- * @returns 
+ * @param userId
+ * @param data
+ * @returns
  */
-export async function updateUserBasicInfo(userId: string, data: BasicInfo): Promise<Result<string, void>> {
-    try {
-      // Validate input
-      const validation = basicInfoSchema.safeParse(data)
-  
-      if (!validation.success) {
-        return err(validation.error.message)
-      }
-  
-      const supabase = await createClient()
+export async function updateUserBasicInfo(
+  userId: string,
+  data: BasicInfo
+): Promise<Result<string, void>> {
+  try {
+    // Validate input
+    const validation = BasicInfoSchema.safeParse(data)
+
+    if (!validation.success) {
+      return err(validation.error.message)
+    }
+
+    const supabase = await createClient()
 
     // Serialize weekend_attended object to string
     const { community, number, location } = data.weekend_attended
     const weekendAttendedStr = `${community}#${number}|${location}`
 
-    const { error } = await supabase.from('users').update({
-      church_affiliation: data.church_affiliation,
-      weekend_attended: weekendAttendedStr,
-      essentials_training_date: !isEmpty(data.essentials_training_date) ? data.essentials_training_date : null,
-      special_gifts_and_skills: data.special_gifts_and_skills ?? null,
-    }).eq('id', userId)
-  
-      if (error) {
-        logger.error({ error, userId }, 'Error updating user basic info')
-        return err(error.message)
-      }
-  
-      return ok(undefined)
-    } catch (error) {
-      logger.error({ error, userId }, 'Unexpected error updating basic info')
-      return err('An unexpected error occurred')
+    const { error } = await supabase
+      .from('users')
+      .update({
+        church_affiliation: data.church_affiliation,
+        weekend_attended: weekendAttendedStr,
+        essentials_training_date: !isEmpty(data.essentials_training_date)
+          ? data.essentials_training_date
+          : null,
+        special_gifts_and_skills: data.special_gifts_and_skills ?? null,
+      })
+      .eq('id', userId)
+
+    if (error) {
+      logger.error({ error, userId }, 'Error updating user basic info')
+      return err(error.message)
     }
+
+    return ok(undefined)
+  } catch (error) {
+    logger.error({ error, userId }, 'Unexpected error updating basic info')
+    return err('An unexpected error occurred')
+  }
 }

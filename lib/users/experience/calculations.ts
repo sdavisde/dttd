@@ -6,9 +6,9 @@ import type {
   RectorReadyStatus,
   RectorReadyCriteria,
   GroupedExperience,
-  ExperienceEntry,
 } from './types'
 import { UserExperience } from './validation'
+import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 const HEAD_AND_ASSISTANT_HEAD_ROLES: CHARole[] = [
   CHARole.HEAD,
@@ -78,24 +78,18 @@ export function groupExperienceByCommunity(
   const sortedRecords = orderBy(records, ['served_date'], ['desc'])
 
   // Group by community name
-  const grouped = groupBy(sortedRecords, (r) =>
-    r.weekend_id !== null ? 'DTTD' : (r.external_community_weekend ?? 'Unknown')
-  )
+  const grouped = groupBy(sortedRecords, (r) => {
+    const { community } = WeekendReference.fromString(r.weekend_reference)
+    return community
+  })
 
   // Transform to output format
-  const result = Object.entries(grouped).map(([community, entries]) => ({
-    community,
-    records: entries.map(
-      (r): ExperienceEntry => ({
-        id: r.id,
-        // todo: replace this with common functionality to ensure weekend format consistency
-        weekend: community,
-        role: r.cha_role,
-        date: formatExperienceDate(r.served_date),
-        rollo: r.rollo,
-      })
-    ),
-  }))
+  const result = Object.entries(grouped).map(([community, entries]) => {
+    return {
+      community,
+      records: entries,
+    }
+  })
 
   // Ensure DTTD comes first
   const dttd = result.find((g) => g.community === 'DTTD')
@@ -109,7 +103,7 @@ export function groupExperienceByCommunity(
  */
 export function countDistinctWeekends(records: UserExperience[]): number {
   const weekendIds = records
-    .map((r) => r.weekend_id ?? r.external_community_weekend)
+    .map((r) => r.weekend_id ?? r.weekend_reference)
     .filter((id): id is string => id !== null)
 
   return uniq(weekendIds).length

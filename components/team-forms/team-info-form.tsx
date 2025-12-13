@@ -16,7 +16,12 @@ import {
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { Address, emptyAddress } from '@/lib/users/validation'
-import { BasicInfo, TeamInfoFormValues, teamInfoSchema } from './schemas'
+import {
+  BasicInfo,
+  TeamInfoFormValues,
+  TeamInfoSchema,
+  UserExperienceFormValue,
+} from './schemas'
 import { updateUserAddress, updateUserBasicInfo } from '@/actions/users'
 import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'
@@ -25,14 +30,13 @@ import { ExperienceSection } from './experience-section'
 import { SkillsSection } from './skills-section'
 import { isNil } from 'lodash'
 import { completeInfoSheet } from '@/actions/team-forms'
-import { ExperienceEntry } from '@/lib/users/experience/types'
 
 interface TeamInfoFormProps {
   userId: string
   rosterId: string
   savedAddress: Address | null
   initialBasicInfo: BasicInfo
-  initialServiceHistory: Array<ExperienceEntry>
+  initialServiceHistory: Array<UserExperienceFormValue>
 }
 
 export function TeamInfoForm({
@@ -46,7 +50,7 @@ export function TeamInfoForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<TeamInfoFormValues>({
-    resolver: zodResolver(teamInfoSchema),
+    resolver: zodResolver(TeamInfoSchema),
     defaultValues: {
       address: savedAddress ?? emptyAddress,
       basicInfo: initialBasicInfo,

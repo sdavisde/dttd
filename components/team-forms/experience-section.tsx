@@ -29,13 +29,27 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TeamInfoFormValues } from './schemas'
+import { deleteUserExperience } from '@/actions/user-experience'
+import { isErr } from '@/lib/results'
+import { toast } from 'sonner'
+import { isNil } from 'lodash'
+import { getMonthString } from '@/lib/date'
 
 export function ExperienceSection() {
-  const { control } = useFormContext<TeamInfoFormValues>()
+  const { control, setValue, watch } = useFormContext<TeamInfoFormValues>()
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'experience',
   })
+
+  const handleDelete = async (experienceId: string) => {
+    const result = await deleteUserExperience(experienceId)
+    if (isErr(result)) {
+      toast.error(result.error)
+    } else {
+      toast.success('Experience deleted.')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -46,23 +60,16 @@ export function ExperienceSection() {
             <Typography variant="h3">Previous Roles</Typography>
           </CardTitle>
           <CardDescription>
-            Please let us know of any previous weekends you have served on
-            outside of Dusty Trails.
-            <br />
-            If you have filled out this form in the past (paper or online),
-            please only include experience you have not already told us about.
-            <br />
-            <i>
-              This helps our leaders committee and Rectors make informed
-              decisions about how to best use your experience.
-            </i>
+            Your previously entered experience is listed below. Please add any
+            weekends you have served on that are not listed.
           </CardDescription>
           <Button
             onClick={() =>
               append({
                 cha_role: '' as CHARole,
-                community_weekend: '',
-                date: '',
+                rollo: '',
+                weekend_reference: '',
+                served_date: '',
               })
             }
             variant="outline"
@@ -73,109 +80,132 @@ export function ExperienceSection() {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
+          {fields.map((field, index) => {
+            const experienceItem = watch(`experience.${index}`)
+            const isExisting = !isNil(experienceItem.id)
+            console.log(experienceItem)
+
+            if (isExisting) {
+              return (
+                <div
+                  key={field.id}
+                  className="flex items-center justify-between p-2 border rounded-md"
+                >
+                  <div>
+                    <p className="font-semibold">{experienceItem.cha_role}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {experienceItem.weekend_reference} -
+                      {getMonthString(new Date(experienceItem.served_date))}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive/90"
+                    onClick={() => handleDelete(experienceItem.id!)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )
+            }
+
+            // New item, render fields
+            return (
+              <div
+                key={field.id}
+                className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end relative"
+              >
+                <div className="col-span-12 md:col-span-4">
+                  <FormField
+                    control={control}
+                    name={`experience.${index}.cha_role`}
+                    render={({ field: formField }) => (
+                      <FormItem>
+                        <FormLabel>Role on weekend</FormLabel>
+                        <Select
+                          onValueChange={formField.onChange}
+                          defaultValue={formField.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select Role" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.values(CHARole).map((role) => (
+                              <SelectItem key={role} value={role}>
+                                {role}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="col-span-12 md:col-span-4">
+                  <FormField
+                    control={control}
+                    name={`experience.${index}.weekend_reference`}
+                    render={({ field: formField }) => {
+                      return (
+                        <FormItem>
+                          <FormLabel>Community & Weekend #</FormLabel>
+                          <FormControl>
+                            <Input placeholder="DTTD #10" {...formField} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )
+                    }}
+                  />
+                </div>
+
+                <div className="col-span-12 md:col-span-3">
+                  <FormField
+                    control={control}
+                    name={`experience.${index}.served_date`}
+                    render={({ field: formField }) => (
+                      <FormItem>
+                        <FormLabel>Date (Month/Year)</FormLabel>
+                        <FormControl>
+                          <MonthPickerPopover
+                            value={formField.value}
+                            onChange={formField.onChange}
+                            placeholder="Pick a date"
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="col-span-12 md:col-span-1 flex items-center h-full">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive/90"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+
           {fields.length === 0 && (
             <Typography variant="muted" className="text-sm italic">
               No roles added. Click &quot;Add Experience&quot; to add entries.
             </Typography>
           )}
-
-          {fields.map((field, index) => (
-            <div
-              key={field.id}
-              className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end relative"
-            >
-              <div className="col-span-12 md:col-span-4">
-                <FormField
-                  control={control}
-                  name={`experience.${index}.cha_role`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel
-                        className={index !== 0 ? 'sr-only md:not-sr-only' : ''}
-                      >
-                        Role on weekend
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.values(CHARole).map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {role}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="col-span-12 md:col-span-4">
-                <FormField
-                  control={control}
-                  name={`experience.${index}.community_weekend`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel
-                        className={index !== 0 ? 'sr-only md:not-sr-only' : ''}
-                      >
-                        Community & Weekend #
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="North Texas #12" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="col-span-12 md:col-span-3">
-                <FormField
-                  control={control}
-                  name={`experience.${index}.date`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel
-                        className={index !== 0 ? 'sr-only md:not-sr-only' : ''}
-                      >
-                        Date (Month/Year)
-                      </FormLabel>
-                      <FormControl>
-                        <MonthPickerPopover
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="Pick a date"
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="col-span-12 md:col-span-1 flex items-center h-full">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive/90"
-                  onClick={() => remove(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
         </CardContent>
       </Card>
     </div>

@@ -464,35 +464,35 @@ export type Database = {
         Row: {
           cha_role: string
           created_at: string
-          external_community_weekend: string | null
           id: string
           rollo: string | null
           served_date: string
           updated_at: string
           user_id: string
           weekend_id: string | null
+          weekend_reference: string | null
         }
         Insert: {
           cha_role: string
           created_at?: string
-          external_community_weekend?: string | null
           id?: string
           rollo?: string | null
           served_date: string
           updated_at?: string
           user_id: string
           weekend_id?: string | null
+          weekend_reference?: string | null
         }
         Update: {
           cha_role?: string
           created_at?: string
-          external_community_weekend?: string | null
           id?: string
           rollo?: string | null
           served_date?: string
           updated_at?: string
           user_id?: string
           weekend_id?: string | null
+          weekend_reference?: string | null
         }
         Relationships: [
           {

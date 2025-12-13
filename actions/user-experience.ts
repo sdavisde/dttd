@@ -13,6 +13,7 @@ import {
 } from '@/lib/users/experience'
 import z from 'zod'
 import { isNil } from 'lodash'
+import { UserExperienceFormValue } from '@/components/team-forms/schemas'
 
 export async function getUserServiceHistory(
   userId: string
@@ -28,7 +29,7 @@ export async function getUserServiceHistory(
         user_id,
         weekend_id,
         cha_role,
-        external_community_weekend,
+        weekend_reference,
         rollo,
         served_date,
         created_at,
@@ -61,7 +62,7 @@ export async function getUserServiceHistory(
             hasWorkedDining: false,
           },
         },
-        groupedExperience: [],
+        experience: [],
         totalWeekends: 0,
         totalDTTDWeekends: 0,
         records: [],
@@ -91,10 +92,9 @@ export async function getUserServiceHistory(
     return ok({
       level,
       rectorReady,
-      groupedExperience,
+      experience: records,
       totalWeekends,
       totalDTTDWeekends,
-      records,
     })
   } catch (error) {
     return err(
@@ -117,7 +117,7 @@ export async function getAllUsersServiceHistory(): Promise<
         user_id,
         weekend_id,
         cha_role,
-        external_community_weekend,
+        weekend_reference,
         rollo,
         served_date,
         created_at,
@@ -166,7 +166,7 @@ export async function getAllUsersServiceHistory(): Promise<
       resultMap.set(userId, {
         level,
         rectorReady,
-        groupedExperience,
+        experience: userRecords,
         totalWeekends,
         totalDTTDWeekends,
       })
@@ -185,24 +185,17 @@ export async function getAllUsersServiceHistory(): Promise<
  */
 export async function upsertUserExperience(
   userId: string,
-  entry: {
-    cha_role: string
-    community_weekend: string
-    date: string
-    id?: string
-  }
+  entry: UserExperienceFormValue
 ): Promise<Result<string, void>> {
   try {
     const supabase = await createClient()
 
-    // Parse date from "YYYY-MM" to Date object (1st of month)
-    // new Date('2023-12') usually works as UTC or local. Let's append '-01' to be safe for a date column
-    const servedDate = new Date(`${entry.date}-01`).toISOString()
+    const servedDate = new Date(`${entry.served_date}-01`).toISOString()
 
     const payload = {
       user_id: userId,
       cha_role: entry.cha_role, // Enum string
-      external_community_weekend: entry.community_weekend,
+      weekend_reference: entry.weekend_reference,
       served_date: servedDate,
       updated_at: new Date().toISOString(),
       // Ensure weekend_id is null for external

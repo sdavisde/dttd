@@ -248,7 +248,7 @@ When planning a weekend, Leaders Committee members need to see the experience le
    - `user_id` (UUID, foreign key to users table, required)
    - `weekend_id` (UUID, foreign key to weekend table, nullable)
    - `cha_role` (string, required) - stores CHA role enum values
-   - `external_community_weekend` (string, nullable) - mutually exclusive with weekend_id (not enforced at DB level)
+   - `weekend_reference` (string) - reference of the community/weekend attended - like `DTTD#5` or `Brazos Valley#20`
    - `rollo` (string, nullable) - stores the name of the rollo given (if applicable)
    - `served_at` (date, required) - stores midnight of the first day of the month (or start date of the weekend, for DTTD weekends) for month/year tracking
    - `created_at` (timestamp)
@@ -364,7 +364,7 @@ When planning a weekend, Leaders Committee members need to see the experience le
     - `cha_role` = the role they served in
     - `rollo` = populated if the role was a speaking role (application logic determines this)
     - `served_at` = the weekend's start date
-    - `external_community_weekend` = null
+    - `weekend_reference` = `DTTD#<number>` 
 
 ### Read-Only Weekend Data
 

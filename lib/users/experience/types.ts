@@ -1,5 +1,5 @@
 import { Tables } from '@/database.types'
-import { CHARole } from '@/lib/weekend/types'
+import { UserExperience } from './validation'
 
 export type ExperienceLevel = 1 | 2 | 3
 
@@ -17,23 +17,22 @@ export type RectorReadyStatus = {
 
 export type UserExperienceRecord = Tables<'users_experience'>
 
-export type ExperienceEntry = {
-  id: string
-  weekend: string // todo: update this to be the consistent format of weekend reference we want
-  role: CHARole
-  rollo: string | null // An optional field that clarifies the rollo if the user was a table leader
-  date: string
-}
-
+/**
+ * User experience records tied to a specific community
+ */
 export type GroupedExperience = {
   community: string
-  records: ExperienceEntry[]
+  records: UserExperience[]
 }
 
+/**
+ * A helpful configuration of fields to help understand a user's experience
+ * and render various UI around it.
+ */
 export type UserServiceHistory = {
   level: ExperienceLevel
   rectorReady: RectorReadyStatus
-  groupedExperience: GroupedExperience[]
+  experience: Array<UserExperience>
   totalWeekends: number
   totalDTTDWeekends: number
 }

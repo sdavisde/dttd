@@ -1,10 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
 import { TeamInfoForm } from '@/components/team-forms/team-info-form'
-import { isErr, unwrapOr } from '@/lib/results'
+import { isErr, unwrap } from '@/lib/results'
 import { isNil } from 'lodash'
 import { getUserServiceHistory } from '@/actions/user-experience'
-import { flattenExperience } from '@/lib/users/experience'
 
 export default async function TeamInfoPage() {
   const userResult = await getLoggedInUser()
@@ -23,9 +22,6 @@ export default async function TeamInfoPage() {
   }
 
   const experienceResult = await getUserServiceHistory(user.id)
-  const flattenedExperience = !isErr(experienceResult)
-    ? flattenExperience(experienceResult.data.groupedExperience)
-    : []
 
   const parseWeekend = (val: string | null) => {
     if (isNil(val)) return { community: '', number: '', location: '' }
@@ -47,7 +43,7 @@ export default async function TeamInfoPage() {
       rosterId={user.team_member_info.id}
       savedAddress={user.address}
       initialBasicInfo={basicInfo}
-      initialServiceHistory={flattenedExperience}
+      initialServiceHistory={unwrap(experienceResult).experience}
     />
   )
 }
