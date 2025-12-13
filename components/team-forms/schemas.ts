@@ -8,7 +8,7 @@ export const BasicInfoSchema = z.object({
     community: z.string().min(1, 'Community is required'),
     weekend_number: z.string().min(1, 'Weekend number is required'),
   }),
-  essentials_training_date: z.string().optional(),
+  essentials_training_date: z.date().optional(),
   special_gifts_and_skills: z.array(z.string()).optional(),
 })
 

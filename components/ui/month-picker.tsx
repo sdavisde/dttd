@@ -4,11 +4,14 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { format, addYears, subYears, setMonth, setYear } from 'date-fns'
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { parse } from 'date-fns'
-import { isEmpty } from 'lodash'
+import { isNil } from 'lodash'
 
 interface MonthPickerProps {
   selected?: Date
@@ -78,8 +81,8 @@ export function MonthPicker({ selected, onSelect }: MonthPickerProps) {
 }
 
 interface MonthPickerPopoverProps {
-  value?: string
-  onChange: (value: string) => void
+  value?: Date
+  onChange: (date: Date) => void
   placeholder?: string
   className?: string
 }
@@ -91,7 +94,6 @@ export function MonthPickerPopover({
   className,
 }: MonthPickerPopoverProps) {
   const [open, setOpen] = React.useState(false)
-  const date = !isEmpty(value) ? parse(value!, 'yyyy-MM', new Date()) : undefined
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -100,23 +102,19 @@ export function MonthPickerPopover({
           variant={'outline'}
           className={cn(
             'pl-3 text-left font-normal',
-            !date && 'text-muted-foreground',
+            isNil(value) && 'text-muted-foreground',
             className
           )}
         >
-          {date ? (
-            format(date, 'MMMM yyyy')
-          ) : (
-            <span>{placeholder}</span>
-          )}
+          {value ? format(value, 'MMMM yyyy') : <span>{placeholder}</span>}
           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <MonthPicker
-          selected={date}
+          selected={value}
           onSelect={(newDate) => {
-            onChange(format(newDate, 'yyyy-MM'))
+            onChange(newDate)
             setOpen(false)
           }}
         />

@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
 import { CHARole } from '@/lib/weekend/types'
-import { MonthPickerPopover } from '@/components/ui/month-picker'
 import {
   Select,
   SelectContent,

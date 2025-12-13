@@ -120,7 +120,7 @@ export function BasicInfoSection() {
               onValueChange={(val) => {
                 setHasCompleted(val)
                 if (val === 'no') {
-                  setValue('basicInfo.essentials_training_date', '')
+                  setValue('basicInfo.essentials_training_date', undefined)
                 }
               }}
               className="flex items-center space-x-4"
