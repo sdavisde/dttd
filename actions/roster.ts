@@ -10,7 +10,7 @@ import { Result, err, ok } from '@/lib/results'
  * that matches their gender
  */
 export async function isUserRectorOnUpcomingWeekend(): Promise<
-  Result<Error, boolean>
+  Result<string, boolean>
 > {
   const supabase = await createClient()
 

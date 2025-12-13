@@ -14,7 +14,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
  */
 export async function sendPasswordResetEmail(
   email: string
-): Promise<Result<Error, { data: CreateEmailResponseSuccess | null }>> {
+): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
     logger.info(`Starting password reset request for email: ${email}`)
 
@@ -29,7 +29,7 @@ export async function sendPasswordResetEmail(
     )
 
     if (resetError) {
-      return err(new Error(`Failed to send reset email: ${resetError.message}`))
+      return err(`Failed to send reset email: ${resetError.message}`)
     }
 
     logger.info(`Password reset email initiated successfully for ${email}`)
@@ -39,9 +39,7 @@ export async function sendPasswordResetEmail(
     return ok({ data: null })
   } catch (error) {
     return err(
-      new Error(
-        `Error while sending password reset email: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while sending password reset email: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -52,7 +50,7 @@ export async function sendPasswordResetEmail(
  */
 export async function sendCustomPasswordResetEmail(
   email: string
-): Promise<Result<Error, { data: CreateEmailResponseSuccess | null }>> {
+): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
     logger.info(`Starting custom password reset request for email: ${email}`)
 
@@ -80,7 +78,7 @@ export async function sendCustomPasswordResetEmail(
     )
 
     if (resetError) {
-      return err(new Error(`Failed to send reset email: ${resetError.message}`))
+      return err(`Failed to send reset email: ${resetError.message}`)
     }
 
     // Send custom email using Resend with our template
@@ -94,9 +92,7 @@ export async function sendCustomPasswordResetEmail(
     return ok({ data: null })
   } catch (error) {
     return err(
-      new Error(
-        `Error while sending password reset email: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while sending password reset email: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -107,7 +103,7 @@ export async function sendCustomPasswordResetEmail(
  */
 export async function updatePasswordWithToken(
   newPassword: string
-): Promise<Result<Error, void>> {
+): Promise<Result<string, void>> {
   try {
     const supabase = await createClient()
 
@@ -118,9 +114,7 @@ export async function updatePasswordWithToken(
 
     if (!session) {
       return err(
-        new Error(
-          'No active session found. Please request a new password reset.'
-        )
+        'No active session found. Please request a new password reset.'
       )
     }
 
@@ -130,16 +124,14 @@ export async function updatePasswordWithToken(
     })
 
     if (updateError) {
-      return err(new Error(`Failed to update password: ${updateError.message}`))
+      return err(`Failed to update password: ${updateError.message}`)
     }
 
     logger.info(`Password updated successfully`)
     return ok(undefined)
   } catch (error) {
     return err(
-      new Error(
-        `Error while updating password: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while updating password: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }

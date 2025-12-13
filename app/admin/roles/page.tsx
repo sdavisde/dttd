@@ -23,7 +23,7 @@ export default async function RolesPage() {
   const rolesResult = await getRoles()
 
   if (isErr(rolesResult)) {
-    throw new Error(`Failed to fetch roles: ${rolesResult.error.message}`)
+    throw new Error(`Failed to fetch roles: ${rolesResult.error}`)
   }
 
   return (

@@ -82,8 +82,8 @@ export function CandidateReviewTable({
         setSelectedCandidate(null)
         router.refresh()
       } else {
-        logger.error(`Failed to delete candidate: ${result.error.message}`)
-        toast.error(`Failed to delete: ${result.error.message}`)
+        logger.error(`Failed to delete candidate: ${result.error}`)
+        toast.error(`Failed to delete: ${result.error}`)
       }
     } catch (error) {
       logger.error('Error deleting candidate')
@@ -113,8 +113,8 @@ export function CandidateReviewTable({
     )
 
     if (Results.isErr(result)) {
-      logger.error(`Failed to reject candidate: ${result.error.message}`)
-      toast.error(`Failed to reject candidate: ${result.error.message}`)
+      logger.error(`Failed to reject candidate: ${result.error}`)
+      toast.error(`Failed to reject candidate: ${result.error}`)
       return
     }
 
@@ -152,8 +152,8 @@ export function CandidateReviewTable({
       'awaiting_forms'
     )
     if (Results.isErr(result)) {
-      logger.error(`Failed to update candidate status: ${result.error.message}`)
-      toast.error(`Failed to update status: ${result.error.message}`)
+      logger.error(`Failed to update candidate status: ${result.error}`)
+      toast.error(`Failed to update status: ${result.error}`)
       return
     }
 
@@ -162,10 +162,10 @@ export function CandidateReviewTable({
     )
     if (Results.isErr(candidateFormsResult)) {
       logger.error(
-        `Failed to send candidate forms: ${candidateFormsResult.error.message}`
+        `Failed to send candidate forms: ${candidateFormsResult.error}`
       )
       toast.error(
-        `Failed to send forms email: ${candidateFormsResult.error.message}`
+        `Failed to send forms email: ${candidateFormsResult.error}`
       )
       return
     }
@@ -195,10 +195,10 @@ export function CandidateReviewTable({
 
     if (Results.isErr(result)) {
       logger.error(
-        `Failed to send payment request email: ${result.error.message}`
+        `Failed to send payment request email: ${result.error}`
       )
       toast.error(
-        `Failed to send payment request email: ${result.error.message}`
+        `Failed to send payment request email: ${result.error}`
       )
       return
     }

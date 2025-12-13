@@ -46,7 +46,7 @@ export function SetActiveWeekendButton({
 
       if (isErr(result)) {
         toast.error('Failed to set active weekend', {
-          description: result.error.message,
+          description: result.error,
         })
         return
       }

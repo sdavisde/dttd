@@ -9,7 +9,7 @@ import { Address, addressSchema } from '@/lib/users/validation'
 import { BasicInfo, basicInfoSchema } from '@/components/team-forms/schemas'
 import { isEmpty } from 'lodash'
 
-export async function getUsers(): Promise<Result<Error, Array<User>>> {
+export async function getUsers(): Promise<Result<string, Array<User>>> {
   try {
     const supabase = await createClient()
 
@@ -41,7 +41,7 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
     )
 
     if (error) {
-      return err(new Error(`Failed to fetch users: ${error.message}`))
+      return err(`Failed to fetch users: ${error.message}`)
     }
 
     if (!data) {
@@ -99,14 +99,12 @@ export async function getUsers(): Promise<Result<Error, Array<User>>> {
     return ok(users)
   } catch (error) {
     return err(
-      new Error(
-        `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
 
-export async function getLoggedInUser(): Promise<Result<Error, User>> {
+export async function getLoggedInUser(): Promise<Result<string, User>> {
   try {
     const supabase = await createClient()
 
@@ -115,7 +113,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
     } = await supabase.auth.getUser()
 
     if (!authUser) {
-      return err(new Error('User not found'))
+      return err('User not found')
     }
 
     // Single query: users + roles + weekend roster (joined to active weekend)
@@ -150,15 +148,15 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
       .single()
 
     if (error) {
-      return err(new Error(`Failed to fetch users: ${error.message}`))
+      return err(`Failed to fetch users: ${error.message}`)
     }
 
     if (!user) {
-      return err(new Error('User not found'))
+      return err('User not found')
     }
 
     if (!user.email) {
-      return err(new Error('User has no email'))
+      return err('User has no email')
     }
 
     // Handle role (pick the first one if multiple)
@@ -200,9 +198,7 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
     })
   } catch (error) {
     return err(
-      new Error(
-        `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -243,7 +239,7 @@ export async function updateUserAddress(userId: string, address: Address): Promi
 
 export async function deleteUser(
   userId: string
-): Promise<Result<Error, boolean>> {
+): Promise<Result<string, boolean>> {
   try {
     const supabase = await createClient()
 
@@ -255,7 +251,7 @@ export async function deleteUser(
       .eq('user_id', userId)
 
     if (roleError) {
-      return err(new Error(`Failed to delete user roles: ${roleError.message}`))
+      return err(`Failed to delete user roles: ${roleError.message}`)
     }
 
     // Delete weekend roster entries
@@ -266,9 +262,7 @@ export async function deleteUser(
 
     if (rosterError) {
       return err(
-        new Error(
-          `Failed to delete weekend roster entries: ${rosterError.message}`
-        )
+        `Failed to delete weekend roster entries: ${rosterError.message}`
       )
     }
 
@@ -279,15 +273,13 @@ export async function deleteUser(
       .eq('id', userId)
 
     if (userError) {
-      return err(new Error(`Failed to delete user: ${userError.message}`))
+      return err(`Failed to delete user: ${userError.message}`)
     }
 
     return ok(true)
   } catch (error) {
     return err(
-      new Error(
-        `Error while deleting user: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while deleting user: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -295,7 +287,7 @@ export async function deleteUser(
 export async function assignUserRole(
   userId: string,
   roleId: string
-): Promise<Result<Error, true>> {
+): Promise<Result<string, true>> {
   try {
     const supabase = await createClient()
 
@@ -307,7 +299,7 @@ export async function assignUserRole(
 
     if (deleteError) {
       return err(
-        new Error(`Failed to remove existing user role: ${deleteError.message}`)
+        `Failed to remove existing user role: ${deleteError.message}`
       )
     }
 
@@ -318,23 +310,21 @@ export async function assignUserRole(
 
     if (insertError) {
       return err(
-        new Error(`Failed to assign user role: ${insertError.message}`)
+        `Failed to assign user role: ${insertError.message}`
       )
     }
 
     return ok(true)
   } catch (error) {
     return err(
-      new Error(
-        `Error while assigning user role: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while assigning user role: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
 
 export async function removeUserRole(
   userId: string
-): Promise<Result<Error, true>> {
+): Promise<Result<string, true>> {
   try {
     const supabase = await createClient()
 
@@ -344,15 +334,13 @@ export async function removeUserRole(
       .eq('user_id', userId)
 
     if (error) {
-      return err(new Error(`Failed to remove user role: ${error.message}`))
+      return err(`Failed to remove user role: ${error.message}`)
     }
 
     return ok(true)
   } catch (error) {
     return err(
-      new Error(
-        `Error while removing user role: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while removing user role: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }

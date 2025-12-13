@@ -10,7 +10,7 @@ import { CandidateStatus, HydratedCandidate, CandidateFormData } from '@/lib/can
  */
 export async function createCandidateWithSponsorshipInfo(
   data: SponsorFormSchema
-): Promise<Result<Error, HydratedCandidate>> {
+): Promise<Result<string, HydratedCandidate>> {
   try {
     const supabase = await createClient()
 
@@ -24,7 +24,7 @@ export async function createCandidateWithSponsorshipInfo(
       .single()
 
     if (candidateError) {
-      return err(new Error(`Failed to create candidate: ${candidateError.message}`))
+      return err(`Failed to create candidate: ${candidateError.message}`)
     }
 
     // Create the sponsorship info record
@@ -34,15 +34,13 @@ export async function createCandidateWithSponsorshipInfo(
     })
 
     if (sponsorshipInfoError) {
-      return err(new Error(`Failed to create sponsorship info: ${sponsorshipInfoError.message}`))
+      return err(`Failed to create sponsorship info: ${sponsorshipInfoError.message}`)
     }
 
     return ok(candidate as HydratedCandidate)
   } catch (error) {
     return err(
-      new Error(
-        `Error while creating candidate with sponsorship info: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while creating candidate with sponsorship info: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -50,7 +48,7 @@ export async function createCandidateWithSponsorshipInfo(
 /**
  * Delete a candidate and all related data
  */
-export async function deleteCandidate(candidateId: string): Promise<Result<Error, { success: boolean }>> {
+export async function deleteCandidate(candidateId: string): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
@@ -61,33 +59,33 @@ export async function deleteCandidate(candidateId: string): Promise<Result<Error
       .eq('candidate_id', candidateId)
 
     if (sponsorshipInfoError) {
-      return err(new Error(`Failed to delete sponsorship info: ${sponsorshipInfoError.message}`))
+      return err(`Failed to delete sponsorship info: ${sponsorshipInfoError.message}`)
     }
 
     // Delete candidate info if it exists
     const { error: candidateInfoError } = await supabase.from('candidate_info').delete().eq('candidate_id', candidateId)
 
     if (candidateInfoError) {
-      return err(new Error(`Failed to delete candidate info: ${candidateInfoError.message}`))
+      return err(`Failed to delete candidate info: ${candidateInfoError.message}`)
     }
 
     // Finally delete the candidate
     const { error: candidateError } = await supabase.from('candidates').delete().eq('id', candidateId)
 
     if (candidateError) {
-      return err(new Error(`Failed to delete candidate: ${candidateError.message}`))
+      return err(`Failed to delete candidate: ${candidateError.message}`)
     }
 
     return ok({ success: true })
   } catch (error) {
-    return err(new Error(`Error while deleting candidate: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while deleting candidate: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 /**
  * Gets a candidate with all related information
  */
-export async function getHydratedCandidate(candidateId: string): Promise<Result<Error, HydratedCandidate>> {
+export async function getHydratedCandidate(candidateId: string): Promise<Result<string, HydratedCandidate>> {
   try {
     const supabase = await createClient()
 
@@ -104,7 +102,7 @@ export async function getHydratedCandidate(candidateId: string): Promise<Result<
       .single()
 
     if (candidateError) {
-      return err(new Error(`Failed to get candidate with details: ${candidateError.message}`))
+      return err(`Failed to get candidate with details: ${candidateError.message}`)
     }
 
     const hydratedCandidate: HydratedCandidate = {
@@ -116,9 +114,7 @@ export async function getHydratedCandidate(candidateId: string): Promise<Result<
     return ok(hydratedCandidate)
   } catch (error) {
     return err(
-      new Error(
-        `Error while getting candidate with details: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while getting candidate with details: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -138,7 +134,7 @@ export type CandidateFilterOptions = {
  */
 export async function getAllCandidatesWithDetails(
   options: CandidateFilterOptions = {}
-): Promise<Result<Error, Array<HydratedCandidate>>> {
+): Promise<Result<string, Array<HydratedCandidate>>> {
   try {
     const supabase = await createClient()
 
@@ -170,9 +166,7 @@ export async function getAllCandidatesWithDetails(
 
     if (candidatesError) {
       return err(
-        new Error(
-          `Failed to get candidates with details: ${candidatesError.message}`
-        )
+        `Failed to get candidates with details: ${candidatesError.message}`
       )
     }
 
@@ -186,9 +180,7 @@ export async function getAllCandidatesWithDetails(
     )
   } catch (error) {
     return err(
-      new Error(
-        `Error while getting candidates with details: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while getting candidates with details: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -196,20 +188,20 @@ export async function getAllCandidatesWithDetails(
 export async function updateCandidateStatus(
   candidateId: string,
   status: CandidateStatus
-): Promise<Result<Error, { success: boolean }>> {
+): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
     const { error: updateError } = await supabase.from('candidates').update({ status }).eq('id', candidateId)
 
     if (updateError) {
-      return err(new Error(`Failed to update candidate status: ${updateError.message}`))
+      return err(`Failed to update candidate status: ${updateError.message}`)
     }
 
     return ok({ success: true })
   } catch (error) {
     return err(
-      new Error(`Error while updating candidate status: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      `Error while updating candidate status: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -217,7 +209,7 @@ export async function updateCandidateStatus(
 /**
  * Add Candidate Info when a user submits their candidate forms
  */
-export async function addCandidateInfo(candidateId: string, data: CandidateFormData): Promise<Result<Error, true>> {
+export async function addCandidateInfo(candidateId: string, data: CandidateFormData): Promise<Result<string, true>> {
   try {
     const supabase = await createClient()
 
@@ -227,13 +219,13 @@ export async function addCandidateInfo(candidateId: string, data: CandidateFormD
     })
 
     if (candidateInfoError) {
-      return err(new Error(`Failed to add candidate info: ${candidateInfoError.message}`))
+      return err(`Failed to add candidate info: ${candidateInfoError.message}`)
     }
 
     return ok(true)
   } catch (error) {
     return err(
-      new Error(`Error while adding candidate info: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      `Error while adding candidate info: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -244,7 +236,7 @@ export async function addCandidateInfo(candidateId: string, data: CandidateFormD
 export async function updateCandidatePaymentOwner(
   candidateId: string,
   paymentOwner: string
-): Promise<Result<Error, { success: boolean }>> {
+): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
@@ -254,13 +246,13 @@ export async function updateCandidatePaymentOwner(
       .eq('candidate_id', candidateId)
 
     if (updateError) {
-      return err(new Error(`Failed to update payment owner: ${updateError.message}`))
+      return err(`Failed to update payment owner: ${updateError.message}`)
     }
 
     return ok({ success: true })
   } catch (error) {
     return err(
-      new Error(`Error while updating payment owner: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      `Error while updating payment owner: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }

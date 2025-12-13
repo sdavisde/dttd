@@ -6,7 +6,7 @@ import { Tables } from '@/database.types'
 
 export type Role = Tables<'roles'>
 
-export async function getRoles(): Promise<Result<Error, Role[]>> {
+export async function getRoles(): Promise<Result<string, Role[]>> {
   try {
     const supabase = await createClient()
 
@@ -16,15 +16,13 @@ export async function getRoles(): Promise<Result<Error, Role[]>> {
       .order('label')
 
     if (error) {
-      return err(new Error(`Failed to fetch roles: ${error.message}`))
+      return err(`Failed to fetch roles: ${error.message}`)
     }
 
     return ok(data || [])
   } catch (error) {
     return err(
-      new Error(
         `Error while fetching roles: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
     )
   }
 }
@@ -32,7 +30,7 @@ export async function getRoles(): Promise<Result<Error, Role[]>> {
 export async function updateRolePermissions(
   roleId: string,
   permissions: string[]
-): Promise<Result<Error, { success: boolean }>> {
+): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
@@ -42,20 +40,18 @@ export async function updateRolePermissions(
       .eq('id', roleId)
 
     if (error) {
-      return err(new Error(`Failed to update role permissions: ${error.message}`))
+      return err(`Failed to update role permissions: ${error.message}`)
     }
 
     return ok({ success: true })
   } catch (error) {
     return err(
-      new Error(
         `Error while updating role permissions: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
     )
   }
 }
 
-export async function deleteRole(roleId: string): Promise<Result<Error, { success: boolean }>> {
+export async function deleteRole(roleId: string): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
@@ -65,15 +61,13 @@ export async function deleteRole(roleId: string): Promise<Result<Error, { succes
       .eq('id', roleId)
 
     if (error) {
-      return err(new Error(`Failed to delete role: ${error.message}`))
+      return err(`Failed to delete role: ${error.message}`)
     }
 
     return ok({ success: true })
   } catch (error) {
     return err(
-      new Error(
         `Error while deleting role: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
     )
   }
 }
@@ -81,7 +75,7 @@ export async function deleteRole(roleId: string): Promise<Result<Error, { succes
 export async function createRole(
   label: string,
   permissions: string[] = []
-): Promise<Result<Error, Role>> {
+): Promise<Result<string, Role>> {
   try {
     const supabase = await createClient()
 
@@ -95,15 +89,13 @@ export async function createRole(
       .single()
 
     if (error) {
-      return err(new Error(`Failed to create role: ${error.message}`))
+      return err(`Failed to create role: ${error.message}`)
     }
 
     return ok(data)
   } catch (error) {
     return err(
-      new Error(
         `Error while creating role: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
     )
   }
 }

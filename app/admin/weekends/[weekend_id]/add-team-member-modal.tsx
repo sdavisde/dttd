@@ -106,7 +106,7 @@ export function AddTeamMemberModal({
       )
 
       if (isErr(result)) {
-        setError('root', { message: result.error.message })
+        setError('root', { message: result.error })
         return
       }
 

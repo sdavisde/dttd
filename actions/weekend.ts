@@ -38,12 +38,10 @@ const toWeekendWithGroup = (weekend: RawWeekendRecord): WeekendWithGroup => ({
 const ensureRequiredDates = (
   type: WeekendType,
   payload: WeekendWriteInput
-): Result<Error, void> => {
+): Result<string, void> => {
   if (!payload.start_date || !payload.end_date) {
     return err(
-      new Error(
-        `${type} weekend requires both start_date and end_date before saving`
-      )
+      `${type} weekend requires both start_date and end_date before saving`
     )
   }
 
@@ -65,7 +63,7 @@ const prepareInsertPayload = (
 })
 
 export async function getActiveWeekends(): Promise<
-  Result<Error, Record<WeekendType, Weekend | null>>
+  Result<string, Record<WeekendType, Weekend | null>>
 > {
   const supabase = await createClient()
 
@@ -75,11 +73,11 @@ export async function getActiveWeekends(): Promise<
     .eq('status', WeekendStatus.ACTIVE)
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data) {
-    return err(new Error('No active weekend found'))
+    return err('No active weekend found')
   }
 
   return ok({
@@ -95,9 +93,9 @@ export async function getActiveWeekends(): Promise<
 
 export async function getWeekendGroup(
   groupId: string
-): Promise<Result<Error, WeekendGroupWithId>> {
+): Promise<Result<string, WeekendGroupWithId>> {
   if (!groupId) {
-    return err(new Error('group_id is required to fetch a group'))
+    return err('group_id is required to fetch a group')
   }
 
   const supabase = await createClient()
@@ -109,11 +107,11 @@ export async function getWeekendGroup(
     .order('type', { ascending: true })
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data || data.length === 0) {
-    return err(new Error(`Weekend group ${groupId} not found`))
+    return err(`Weekend group ${groupId} not found`)
   }
 
   const typedWeekends = (data as RawWeekendRecord[]).map(toWeekendWithGroup)
@@ -123,7 +121,7 @@ export async function getWeekendGroup(
 
 export async function getWeekendGroupsByStatus(
   statuses?: WeekendStatusValue[]
-): Promise<Result<Error, WeekendGroupWithId[]>> {
+): Promise<Result<string, WeekendGroupWithId[]>> {
   const supabase = await createClient()
   let query = supabase.from('weekends').select('*')
 
@@ -136,7 +134,7 @@ export async function getWeekendGroupsByStatus(
     .order('type', { ascending: true })
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data || data.length === 0) {
@@ -179,9 +177,9 @@ export async function getWeekendGroupsByStatus(
 
 export async function setActiveWeekendGroup(
   groupId: string
-): Promise<Result<Error, WeekendGroupWithId>> {
+): Promise<Result<string, WeekendGroupWithId>> {
   if (!groupId) {
-    return err(new Error('group_id is required to set active weekend'))
+    return err('group_id is required to set active weekend')
   }
 
   const supabase = await createClient()
@@ -194,9 +192,7 @@ export async function setActiveWeekendGroup(
 
   if (isSupabaseError(finishError)) {
     return err(
-      new Error(
-        `Failed to mark previous active weekends as finished: ${finishError.message}`
-      )
+      `Failed to mark previous active weekends as finished: ${finishError.message}`
     )
   }
 
@@ -208,9 +204,7 @@ export async function setActiveWeekendGroup(
 
   if (isSupabaseError(activateError)) {
     return err(
-      new Error(
-        `Failed to set weekend group as active: ${activateError.message}`
-      )
+      `Failed to set weekend group as active: ${activateError.message}`
     )
   }
 
@@ -220,9 +214,9 @@ export async function setActiveWeekendGroup(
 
 export async function createWeekendGroup(
   input: CreateWeekendGroupInput
-): Promise<Result<Error, WeekendGroupWithId>> {
+): Promise<Result<string, WeekendGroupWithId>> {
   if (!input.groupId) {
-    return err(new Error('groupId is required when creating a weekend group'))
+    return err('groupId is required when creating a weekend group')
   }
 
   const mensValidation = ensureRequiredDates(WeekendType.MENS, input.mens)
@@ -248,11 +242,11 @@ export async function createWeekendGroup(
     .select('*')
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data || data.length === 0) {
-    return err(new Error('Failed to create weekend group'))
+    return err('Failed to create weekend group')
   }
 
   return ok({
@@ -266,14 +260,14 @@ export async function createWeekendGroup(
 export async function updateWeekendGroup(
   groupId: string,
   updates: UpdateWeekendGroupInput
-): Promise<Result<Error, WeekendGroupWithId>> {
+): Promise<Result<string, WeekendGroupWithId>> {
   if (!groupId) {
-    return err(new Error('group_id is required to update a group'))
+    return err('group_id is required to update a group')
   }
 
   if (!updates.mens && !updates.womens) {
     return err(
-      new Error('No updates were provided for either mens or womens weekend')
+      'No updates were provided for either mens or womens weekend'
     )
   }
 
@@ -282,7 +276,7 @@ export async function updateWeekendGroup(
   const applyUpdate = async (
     type: WeekendType,
     payload?: WeekendUpdateInput
-  ): Promise<Result<Error, WeekendWithGroup | null>> => {
+  ): Promise<Result<string, WeekendWithGroup | null>> => {
     if (!payload) {
       return ok(null)
     }
@@ -300,11 +294,11 @@ export async function updateWeekendGroup(
       .single()
 
     if (isSupabaseError(error)) {
-      return err(new Error(error?.message))
+      return err(error?.message)
     }
 
     if (!data) {
-      return err(new Error(`Failed to update ${type} weekend`))
+      return err(`Failed to update ${type} weekend`)
     }
 
     return ok(toWeekendWithGroup(data as RawWeekendRecord))
@@ -325,9 +319,9 @@ export async function updateWeekendGroup(
 
 export async function deleteWeekendGroup(
   groupId: string
-): Promise<Result<Error, { success: boolean }>> {
+): Promise<Result<string, { success: boolean }>> {
   if (!groupId) {
-    return err(new Error('group_id is required to delete a group'))
+    return err('group_id is required to delete a group')
   }
 
   const supabase = await createClient()
@@ -338,7 +332,7 @@ export async function deleteWeekendGroup(
     .eq('group_id', groupId)
 
   if (isSupabaseError(weekendDeleteError)) {
-    return err(new Error(weekendDeleteError?.message))
+    return err(weekendDeleteError?.message)
   }
 
   return ok({ success: true })
@@ -364,7 +358,7 @@ export type WeekendSidebarPayload = {
 
 export async function saveWeekendGroupFromSidebar(
   payload: WeekendSidebarPayload
-): Promise<Result<Error, WeekendGroupWithId>> {
+): Promise<Result<string, WeekendGroupWithId>> {
   const sharedTitle = normalizeSidebarTitle(payload.title)
 
   const mensCreate: WeekendWriteInput = {
@@ -411,7 +405,7 @@ export async function saveWeekendGroupFromSidebar(
 /**
  * Fetches a team member's weekend roster record, unless it is already paid for.
  */
-export async function getAllWeekends(): Promise<Result<Error, Weekend[]>> {
+export async function getAllWeekends(): Promise<Result<string, Weekend[]>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -420,11 +414,11 @@ export async function getAllWeekends(): Promise<Result<Error, Weekend[]>> {
     .order('start_date', { ascending: false })
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data) {
-    return err(new Error('No weekends found'))
+    return err('No weekends found')
   }
 
   return ok(data as Weekend[])
@@ -432,7 +426,7 @@ export async function getAllWeekends(): Promise<Result<Error, Weekend[]>> {
 
 export async function getWeekendById(
   weekendId: string
-): Promise<Result<Error, Weekend>> {
+): Promise<Result<string, Weekend>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -442,11 +436,11 @@ export async function getWeekendById(
     .single()
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data) {
-    return err(new Error('Weekend not found'))
+    return err('Weekend not found')
   }
 
   return ok(data as Weekend)
@@ -488,7 +482,7 @@ export type WeekendRosterMember = {
 
 export async function getWeekendRoster(
   weekendId: string
-): Promise<Result<Error, Array<WeekendRosterMember>>> {
+): Promise<Result<string, Array<WeekendRosterMember>>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -518,11 +512,11 @@ export async function getWeekendRoster(
     .order('cha_role', { ascending: true })
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data) {
-    return err(new Error('No roster found for weekend'))
+    return err('No roster found for weekend')
   }
 
   const normalizedWeekendRoster = data.map((weekend_roster) => {
@@ -543,7 +537,7 @@ export async function getWeekendRoster(
 }
 
 export async function getAllUsers(): Promise<
-  Result<Error, Array<Tables<'users'>>>
+  Result<string, Array<Tables<'users'>>>
 > {
   const supabase = await createClient()
 
@@ -553,11 +547,11 @@ export async function getAllUsers(): Promise<
     .order('last_name', { ascending: true })
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   if (!data) {
-    return err(new Error('No users found'))
+    return err('No users found')
   }
 
   return ok(data)
@@ -568,7 +562,7 @@ export async function addUserToWeekendRoster(
   userId: string,
   role: string,
   rollo?: string
-): Promise<Result<Error, void>> {
+): Promise<Result<string, void>> {
   const supabase = await createClient()
 
   const { error } = await supabase.from('weekend_roster').insert({
@@ -580,7 +574,7 @@ export async function addUserToWeekendRoster(
   })
 
   if (isSupabaseError(error)) {
-    return err(new Error(error?.message))
+    return err(error?.message)
   }
 
   return ok(undefined)
@@ -630,7 +624,7 @@ export async function recordManualPayment(
   paymentAmount: number,
   paymentMethod: 'cash' | 'check',
   notes?: string
-): Promise<Result<Error, Tables<'weekend_roster_payments'>>> {
+): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
   const supabase = await createClient()
 
   // Verify the weekend roster record exists
@@ -641,11 +635,11 @@ export async function recordManualPayment(
     .single()
 
   if (isSupabaseError(fetchError)) {
-    return err(new Error(`Failed to find roster record: ${fetchError.message}`))
+    return err(`Failed to find roster record: ${fetchError.message}`)
   }
 
   if (!rosterRecord) {
-    return err(new Error('Weekend roster record not found'))
+    return err('Weekend roster record not found')
   }
 
   // Insert the payment record
@@ -663,11 +657,11 @@ export async function recordManualPayment(
     .single()
 
   if (isSupabaseError(insertError)) {
-    return err(new Error(`Failed to record payment: ${insertError.message}`))
+    return err(`Failed to record payment: ${insertError.message}`)
   }
 
   if (!paymentRecord) {
-    return err(new Error('Failed to record payment'))
+    return err('Failed to record payment')
   }
 
   logger.info(
@@ -690,7 +684,7 @@ const getWeekendLabel = (weekend: Weekend | null): string => {
 }
 
 export async function getWeekendOptions(): Promise<
-  Result<Error, Array<{ id: string; label: string }>>
+  Result<string, Array<{ id: string; label: string }>>
 > {
   const groupsResult = await getWeekendGroupsByStatus()
   if (isErr(groupsResult)) return err(groupsResult.error)

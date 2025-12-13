@@ -11,7 +11,7 @@ export function useWeekends() {
     queryFn: async () => {
       const result = await getActiveWeekends()
       if (isErr(result)) {
-        logger.error(result.error.message)
+        logger.error(result.error)
         return null
       }
       return result.data

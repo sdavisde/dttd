@@ -48,7 +48,7 @@ export default async function CandidateFeesPaymentPage({
       path: '/payment/candidate-fee',
       candidate_id,
       error: Errors.FAILED_TO_FETCH_CANDIDATE,
-      errorMessage: candidateResult.error.message,
+      errorMessage: candidateResult.error,
       msg: 'Failed to fetch candidate for payment page',
     })
     redirect(`/home?error=${Errors.FAILED_TO_FETCH_CANDIDATE}`)

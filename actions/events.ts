@@ -11,7 +11,7 @@ export type EventUpdate = TablesUpdate<'events'>
 /**
  * Create a new event
  */
-export async function createEvent(data: Omit<EventInsert, 'id' | 'created_at'>): Promise<Result<Error, Event>> {
+export async function createEvent(data: Omit<EventInsert, 'id' | 'created_at'>): Promise<Result<string, Event>> {
   try {
     const supabase = await createClient()
 
@@ -22,19 +22,19 @@ export async function createEvent(data: Omit<EventInsert, 'id' | 'created_at'>):
       .single()
 
     if (error) {
-      return err(new Error(`Failed to create event: ${error.message}`))
+      return err(`Failed to create event: ${error.message}`)
     }
 
     return ok(event)
   } catch (error) {
-    return err(new Error(`Error while creating event: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while creating event: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 /**
  * Get a single event by ID
  */
-export async function getEvent(id: number): Promise<Result<Error, Event>> {
+export async function getEvent(id: number): Promise<Result<string, Event>> {
   try {
     const supabase = await createClient()
 
@@ -45,19 +45,19 @@ export async function getEvent(id: number): Promise<Result<Error, Event>> {
       .single()
 
     if (error) {
-      return err(new Error(`Failed to get event: ${error.message}`))
+      return err(`Failed to get event: ${error.message}`)
     }
 
     return ok(event)
   } catch (error) {
-    return err(new Error(`Error while getting event: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while getting event: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 /**
  * Get all events, optionally sorted by datetime
  */
-export async function getEvents(orderBy: 'datetime' | 'created_at' = 'datetime'): Promise<Result<Error, Event[]>> {
+export async function getEvents(orderBy: 'datetime' | 'created_at' = 'datetime'): Promise<Result<string, Event[]>> {
   try {
     const supabase = await createClient()
 
@@ -68,19 +68,19 @@ export async function getEvents(orderBy: 'datetime' | 'created_at' = 'datetime')
 
 
     if (error) {
-      return err(new Error(`Failed to get events: ${error.message}`))
+      return err(`Failed to get events: ${error.message}`)
     }
 
     return ok(events || [])
   } catch (error) {
-    return err(new Error(`Error while getting events: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while getting events: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 /**
  * Get upcoming events (events with datetime in the future)
  */
-export async function getUpcomingEvents(): Promise<Result<Error, Event[]>> {
+export async function getUpcomingEvents(): Promise<Result<string, Event[]>> {
   try {
     const supabase = await createClient()
     const now = new Date().toISOString()
@@ -94,19 +94,19 @@ export async function getUpcomingEvents(): Promise<Result<Error, Event[]>> {
 
 
     if (error) {
-      return err(new Error(`Failed to get upcoming events: ${error.message}`))
+      return err(`Failed to get upcoming events: ${error.message}`)
     }
 
-    return ok(events || [])
+    return ok(events ?? [])
   } catch (error) {
-    return err(new Error(`Error while getting upcoming events: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while getting upcoming events: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 /**
  * Get past events (events with datetime in the past)
  */
-export async function getPastEvents(): Promise<Result<Error, Event[]>> {
+export async function getPastEvents(): Promise<Result<string, Event[]>> {
   try {
     const supabase = await createClient()
     const now = new Date().toISOString()
@@ -118,19 +118,19 @@ export async function getPastEvents(): Promise<Result<Error, Event[]>> {
       .order('datetime', { ascending: false })
 
     if (error) {
-      return err(new Error(`Failed to get past events: ${error.message}`))
+      return err(`Failed to get past events: ${error.message}`)
     }
 
     return ok(events || [])
   } catch (error) {
-    return err(new Error(`Error while getting past events: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while getting past events: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 /**
  * Update an event
  */
-export async function updateEvent(id: number, data: Omit<EventUpdate, 'id' | 'created_at'>): Promise<Result<Error, Event>> {
+export async function updateEvent(id: number, data: Omit<EventUpdate, 'id' | 'created_at'>): Promise<Result<string, Event>> {
   try {
     const supabase = await createClient()
 
@@ -142,19 +142,19 @@ export async function updateEvent(id: number, data: Omit<EventUpdate, 'id' | 'cr
       .single()
 
     if (error) {
-      return err(new Error(`Failed to update event: ${error.message}`))
+      return err(`Failed to update event: ${error.message}`)
     }
 
     return ok(event)
   } catch (error) {
-    return err(new Error(`Error while updating event: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while updating event: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
 /**
  * Delete an event
  */
-export async function deleteEvent(id: number): Promise<Result<Error, { success: boolean }>> {
+export async function deleteEvent(id: number): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
@@ -164,11 +164,11 @@ export async function deleteEvent(id: number): Promise<Result<Error, { success: 
       .eq('id', id)
 
     if (error) {
-      return err(new Error(`Failed to delete event: ${error.message}`))
+      return err(`Failed to delete event: ${error.message}`)
     }
 
     return ok({ success: true })
   } catch (error) {
-    return err(new Error(`Error while deleting event: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    return err(`Error while deleting event: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }

@@ -6,7 +6,7 @@ export default async function Home() {
   const user = await getLoggedInUser()
 
   if (isErr(user)) {
-    return <div>Error: {user.error.message}</div>
+    return <div>Error: {user.error}</div>
   }
 
   return (

@@ -67,7 +67,7 @@ export default function Roles({ roles }: RolesProps) {
     try {
       const result = await deleteRole(roleToDelete.id)
       if (isErr(result)) {
-        toast.error(result.error.message)
+        toast.error(result.error)
         return
       }
 

@@ -29,7 +29,7 @@ export default async function WeekendsPage() {
 
   if (isErr(weekendGroupsResult)) {
     throw new Error(
-      `Failed to fetch weekends: ${weekendGroupsResult.error.message}`
+      `Failed to fetch weekends: ${weekendGroupsResult.error}`
     )
   }
 

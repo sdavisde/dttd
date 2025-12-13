@@ -83,7 +83,7 @@ export function CashCheckPaymentModal({
         // Refresh the page to update the payment display
         router.refresh()
       } else {
-        toast.error(`Failed to record payment: ${result.error.message}`)
+        toast.error(`Failed to record payment: ${result.error}`)
       }
     } catch (error) {
       console.error('Error recording payment:', error)

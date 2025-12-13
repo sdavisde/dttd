@@ -16,7 +16,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 // Send sponsorship notification email to preweekend couple
 export async function sendSponsorshipNotificationEmail(
   candidateId: string
-): Promise<Result<Error, { data: CreateEmailResponseSuccess | null }>> {
+): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
     const supabase = await createClient()
 
@@ -25,14 +25,14 @@ export async function sendSponsorshipNotificationEmail(
 
     if (isErr(candidateResult)) {
       return err(
-        new Error(`Failed to fetch candidate: ${candidateResult.error.message}`)
+        `Failed to fetch candidate: ${candidateResult.error}`
       )
     }
 
     const candidate = candidateResult.data
 
     if (!candidate) {
-      return err(new Error('Candidate not found'))
+      return err('Candidate not found')
     }
 
     const { data: preweekendCouple, error: preweekendCoupleError } =
@@ -43,9 +43,7 @@ export async function sendSponsorshipNotificationEmail(
         .single()
     if (preweekendCoupleError) {
       return err(
-        new Error(
-          `Failed to fetch preweekend couple: ${preweekendCoupleError.message}`
-        )
+        `Failed to fetch preweekend couple: ${preweekendCoupleError.message}`
       )
     }
 
@@ -62,15 +60,13 @@ export async function sendSponsorshipNotificationEmail(
         error,
         `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}`
       )
-      return err(new Error(`Failed to send email: ${error.message}`))
+      return err(`Failed to send email: ${error.message}`)
     }
 
     return ok({ data })
   } catch (error) {
     return err(
-      new Error(
-        `Error while sending sponsorship notification email: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while sending sponsorship notification email: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -80,10 +76,10 @@ export async function sendSponsorshipNotificationEmail(
  */
 export async function sendCandidateForms(
   candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>
-): Promise<Result<Error, { data: CreateEmailResponseSuccess | null }>> {
+): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
     if (!candidateSponsorshipInfo.candidate_email) {
-      return err(new Error('Candidate email not found on candidate'))
+      return err('Candidate email not found on candidate')
     }
 
     const { data: candidateFormsEmail, error: candidateFormsEmailError } =
@@ -96,16 +92,14 @@ export async function sendCandidateForms(
 
     if (candidateFormsEmailError) {
       return err(
-        new Error(`Failed to send email: ${candidateFormsEmailError.message}`)
+        `Failed to send email: ${candidateFormsEmailError.message}`
       )
     }
 
     return ok({ data: candidateFormsEmail })
   } catch (error) {
     return err(
-      new Error(
-        `Error while sending candidate forms: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while sending candidate forms: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -113,18 +107,16 @@ export async function sendCandidateForms(
 // sends a payment request for candidate fees tied to `candidateId`
 export async function sendPaymentRequestEmail(
   candidateId: string
-): Promise<Result<Error, { data: CreateEmailResponseSuccess | null }>> {
+): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
     logger.info(`Starting payment request email for candidate: ${candidateId}`)
     const supabase = await createClient()
 
     const candidateResult = await getHydratedCandidate(candidateId)
     if (isErr(candidateResult)) {
-      logger.error(
-        `Failed to fetch candidate ${candidateId}: ${candidateResult.error.message}`
-      )
+        `Failed to fetch candidate ${candidateId}: ${candidateResult.error}`
       return err(
-        new Error(`Failed to fetch candidate: ${candidateResult.error.message}`)
+        `Failed to fetch candidate: ${candidateResult.error}`
       )
     }
 
@@ -149,7 +141,7 @@ export async function sendPaymentRequestEmail(
         logger.error(
           `Sponsor email not found for sponsorship request ${candidate.candidate_sponsorship_info?.id}`
         )
-        return err(new Error('Sponsor email not found'))
+        return err('Sponsor email not found')
       }
       paymentOwnerEmail = candidate.candidate_sponsorship_info?.sponsor_email
       paymentOwnerName =
@@ -161,7 +153,7 @@ export async function sendPaymentRequestEmail(
         logger.error(
           `Candidate email not found for ${candidate.candidate_sponsorship_info?.candidate_name}`
         )
-        return err(new Error('Candidate email not found'))
+        return err('Candidate email not found')
       }
       paymentOwnerEmail = candidate.candidate_sponsorship_info?.candidate_email
       paymentOwnerName =
@@ -188,7 +180,7 @@ export async function sendPaymentRequestEmail(
       logger.error(
         `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${error.message}`
       )
-      return err(new Error(`Failed to send email: ${error.message}`))
+      return err(`Failed to send email: ${error.message}`)
     }
 
     logger.info(
@@ -218,9 +210,7 @@ export async function sendPaymentRequestEmail(
       `Error while sending payment request email: ${error instanceof Error ? error.message : String(error)}`
     )
     return err(
-      new Error(
-        `Error while sending payment request email: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while sending payment request email: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }

@@ -35,18 +35,18 @@ export default async function WeekendDetailPage({
   ])
 
   if (isErr(weekendResult)) {
-    if (weekendResult.error.message === 'Weekend not found') {
+    if (weekendResult.error === 'Weekend not found') {
       notFound()
     }
-    throw new Error(`Failed to fetch weekend: ${weekendResult.error.message}`)
+    throw new Error(`Failed to fetch weekend: ${weekendResult.error}`)
   }
 
   if (isErr(rosterResult)) {
-    throw new Error(`Failed to fetch roster: ${rosterResult.error.message}`)
+    throw new Error(`Failed to fetch roster: ${rosterResult.error}`)
   }
 
   if (isErr(usersResult)) {
-    throw new Error(`Failed to fetch users: ${usersResult.error.message}`)
+    throw new Error(`Failed to fetch users: ${usersResult.error}`)
   }
 
   const weekend = weekendResult.data

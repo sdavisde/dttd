@@ -114,7 +114,7 @@ export function UserRoleSidebar({
       }
 
       if (result && isErr(result)) {
-        setError(result.error.message)
+        setError(result.error)
         return
       }
 

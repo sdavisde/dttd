@@ -129,7 +129,7 @@ export function SponsorForm() {
         await createCandidateWithSponsorshipInfo(sponsorshipFormData)
 
       if (Results.isErr(candidateResult)) {
-        throw new Error(candidateResult.error.message)
+        throw new Error(candidateResult.error)
       }
 
       // Send notification email to preweekend couple

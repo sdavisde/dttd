@@ -112,7 +112,7 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
 
     const res = await deleteUser(userToDelete.id)
     if (res.error) {
-      toast.error(res.error.message)
+      toast.error(res.error)
       return
     }
 

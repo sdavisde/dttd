@@ -55,7 +55,7 @@ export default async function RosterPage() {
   const activeWeekendsResult = await getActiveWeekends()
   if (isErr(activeWeekendsResult)) {
     throw new Error(
-      `Failed to fetch active weekends: ${activeWeekendsResult.error.message}`
+      `Failed to fetch active weekends: ${activeWeekendsResult.error}`
     )
   }
 

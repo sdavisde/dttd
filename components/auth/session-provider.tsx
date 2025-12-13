@@ -37,7 +37,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
         if (userResult && isErr(userResult) && !pathIsPublic) {
           logger.error(
-            `Error fetching user at path ${pathname} error: ${userResult.error.message}`
+            `Error fetching user at path ${pathname} error: ${userResult.error}`
           )
           setUser(null)
         } else {

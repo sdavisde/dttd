@@ -16,7 +16,7 @@ import { isNil } from 'lodash'
 
 export async function getUserServiceHistory(
   userId: string
-): Promise<Result<Error, UserServiceHistory>> {
+): Promise<Result<string, UserServiceHistory>> {
   try {
     const supabase = await createClient()
 
@@ -46,7 +46,7 @@ export async function getUserServiceHistory(
       .order('served_date', { ascending: false })
 
     if (error) {
-      return err(new Error(`Failed to fetch user experience: ${error.message}`))
+      return err(`Failed to fetch user experience: ${error.message}`)
     }
 
     if (isNil(data)) {
@@ -71,9 +71,7 @@ export async function getUserServiceHistory(
 
     if (!parseResult.success) {
       return err(
-        new Error(
-          `Invalid experience data: ${parseResult.error.issues.map((e) => e.message).join(', ')}`
-        )
+        `Invalid experience data: ${parseResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -96,15 +94,13 @@ export async function getUserServiceHistory(
     })
   } catch (error) {
     return err(
-      new Error(
-        `Error while fetching user experience: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while fetching user experience: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
 
 export async function getAllUsersServiceHistory(): Promise<
-  Result<Error, Map<string, UserServiceHistory>>
+  Result<string, Map<string, UserServiceHistory>>
 > {
   try {
     const supabase = await createClient()
@@ -127,9 +123,7 @@ export async function getAllUsersServiceHistory(): Promise<
       .order('served_date', { ascending: false })
 
     if (error) {
-      return err(
-        new Error(`Failed to fetch users experience: ${error.message}`)
-      )
+      return err(`Failed to fetch users experience: ${error.message}`)
     }
 
     if (isNil(data)) {
@@ -140,9 +134,7 @@ export async function getAllUsersServiceHistory(): Promise<
 
     if (!parseResult.success) {
       return err(
-        new Error(
-          `Invalid experience data: ${parseResult.error.issues.map((e) => e.message).join(', ')}`
-        )
+        `Invalid experience data: ${parseResult.error.issues.map((e) => e.message).join(', ')}`
       )
     }
 
@@ -179,9 +171,7 @@ export async function getAllUsersServiceHistory(): Promise<
     return ok(resultMap)
   } catch (error) {
     return err(
-      new Error(
-        `Error while fetching users experience: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      `Error while fetching users experience: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }

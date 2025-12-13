@@ -163,7 +163,7 @@ export function WeekendSidebar({
       toast.error(
         isEditing ? 'Failed to update weekends' : 'Failed to create weekends',
         {
-          description: result.error.message,
+          description: result.error,
         }
       )
       return
@@ -189,7 +189,7 @@ export function WeekendSidebar({
 
       if (isErr(result)) {
         toast.error('Failed to delete weekends', {
-          description: result.error.message,
+          description: result.error,
         })
         return
       }

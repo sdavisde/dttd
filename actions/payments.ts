@@ -11,7 +11,7 @@ import { PaymentRecord } from '@/lib/payments/types'
  */
 export async function hasTeamPayment(
   weekendRosterId: string
-): Promise<Result<Error, boolean>> {
+): Promise<Result<string, boolean>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -22,14 +22,14 @@ export async function hasTeamPayment(
 
   if (isSupabaseError(error)) {
     logger.error(error, '💢 failed to check team payment status')
-    return err(new Error(error.message))
+    return err(error.message)
   }
 
   return ok(data !== null && data.length > 0)
 }
 
 export async function getAllPayments(): Promise<
-  Result<Error, PaymentRecord[]>
+  Result<string, PaymentRecord[]>
 > {
   const supabase = await createClient()
 
@@ -59,7 +59,7 @@ export async function getAllPayments(): Promise<
 
     if (isSupabaseError(teamError)) {
       logger.error(teamError, '💢 failed to fetch team payments')
-      return err(new Error(teamError.message))
+      return err(teamError.message)
     }
 
     // TODO: Implement candidate payments display in admin payments page
@@ -92,7 +92,7 @@ export async function getAllPayments(): Promise<
 
     // if (isSupabaseError(candidateError)) {
     //   logger.error(candidateError, '💢 failed to fetch candidate payments')
-    //   return err(new Error(candidateError.message))
+    //   return err(candidateError.message)
     // }
 
     // Transform and combine payment data
@@ -144,6 +144,6 @@ export async function getAllPayments(): Promise<
     return ok(combinedPayments)
   } catch (error) {
     logger.error(error, '💢 unexpected error fetching payments')
-    return err(new Error('Failed to fetch payment data'))
+    return err('Failed to fetch payment data')
   }
 }

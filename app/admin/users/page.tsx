@@ -24,11 +24,11 @@ export default async function UsersPage() {
   const [usersResult, rolesResult] = await Promise.all([getUsers(), getRoles()])
 
   if (isErr(usersResult)) {
-    throw new Error(`Failed to fetch users: ${usersResult.error.message}`)
+    throw new Error(`Failed to fetch users: ${usersResult.error}`)
   }
 
   if (isErr(rolesResult)) {
-    throw new Error(`Failed to fetch roles: ${rolesResult.error.message}`)
+    throw new Error(`Failed to fetch roles: ${rolesResult.error}`)
   }
 
   const canViewExperience = userHasPermission(user, [Permission.READ_USER_EXPERIENCE])

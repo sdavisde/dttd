@@ -28,7 +28,7 @@ export function PaymentOwnerForm({
             const result = await updateCandidatePaymentOwner(candidateId, newValue)
 
             if (Results.isErr(result)) {
-                toast.error(result.error.message)
+                toast.error(result.error)
                 // Revert on error
                 setValue(initialPaymentOwner ?? '')
             } else {

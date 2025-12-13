@@ -40,7 +40,7 @@ export default function ForgotPasswordForm({
       const result = await sendCustomPasswordResetEmail(email.trim())
 
       if (isErr(result)) {
-        setError(result.error.message)
+        setError(result.error)
       } else {
         setEmailSent(true)
       }

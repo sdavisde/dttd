@@ -199,7 +199,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
         age,
       })
       if (isErr(result)) {
-        form.setError('root', { message: result.error.message })
+        form.setError('root', { message: result.error })
         return
       }
 

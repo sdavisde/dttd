@@ -92,14 +92,14 @@ export function RolesSidebar({
         // Update existing role
         const result = await updateRolePermissions(role.id, permissions)
         if (isErr(result)) {
-          setError(result.error.message)
+          setError(result.error)
           return
         }
       } else {
         // Create new role
         const result = await createRole(roleName.trim(), permissions)
         if (isErr(result)) {
-          setError(result.error.message)
+          setError(result.error)
           return
         }
       }

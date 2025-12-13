@@ -27,7 +27,7 @@ export default async function PaymentsPage() {
   const paymentsResult = await getAllPayments()
 
   if (isErr(paymentsResult)) {
-    throw new Error(`Failed to fetch payments: ${paymentsResult.error.message}`)
+    throw new Error(`Failed to fetch payments: ${paymentsResult.error}`)
   }
 
   return (

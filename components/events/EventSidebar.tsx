@@ -116,7 +116,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
       if (isEditing && event) {
         const result = await updateEvent(event.id, eventData)
         if (isErr(result)) {
-          throw new Error(result.error.message)
+          throw new Error(result.error)
         }
         toast.success('Event updated successfully')
         router.refresh()
@@ -124,7 +124,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
       } else {
         const result = await createEvent(eventData)
         if (isErr(result)) {
-          throw new Error(result.error.message)
+          throw new Error(result.error)
         }
         toast.success('Event created successfully')
         router.refresh()
@@ -145,7 +145,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
     try {
       const result = await deleteEvent(event.id)
       if (isErr(result)) {
-        throw new Error(result.error.message)
+        throw new Error(result.error)
       }
       toast.success('Event deleted successfully')
       setShowDeleteDialog(false)
