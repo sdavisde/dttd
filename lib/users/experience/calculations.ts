@@ -79,17 +79,22 @@ export function groupExperienceByCommunity(
 
   // Group by community name
   const grouped = groupBy(sortedRecords, (r) =>
-    r.weekend_id !== null ? 'DTTD' : r.external_community_weekend ?? 'Unknown'
+    r.weekend_id !== null ? 'DTTD' : (r.external_community_weekend ?? 'Unknown')
   )
 
   // Transform to output format
   const result = Object.entries(grouped).map(([community, entries]) => ({
     community,
-    records: entries.map((r): ExperienceEntry => ({
-      role: r.cha_role,
-      date: formatExperienceDate(r.served_date),
-      rollo: r.rollo,
-    })),
+    records: entries.map(
+      (r): ExperienceEntry => ({
+        id: r.id,
+        // todo: replace this with common functionality to ensure weekend format consistency
+        weekend: community,
+        role: r.cha_role,
+        date: formatExperienceDate(r.served_date),
+        rollo: r.rollo,
+      })
+    ),
   }))
 
   // Ensure DTTD comes first
@@ -99,12 +104,10 @@ export function groupExperienceByCommunity(
   return dttd ? [dttd, ...others] : others
 }
 
-/** 
+/**
  * Counts the number of weekends served by the user
  */
-export function countDistinctWeekends(
-  records: UserExperience[]
-): number {
+export function countDistinctWeekends(records: UserExperience[]): number {
   const weekendIds = records
     .map((r) => r.weekend_id ?? r.external_community_weekend)
     .filter((id): id is string => id !== null)

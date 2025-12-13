@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { isErr } from '@/lib/results'
@@ -26,12 +25,14 @@ import { ExperienceSection } from './experience-section'
 import { SkillsSection } from './skills-section'
 import { isNil } from 'lodash'
 import { completeInfoSheet } from '@/actions/team-forms'
+import { ExperienceEntry } from '@/lib/users/experience/types'
 
 interface TeamInfoFormProps {
   userId: string
   rosterId: string
   savedAddress: Address | null
   initialBasicInfo: BasicInfo
+  initialServiceHistory: Array<ExperienceEntry>
 }
 
 export function TeamInfoForm({
@@ -39,6 +40,7 @@ export function TeamInfoForm({
   rosterId,
   savedAddress,
   initialBasicInfo,
+  initialServiceHistory,
 }: TeamInfoFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,7 +50,7 @@ export function TeamInfoForm({
     defaultValues: {
       address: savedAddress ?? emptyAddress,
       basicInfo: initialBasicInfo,
-      experience: [],
+      experience: initialServiceHistory,
     },
   })
 
@@ -75,12 +77,15 @@ export function TeamInfoForm({
     if (!isNil(data.experience)) {
       // We have to loop and upsert each.
       for (const item of data.experience) {
-        const result = await upsertUserExperience(userId, item)
-        if (isErr(result)) {
-          console.error('Failed to upsert experience', item, result.error)
-          toast.error(result.error)
-          setIsSubmitting(false)
-          return
+        // We only want to save items that are new (don't have an ID)
+        if (isNil(item.id)) {
+          const result = await upsertUserExperience(userId, item)
+          if (isErr(result)) {
+            console.error('Failed to upsert experience', item, result.error)
+            toast.error(result.error)
+            setIsSubmitting(false)
+            return
+          }
         }
       }
     }

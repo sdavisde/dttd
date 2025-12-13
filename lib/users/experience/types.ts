@@ -1,5 +1,5 @@
-import { Tables } from "@/database.types"
-import { CHARole } from "@/lib/weekend/types"
+import { Tables } from '@/database.types'
+import { CHARole } from '@/lib/weekend/types'
 
 export type ExperienceLevel = 1 | 2 | 3
 
@@ -18,6 +18,8 @@ export type RectorReadyStatus = {
 export type UserExperienceRecord = Tables<'users_experience'>
 
 export type ExperienceEntry = {
+  id: string
+  weekend: string // todo: update this to be the consistent format of weekend reference we want
   role: CHARole
   rollo: string | null // An optional field that clarifies the rollo if the user was a table leader
   date: string

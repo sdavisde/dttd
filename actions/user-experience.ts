@@ -64,6 +64,7 @@ export async function getUserServiceHistory(
         groupedExperience: [],
         totalWeekends: 0,
         totalDTTDWeekends: 0,
+        records: [],
       })
     }
 
@@ -71,7 +72,9 @@ export async function getUserServiceHistory(
 
     if (!parseResult.success) {
       return err(
-        `Invalid experience data: ${parseResult.error.issues.map((e) => e.message).join(', ')}`
+        `Invalid experience data: ${parseResult.error.issues
+          .map((e) => e.message)
+          .join(', ')}`
       )
     }
 
@@ -91,6 +94,7 @@ export async function getUserServiceHistory(
       groupedExperience,
       totalWeekends,
       totalDTTDWeekends,
+      records,
     })
   } catch (error) {
     return err(
@@ -206,9 +210,7 @@ export async function upsertUserExperience(
       ...(entry.id ? { id: entry.id } : {}),
     }
 
-    const { error } = await supabase
-      .from('users_experience')
-      .upsert(payload) // Upsert on ID (primary key)
+    const { error } = await supabase.from('users_experience').upsert(payload) // Upsert on ID (primary key)
 
     if (error) {
       console.error('Error saving experience:', error)
@@ -219,6 +221,29 @@ export async function upsertUserExperience(
     return ok(undefined)
   } catch (e) {
     console.error('Unexpected error saving experience:', e)
+    return err('Unexpected error')
+  }
+}
+
+export async function deleteUserExperience(
+  experienceId: string
+): Promise<Result<string, void>> {
+  try {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('users_experience')
+      .delete()
+      .eq('id', experienceId)
+
+    if (error) {
+      console.error('Error deleting experience:', error)
+      return err(`Failed to delete experience: ${error.message}`)
+    }
+
+    return ok(undefined)
+  } catch (e) {
+    console.error('Unexpected error deleting experience:', e)
     return err('Unexpected error')
   }
 }
