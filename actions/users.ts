@@ -367,20 +367,22 @@ export async function updateUserBasicInfo(
     const supabase = await createClient()
 
     // Serialize weekend_attended object to string
-    const { community, weekend_number } = data.weekend_attended
     const weekendAttendedStr = new WeekendReference(
-      community,
-      parseInt(weekend_number)
+      data.weekend_attended.community,
+      parseInt(data.weekend_attended.weekend_number)
     ).toString()
+
+    const essentialsTrainingDate =
+      data.essentials_training_date && !isEmpty(data.essentials_training_date)
+        ? new Date(`${data.essentials_training_date}-01`).toISOString()
+        : null
 
     const { error } = await supabase
       .from('users')
       .update({
         church_affiliation: data.church_affiliation,
         weekend_attended: weekendAttendedStr,
-        essentials_training_date: !isEmpty(data.essentials_training_date)
-          ? data.essentials_training_date
-          : null,
+        essentials_training_date: essentialsTrainingDate,
         special_gifts_and_skills: data.special_gifts_and_skills ?? null,
       })
       .eq('id', userId)
