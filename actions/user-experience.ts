@@ -197,7 +197,7 @@ export async function upsertUserExperience(
     date: string
     id?: string
   }
-): Promise<Result<Error, void>> {
+): Promise<Result<string, void>> {
   try {
     const supabase = await createClient()
 
@@ -221,12 +221,14 @@ export async function upsertUserExperience(
       .upsert(payload) // Upsert on ID (primary key)
 
     if (error) {
+      console.error('Error saving experience:', error)
       // Check for specific unique violation if constraint name differs
-      return err(new Error(`Failed to save experience: ${error.message}`))
+      return err(`Failed to save experience: ${error.message}`)
     }
 
     return ok(undefined)
   } catch (e) {
-    return err(new Error('Unexpected error'))
+    console.error('Unexpected error saving experience:', e)
+    return err('Unexpected error')
   }
 }

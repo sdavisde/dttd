@@ -58,7 +58,7 @@ export function TeamInfoForm({
     // Step 1: Update Address
     const addressResult = await updateUserAddress(userId, data.address)
     if (isErr(addressResult)) {
-      toast.error(addressResult.error.message)
+      toast.error(addressResult.error)
       setIsSubmitting(false)
       return
     }
@@ -66,7 +66,7 @@ export function TeamInfoForm({
     // Step 2: Update Basic Info
     const basicInfoResult = await updateUserBasicInfo(userId, data.basicInfo)
     if (isErr(basicInfoResult)) {
-      toast.error(basicInfoResult.error.message)
+      toast.error(basicInfoResult.error)
       setIsSubmitting(false)
       return
     }
@@ -78,7 +78,7 @@ export function TeamInfoForm({
         const result = await upsertUserExperience(userId, item)
         if (isErr(result)) {
           console.error('Failed to upsert experience', item, result.error)
-          toast.error(result.error.message)
+          toast.error(result.error)
           setIsSubmitting(false)
           return
         }

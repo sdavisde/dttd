@@ -213,12 +213,12 @@ export async function getLoggedInUser(): Promise<Result<Error, User>> {
  * @param address 
  * @returns 
  */
-export async function updateUserAddress(userId: string, address: Address): Promise<Result<Error, void>> {
+export async function updateUserAddress(userId: string, address: Address): Promise<Result<string, void>> {
   try {
     // Validate input
     const validation = addressSchema.safeParse(address)
     if (!validation.success) {
-      return err(new Error(`Invalid address: ${validation.error.message}`))
+      return err(`Invalid address: ${validation.error.message}`)
     }
 
     const supabase = await createClient()
@@ -229,12 +229,14 @@ export async function updateUserAddress(userId: string, address: Address): Promi
       .eq('id', userId)
 
     if (error) {
-      return err(new Error(`Failed to update address: ${error.message}`))
+      console.error('Error updating address:', error)
+      return err(`Failed to update address: ${error.message}`)
     }
 
     return ok(undefined)
   } catch (error) {
-    return err(new Error(`Error updating address: ${error instanceof Error ? error.message : 'Unknown error'}`))
+    console.error('Unexpected error updating address:', error)
+    return err(`Error updating address: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
@@ -361,13 +363,13 @@ export async function removeUserRole(
  * @param data 
  * @returns 
  */
-export async function updateUserBasicInfo(userId: string, data: BasicInfo): Promise<Result<Error, void>> {
+export async function updateUserBasicInfo(userId: string, data: BasicInfo): Promise<Result<string, void>> {
     try {
       // Validate input
       const validation = basicInfoSchema.safeParse(data)
   
       if (!validation.success) {
-        return err(new Error(validation.error.message))
+        return err(validation.error.message)
       }
   
       const supabase = await createClient()
@@ -385,12 +387,12 @@ export async function updateUserBasicInfo(userId: string, data: BasicInfo): Prom
   
       if (error) {
         logger.error({ error, userId }, 'Error updating user basic info')
-        return err(new Error(error.message))
+        return err(error.message)
       }
   
       return ok(undefined)
     } catch (error) {
       logger.error({ error, userId }, 'Unexpected error updating basic info')
-      return err(new Error('An unexpected error occurred'))
+      return err('An unexpected error occurred')
     }
 }
