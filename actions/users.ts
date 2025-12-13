@@ -8,6 +8,7 @@ import { genderMatchesWeekend } from '@/lib/weekend'
 import { Address, addressSchema } from '@/lib/users/validation'
 import { BasicInfo, BasicInfoSchema } from '@/components/team-forms/schemas'
 import { isEmpty } from 'lodash'
+import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 export async function getUsers(): Promise<Result<string, Array<User>>> {
   try {
@@ -366,8 +367,11 @@ export async function updateUserBasicInfo(
     const supabase = await createClient()
 
     // Serialize weekend_attended object to string
-    const { community, number, location } = data.weekend_attended
-    const weekendAttendedStr = `${community}#${number}|${location}`
+    const { community, weekend_number } = data.weekend_attended
+    const weekendAttendedStr = new WeekendReference(
+      community,
+      parseInt(weekend_number)
+    ).toString()
 
     const { error } = await supabase
       .from('users')
