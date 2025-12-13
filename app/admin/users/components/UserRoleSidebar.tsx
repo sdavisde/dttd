@@ -33,7 +33,6 @@ import { Permission, userHasPermission } from '@/lib/security'
 import { isNil } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
 
-
 interface UserRoleSidebarProps {
   user: User | null
   roles: Array<{ id: string; label: string; permissions: string[] }>
@@ -53,13 +52,18 @@ export function UserRoleSidebar({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [serviceHistory, setServiceHistory] = useState<UserServiceHistory | null>(null)
+  const [serviceHistory, setServiceHistory] =
+    useState<UserServiceHistory | null>(null)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
 
   const router = useRouter()
 
-  const showSecuritySettings = !isNil(currentUser) && userHasPermission(currentUser, [Permission.WRITE_USER_ROLES])
-  const showExperience = !isNil(currentUser) && userHasPermission(currentUser, [Permission.READ_USER_EXPERIENCE])
+  const showSecuritySettings =
+    !isNil(currentUser) &&
+    userHasPermission(currentUser, [Permission.WRITE_USER_ROLES])
+  const showExperience =
+    !isNil(currentUser) &&
+    userHasPermission(currentUser, [Permission.READ_USER_EXPERIENCE])
 
   // Update selected role when user changes
   useEffect(() => {
@@ -90,7 +94,6 @@ export function UserRoleSidebar({
       } else {
         setServiceHistory(null)
       }
-
     } else {
       // Reset form state when modal closes
       setSelectedRoleId(user?.role?.id ?? null)
@@ -194,7 +197,6 @@ export function UserRoleSidebar({
             </div>
           </div>
 
-
           {showExperience && (
             <div className="space-y-2">
               <Typography variant="muted" className="text-sm font-bold">
@@ -219,7 +221,9 @@ export function UserRoleSidebar({
 
                     <Separator className="my-2" />
 
-                    <PreviousExperienceSection experience={serviceHistory.groupedExperience} />
+                    <PreviousExperienceSection
+                      experience={serviceHistory.experience}
+                    />
                   </>
                 ) : (
                   <div className="text-center py-4 text-muted-foreground text-sm">
@@ -294,4 +298,3 @@ export function UserRoleSidebar({
     </Sheet>
   )
 }
-

@@ -1,8 +1,11 @@
-import { GroupedExperience } from '@/lib/users/experience'
+import {
+  groupExperienceByCommunity,
+  UserExperience,
+} from '@/lib/users/experience'
 import { Badge } from '@/components/ui/badge'
 
 type PreviousExperienceSectionProps = {
-  experience: GroupedExperience[]
+  experience: UserExperience[]
 }
 
 export function PreviousExperienceSection({
@@ -19,12 +22,14 @@ export function PreviousExperienceSection({
     )
   }
 
+  const groupedExperience = groupExperienceByCommunity(experience)
+
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-medium">Service History</h3>
 
       <div className="relative border-l-2 border-muted ml-3 space-y-8 pb-2">
-        {experience.map((group, groupIndex) => (
+        {groupedExperience.map((group, groupIndex) => (
           <div
             key={`${group.community}-${groupIndex}`}
             className="relative pl-6"
@@ -39,17 +44,14 @@ export function PreviousExperienceSection({
             </div>
 
             <div className="space-y-3">
-              {group.records.map((record, recordIndex) => (
+              {group.records.map((record) => (
                 <div
-                  key={`${record.date}-${recordIndex}`}
+                  key={record.id}
                   className="bg-card/50 p-3 rounded-lg border shadow-sm"
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span className="font-medium text-primary">
-                      {record.role}
-                    </span>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                      {record.date}
+                      {record.cha_role}
                     </span>
                   </div>
 
