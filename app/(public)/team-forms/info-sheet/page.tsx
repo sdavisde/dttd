@@ -6,6 +6,7 @@ import { isNil } from 'lodash'
 import { getUserServiceHistory } from '@/actions/user-experience'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 import { experienceToFormValues } from '@/lib/users/experience'
+import { getMonthString } from '@/lib/date'
 
 export default async function TeamInfoPage() {
   const userResult = await getLoggedInUser()
@@ -37,7 +38,9 @@ export default async function TeamInfoPage() {
       community: '',
       weekend_number: '',
     },
-    essentials_training_date: user.essentials_training_date ?? '',
+    essentials_training_date: user.essentials_training_date
+      ? getMonthString(new Date(user.essentials_training_date))
+      : '',
     special_gifts_and_skills: user.special_gifts_and_skills ?? [],
   }
 
