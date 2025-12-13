@@ -37,8 +37,8 @@ export function UserExperienceField({
   remove,
 }: UserExperienceFieldProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 relative p-4 rounded-md border mb-4 items-center">
-      <div className="col-span-12 md:col-span-4">
+    <div className="flex gap-4 items-start mb-4">
+      <div className="flex-grow">
         <FormField
           control={control}
           name={`${baseFieldName}.cha_role`}
@@ -68,7 +68,7 @@ export function UserExperienceField({
         />
       </div>
 
-      <div className="col-span-12 md:col-span-3">
+      <div className="flex-grow">
         <FormField
           control={control}
           name={`${baseFieldName}.community`}
@@ -100,7 +100,7 @@ export function UserExperienceField({
         />
       </div>
 
-      <div className="col-span-12 md:col-span-2">
+      <div className="flex-grow">
         <FormField
           control={control}
           name={`${baseFieldName}.weekend_number`}
@@ -116,7 +116,7 @@ export function UserExperienceField({
         />
       </div>
 
-      <div className="col-span-12 md:col-span-1 flex items-center h-full">
+      <div className="mt-6">
         <Button
           type="button"
           variant="ghost"

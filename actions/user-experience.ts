@@ -43,7 +43,7 @@ export async function getUserServiceHistory(
       `
       )
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
 
     if (error) {
       return err(`Failed to fetch user experience: ${error.message}`)
@@ -122,7 +122,7 @@ export async function getAllUsersServiceHistory(): Promise<
         updated_at
       `
       )
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
 
     if (error) {
       return err(`Failed to fetch users experience: ${error.message}`)

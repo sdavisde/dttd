@@ -26,6 +26,7 @@ import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 import { isNil } from 'lodash'
 import { UserExperienceField } from './user-experience-field'
+import { useRouter } from 'next/navigation'
 
 export function ExperienceSection() {
   const { control, watch } = useFormContext<TeamInfoFormValues>()
@@ -34,12 +35,13 @@ export function ExperienceSection() {
     name: 'experience',
   })
 
-  const handleDelete = async (experienceId: string) => {
+  const handleDelete = async (experienceId: string, index: number) => {
     const result = await deleteUserExperience(experienceId)
     if (isErr(result)) {
       toast.error(result.error)
     } else {
       toast.success('Experience deleted.')
+      remove(index)
     }
   }
 
@@ -93,7 +95,7 @@ export function ExperienceSection() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:text-destructive/90"
-                    onClick={() => handleDelete(experienceItem.id!)}
+                    onClick={() => handleDelete(experienceItem.id!, index)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
