@@ -55,11 +55,7 @@ export default async function WeekendDetailPage({
 
   // Filter users for add team member modal
   const rosterUserIds = new Set(roster.map((r) => r.user_id).filter(Boolean))
-  const availableUsers = users.filter(
-    (user) =>
-      genderMatchesWeekend(user.gender, weekend.type) &&
-      !rosterUserIds.has(user.id)
-  )
+  const availableUsers = users.filter((user) => !rosterUserIds.has(user.id))
 
   // Determine if weekend is editable (active/upcoming)
   const isEditable =
@@ -85,7 +81,8 @@ export default async function WeekendDetailPage({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Typography variant="h5" className="text-2xl">
-                  {weekend.title ?? `${weekend.type} Weekend #${weekend.number}`}
+                  {weekend.title ??
+                    `${weekend.type} Weekend #${weekend.number}`}
                 </Typography>
                 <WeekendStatusBadge status={weekend.status} />
               </div>
