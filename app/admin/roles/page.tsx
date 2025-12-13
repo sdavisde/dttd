@@ -5,18 +5,19 @@ import { getRoles } from '@/actions/roles'
 import Roles from '@/app/admin/roles/components/Roles'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { isNil } from 'lodash'
 
 export default async function RolesPage() {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
 
   try {
-    if (isErr(userResult) || !user) {
+    if (isErr(userResult) || isNil(user)) {
       throw new Error('User not found')
     }
-    permissionLock([Permission.ROLES_MANAGEMENT])(user)
+    permissionLock([Permission.READ_USER_ROLES])(user)
   } catch (error) {
-    redirect('/')
+    redirect('/admin')
   }
 
   // Fetch roles data on the server

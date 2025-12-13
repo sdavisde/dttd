@@ -16,30 +16,32 @@ export default async function MeetingsPage() {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
 
-    permissionLock([Permission.READ_MEETINGS])(user)
+    permissionLock([Permission.READ_EVENTS])(user)
   } catch (error: unknown) {
     console.error(error)
     redirect(`/?error=${(error as Error).message}`)
   }
 
-  const canEdit = userHasPermission(user, [Permission.WRITE_MEETINGS])
+  const canEdit = userHasPermission(user, [Permission.WRITE_EVENTS])
 
   // Fetch events data server-side
   const [upcomingEventsResult, pastEventsResult] = await Promise.all([
     getUpcomingEvents(),
-    getPastEvents()
+    getPastEvents(),
   ])
 
-  const upcomingEvents = isErr(upcomingEventsResult) ? [] : upcomingEventsResult.data
+  const upcomingEvents = isErr(upcomingEventsResult)
+    ? []
+    : upcomingEventsResult.data
   const pastEvents = isErr(pastEventsResult) ? [] : pastEventsResult.data
 
   return (
     <>
       <AdminBreadcrumbs
-        title='Meetings'
+        title="Meetings"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
-      <div className='container mx-auto px-8 pb-8'>
+      <div className="container mx-auto px-8 pb-8">
         <Meetings
           canEdit={canEdit}
           upcomingEvents={upcomingEvents}
