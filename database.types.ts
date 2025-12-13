@@ -466,33 +466,30 @@ export type Database = {
           created_at: string
           id: string
           rollo: string | null
-          served_date: string
           updated_at: string
           user_id: string
           weekend_id: string | null
-          weekend_reference: string | null
+          weekend_reference: string
         }
         Insert: {
           cha_role: string
           created_at?: string
           id?: string
           rollo?: string | null
-          served_date: string
           updated_at?: string
           user_id: string
           weekend_id?: string | null
-          weekend_reference?: string | null
+          weekend_reference: string
         }
         Update: {
           cha_role?: string
           created_at?: string
           id?: string
           rollo?: string | null
-          served_date?: string
           updated_at?: string
           user_id?: string
           weekend_id?: string | null
-          weekend_reference?: string | null
+          weekend_reference?: string
         }
         Relationships: [
           {

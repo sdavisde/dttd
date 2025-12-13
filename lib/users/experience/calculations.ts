@@ -75,7 +75,7 @@ export function groupExperienceByCommunity(
   records: UserExperience[]
 ): GroupedExperience[] {
   // Sort by date descending
-  const sortedRecords = orderBy(records, ['served_date'], ['desc'])
+  const sortedRecords = orderBy(records, ['created_at'], ['desc'])
 
   // Group by community name
   const grouped = groupBy(sortedRecords, (r) => {

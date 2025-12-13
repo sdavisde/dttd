@@ -24,6 +24,7 @@ import { MonthPickerPopover } from '@/components/ui/month-picker'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import * as React from 'react'
 import { TeamInfoFormValues } from './schemas'
+import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 
 export function BasicInfoSection() {
   const { control, setValue, watch } = useFormContext<TeamInfoFormValues>()
@@ -80,13 +81,17 @@ export function BasicInfoSection() {
                           <SelectValue placeholder="Community" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="DTTD">
-                            Dusty Trails
-                          </SelectItem>
-                          <SelectItem value="Other">Other Community</SelectItem>
+                          {Object.entries(RECOGNIZED_COMMUNITIES).map(
+                            ([key, label]) => (
+                              <SelectItem key={key} value={key}>
+                                {label}
+                              </SelectItem>
+                            )
+                          )}
                         </SelectContent>
                       </Select>
                     </FormControl>
+                    <FormDescription>Tres Dias Community</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -94,25 +99,13 @@ export function BasicInfoSection() {
 
               <FormField
                 control={control}
-                name="basicInfo.weekend_attended.number"
+                name="basicInfo.weekend_attended.weekend_number"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
                       <Input placeholder="Weekend #" {...field} type="number" />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={control}
-                name="basicInfo.weekend_attended.location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="Location (City, State)" {...field} />
-                    </FormControl>
+                    <FormDescription>Weekend #</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

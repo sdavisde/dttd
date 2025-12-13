@@ -20,23 +20,15 @@ import {
 import { Typography } from '@/components/ui/typography'
 import { History, Plus, Trash2 } from 'lucide-react'
 import { CHARole } from '@/lib/weekend/types'
-import { MonthPickerPopover } from '@/components/ui/month-picker'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { TeamInfoFormValues } from './schemas'
 import { deleteUserExperience } from '@/actions/user-experience'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 import { isNil } from 'lodash'
-import { getMonthString } from '@/lib/date'
+import { UserExperienceField } from './user-experience-field'
 
 export function ExperienceSection() {
-  const { control, setValue, watch } = useFormContext<TeamInfoFormValues>()
+  const { control, watch } = useFormContext<TeamInfoFormValues>()
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'experience',
@@ -68,8 +60,8 @@ export function ExperienceSection() {
               append({
                 cha_role: '' as CHARole,
                 rollo: '',
-                weekend_reference: '',
-                served_date: '',
+                community: '',
+                weekend_number: '',
               })
             }
             variant="outline"
@@ -83,8 +75,6 @@ export function ExperienceSection() {
           {fields.map((field, index) => {
             const experienceItem = watch(`experience.${index}`)
             const isExisting = !isNil(experienceItem.id)
-            console.log(experienceItem)
-
             if (isExisting) {
               return (
                 <div
@@ -94,8 +84,8 @@ export function ExperienceSection() {
                   <div>
                     <p className="font-semibold">{experienceItem.cha_role}</p>
                     <p className="text-sm text-muted-foreground">
-                      {experienceItem.weekend_reference} -
-                      {getMonthString(new Date(experienceItem.served_date))}
+                      {experienceItem.community} #
+                      {experienceItem.weekend_number}
                     </p>
                   </div>
                   <Button
@@ -113,91 +103,11 @@ export function ExperienceSection() {
 
             // New item, render fields
             return (
-              <div
+              <UserExperienceField
                 key={field.id}
-                className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end relative"
-              >
-                <div className="col-span-12 md:col-span-4">
-                  <FormField
-                    control={control}
-                    name={`experience.${index}.cha_role`}
-                    render={({ field: formField }) => (
-                      <FormItem>
-                        <FormLabel>Role on weekend</FormLabel>
-                        <Select
-                          onValueChange={formField.onChange}
-                          defaultValue={formField.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select Role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {Object.values(CHARole).map((role) => (
-                              <SelectItem key={role} value={role}>
-                                {role}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="col-span-12 md:col-span-4">
-                  <FormField
-                    control={control}
-                    name={`experience.${index}.weekend_reference`}
-                    render={({ field: formField }) => {
-                      return (
-                        <FormItem>
-                          <FormLabel>Community & Weekend #</FormLabel>
-                          <FormControl>
-                            <Input placeholder="DTTD #10" {...formField} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )
-                    }}
-                  />
-                </div>
-
-                <div className="col-span-12 md:col-span-3">
-                  <FormField
-                    control={control}
-                    name={`experience.${index}.served_date`}
-                    render={({ field: formField }) => (
-                      <FormItem>
-                        <FormLabel>Date (Month/Year)</FormLabel>
-                        <FormControl>
-                          <MonthPickerPopover
-                            value={formField.value}
-                            onChange={formField.onChange}
-                            placeholder="Pick a date"
-                            className="w-full"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="col-span-12 md:col-span-1 flex items-center h-full">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive/90"
-                    onClick={() => remove(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                index={index}
+                remove={remove}
+              />
             )
           })}
 

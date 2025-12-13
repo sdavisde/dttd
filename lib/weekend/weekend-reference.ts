@@ -11,11 +11,18 @@ export class WeekendReference {
   }
 
   static fromString(weekendReferenceString: string): WeekendReference {
-    const [community, weekendNumber] = weekendReferenceString.split('-')
+    const [community, weekendNumber] = weekendReferenceString.split('#')
     return new WeekendReference(community, parseInt(weekendNumber))
   }
 
   toString(): string {
-    return `${this.community}-${this.weekend_number}`
+    return `${this.community}#${this.weekend_number}`
+  }
+
+  toJSON(): { community: string; weekend_number: string } {
+    return {
+      community: this.community,
+      weekend_number: this.weekend_number.toString(),
+    }
   }
 }

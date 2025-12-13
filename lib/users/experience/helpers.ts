@@ -1,19 +1,23 @@
 import { UserExperienceFormValue } from '@/components/team-forms/schemas'
-import { GroupedExperience } from './types'
+import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import { UserExperience } from './validation'
 
 /**
- * Un-groups experience records into a flat array
+ * Normalizes experience records into a flat array of form values
  */
-export const flattenExperience = (
-  groupedExperience: Array<GroupedExperience>
+export const experienceToFormValues = (
+  experience: Array<UserExperience>
 ): Array<UserExperienceFormValue> => {
-  return groupedExperience.flatMap((groupedExperience) =>
-    groupedExperience.records.map((record) => ({
-      id: record.id,
-      cha_role: record.cha_role,
-      weekend_reference: record.weekend_reference,
-      rollo: record.rollo,
-      served_date: record.served_date,
-    }))
-  )
+  return experience.map((experience) => {
+    const { community, weekend_number } = WeekendReference.fromString(
+      experience.weekend_reference
+    )
+    return {
+      id: experience.id,
+      cha_role: experience.cha_role,
+      rollo: experience.rollo,
+      community,
+      weekend_number: weekend_number.toString(),
+    }
+  })
 }

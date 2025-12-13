@@ -31,7 +31,6 @@ export async function getUserServiceHistory(
         cha_role,
         weekend_reference,
         rollo,
-        served_date,
         created_at,
         updated_at,
         weekends (
@@ -44,7 +43,7 @@ export async function getUserServiceHistory(
       `
       )
       .eq('user_id', userId)
-      .order('served_date', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (error) {
       return err(`Failed to fetch user experience: ${error.message}`)
@@ -119,12 +118,11 @@ export async function getAllUsersServiceHistory(): Promise<
         cha_role,
         weekend_reference,
         rollo,
-        served_date,
         created_at,
         updated_at
       `
       )
-      .order('served_date', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (error) {
       return err(`Failed to fetch users experience: ${error.message}`)
@@ -180,6 +178,8 @@ export async function getAllUsersServiceHistory(): Promise<
   }
 }
 
+import { WeekendReference } from '@/lib/weekend/weekend-reference'
+
 /**
  * Upserts a single user experience entry (External)
  */
@@ -190,20 +190,26 @@ export async function upsertUserExperience(
   try {
     const supabase = await createClient()
 
-    const servedDate = new Date(`${entry.served_date}-01`).toISOString()
+    if (isNil(entry.community) || isNil(entry.weekend_number)) {
+      return err('Missing community or weekend number')
+    }
+
+    const weekend_reference = new WeekendReference(
+      entry.community,
+      parseInt(entry.weekend_number)
+    )
 
     const payload = {
       user_id: userId,
       cha_role: entry.cha_role, // Enum string
-      weekend_reference: entry.weekend_reference,
-      served_date: servedDate,
+      weekend_reference: weekend_reference.toString(),
       updated_at: new Date().toISOString(),
       // Ensure weekend_id is null for external
       weekend_id: null,
       ...(entry.id ? { id: entry.id } : {}),
     }
 
-    const { error } = await supabase.from('users_experience').upsert(payload) // Upsert on ID (primary key)
+    const { error } = await supabase.from('users_experience').upsert([payload]) // Upsert on ID (primary key)
 
     if (error) {
       console.error('Error saving experience:', error)

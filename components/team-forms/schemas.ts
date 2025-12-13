@@ -6,8 +6,7 @@ export const BasicInfoSchema = z.object({
   church_affiliation: z.string().min(1, 'Church affiliation is required'),
   weekend_attended: z.object({
     community: z.string().min(1, 'Community is required'),
-    number: z.string().min(1, 'Weekend number is required'),
-    location: z.string().min(1, 'Location is required'),
+    weekend_number: z.string().min(1, 'Weekend number is required'),
   }),
   essentials_training_date: z.string().optional(),
   special_gifts_and_skills: z.array(z.string()).optional(),
@@ -21,8 +20,11 @@ const ExperienceEntrySchema = UserExperienceSchema.omit({
   created_at: true,
   updated_at: true,
   weekend_id: true,
+  weekend_reference: true,
 }).extend({
   id: z.uuid().optional(),
+  community: z.string(),
+  weekend_number: z.string(),
 })
 
 /**

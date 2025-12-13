@@ -8,10 +8,6 @@ export const UserExperienceSchema = z.object({
   cha_role: z.enum(CHARole, { error: 'Please select a role' }),
   weekend_reference: z.string(),
   rollo: z.string().nullable(),
-  served_date: z.string().refine((value) => {
-    const date = new Date(value)
-    return !isNaN(date.getTime())
-  }, 'Invalid date'),
   created_at: z.string().transform((str) => {
     const date = new Date(str)
     if (isNaN(date.getTime())) {
