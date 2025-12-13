@@ -19,7 +19,7 @@ export default async function PaymentsPage() {
   }
 
   // Check permissions - assuming FULL_ACCESS can view all payments
-  if (!userHasPermission(user, [Permission.FULL_ACCESS])) {
+  if (!userHasPermission(user, [Permission.READ_PAYMENTS])) {
     redirect('/admin')
   }
 

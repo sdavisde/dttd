@@ -26,7 +26,7 @@ export default async function RosterPage() {
   }
   const user = userResult.data
   const canViewPaymentInfo =
-    userHasPermission(user, [Permission.READ_TEAM_PAYMENTS]) ||
+    userHasPermission(user, [Permission.READ_PAYMENTS]) ||
     userHasCHARole(user, [
       CHARole.RECTOR,
       CHARole.BACKUP_RECTOR,
