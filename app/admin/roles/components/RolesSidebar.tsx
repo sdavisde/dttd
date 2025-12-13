@@ -27,6 +27,7 @@ interface RolesSidebar {
   isOpen: boolean
   onClose: () => void
   onExited?: () => void
+  readOnly: boolean
 }
 
 interface PermissionOption {
@@ -45,6 +46,7 @@ export function RolesSidebar({
   role,
   isOpen,
   onClose,
+  readOnly,
 }: RolesSidebar) {
   const [permissions, setPermissions] = useState<string[]>(
     role?.permissions ?? []
@@ -122,7 +124,7 @@ export function RolesSidebar({
   // Check if anything has changed for existing roles
   const hasChanges = role
     ? JSON.stringify(permissions.sort()) !==
-    JSON.stringify((role.permissions || []).sort())
+      JSON.stringify((role.permissions || []).sort())
     : roleName.trim() !== '' || permissions.length > 0
 
   return (
@@ -152,7 +154,7 @@ export function RolesSidebar({
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder="Enter role name..."
-                disabled={isLoading}
+                disabled={isLoading || readOnly}
                 required
               />
             </div>
@@ -168,22 +170,24 @@ export function RolesSidebar({
               )}
               onChange={handlePermissionsChange}
               placeholder="Select permissions..."
-              isDisabled={isLoading}
+              isDisabled={isLoading || readOnly}
             />
           </div>
         </div>
 
-        <SheetFooter>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!roleName.trim() || isLoading || !hasChanges}
-          >
-            {isLoading ? 'Saving...' : role ? 'Save Changes' : 'Create Role'}
-          </Button>
-        </SheetFooter>
+        {!readOnly && (
+          <SheetFooter>
+            <Button variant="outline" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!roleName.trim() || isLoading || !hasChanges}
+            >
+              {isLoading ? 'Saving...' : role ? 'Save Changes' : 'Create Role'}
+            </Button>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   )

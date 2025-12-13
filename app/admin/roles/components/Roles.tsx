@@ -23,9 +23,10 @@ import { isErr } from '@/lib/results'
 
 interface RolesProps {
   roles: Array<{ id: string; label: string; permissions: string[] }>
+  readOnly: boolean
 }
 
-export default function Roles({ roles }: RolesProps) {
+export default function Roles({ roles, readOnly }: RolesProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -45,6 +46,7 @@ export default function Roles({ roles }: RolesProps) {
   }, [searchTerm, roles])
 
   const handleRoleClick = (role: Role) => {
+    if (readOnly) return
     setSelectedRole(role)
     setIsModalOpen(true)
   }
@@ -76,7 +78,8 @@ export default function Roles({ roles }: RolesProps) {
       setDeleteConfirmOpen(false)
       setRoleToDelete(null)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete role'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to delete role'
       toast.error(errorMessage)
     } finally {
       setIsDeleting(false)
@@ -102,10 +105,12 @@ export default function Roles({ roles }: RolesProps) {
             Manage system roles and their associated permissions.
           </Typography>
         </div>
-        <Button onClick={handleCreateRole}
+        <Button
+          onClick={handleCreateRole}
           size="sm"
           variant="ghost"
           className="flex items-center gap-2"
+          disabled={readOnly}
         >
           <Plus className="h-4 w-4" />
           Add Role
@@ -129,101 +134,102 @@ export default function Roles({ roles }: RolesProps) {
       <div className="relative">
         <div className="overflow-x-auto">
           <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-bold min-w-[150px]">
-                    Role
-                  </TableHead>
-                  <TableHead className="min-w-[200px]">Permissions</TableHead>
-                  <TableHead className="min-w-[120px]">
-                    Permission Count
-                  </TableHead>
-                  <TableHead className="sticky right-0 bg-background text-right min-w-[120px] border-l">
-                    Actions
-                  </TableHead>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="font-bold min-w-[150px]">Role</TableHead>
+                <TableHead className="min-w-[200px]">Permissions</TableHead>
+                <TableHead className="min-w-[120px]">
+                  Permission Count
+                </TableHead>
+                <TableHead className="sticky right-0 bg-background text-right min-w-[120px] border-l">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRoles.map((role, index) => (
+                <TableRow
+                  key={role.id}
+                  className={`hover:bg-muted/50 ${
+                    !readOnly && 'cursor-pointer'
+                  } ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
+                  onClick={() => handleRoleClick(role)}
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4 text-gray-500" />
+                      {role.label}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {role.permissions
+                        ?.slice(0, 3)
+                        .map((permission, permIndex) => (
+                          <Badge
+                            key={permIndex}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            {permission}
+                          </Badge>
+                        ))}
+                      {role.permissions && role.permissions.length > 3 && (
+                        <span className="text-muted-foreground text-sm">
+                          +{role.permissions.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {role.permissions?.length || 0} permission
+                    {role.permissions?.length !== 1 ? 's' : ''}
+                  </TableCell>
+                  <TableCell className="sticky right-0 bg-background text-right border-l">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRoleClick(role)
+                      }}
+                      className="h-8 w-8 p-0"
+                      disabled={readOnly}
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span className="sr-only">Edit role</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteRole(role)
+                      }}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      disabled={isDeleting || readOnly}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete role</span>
+                    </Button>{' '}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRoles.map((role, index) => (
-                  <TableRow
-                    key={role.id}
-                    className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
-                    onClick={() => handleRoleClick(role)}
-                  >
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Settings className="h-4 w-4 text-gray-500" />
-                        {role.label}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {role.permissions
-                          ?.slice(0, 3)
-                          .map((permission, permIndex) => (
-                            <Badge
-                              key={permIndex}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {permission}
-                            </Badge>
-                          ))}
-                        {role.permissions && role.permissions.length > 3 && (
-                          <span className="text-muted-foreground text-sm">
-                            +{role.permissions.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {role.permissions?.length || 0} permission
-                      {role.permissions?.length !== 1 ? 's' : ''}
-                    </TableCell>
-                    <TableCell className="sticky right-0 bg-background text-right border-l">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleRoleClick(role)
-                        }}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit role</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteRole(role)
-                        }}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete role</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredRoles.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      <p className="text-muted-foreground">
-                        {searchTerm
-                          ? 'No roles found matching your search.'
-                          : 'No roles found in the database.'}
-                      </p>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+              {filteredRoles.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      {searchTerm
+                        ? 'No roles found matching your search.'
+                        : 'No roles found in the database.'}
+                    </p>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
+      </div>
 
       {/* Role Sidebar */}
       <RolesSidebar
@@ -231,6 +237,7 @@ export default function Roles({ roles }: RolesProps) {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onExited={handleModalExited}
+        readOnly={readOnly}
       />
 
       {/* Delete Confirmation Dialog */}

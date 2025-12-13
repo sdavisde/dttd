@@ -1,4 +1,4 @@
-import { Permission, permissionLock } from '@/lib/security'
+import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/actions/users'
 import { getRoles } from '@/actions/roles'
@@ -20,6 +20,8 @@ export default async function RolesPage() {
     redirect('/admin')
   }
 
+  const canWrite = userHasPermission(user, [Permission.WRITE_USER_ROLES])
+
   // Fetch roles data on the server
   const rolesResult = await getRoles()
 
@@ -34,7 +36,7 @@ export default async function RolesPage() {
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
       <div className="container mx-auto px-8">
-        <Roles roles={rolesResult.data} />
+        <Roles roles={rolesResult.data} readOnly={!canWrite} />
       </div>
     </>
   )
