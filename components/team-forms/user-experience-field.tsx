@@ -1,6 +1,6 @@
 'use client'
 
-import { useFormContext } from 'react-hook-form'
+import { Control } from 'react-hook-form'
 import {
   FormControl,
   FormField,
@@ -24,22 +24,24 @@ import { TeamInfoFormValues } from './schemas'
 import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 
 type UserExperienceFieldProps = {
+  control: Control<any>
   index: number
+  baseFieldName: string
   remove: (index: number) => void
 }
 
 export function UserExperienceField({
+  control,
   index,
+  baseFieldName,
   remove,
 }: UserExperienceFieldProps) {
-  const { control } = useFormContext<TeamInfoFormValues>()
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end relative">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 relative p-4 rounded-md border mb-4 items-center">
       <div className="col-span-12 md:col-span-4">
         <FormField
           control={control}
-          name={`experience.${index}.cha_role`}
+          name={`${baseFieldName}.cha_role`}
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Role on weekend</FormLabel>
@@ -69,7 +71,7 @@ export function UserExperienceField({
       <div className="col-span-12 md:col-span-3">
         <FormField
           control={control}
-          name={`experience.${index}.community`}
+          name={`${baseFieldName}.community`}
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Community</FormLabel>
@@ -101,7 +103,7 @@ export function UserExperienceField({
       <div className="col-span-12 md:col-span-2">
         <FormField
           control={control}
-          name={`experience.${index}.weekend_number`}
+          name={`${baseFieldName}.weekend_number`}
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Weekend #</FormLabel>

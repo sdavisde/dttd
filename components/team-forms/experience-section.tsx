@@ -105,8 +105,10 @@ export function ExperienceSection() {
             return (
               <UserExperienceField
                 key={field.id}
+                control={control}
                 index={index}
                 remove={remove}
+                baseFieldName={`experience.${index}`}
               />
             )
           })}
