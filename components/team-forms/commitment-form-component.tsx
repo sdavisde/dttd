@@ -135,7 +135,7 @@ export function CommitmentFormComponent({ userName, weekendTitle, userRole, rost
 
                         {form.formState.errors.commitments && (
                             <p className="text-sm font-medium text-destructive">
-                                {form.formState.errors.commitments.message || "You must agree to all commitments."}
+                                {form.formState.errors.commitments.message ?? "You must agree to all commitments."}
                             </p>
                         )}
 

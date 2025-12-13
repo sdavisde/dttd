@@ -67,9 +67,9 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
   useEffect(() => {
     if (isEditing && event) {
       const resetData: Partial<EventFormData> = {
-        title: event.title || '',
+        title: event.title ?? '',
         time: '09:00',
-        location: event.location || '',
+        location: event.location ?? '',
       }
 
       if (event.datetime) {
@@ -313,7 +313,7 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
         title="Delete Event"
-        itemName={event?.title || 'this event'}
+        itemName={event?.title ?? 'this event'}
         isDeleting={isDeleting}
         onCancel={() => setShowDeleteDialog(false)}
         onConfirm={handleDeleteConfirm}

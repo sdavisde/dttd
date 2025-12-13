@@ -234,14 +234,14 @@ export function SponsorForm() {
                             {weekends?.MENS && (
                               <SelectItem value={weekends.MENS.id}>
                                 Men&apos;s Weekend -{' '}
-                                {weekends.MENS.title ||
+                                {weekends.MENS.title ??
                                   `Weekend #${weekends.MENS.number}`}
                               </SelectItem>
                             )}
                             {weekends?.WOMENS && (
                               <SelectItem value={weekends.WOMENS.id}>
                                 Women&apos;s Weekend -{' '}
-                                {weekends.WOMENS.title ||
+                                {weekends.WOMENS.title ??
                                   `Weekend #${weekends.WOMENS.number}`}
                               </SelectItem>
                             )}

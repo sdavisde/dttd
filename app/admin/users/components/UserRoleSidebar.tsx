@@ -97,7 +97,7 @@ export function UserRoleSidebar({
       setError(null)
       setServiceHistory(null)
     }
-  }, [isOpen, user])
+  }, [isOpen, user, showExperience])
 
   const handleSave = async () => {
     if (!user) return

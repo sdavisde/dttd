@@ -47,17 +47,17 @@ export function RolesSidebar({
   onClose,
 }: RolesSidebar) {
   const [permissions, setPermissions] = useState<string[]>(
-    role?.permissions || []
+    role?.permissions ?? []
   )
-  const [roleName, setRoleName] = useState(role?.label || '')
+  const [roleName, setRoleName] = useState(role?.label ?? '')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   // Update permissions and role name when role changes
   useEffect(() => {
-    setPermissions(role?.permissions || [])
-    setRoleName(role?.label || '')
+    setPermissions(role?.permissions ?? [])
+    setRoleName(role?.label ?? '')
   }, [role])
 
   // Reset state when modal opens/closes

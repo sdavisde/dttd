@@ -50,7 +50,7 @@ export function EventCard({
         <div className="flex items-start gap-2 mb-2">
           <Calendar className="w-5 h-5 mt-0.5 flex-shrink-0" />
           <Typography variant="h6" className="font-semibold">
-            {event.title || 'Untitled Event'}
+            {event.title ?? 'Untitled Event'}
           </Typography>
         </div>
         <div className="ml-7">

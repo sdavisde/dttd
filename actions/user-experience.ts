@@ -143,7 +143,7 @@ export async function getAllUsersServiceHistory(): Promise<
     // Group records by user_id
     const userRecordsMap = new Map<string, UserExperience[]>()
     for (const record of records) {
-      const existing = userRecordsMap.get(record.user_id) || []
+      const existing = userRecordsMap.get(record.user_id) ?? []
       existing.push(record)
       userRecordsMap.set(record.user_id, existing)
     }

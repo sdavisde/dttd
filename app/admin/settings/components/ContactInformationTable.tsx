@@ -62,8 +62,8 @@ export function ContactInformationTable({
   const handleEdit = (contact: ContactInformation) => {
     setEditingContact(contact)
     setFormData({
-      label: contact.label || '',
-      email_address: contact.email_address || '',
+      label: contact.label ?? '',
+      email_address: contact.email_address ?? '',
     })
     setIsDialogOpen(true)
   }

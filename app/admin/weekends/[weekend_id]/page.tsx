@@ -72,7 +72,7 @@ export default async function WeekendDetailPage({
   return (
     <>
       <AdminBreadcrumbs
-        title={weekend.title || `${weekend.type} Weekend #${weekend.number}`}
+        title={weekend.title ?? `${weekend.type} Weekend #${weekend.number}`}
         breadcrumbs={[
           { label: 'Admin', href: '/admin' },
           { label: 'Weekends', href: '/admin/weekends' },
@@ -85,7 +85,7 @@ export default async function WeekendDetailPage({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Typography variant="h5" className="text-2xl">
-                  {weekend.title || `${weekend.type} Weekend #${weekend.number}`}
+                  {weekend.title ?? `${weekend.type} Weekend #${weekend.number}`}
                 </Typography>
                 <WeekendStatusBadge status={weekend.status} />
               </div>
@@ -110,7 +110,7 @@ export default async function WeekendDetailPage({
                 <AddTeamMemberButton
                   weekendId={weekend_id}
                   weekendTitle={
-                    weekend.title ||
+                    weekend.title ??
                     `${weekend.type} Weekend #${weekend.number}`
                   }
                   users={availableUsers}

@@ -300,7 +300,7 @@ export async function notifyAssistantHeadForTeamPayment(
         teamMemberName: `${teamMember.users.first_name} ${teamMember.users.last_name}`,
         teamMemberEmail: teamMember.users.email,
         weekendName:
-          weekend.title || `${weekend.type} DTTD - #${weekend.number}`,
+          weekend.title ?? `${weekend.type} DTTD - #${weekend.number}`,
         paymentAmount,
       }),
     })

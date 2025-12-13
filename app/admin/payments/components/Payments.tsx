@@ -101,8 +101,8 @@ export function Payments({ payments }: PaymentsProps) {
       const intentId = payment.payment_intent_id.toLowerCase()
 
       return (
-        name?.includes(query) ||
-        email?.includes(query) ||
+        (name?.includes(query) ?? false) ||
+        (email?.includes(query) ?? false) ||
         type.includes(query) ||
         method.includes(query) ||
         amount.includes(query) ||

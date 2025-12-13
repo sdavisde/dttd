@@ -145,7 +145,7 @@ export default function ResetPasswordForm({
 
         <Alert variant="destructive">
           <AlertDescription>
-            {error || 'Please request a new password reset link.'}
+            {error ?? 'Please request a new password reset link.'}
           </AlertDescription>
         </Alert>
 

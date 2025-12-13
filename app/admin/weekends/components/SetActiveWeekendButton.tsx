@@ -53,7 +53,7 @@ export function SetActiveWeekendButton({
 
       const selectedGroup = weekendGroups.find((g) => g.groupId === groupId)
       const title =
-        selectedGroup?.weekends.MENS?.title?.replace(/mens|womens/gi, '').trim() ||
+        selectedGroup?.weekends.MENS?.title?.replace(/mens|womens/gi, '').trim() ??
         'Weekend'
 
       toast.success('Active weekend updated', {
@@ -71,7 +71,7 @@ export function SetActiveWeekendButton({
 
   const formatGroupTitle = (group: WeekendGroupWithId): string => {
     return (
-      group.weekends.MENS?.title?.replace(/mens|womens/gi, '').trim() ||
+      group.weekends.MENS?.title?.replace(/mens|womens/gi, '').trim() ??
       `Weekend #${group.weekends.MENS?.number ?? group.weekends.WOMENS?.number ?? '?'}`
     )
   }

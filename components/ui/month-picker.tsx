@@ -16,7 +16,7 @@ interface MonthPickerProps {
 }
 
 export function MonthPicker({ selected, onSelect }: MonthPickerProps) {
-  const [viewDate, setViewDate] = React.useState(selected || new Date())
+  const [viewDate, setViewDate] = React.useState(selected ?? new Date())
 
   const months = [
     'January',

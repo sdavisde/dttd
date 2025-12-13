@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const bucket = searchParams.get('bucket') || 'files'
+    const bucket = searchParams.get('bucket') ?? 'files'
     const path = searchParams.get('path')
 
     if (!path) {

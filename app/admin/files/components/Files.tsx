@@ -153,7 +153,7 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
       )}
 
       <CreateFolderSidebar
-        bucketName={selectedBucket || ''}
+        bucketName={selectedBucket ?? ''}
         isOpen={isCreateSidebarOpen}
         onClose={handleCloseSidebar}
       />

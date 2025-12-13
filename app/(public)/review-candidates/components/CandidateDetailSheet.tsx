@@ -330,7 +330,7 @@ export function CandidateDetailSheet({
                     : candidate.candidate_sponsorship_info?.attends_secuela ===
                         'no'
                       ? 'No'
-                      : candidate.candidate_sponsorship_info?.attends_secuela ||
+                      : candidate.candidate_sponsorship_info?.attends_secuela ??
                         'Not specified'}
                 </Typography>
               </div>

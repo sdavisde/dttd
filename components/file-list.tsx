@@ -159,7 +159,7 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
         }) } as HTMLElement : null}
         open={contextMenu !== null}
         onClose={handleClose}
-        item={contextMenu?.item || { name: '', isFolder: false }}
+        item={contextMenu?.item ?? { name: '', isFolder: false }}
         bucket={currentBucket}
         currentPath={currentPath}
       />

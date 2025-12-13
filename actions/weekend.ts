@@ -570,7 +570,7 @@ export async function addUserToWeekendRoster(
     user_id: userId,
     status: 'awaiting_payment',
     cha_role: role,
-    rollo: rollo || null,
+    rollo: rollo ?? null,
   })
 
   if (isSupabaseError(error)) {

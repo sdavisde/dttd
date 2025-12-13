@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -62,7 +62,7 @@ export function ReleaseOfClaimForm({ rosterId }: ReleaseOfClaimFormProps) {
         },
     })
 
-    const hasSpecialNeeds = form.watch('has_special_needs')
+    const hasSpecialNeeds = useWatch({ control: form.control, name: 'has_special_needs' })
     const currentDate = new Date().toLocaleDateString()
 
     const onSubmit = async (data: ReleaseOfClaimFormValues) => {

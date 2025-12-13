@@ -84,9 +84,9 @@ export function EditTeamMemberModal({
 
   const form = useForm<EditTeamMemberFormValues>({
     defaultValues: {
-      status: rosterMember?.status || '',
-      cha_role: rosterMember?.cha_role || '',
-      rollo: rosterMember?.rollo || '',
+      status: rosterMember?.status ?? '',
+      cha_role: rosterMember?.cha_role ?? '',
+      rollo: rosterMember?.rollo ?? '',
     },
     resolver: zodResolver(editTeamMemberFormSchema),
   })
@@ -97,9 +97,9 @@ export function EditTeamMemberModal({
   // Update form values when rosterMember changes
   React.useEffect(() => {
     if (rosterMember) {
-      form.setValue('status', rosterMember.status || '')
-      form.setValue('cha_role', rosterMember.cha_role || '')
-      form.setValue('rollo', rosterMember.rollo || '')
+      form.setValue('status', rosterMember.status ?? '')
+      form.setValue('cha_role', rosterMember.cha_role ?? '')
+      form.setValue('rollo', rosterMember.rollo ?? '')
     }
   }, [rosterMember, form])
 
@@ -128,7 +128,7 @@ export function EditTeamMemberModal({
         .update({
           status,
           cha_role,
-          rollo: rollo || null,
+          rollo: rollo ?? null,
         })
         .eq('id', rosterMember.id)
 

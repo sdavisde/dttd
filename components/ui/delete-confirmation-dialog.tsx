@@ -43,7 +43,7 @@ export function DeleteConfirmationDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            {description || defaultDescription}
+            {description ?? defaultDescription}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

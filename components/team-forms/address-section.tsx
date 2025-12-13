@@ -37,7 +37,7 @@ export function AddressSection({ savedAddress }: AddressSectionProps) {
   useEffect(() => {
     if (useSavedAddress && !isNil(savedAddress)) {
       setValue('address.addressLine1', savedAddress.addressLine1)
-      setValue('address.addressLine2', savedAddress.addressLine2 || '')
+      setValue('address.addressLine2', savedAddress.addressLine2 ?? '')
       setValue('address.city', savedAddress.city)
       setValue('address.state', savedAddress.state)
       setValue('address.zip', savedAddress.zip)
