@@ -40,23 +40,30 @@ import { TablePagination } from '@/components/ui/table-pagination'
 import { Card, CardContent } from '@/components/ui/card'
 import { Check, Minus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
+import type {
+  MasterRoster,
+  MasterRosterMember,
+} from '@/services/master-roster/types'
+import { useSession } from '@/components/auth/session-provider'
 
-interface UsersProps {
-  users: User[]
+interface MasterRosterProps {
+  masterRoster: MasterRoster
   roles: Array<{ id: string; label: string; permissions: string[] }>
   canViewExperience: boolean
   userExperienceMap: Map<string, UserServiceHistory>
 }
 
-export default function Users({
-  users,
+export default function MasterRoster({
+  masterRoster,
   roles,
   canViewExperience,
   userExperienceMap,
-}: UsersProps) {
+}: MasterRosterProps) {
+  const { user } = useSession()
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedMember, setSelectedMember] =
+    useState<MasterRosterMember | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -64,26 +71,26 @@ export default function Users({
 
   // Enhanced fuzzy search filtering
   const filteredUsers = useMemo(() => {
-    if (!searchTerm.trim()) return users
+    if (!searchTerm.trim()) return masterRoster.members
 
     const query = searchTerm.toLowerCase().trim()
 
-    return users.filter((user) => {
+    return masterRoster.members.filter((user) => {
       const name =
         `${user.firstName ?? ''} ${user.lastName ?? ''}`.toLowerCase()
       const email = (user.email ?? '').toLowerCase()
       const phone = (user.phoneNumber ?? '').toLowerCase()
-      const role = (user.role?.label ?? '').toLowerCase()
+      const roles = user.roles ?? []
 
       // Check if query matches any field (fuzzy search)
       return (
         name.includes(query) ||
         email.includes(query) ||
         phone.includes(query) ||
-        role.includes(query)
+        roles.includes(query)
       )
     })
-  }, [searchTerm, users])
+  }, [searchTerm, masterRoster.members])
 
   // Pagination setup
   const { paginatedData, pagination, setPage, setPageSize } =
@@ -92,13 +99,13 @@ export default function Users({
       initialPage: 1,
     })
 
-  const handleUserClick = (user: User) => {
-    setSelectedUser(user)
+  const handleMemberClick = (rosterMember: MasterRosterMember) => {
+    setSelectedMember(rosterMember)
     setIsModalOpen(true)
   }
 
   const handleCloseModal = () => {
-    setSelectedUser(null)
+    setSelectedMember(null)
     setIsModalOpen(false)
   }
 
@@ -138,7 +145,9 @@ export default function Users({
             <CardContent className="p-0">
               <div className="flex items-center gap-2 text-sm">
                 <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{users.length}</span>
+                <span className="font-medium">
+                  {masterRoster.members.length}
+                </span>
                 <span className="text-muted-foreground">total members</span>
               </div>
             </CardContent>
@@ -165,7 +174,8 @@ export default function Users({
         {/* Results Summary */}
         {searchTerm.trim() && (
           <div className="text-sm text-muted-foreground mb-4">
-            Showing {filteredUsers.length} of {users.length} users
+            Showing {filteredUsers.length} of {masterRoster.members.length}{' '}
+            users
           </div>
         )}
       </div>
@@ -193,33 +203,32 @@ export default function Users({
                     </TableHead>
                   </>
                 )}
-                <TableHead className="sticky right-0 bg-background text-right min-w-[80px] border-l">
-                  Actions
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedData.map((user, index) => {
-                const userExperience = userExperienceMap.get(user.id)
+              {paginatedData.map((member, index) => {
+                const userExperience = userExperienceMap.get(member.id)
                 return (
                   <TableRow
-                    key={user.id}
+                    key={member.id}
                     className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
-                    onClick={() => handleUserClick(user)}
+                    onClick={() => handleMemberClick(member)}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <UserIcon className="h-4 w-4 text-gray-500" />
-                        {(user.firstName ?? user.lastName)
-                          ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
+                        {(member.firstName ?? member.lastName)
+                          ? `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
                           : 'Unknown User'}
                       </div>
                     </TableCell>
-                    <TableCell>{user.email ?? '-'}</TableCell>
-                    <TableCell>{formatPhoneNumber(user.phoneNumber)}</TableCell>
+                    <TableCell>{member.email ?? '-'}</TableCell>
+                    <TableCell>
+                      {formatPhoneNumber(member.phoneNumber)}
+                    </TableCell>
                     <TableCell>
                       <span className="text-muted-foreground">
-                        {user.role?.label ?? '-'}
+                        {isEmpty(member.roles) ? '-' : member.roles.join(', ')}
                       </span>
                     </TableCell>
                     {canViewExperience && (
@@ -264,36 +273,6 @@ export default function Users({
                         </TableCell>
                       </>
                     )}
-                    <TableCell className="sticky right-0 bg-background text-right border-l">
-                      {userHasPermission(user, [
-                        Permission.WRITE_USER_ROLES,
-                      ]) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleUserClick(user)
-                          }}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit user role</span>
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteClick(user)
-                        }}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-700" />
-                        <span className="sr-only">Delete user</span>
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 )
               })}
@@ -326,7 +305,7 @@ export default function Users({
 
       {/* User Role Sidebar */}
       <UserRoleSidebar
-        user={selectedUser}
+        member={selectedMember}
         roles={roles}
         isOpen={isModalOpen}
         onClose={handleCloseModal}

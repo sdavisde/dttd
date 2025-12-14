@@ -24,11 +24,11 @@ const eslintConfig = defineConfig([
     languageOptions: {
       parserOptions: {
         projectService: true,
-      }
+      },
     },
   },
   {
-    files: ['**/actions/**/*.{ts,tsx}'],
+    files: ['**/actions/**/*.{ts,tsx}', '**/services/**/*.ts'],
     languageOptions: {
       parser: tsParser,
     },

@@ -32,16 +32,17 @@ import { Separator } from '@/components/ui/separator'
 import { Permission, userHasPermission } from '@/lib/security'
 import { isNil } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
+import { MasterRosterMember } from '@/services/master-roster/types'
 
 interface UserRoleSidebarProps {
-  user: User | null
+  member: MasterRosterMember | null
   roles: Array<{ id: string; label: string; permissions: string[] }>
   isOpen: boolean
   onClose: () => void
 }
 
 export function UserRoleSidebar({
-  user,
+  member,
   roles,
   isOpen,
   onClose,
@@ -67,8 +68,8 @@ export function UserRoleSidebar({
 
   // Update selected role when user changes
   useEffect(() => {
-    setSelectedRoleId(user?.role?.id ?? null)
-  }, [user])
+    setSelectedRoleId(member?.role?.id ?? null)
+  }, [member])
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -77,11 +78,10 @@ export function UserRoleSidebar({
       setIsLoading(false)
 
       // Fetch service history
-      if (user && showExperience) {
+      if (!isNil(member) && showExperience) {
         const fetchHistory = async () => {
           setIsLoadingHistory(true)
-          const result = await getUserServiceHistory(user.id)
-
+          const result = await getUserServiceHistory(member.id)
           if (!isErr(result)) {
             setServiceHistory(result.data)
           } else {
@@ -96,14 +96,14 @@ export function UserRoleSidebar({
       }
     } else {
       // Reset form state when modal closes
-      setSelectedRoleId(user?.role?.id ?? null)
+      setSelectedRoleId(member?.role?.id ?? null)
       setError(null)
       setServiceHistory(null)
     }
-  }, [isOpen, user, showExperience])
+  }, [isOpen, member, showExperience])
 
   const handleSave = async () => {
-    if (!user) return
+    if (isNil(member)) return
 
     setIsLoading(true)
     setError(null)
@@ -111,9 +111,9 @@ export function UserRoleSidebar({
     try {
       let result
       if (selectedRoleId === null) {
-        result = await removeUserRole(user.id)
+        result = await removeUserRole(member.id)
       } else if (selectedRoleId) {
-        result = await assignUserRole(user.id, selectedRoleId)
+        result = await assignUserRole(member.id, selectedRoleId)
       }
 
       if (result && isErr(result)) {
@@ -155,8 +155,8 @@ export function UserRoleSidebar({
                     Name
                   </Typography>
                   <Typography variant="h6" className="font-medium">
-                    {(user?.firstName ?? user?.lastName)
-                      ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
+                    {(member?.firstName ?? member?.lastName)
+                      ? `${member?.firstName ?? ''} ${member?.lastName ?? ''}`.trim()
                       : 'Unknown User'}
                   </Typography>
                 </div>
@@ -168,7 +168,7 @@ export function UserRoleSidebar({
                     Gender
                   </Typography>
                   <Typography className="text-sm">
-                    {user?.gender ?? '-'}
+                    {member?.gender ?? '-'}
                   </Typography>
                 </div>
                 <div>
@@ -179,7 +179,7 @@ export function UserRoleSidebar({
                     Phone
                   </Typography>
                   <Typography className="text-sm">
-                    {formatPhoneNumber(user?.phoneNumber)}
+                    {formatPhoneNumber(member?.phoneNumber)}
                   </Typography>
                 </div>
                 <div className="col-span-2">
@@ -190,7 +190,7 @@ export function UserRoleSidebar({
                     Email
                   </Typography>
                   <Typography className="text-sm break-all">
-                    {user?.email ?? '-'}
+                    {member?.email ?? '-'}
                   </Typography>
                 </div>
               </div>
@@ -289,7 +289,9 @@ export function UserRoleSidebar({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isLoading || selectedRoleId === (user?.role?.id ?? null)}
+            disabled={
+              isLoading || selectedRoleId === (member?.role?.id ?? null)
+            }
           >
             {isLoading ? 'Updating...' : 'Update Role'}
           </Button>

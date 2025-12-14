@@ -1,4 +1,5 @@
 import { PostgrestSingleResponse } from '@supabase/supabase-js'
+import z from 'zod'
 
 export type ErrorResult<E> = {
   error: E
@@ -102,4 +103,15 @@ export const fromSupabase = <D>(
   }
 
   return ok(supabaseResponse.data)
+}
+
+export const safeParse = <T>(
+  value: unknown,
+  schema: z.ZodSchema<T>
+): Result<string, T> => {
+  const result = schema.safeParse(value)
+  if (!result.success) {
+    return err(result.error.message)
+  }
+  return ok(result.data)
 }

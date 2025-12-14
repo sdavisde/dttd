@@ -1,14 +1,14 @@
 import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getUsers } from '@/actions/users'
 import { getLoggedInUser } from '@/services/auth'
 import { getRoles } from '@/actions/roles'
 import { getAllUsersServiceHistory } from '@/actions/user-experience'
-import Users from './components/Users'
+import MasterRoster from './components/master-roster'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { getMasterRoster } from '@/services/master-roster/master-roster-service'
 
-export default async function UsersPage() {
+export default async function MasterRosterPage() {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
 
@@ -16,16 +16,21 @@ export default async function UsersPage() {
     if (isErr(userResult) || !user) {
       throw new Error('User not found')
     }
-    permissionLock([Permission.READ_USERS])(user)
+    permissionLock([Permission.READ_MASTER_ROSTER])(user)
   } catch (error) {
     redirect('/')
   }
 
   // Fetch users and roles data on the server
-  const [usersResult, rolesResult] = await Promise.all([getUsers(), getRoles()])
+  const [masterRosterResult, rolesResult] = await Promise.all([
+    getMasterRoster(),
+    getRoles(),
+  ])
 
-  if (isErr(usersResult)) {
-    throw new Error(`Failed to fetch users: ${usersResult.error}`)
+  if (isErr(masterRosterResult)) {
+    throw new Error(
+      `Failed to fetch master roster: ${masterRosterResult.error}`
+    )
   }
 
   if (isErr(rolesResult)) {
@@ -52,8 +57,8 @@ export default async function UsersPage() {
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
       <div className="container mx-auto px-8">
-        <Users
-          users={usersResult.data}
+        <MasterRoster
+          masterRoster={masterRosterResult.data}
           roles={rolesResult.data}
           canViewExperience={canViewExperience}
           userExperienceMap={userExperienceMap}
