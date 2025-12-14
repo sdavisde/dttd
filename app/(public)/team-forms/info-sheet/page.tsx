@@ -27,20 +27,25 @@ export default async function TeamInfoPage() {
   const experience = experienceToFormValues(
     unwrap(serviceHistoryResult).experience
   )
-  const attendedWeekendReference = !isNil(user.weekend_attended)
-    ? WeekendReference.fromString(user.weekend_attended).toJSON()
+  const attendedWeekendReference = !isNil(
+    user.communityInformation.weekendAttended
+  )
+    ? WeekendReference.fromString(
+        user.communityInformation.weekendAttended
+      ).toJSON()
     : null
 
   const basicInfo = {
-    church_affiliation: user.church_affiliation ?? '',
+    church_affiliation: user.communityInformation.churchAffiliation ?? '',
     weekend_attended: attendedWeekendReference ?? {
       community: '',
       weekend_number: '',
     },
-    essentials_training_date: user.essentials_training_date
-      ? new Date(user.essentials_training_date)
+    essentials_training_date: user.communityInformation.essentialsTrainingDate
+      ? new Date(user.communityInformation.essentialsTrainingDate)
       : undefined,
-    special_gifts_and_skills: user.special_gifts_and_skills ?? [],
+    special_gifts_and_skills:
+      user.communityInformation.specialGiftsAndSkills ?? [],
   }
 
   return (

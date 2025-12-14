@@ -49,7 +49,12 @@ interface UsersProps {
   userExperienceMap: Map<string, UserServiceHistory>
 }
 
-export default function Users({ users, roles, canViewExperience, userExperienceMap }: UsersProps) {
+export default function Users({
+  users,
+  roles,
+  canViewExperience,
+  userExperienceMap,
+}: UsersProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -65,9 +70,9 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
 
     return users.filter((user) => {
       const name =
-        `${user.first_name ?? ''} ${user.last_name ?? ''}`.toLowerCase()
+        `${user.firstName ?? ''} ${user.lastName ?? ''}`.toLowerCase()
       const email = (user.email ?? '').toLowerCase()
-      const phone = (user.phone_number ?? '').toLowerCase()
+      const phone = (user.phoneNumber ?? '').toLowerCase()
       const role = (user.role?.label ?? '').toLowerCase()
 
       // Check if query matches any field (fuzzy search)
@@ -117,7 +122,7 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
     }
 
     toast.success(
-      `Deleted ${userToDelete.first_name} ${userToDelete.last_name} successfully`
+      `Deleted ${userToDelete.firstName} ${userToDelete.lastName} successfully`
     )
     setUserToDelete(null)
     setIsDeleteModalOpen(false)
@@ -177,9 +182,15 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
                 <TableHead className="min-w-[120px]">Role</TableHead>
                 {canViewExperience && (
                   <>
-                    <TableHead className="min-w-[80px] text-center">Level</TableHead>
-                    <TableHead className="min-w-[100px] text-center">Rector Ready</TableHead>
-                    <TableHead className="min-w-[100px] text-center">Weekends</TableHead>
+                    <TableHead className="min-w-[80px] text-center">
+                      Level
+                    </TableHead>
+                    <TableHead className="min-w-[100px] text-center">
+                      Rector Ready
+                    </TableHead>
+                    <TableHead className="min-w-[100px] text-center">
+                      Weekends
+                    </TableHead>
                   </>
                 )}
                 <TableHead className="sticky right-0 bg-background text-right min-w-[80px] border-l">
@@ -199,13 +210,13 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <UserIcon className="h-4 w-4 text-gray-500" />
-                        {(user.first_name ?? user.last_name)
-                          ? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
+                        {(user.firstName ?? user.lastName)
+                          ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
                           : 'Unknown User'}
                       </div>
                     </TableCell>
                     <TableCell>{user.email ?? '-'}</TableCell>
-                    <TableCell>{formatPhoneNumber(user.phone_number)}</TableCell>
+                    <TableCell>{formatPhoneNumber(user.phoneNumber)}</TableCell>
                     <TableCell>
                       <span className="text-muted-foreground">
                         {user.role?.label ?? '-'}
@@ -217,12 +228,13 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
                           {!isNil(userExperience) ? (
                             <Badge
                               variant="secondary"
-                              className={`font-semibold ${userExperience.level === 1
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                : userExperience.level === 2
-                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-                                  : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                }`}
+                              className={`font-semibold ${
+                                userExperience.level === 1
+                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                  : userExperience.level === 2
+                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                    : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                              }`}
                             >
                               {userExperience.level}
                             </Badge>
@@ -253,7 +265,9 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
                       </>
                     )}
                     <TableCell className="sticky right-0 bg-background text-right border-l">
-                      {userHasPermission(user, [Permission.WRITE_USER_ROLES]) && (
+                      {userHasPermission(user, [
+                        Permission.WRITE_USER_ROLES,
+                      ]) && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -285,7 +299,10 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
               })}
               {paginatedData.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={canViewExperience ? 8 : 5} className="text-center py-8">
+                  <TableCell
+                    colSpan={canViewExperience ? 8 : 5}
+                    className="text-center py-8"
+                  >
                     <p className="text-muted-foreground">
                       {searchTerm
                         ? 'No users found matching your search.'
@@ -323,7 +340,7 @@ export default function Users({ users, roles, canViewExperience, userExperienceM
             <DialogDescription>
               Are you sure you want to delete{' '}
               <strong>
-                {userToDelete?.first_name} {userToDelete?.last_name}
+                {userToDelete?.firstName} {userToDelete?.lastName}
               </strong>
               ? This action cannot be undone and will permanently remove the
               user and all associated data.

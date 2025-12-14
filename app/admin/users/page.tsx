@@ -1,6 +1,7 @@
 import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser, getUsers } from '@/actions/users'
+import { getUsers } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { getRoles } from '@/actions/roles'
 import { getAllUsersServiceHistory } from '@/actions/user-experience'
 import Users from './components/Users'
@@ -31,7 +32,9 @@ export default async function UsersPage() {
     throw new Error(`Failed to fetch roles: ${rolesResult.error}`)
   }
 
-  const canViewExperience = userHasPermission(user, [Permission.READ_USER_EXPERIENCE])
+  const canViewExperience = userHasPermission(user, [
+    Permission.READ_USER_EXPERIENCE,
+  ])
 
   // Fetch experience data if user has permission
   let userExperienceMap = new Map()

@@ -18,7 +18,7 @@ export default async function CampWaiverPage() {
     redirect('/')
   }
 
-  const userName = `${user.first_name} ${user.last_name}`.trim()
+  const userName = `${user.firstName} ${user.lastName}`.trim()
 
   return (
     <CampWaiverForm userName={userName} rosterId={user.teamMemberInfo.id} />

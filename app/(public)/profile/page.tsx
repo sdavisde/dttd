@@ -7,7 +7,15 @@ import { useRouter } from 'next/navigation'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { Typography } from '@/components/ui/typography'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import z from 'zod'
 import { useForm } from 'react-hook-form'
@@ -31,9 +39,9 @@ export default function ProfilePage() {
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       email: user?.email ?? '',
-      firstName: user?.first_name ?? '',
-      lastName: user?.last_name ?? '',
-      phoneNumber: user?.phone_number ?? '',
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
+      phoneNumber: user?.phoneNumber ?? '',
     },
   })
 
@@ -45,9 +53,9 @@ export default function ProfilePage() {
 
     if (user) {
       form.setValue('email', user.email ?? '')
-      form.setValue('firstName', user.first_name ?? '')
-      form.setValue('lastName', user.last_name ?? '')
-      form.setValue('phoneNumber', user.phone_number ?? '')
+      form.setValue('firstName', user.firstName ?? '')
+      form.setValue('lastName', user.lastName ?? '')
+      form.setValue('phoneNumber', user.phoneNumber ?? '')
     }
   }, [user, sessionLoading, isAuthenticated, router, form])
 
@@ -60,7 +68,10 @@ export default function ProfilePage() {
       const supabase = createClient()
 
       if (!user?.id) {
-        form.setError('root', { message: 'Looks like you have been automatically logged out. Please log in again.' })
+        form.setError('root', {
+          message:
+            'Looks like you have been automatically logged out. Please log in again.',
+        })
         return
       }
 
@@ -80,7 +91,9 @@ export default function ProfilePage() {
 
       setMessage('Profile updated successfully!')
     } catch (error) {
-      form.setError('root', { message: error instanceof Error ? error.message : 'An error occurred' })
+      form.setError('root', {
+        message: error instanceof Error ? error.message : 'An error occurred',
+      })
     } finally {
       setIsUpdating(false)
     }
@@ -88,8 +101,8 @@ export default function ProfilePage() {
 
   if (sessionLoading) {
     return (
-      <div className='flex justify-center items-center min-h-[50vh]'>
-        <Loader2 className='w-10 h-10 animate-spin' />
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="w-10 h-10 animate-spin" />
       </div>
     )
   }
@@ -99,28 +112,24 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className='max-w-lg mx-auto'>
-      <div className='my-4'>
-        <Typography variant='h1'>Profile</Typography>
-        <Typography variant='p'>Manage your account information</Typography>
+    <div className="max-w-lg mx-auto">
+      <div className="my-4">
+        <Typography variant="h1">Profile</Typography>
+        <Typography variant="p">Manage your account information</Typography>
 
-        <div className=''>
+        <div className="">
           {message && (
-            <Alert
-              variant='default'
-              className='mb-3'
-            >
+            <Alert variant="default" className="mb-3">
               <CheckCircle2 />
               <AlertTitle>Profile updated successfully!</AlertTitle>
-              <AlertDescription>Your profile has been updated successfully.</AlertDescription>
+              <AlertDescription>
+                Your profile has been updated successfully.
+              </AlertDescription>
             </Alert>
           )}
 
           {Object.values(form.formState.errors).length > 0 && (
-            <Alert
-              variant='destructive'
-              className='mb-3'
-            >
+            <Alert variant="destructive" className="mb-3">
               {Object.values(form.formState.errors)
                 .map((error) => error.message)
                 .join(', ')}
@@ -130,20 +139,20 @@ export default function ProfilePage() {
           <Form {...form}>
             <form
               onSubmit={handleUpdateProfile}
-              className='flex flex-col gap-3'
+              className="flex flex-col gap-3"
             >
               <FormField
                 control={form.control}
-                name='email'
+                name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        type='email'
-                        placeholder='example@gmail.com'
+                        type="email"
+                        placeholder="example@gmail.com"
                         disabled
-                        className='w-full'
+                        className="w-full"
                         {...field}
                       />
                     </FormControl>
@@ -155,15 +164,15 @@ export default function ProfilePage() {
 
               <FormField
                 control={form.control}
-                name='firstName'
+                name="firstName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='John'
+                        placeholder="John"
                         required
-                        className='w-full'
+                        className="w-full"
                         {...field}
                       />
                     </FormControl>
@@ -174,15 +183,15 @@ export default function ProfilePage() {
 
               <FormField
                 control={form.control}
-                name='lastName'
+                name="lastName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Doe'
+                        placeholder="Doe"
                         required
-                        className='w-full'
+                        className="w-full"
                         {...field}
                       />
                     </FormControl>
@@ -193,15 +202,15 @@ export default function ProfilePage() {
 
               <FormField
                 control={form.control}
-                name='phoneNumber'
+                name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='123-456-7890'
+                        placeholder="123-456-7890"
                         required
-                        className='w-full'
+                        className="w-full"
                         {...field}
                       />
                     </FormControl>
@@ -210,12 +219,12 @@ export default function ProfilePage() {
                 )}
               />
 
-              <Button
-                type='submit'
-                disabled={isUpdating}
-                className='mt-2'
-              >
-                {isUpdating ? <Loader2 className='w-4 h-4 animate-spin' /> : 'Update Profile'}
+              <Button type="submit" disabled={isUpdating} className="mt-2">
+                {isUpdating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  'Update Profile'
+                )}
               </Button>
             </form>
           </Form>

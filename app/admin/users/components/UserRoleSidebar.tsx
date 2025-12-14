@@ -155,8 +155,8 @@ export function UserRoleSidebar({
                     Name
                   </Typography>
                   <Typography variant="h6" className="font-medium">
-                    {(user?.first_name ?? user?.last_name)
-                      ? `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim()
+                    {(user?.firstName ?? user?.lastName)
+                      ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
                       : 'Unknown User'}
                   </Typography>
                 </div>
@@ -179,7 +179,7 @@ export function UserRoleSidebar({
                     Phone
                   </Typography>
                   <Typography className="text-sm">
-                    {formatPhoneNumber(user?.phone_number)}
+                    {formatPhoneNumber(user?.phoneNumber)}
                   </Typography>
                 </div>
                 <div className="col-span-2">
