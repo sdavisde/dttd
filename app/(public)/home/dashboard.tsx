@@ -18,7 +18,7 @@ export function Dashboard({ user }: DashboardProps) {
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-2">
           <Typography variant="h1">
-            Hi {user.first_name} {user.last_name}
+            Hi {user.firstName} {user.lastName}
           </Typography>
           <Typography>
             This is your personal space in the Dusty Trails Tres Dias community.
@@ -44,7 +44,7 @@ export function Dashboard({ user }: DashboardProps) {
 
         <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4">
           {isUserOnActiveTeam(user) &&
-            user.team_member_info.status === 'paid' && (
+            user.teamMemberInfo.status === 'paid' && (
               <div className="w-full h-full">
                 <Button
                   variant="outline"

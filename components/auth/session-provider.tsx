@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { User } from '@/lib/users/types'
 import { Result, isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'

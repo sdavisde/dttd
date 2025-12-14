@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { TeamInfoForm } from '@/components/team-forms/team-info-form'
 import { isErr, unwrap } from '@/lib/results'
 import { isNil } from 'lodash'
@@ -17,7 +17,7 @@ export default async function TeamInfoPage() {
   const user = userResult.data
 
   // Verify user is on an active weekend roster
-  if (isNil(user.team_member_info)) {
+  if (isNil(user.teamMemberInfo)) {
     // Spec says: redirect to homepage with error toast if not assigned.
     // For now, simple redirect. Toast is client-side, would need query param or similar.
     redirect('/?error=UserNotOnRoster')
@@ -46,7 +46,7 @@ export default async function TeamInfoPage() {
   return (
     <TeamInfoForm
       userId={user.id}
-      rosterId={user.team_member_info.id}
+      rosterId={user.teamMemberInfo.id}
       savedAddress={user.address}
       initialBasicInfo={basicInfo}
       initialServiceHistory={experience}

@@ -1,3 +1,5 @@
+import { PostgrestSingleResponse } from '@supabase/supabase-js'
+
 export type ErrorResult<E> = {
   error: E
   data?: never
@@ -40,7 +42,10 @@ export const unwrapErr = <E, D>(result: Result<E, D>): E => {
 }
 
 // Helper function to map over success value
-export const map = <E, D, U>(result: Result<E, D>, fn: (data: D) => U): Result<E, U> => {
+export const map = <E, D, U>(
+  result: Result<E, D>,
+  fn: (data: D) => U
+): Result<E, U> => {
   if (isOk(result)) {
     return ok(fn(result.data))
   }
@@ -48,7 +53,10 @@ export const map = <E, D, U>(result: Result<E, D>, fn: (data: D) => U): Result<E
 }
 
 // Helper function to map over error value
-export const mapErr = <E, D, F>(result: Result<E, D>, fn: (error: E) => F): Result<F, D> => {
+export const mapErr = <E, D, F>(
+  result: Result<E, D>,
+  fn: (error: E) => F
+): Result<F, D> => {
   if (isErr(result)) {
     return err(fn(result.error))
   }
@@ -56,7 +64,10 @@ export const mapErr = <E, D, F>(result: Result<E, D>, fn: (error: E) => F): Resu
 }
 
 // Helper function to chain operations
-export const andThen = <E, D, U>(result: Result<E, D>, fn: (data: D) => Result<E, U>): Result<E, U> => {
+export const andThen = <E, D, U>(
+  result: Result<E, D>,
+  fn: (data: D) => Result<E, U>
+): Result<E, U> => {
   if (isOk(result)) {
     return fn(result.data)
   }
@@ -72,9 +83,23 @@ export const unwrapOr = <E, D>(result: Result<E, D>, defaultValue: D): D => {
 }
 
 // Helper function to match on result (like pattern matching)
-export const match = <E, D, U>(result: Result<E, D>, onOk: (data: D) => U, onErr: (error: E) => U): U => {
+export const match = <E, D, U>(
+  result: Result<E, D>,
+  onOk: (data: D) => U,
+  onErr: (error: E) => U
+): U => {
   if (isOk(result)) {
     return onOk(result.data)
   }
   return onErr(result.error)
+}
+
+export const fromSupabase = <D>(
+  supabaseResponse: PostgrestSingleResponse<D>
+): Result<string, D> => {
+  if (supabaseResponse.error) {
+    return err(supabaseResponse.error.message)
+  }
+
+  return ok(supabaseResponse.data)
 }

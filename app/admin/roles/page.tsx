@@ -1,6 +1,6 @@
 import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { getRoles } from '@/actions/roles'
 import Roles from '@/app/admin/roles/components/Roles'
 import { isErr } from '@/lib/results'

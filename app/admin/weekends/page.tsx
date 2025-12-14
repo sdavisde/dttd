@@ -2,7 +2,7 @@ import { getWeekendGroupsByStatus } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Weekends } from './components/Weekends'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { Errors } from '@/lib/error'
 import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
@@ -26,11 +26,8 @@ export default async function WeekendsPage() {
 
   const canEdit = userHasPermission(user, [Permission.WRITE_WEEKENDS])
 
-
   if (isErr(weekendGroupsResult)) {
-    throw new Error(
-      `Failed to fetch weekends: ${weekendGroupsResult.error}`
-    )
+    throw new Error(`Failed to fetch weekends: ${weekendGroupsResult.error}`)
   }
 
   const weekendGroups = weekendGroupsResult.data

@@ -26,7 +26,7 @@ export type TeamTodoData = {
 export async function getTeamTodoData(
   user: TeamMemberUser
 ): Promise<TeamTodoData | null> {
-  const weekendId = user.team_member_info.weekend_id
+  const weekendId = user.teamMemberInfo.weekend_id
 
   if (isNil(weekendId)) {
     return null

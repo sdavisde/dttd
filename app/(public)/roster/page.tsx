@@ -4,7 +4,7 @@ import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-ro
 import { DroppedRosterSection, ActiveRosterHeader } from '@/components/weekend'
 import { Typography } from '@/components/ui/typography'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CHARole } from '@/lib/weekend/types'
 import { Permission, userHasCHARole, userHasPermission } from '@/lib/security'

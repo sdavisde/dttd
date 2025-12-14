@@ -1,6 +1,6 @@
 import { Permission, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { getAllPayments } from '@/actions/payments'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'

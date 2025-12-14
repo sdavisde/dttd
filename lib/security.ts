@@ -1,6 +1,7 @@
 import { User } from '@/lib/users/types'
 import { Errors } from './error'
 import { CHARole } from './weekend/types'
+import { isNil } from 'lodash'
 
 /**
  * Builds a callback to check user permissions. Will throw an error if the user does not have the required permissions.
@@ -32,10 +33,10 @@ export function userHasPermission(user: User, permissions: string[]): boolean {
 }
 
 export function userHasCHARole(user: User, chaRoles: Array<CHARole>): boolean {
-  if (!user.team_member_info?.cha_role) {
+  if (isNil(user.teamMemberInfo?.cha_role)) {
     return false
   }
-  return chaRoles.map(toString).includes(user.team_member_info.cha_role)
+  return chaRoles.map(toString).includes(user.teamMemberInfo.cha_role)
 }
 
 export enum Permission {

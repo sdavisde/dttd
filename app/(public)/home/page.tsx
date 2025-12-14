@@ -1,6 +1,6 @@
 import { isErr } from '@/lib/results'
 import { Dashboard } from './dashboard'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 
 export default async function Home() {
   const user = await getLoggedInUser()

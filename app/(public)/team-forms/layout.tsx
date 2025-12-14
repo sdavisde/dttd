@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { TeamFormsStepper } from '@/components/team-forms/stepper'
 import { teamFormSteps } from '@/components/team-forms/steps.config'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { getTeamFormsProgress } from '@/actions/team-forms'
 import { isErr } from '@/lib/results'
 import { redirect } from 'next/navigation'
@@ -20,13 +20,13 @@ export default async function TeamFormsLayout({
 
   const user = userResult.data
 
-  if (isNil(user.team_member_info)) {
+  if (isNil(user.teamMemberInfo)) {
     // Ideally redirect to a "not on roster" page or show an error
     // For now, redirecting to home
     redirect('/')
   }
 
-  const progressResult = await getTeamFormsProgress(user.team_member_info.id)
+  const progressResult = await getTeamFormsProgress(user.teamMemberInfo.id)
 
   let maxReachableStepIndex = 0
 

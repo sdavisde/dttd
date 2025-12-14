@@ -7,7 +7,6 @@ import { logger } from '@/lib/logger'
 import { genderMatchesWeekend } from '@/lib/weekend'
 import { Address, addressSchema } from '@/lib/users/validation'
 import { BasicInfo, BasicInfoSchema } from '@/components/team-forms/schemas'
-import { isEmpty } from 'lodash'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 export async function getUsers(): Promise<Result<string, Array<User>>> {
@@ -81,122 +80,25 @@ export async function getUsers(): Promise<Result<string, Array<User>>> {
 
         return {
           id: u.id,
-          first_name: u.first_name,
-          last_name: u.last_name,
+          firstName: u.first_name,
+          lastName: u.last_name,
           gender: u.gender,
           email: u.email,
-          phone_number: u.phone_number,
+          phoneNumber: u.phone_number,
           address,
-          church_affiliation: u.church_affiliation,
-          weekend_attended: u.weekend_attended,
-          essentials_training_date: u.essentials_training_date,
-          special_gifts_and_skills: u.special_gifts_and_skills,
           role,
-          team_member_info: rosterRecord ?? null,
+          communityInformation: {
+            churchAffiliation: u.church_affiliation,
+            weekendAttended: u.weekend_attended,
+            essentialsTrainingDate: u.essentials_training_date,
+            specialGiftsAndSkills: u.special_gifts_and_skills,
+          },
+          teamMemberInfo: rosterRecord ?? null,
         }
       })
       .filter((it) => it !== null)
 
     return ok(users)
-  } catch (error) {
-    return err(
-      `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
-  }
-}
-
-export async function getLoggedInUser(): Promise<Result<string, User>> {
-  try {
-    const supabase = await createClient()
-
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser()
-
-    if (!authUser) {
-      return err('User not found')
-    }
-
-    // Single query: users + roles + weekend roster (joined to active weekend)
-    const { data: user, error } = await supabase
-      .from('users')
-      .select(
-        `
-          id,
-          first_name,
-          last_name,
-          gender,
-          email,
-          phone_number,
-          address,
-          church_affiliation,
-          weekend_attended,
-          essentials_training_date,
-          special_gifts_and_skills,
-          user_roles:user_roles (
-            roles (
-              id,
-              label,
-              permissions
-            )
-          ),
-          weekend_roster:weekend_roster!user_id(
-            id, user_id, weekend_id, cha_role, status, weekends(type, status)
-          )
-        `
-      )
-      .eq('id', authUser.id)
-      .single()
-
-    if (error) {
-      return err(`Failed to fetch users: ${error.message}`)
-    }
-
-    if (!user) {
-      return err('User not found')
-    }
-
-    if (!user.email) {
-      return err('User has no email')
-    }
-
-    // Handle role (pick the first one if multiple)
-    const roleRow = user.user_roles?.[0]?.roles ?? null
-    const role = roleRow
-      ? {
-          id: roleRow.id,
-          label: roleRow.label,
-          permissions: roleRow.permissions ?? [],
-        }
-      : null
-
-    // team_member_info: find roster record for active weekend & matching gender
-    const rosterRecord = (user.weekend_roster ?? []).find((wr) => {
-      if (!wr.weekends) return false
-      const wk = wr.weekends
-      return (
-        wk.status === 'ACTIVE' && genderMatchesWeekend(user.gender, wk.type)
-      )
-    })
-
-    const addressResult = addressSchema.safeParse(user.address)
-    const address = addressResult.success ? addressResult.data : null
-
-    return ok({
-      id: user.id,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      gender: user.gender,
-      email: user.email,
-      phone_number: user.phone_number,
-      address,
-      church_affiliation: user.church_affiliation,
-      weekend_attended: user.weekend_attended,
-      essentials_training_date: user.essentials_training_date,
-      special_gifts_and_skills: user.special_gifts_and_skills,
-      role,
-      team_member_info: rosterRecord ?? null,
-    })
   } catch (error) {
     return err(
       `Error while fetching users: ${error instanceof Error ? error.message : 'Unknown error'}`

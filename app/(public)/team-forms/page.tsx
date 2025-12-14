@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/actions/users'
+import { getLoggedInUser } from '@/services/auth'
 import { getTeamFormsProgress } from '@/actions/team-forms'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'
@@ -25,11 +25,11 @@ export default async function TeamFormsPage() {
 
   const user = userResult.data
 
-  if (isNil(user.team_member_info)) {
+  if (isNil(user.teamMemberInfo)) {
     redirect('/?error=UserNotOnRoster')
   }
 
-  const progressResult = await getTeamFormsProgress(user.team_member_info.id)
+  const progressResult = await getTeamFormsProgress(user.teamMemberInfo.id)
 
   if (isErr(progressResult)) {
     // Handle error gracefully
@@ -120,7 +120,8 @@ export default async function TeamFormsPage() {
                 step.isComplete
                   ? 'bg-muted/20 border-border'
                   : 'bg-card border-border shadow-sm',
-                step.isDisabled && 'opacity-50 cursor-not-allowed pointer-events-none'
+                step.isDisabled &&
+                  'opacity-50 cursor-not-allowed pointer-events-none'
               )}
             >
               <div className="flex items-center gap-4">
