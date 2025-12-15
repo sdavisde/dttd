@@ -225,6 +225,8 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                           field.onChange(date?.toISOString())
                         }
                         className="w-full"
+                        startMonth={new Date(new Date().getFullYear() - 100, 0)}
+                        endMonth={new Date(new Date().getFullYear() - 18, 11)}
                       />
                     </FormControl>
                     <FormMessage />

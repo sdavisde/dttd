@@ -21,14 +21,25 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/ui/date-picker'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
-import { type Event, createEvent, updateEvent, deleteEvent } from '@/actions/events'
+import {
+  type Event,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+} from '@/actions/events'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 
 const CT_TIMEZONE = 'America/Chicago'
-
 
 const eventFormSchema = z.object({
   title: z.string().min(1, 'Event name is required'),
@@ -48,7 +59,8 @@ interface EventSidebarProps {
 export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
   const isEditing = !!event
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [originalFormData, setOriginalFormData] = useState<EventFormData | null>(null)
+  const [originalFormData, setOriginalFormData] =
+    useState<EventFormData | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
@@ -131,7 +143,9 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
         handleClose()
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred')
+      toast.error(
+        error instanceof Error ? error.message : 'An unexpected error occurred'
+      )
       console.error('Error saving event:', error)
     } finally {
       setIsSubmitting(false)
@@ -152,7 +166,9 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
       router.refresh()
       handleClose()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete event')
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to delete event'
+      )
     } finally {
       setIsDeleting(false)
     }
@@ -172,25 +188,27 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
 
   // Check if form has changes
   const currentFormData = form.watch()
-  const hasChanges = originalFormData ? JSON.stringify({
-    title: currentFormData.title,
-    date: currentFormData.date?.toISOString(),
-    time: currentFormData.time,
-    location: currentFormData.location,
-  }) !== JSON.stringify({
-    title: originalFormData.title,
-    date: originalFormData.date?.toISOString(),
-    time: originalFormData.time,
-    location: originalFormData.location,
-  }) : (
-    currentFormData.title !== '' ||
-    currentFormData.date?.toDateString() !== new Date().toDateString() ||
-    currentFormData.time !== '09:00' ||
-    currentFormData.location !== ''
-  )
+  const hasChanges = originalFormData
+    ? JSON.stringify({
+        title: currentFormData.title,
+        date: currentFormData.date?.toISOString(),
+        time: currentFormData.time,
+        location: currentFormData.location,
+      }) !==
+      JSON.stringify({
+        title: originalFormData.title,
+        date: originalFormData.date?.toISOString(),
+        time: originalFormData.time,
+        location: originalFormData.location,
+      })
+    : currentFormData.title !== '' ||
+      currentFormData.date?.toDateString() !== new Date().toDateString() ||
+      currentFormData.time !== '09:00' ||
+      currentFormData.location !== ''
 
   const isFormValid = form.formState.isValid
-  const isSaveDisabled = !isFormValid || (isEditing && !hasChanges) || isSubmitting
+  const isSaveDisabled =
+    !isFormValid || (isEditing && !hasChanges) || isSubmitting
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
@@ -198,21 +216,32 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
         <SheetHeader>
           <SheetTitle>{isEditing ? 'Edit Event' : 'Add New Event'}</SheetTitle>
           <SheetDescription>
-            {isEditing ? 'Update the event details below.' : 'Create a new event by filling out the form below.'}
+            {isEditing
+              ? 'Update the event details below.'
+              : 'Create a new event by filling out the form below.'}
           </SheetDescription>
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col h-full"
+          >
             <div className="space-y-4 px-4 flex-1">
               <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">Event Name</FormLabel>
+                    <FormLabel className="text-sm font-medium">
+                      Event Name
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Team Meeting 1" {...field} required />
+                      <Input
+                        placeholder="e.g., Team Meeting 1"
+                        {...field}
+                        required
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -224,13 +253,17 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">Date *</FormLabel>
+                    <FormLabel className="text-sm font-medium">
+                      Date *
+                    </FormLabel>
                     <FormControl>
                       <DatePicker
                         date={field.value}
                         onDateChange={field.onChange}
                         placeholder="Select a date"
                         className="w-full"
+                        startMonth={new Date(new Date().getFullYear() - 2, 0)}
+                        endMonth={new Date(new Date().getFullYear() + 3, 11)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -243,7 +276,9 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
                 name="time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">Time (CT) *</FormLabel>
+                    <FormLabel className="text-sm font-medium">
+                      Time (CT) *
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="time"
@@ -263,7 +298,9 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">Location *</FormLabel>
+                    <FormLabel className="text-sm font-medium">
+                      Location *
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Enter event location..."
@@ -295,14 +332,13 @@ export function EventSidebar({ isOpen, onClose, event }: EventSidebarProps) {
                 <Button
                   type="submit"
                   disabled={isSaveDisabled || isDeleting}
-                  className={isEditing ? "flex-1" : "w-full"}
+                  className={isEditing ? 'flex-1' : 'w-full'}
                 >
                   {isSubmitting
                     ? 'Saving...'
                     : isEditing
                       ? 'Save Changes'
-                      : 'Create Event'
-                  }
+                      : 'Create Event'}
                 </Button>
               </div>
             </SheetFooter>
