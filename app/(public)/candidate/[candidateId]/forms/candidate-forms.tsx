@@ -61,30 +61,11 @@ const formSchema = z.object({
   zip: z.string().min(1, 'ZIP code is required'),
   phone: z.string().min(1, 'Phone number is required'),
   /** Health section */
-  requireSpecialAssistance: z.boolean(),
-  specialNeeds: z.string().optional(),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z
     .string()
     .min(1, 'Emergency contact phone is required'),
-  coveredByInsurance: z.boolean().optional(),
-  /** If covered by insurance, show this field */
-  insuranceInformation: z.string().optional(),
-  allergies: z.string().optional(),
-  allergyManagement: z.string().optional(),
-  hasMedication: z.boolean(),
-  medicationInformation: z.string().optional(),
-  activityRestrictions: z.string().optional(),
   medicalConditions: z.string().optional(),
-  familyPhysician: z.string().min(1, 'Family physician is required'),
-  physicianPhone: z.string().min(1, 'Physician phone is required'),
-  familyDentist: z.string().min(1, 'Family dentist is required'),
-  dentistPhone: z.string().min(1, 'Dentist phone is required'),
-  /** Smoking section */
-  smokeOrVape: z.boolean().optional(),
-  acknowledgedSmokeRules: z.boolean(),
-  acknowledgedCampRules: z.boolean(),
-  /** Medical permissions */
   medicalPermission: z.boolean(),
   emergencyContactPermission: z.boolean(),
 })
@@ -121,25 +102,9 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
       church: '',
       memberOfClergy: false,
       reasonForAttending: '',
-      requireSpecialAssistance: false,
-      specialNeeds: '',
       emergencyContactName: '',
       emergencyContactPhone: '',
-      coveredByInsurance: false,
-      insuranceInformation: '',
-      allergies: '',
-      allergyManagement: '',
-      hasMedication: false,
-      medicationInformation: '',
-      activityRestrictions: '',
       medicalConditions: '',
-      familyPhysician: '',
-      physicianPhone: '',
-      familyDentist: '',
-      dentistPhone: '',
-      smokeOrVape: false,
-      acknowledgedSmokeRules: false,
-      acknowledgedCampRules: false,
       medicalPermission: false,
       emergencyContactPermission: false,
     },
@@ -176,27 +141,9 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
         church: data.church ?? null,
         member_of_clergy: data.memberOfClergy ?? null,
         reason_for_attending: data.reasonForAttending ?? null,
-        require_special_assistance: data.requireSpecialAssistance ?? null,
-        special_needs: data.specialNeeds ?? null,
         emergency_contact_name: data.emergencyContactName ?? null,
         emergency_contact_phone: data.emergencyContactPhone ?? null,
-        covered_by_insurance: data.coveredByInsurance ?? null,
-        insurance_information: data.insuranceInformation ?? null,
-        allergies: data.allergies ?? null,
-        allergy_management: data.allergyManagement ?? null,
-        has_medication: data.hasMedication ?? null,
-        medication_information: data.medicationInformation ?? null,
-        activity_restrictions: data.activityRestrictions ?? null,
         medical_conditions: data.medicalConditions ?? null,
-        family_physician: data.familyPhysician ?? null,
-        physician_phone: data.physicianPhone ?? null,
-        family_dentist: data.familyDentist ?? null,
-        dentist_phone: data.dentistPhone ?? null,
-        smoke_or_vape: data.smokeOrVape ?? null,
-        acknowledged_smoke_rules: data.acknowledgedSmokeRules ?? null,
-        acknowledged_camp_rules: data.acknowledgedCampRules ?? null,
-        medical_permission: data.medicalPermission ?? null,
-        emergency_contact_permission: data.emergencyContactPermission ?? null,
         age,
       })
       if (isErr(result)) {
@@ -612,48 +559,6 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
               <FormField
                 control={form.control}
-                name="requireSpecialAssistance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Do you have ANY Special Needs/Assistance? (ex: Sleep
-                      Apnea, Diabetes, Walking Assistance, etc)
-                    </FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="requireSpecialAssistance"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="requireSpecialAssistance">Yes</Label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {form.watch('requireSpecialAssistance') && (
-                <FormField
-                  control={form.control}
-                  name="specialNeeds"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Please state your needs below</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start mt-4">
-              <FormField
-                control={form.control}
                 name="emergencyContactName"
                 render={({ field }) => (
                   <FormItem>
@@ -682,133 +587,6 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
 
               <FormField
                 control={form.control}
-                name="coveredByInsurance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Are you covered by insurance?</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="coveredByInsurance"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="coveredByInsurance">Yes</Label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {form.watch('coveredByInsurance') && (
-                <FormField
-                  control={form.control}
-                  name="insuranceInformation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Please provide the following Insurance Information
-                        below: Insurance Name / Policy #/ Group # / Subscriber
-                        Name/ Relationship to participant
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea {...field} rows={3} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <FormField
-                control={form.control}
-                name="allergies"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Any Food/Other Allergies?</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="allergyManagement"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Describe (Allergy) Reaction and Management of Reaction
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="hasMedication"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Do you take any medications?</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="hasMedication"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="hasMedication">Yes</Label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {form.watch('hasMedication') && (
-                <FormField
-                  control={form.control}
-                  name="medicationInformation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        List ALL Medications below & Reason for taking (ex:
-                        Lexapro - Depression/Anxiety)
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea {...field} rows={3} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <FormField
-                control={form.control}
-                name="activityRestrictions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Please list ANY restrictions that apply to activity
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="medicalConditions"
                 render={({ field }) => (
                   <FormItem>
@@ -823,217 +601,6 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                       Example: food allergies, medications at certain times
                     </FormDescription>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="familyPhysician"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name of Family Physician</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="physicianPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Physician Phone Number & Address</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="familyDentist"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name of Family Dentist</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="dentistPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dentist Phone Number & Address Phone</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="smokeOrVape"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Do you smoke or vape?</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="smokeOrVape"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="smokeOrVape">Yes</Label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="acknowledgedSmokeRules"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      If you marked &quot;YES&quot; for smoking, please be aware
-                      there are only 2-3 breaks per day (in a specific area
-                      &quot;designated for smoking&quot; on camp):
-                    </FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="acknowledgedSmokeRules"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="acknowledgedSmokeRules">
-                          I acknowledge
-                        </Label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Smoking & Special Assistance Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Acknowledgements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="acknowledgedCampRules"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      I acknowledge the camp rules and policies
-                    </FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="acknowledgedCampRules"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="acknowledgedCampRules">
-                          I acknowledge
-                        </Label>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="medicalPermission"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      I hereby give permission to the medical personnel selected
-                      by the camp staff to order X-rays, routine tests,
-                      treatment; to release any records necessary for insurance
-                      purposes; and to provide or arrange necessary related
-                      transportation for me. I further, hereby give permission
-                      to the physician selected by the camp staff to secure and
-                      administer treatment, including hospitalization,
-                      anesthesia, surgery, or any other medical decision.{' '}
-                    </FormLabel>
-                    <FormControl>
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="medicalPermission"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                          <Label htmlFor="medicalPermission">
-                            I have read, acknowledged and agree to give
-                            permission to selected personnel for medical
-                            purposes
-                          </Label>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setWaiverOpen(true)}
-                        >
-                          Read Tanglewood Christian Camp Waiver
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="emergencyContactPermission"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      I acknowledge that the Dusty Trails Tres Dias nurse will
-                      attempt to contact the emergency contact listed at the top
-                      of this waiver as soon as possible and will keep them
-                      up-to-date concerning the condition and treatment of the
-                      Attendee
-                    </FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="emergencyContactPermission"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="emergencyContactPermission">
-                          I acknowledge
-                        </Label>
-                      </div>
-                    </FormControl>
                   </FormItem>
                 )}
               />
