@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -812,11 +813,15 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Do you have ANY Medical Conditions that staff should know?
+                      Any medical conditions that you would like us to be aware
+                      of, please let us know
                     </FormLabel>
                     <FormControl>
                       <Textarea {...field} rows={2} />
                     </FormControl>
+                    <FormDescription>
+                      Example: food allergies, medications at certain times
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
