@@ -7,7 +7,8 @@
     "build": "yarn lint && next build",
     "start": "next start",
     "lint": "npx eslint . --ext .ts,.tsx",
-    "generate": "npx supabase gen types typescript --project-id hlbfwbfhfbbiyztbqmsw > database.types.ts"
+    "generate": "npx supabase gen types typescript --project-id hlbfwbfhfbbiyztbqmsw > database.types.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -65,6 +66,7 @@
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.7",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5.9.3",
