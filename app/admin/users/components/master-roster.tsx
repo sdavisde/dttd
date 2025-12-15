@@ -80,7 +80,7 @@ export default function MasterRoster({
         `${user.firstName ?? ''} ${user.lastName ?? ''}`.toLowerCase()
       const email = (user.email ?? '').toLowerCase()
       const phone = (user.phoneNumber ?? '').toLowerCase()
-      const roles = user.roles ?? []
+      const roles = user.roles.map((it) => it.label)
 
       // Check if query matches any field (fuzzy search)
       return (
@@ -228,7 +228,9 @@ export default function MasterRoster({
                     </TableCell>
                     <TableCell>
                       <span className="text-muted-foreground">
-                        {isEmpty(member.roles) ? '-' : member.roles.join(', ')}
+                        {isEmpty(member.roles)
+                          ? '-'
+                          : member.roles.map((it) => it.label).join(', ')}
                       </span>
                     </TableCell>
                     {canViewExperience && (

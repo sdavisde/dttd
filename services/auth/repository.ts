@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import { fromSupabase } from '@/lib/results'
+import { err, fromSupabase } from '@/lib/results'
 
 export const GetUserInfoQuery = `
   id,
@@ -53,4 +53,21 @@ export const getAllUsers = async () => {
   const supabase = await createClient()
   const response = await supabase.from('users').select(GetAllUserInfoQuery)
   return fromSupabase(response)
+}
+
+export const updateUserRoles = async (userId: string, roleIds: string[]) => {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId)
+  if (fromSupabase(response).error) {
+    return err('Failed to delete user roles')
+  }
+
+  const insertResponse = await supabase
+    .from('user_roles')
+    .insert(roleIds.map((roleId) => ({ user_id: userId, role_id: roleId })))
+    .select()
+  return fromSupabase(insertResponse)
 }

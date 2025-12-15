@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
-import { assignUserRole, removeUserRole } from '@/actions/users'
 import { getUserServiceHistory } from '@/actions/user-experience'
 import { UserServiceHistory } from '@/lib/users/experience'
-import { User } from '@/lib/users/types'
 import {
   Sheet,
   SheetContent,
@@ -13,13 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { MultiSelect } from '@/components/ui/multi-select'
 import { formatPhoneNumber } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -30,9 +22,10 @@ import { PreviousExperienceSection } from './previous-experience-section'
 import { Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Permission, userHasPermission } from '@/lib/security'
-import { isNil } from 'lodash'
+import { isNil, isEqual } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
 import { MasterRosterMember } from '@/services/master-roster/types'
+import { updateUserRoles } from '@/services/auth'
 
 interface UserRoleSidebarProps {
   member: MasterRosterMember | null
@@ -49,7 +42,7 @@ export function UserRoleSidebar({
 }: UserRoleSidebarProps) {
   // currentUser is the user browsing the site. user is the user being edited
   const { user: currentUser } = useSession()
-  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -66,9 +59,11 @@ export function UserRoleSidebar({
     !isNil(currentUser) &&
     userHasPermission(currentUser, [Permission.READ_USER_EXPERIENCE])
 
-  // Update selected role when user changes
+  const initialRoleIds = member?.roles?.map((r) => r.id) ?? []
+
+  // Update selected roles when user changes
   useEffect(() => {
-    setSelectedRoleId(member?.role?.id ?? null)
+    setSelectedRoleIds(member?.roles?.map((r) => r.id) ?? [])
   }, [member])
 
   // Reset state when modal opens/closes
@@ -96,7 +91,7 @@ export function UserRoleSidebar({
       }
     } else {
       // Reset form state when modal closes
-      setSelectedRoleId(member?.role?.id ?? null)
+      setSelectedRoleIds(member?.roles?.map((r) => r.id) ?? [])
       setError(null)
       setServiceHistory(null)
     }
@@ -109,29 +104,29 @@ export function UserRoleSidebar({
     setError(null)
 
     try {
-      let result
-      if (selectedRoleId === null) {
-        result = await removeUserRole(member.id)
-      } else if (selectedRoleId) {
-        result = await assignUserRole(member.id, selectedRoleId)
-      }
+      const result = await updateUserRoles(member.id, selectedRoleIds)
 
       if (result && isErr(result)) {
         setError(result.error)
         return
       }
 
-      toast.success('User role updated successfully')
+      toast.success('User roles updated successfully')
       router.refresh()
       onClose()
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to update user role'
+        err instanceof Error ? err.message : 'Failed to update user roles'
       setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
   }
+
+  const roleOptions = roles.map((role) => ({
+    value: role.id,
+    label: role.label,
+  }))
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -247,29 +242,15 @@ export function UserRoleSidebar({
                     className="text-xs uppercase tracking-wide font-medium"
                     as="label"
                   >
-                    User Role
+                    User Roles
                   </Typography>
-                  <Select
-                    value={selectedRoleId ?? 'No role'}
-                    onValueChange={(value) =>
-                      setSelectedRoleId(value === 'No role' ? null : value)
-                    }
+                  <MultiSelect
+                    options={roleOptions}
+                    onValueChange={setSelectedRoleIds}
+                    defaultValue={selectedRoleIds}
+                    placeholder="Select roles"
                     disabled={isLoading}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="No role">
-                        <em>No role</em>
-                      </SelectItem>
-                      {roles.map((role) => (
-                        <SelectItem key={role.id} value={role.id}>
-                          {role.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
               </div>
             </div>
@@ -290,10 +271,11 @@ export function UserRoleSidebar({
           <Button
             onClick={handleSave}
             disabled={
-              isLoading || selectedRoleId === (member?.role?.id ?? null)
+              isLoading ||
+              isEqual(initialRoleIds.sort(), selectedRoleIds.sort())
             }
           >
-            {isLoading ? 'Updating...' : 'Update Role'}
+            {isLoading ? 'Updating...' : 'Update Roles'}
           </Button>
         </SheetFooter>
       </SheetContent>

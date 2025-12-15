@@ -11,7 +11,7 @@ export type MasterRosterMember = {
   phoneNumber: string | null
   address: Address | null
   communityInformation: CommunityInformation
-  roles: Array<string>
+  roles: Array<{ id: string; label: string }>
   permissions: Array<string>
   experience: Array<UserExperience>
 }

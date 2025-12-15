@@ -191,40 +191,6 @@ export async function deleteUser(
   }
 }
 
-export async function assignUserRole(
-  userId: string,
-  roleId: string
-): Promise<Result<string, true>> {
-  try {
-    const supabase = await createClient()
-
-    // Remove any existing role first (one role per user business logic)
-    const { error: deleteError } = await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', userId)
-
-    if (deleteError) {
-      return err(`Failed to remove existing user role: ${deleteError.message}`)
-    }
-
-    // Insert the new role
-    const { error: insertError } = await supabase
-      .from('user_roles')
-      .insert({ user_id: userId, role_id: roleId })
-
-    if (insertError) {
-      return err(`Failed to assign user role: ${insertError.message}`)
-    }
-
-    return ok(true)
-  } catch (error) {
-    return err(
-      `Error while assigning user role: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
-  }
-}
-
 export async function removeUserRole(
   userId: string
 ): Promise<Result<string, true>> {

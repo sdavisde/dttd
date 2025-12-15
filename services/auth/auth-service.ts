@@ -73,3 +73,10 @@ export async function getLoggedInUser(): Promise<Result<string, User>> {
 
   return await getUserById(authUser.id)
 }
+
+/**
+ * Updates the roles of a user to match those provided
+ */
+export async function updateUserRoles(userId: string, roleIds: string[]) {
+  return await AuthRepository.updateUserRoles(userId, roleIds)
+}

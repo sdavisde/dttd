@@ -32,7 +32,7 @@ export async function getMasterRoster(): Promise<Result<string, MasterRoster>> {
         specialGiftsAndSkills: member.special_gifts_and_skills,
       },
       permissions: getPermissionsFromUserRoles(member.user_roles),
-      roles: member.user_roles?.map((role) => role.roles.label) ?? [],
+      roles: member.user_roles?.map((role) => role.roles) ?? [],
       experience: normalizeUserExperience(member.users_experience),
     }
   })
