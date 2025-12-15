@@ -21,14 +21,16 @@ export function AdminEvents({
 }: AdminEventsProps) {
   if (!events || events.length === 0) {
     return (
-      <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch'>
-        <Alert className='h-full flex flex-col'>
-          <div className='flex items-start gap-2 mb-2'>
-            <Calendar className='w-5 h-5 mt-0.5 flex-shrink-0' />
-            <Typography variant='h6' className='font-semibold'>No Events</Typography>
+      <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+        <Alert className="h-full flex flex-col">
+          <div className="flex items-start gap-2 mb-2">
+            <Calendar className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <Typography variant="h6" className="font-semibold">
+              No Events
+            </Typography>
           </div>
-          <div className='ml-7'>
-            <Typography variant='small' className='text-muted-foreground'>
+          <div className="ml-7">
+            <Typography variant="small" className="text-muted-foreground">
               There are no events to display.
             </Typography>
           </div>
@@ -38,7 +40,7 @@ export function AdminEvents({
   }
 
   return (
-    <div className='w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch'>
+    <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
       {events.map((event) => (
         <EventCard
           key={event.id}

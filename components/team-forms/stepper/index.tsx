@@ -52,11 +52,7 @@ export function TeamFormsStepper({
                   step={step}
                   index={index}
                   state={
-                    isCompleted
-                      ? 'completed'
-                      : isCurrent
-                        ? 'current'
-                        : 'future'
+                    isCompleted ? 'completed' : isCurrent ? 'current' : 'future'
                   }
                   disabled={isLocked}
                 />

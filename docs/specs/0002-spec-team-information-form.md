@@ -22,6 +22,7 @@ The Team Information Form collects comprehensive information from weekend team m
 Weekend leadership requires comprehensive information about each team member to plan logistics, understand member backgrounds, and make informed decisions about team assignments. Team members need a straightforward way to provide this essential information.
 
 **Acceptance Criteria:**
+
 - Access team information form from /team-info route when assigned to an active weekend
 - Submit address (street, city, state, zip), church affiliation, past weekend attended details, and essentials training date
 - All required fields are validated before submission
@@ -37,6 +38,7 @@ Weekend leadership requires comprehensive information about each team member to 
 Many team members serve on multiple weekends over time. Re-entering the same address information for each weekend is tedious and error-prone. The system should remember and offer to reuse previously submitted address data.
 
 **Acceptance Criteria:**
+
 - Form displays "Do you want to use this saved address or change it?" when saved address exists
 - Saved address automatically pre-fills all address fields when choosing to use it
 - Option to modify saved address if information has changed
@@ -52,6 +54,7 @@ Many team members serve on multiple weekends over time. Re-entering the same add
 Team members often have experience serving in other Tres Dias communities or serving multiple roles across different weekends. Leadership needs visibility into this varied experience to understand each member's full background and capabilities.
 
 **Acceptance Criteria:**
+
 - Add multiple experience entries dynamically (no fixed limit)
 - Each entry includes CHA role, community + weekend number, and date (month/year)
 - Remove experience entries that were added in error
@@ -68,6 +71,7 @@ Team members often have experience serving in other Tres Dias communities or ser
 Weekend planning is more effective when leadership knows what special skills and abilities team members possess (audio/visual, carpentry, music, medical, etc.). Team members need an easy way to indicate their relevant skills.
 
 **Acceptance Criteria:**
+
 - Select multiple skills from predefined list using multi-select dropdown
 - Predefined options include: Audio/video, Carpenter, Crafts, Music (vocal), Music (instrument), Sewing, Computer skills, Nurse/medical, Clergy, Plumber, Electrician, Photography
 - Option to add custom skills not in the predefined list
@@ -83,6 +87,7 @@ Weekend planning is more effective when leadership knows what special skills and
 Team member circumstances may change between initial form submission and the weekend event (address change, new skills acquired, etc.). The system should allow editing previously submitted information at any time.
 
 **Acceptance Criteria:**
+
 - Re-access /team-info form after initial submission
 - All previously submitted data pre-fills in the form
 - Edit any field including address, church, past weekend, essentials training, experience, and skills
@@ -97,6 +102,7 @@ Team member circumstances may change between initial form submission and the wee
 **Purpose:** Collect essential team member information including address, church affiliation, past weekend attendance, and essentials training completion.
 
 **Functional Requirements:**
+
 - The system shall provide a /team-info route accessible to logged-in users on the (public) layout
 - The system shall redirect users to the homepage with an error toast if they access /team-info without being assigned to an active weekend roster
 - The system shall fetch the logged-in user's saved address from the `users.address` JSONB field on the server-side when loading the form
@@ -115,6 +121,7 @@ Team member circumstances may change between initial form submission and the wee
 - The system shall allow users to re-access and edit the form at any time after initial submission
 
 **Proof Artifacts:**
+
 - Screenshot: /team-info form with empty fields for new user demonstrates initial form state
 - Screenshot: /team-info form with pre-filled address for returning user demonstrates saved address reuse
 - Screenshot: Form validation errors for missing required fields demonstrates validation logic
@@ -125,6 +132,7 @@ Team member circumstances may change between initial form submission and the wee
 **Purpose:** Collect detailed team member experience from other communities and identify special skills/abilities for weekend planning.
 
 **Functional Requirements:**
+
 - The system shall provide an "Experience outside of Dusty Trails" section allowing users to add multiple experience entries
 - The system shall allow users to add/remove experience entries dynamically (no fixed limit)
 - Each experience entry shall contain:
@@ -154,6 +162,7 @@ Team member circumstances may change between initial form submission and the wee
 - The system shall store selected skills as a comma-separated string in the `weekend_roster_team_info` table
 
 **Proof Artifacts:**
+
 - Screenshot: Form showing multiple experience entries demonstrates dynamic entry management
 - Database records: Multiple `user_experience` rows for same user demonstrates experience tracking
 - Screenshot: Skills dropdown with selected options demonstrates multi-select functionality
@@ -164,6 +173,7 @@ Team member circumstances may change between initial form submission and the wee
 **Purpose:** Persist all collected team information to the database, update user address for future reuse, and enable TODO completion tracking.
 
 **Functional Requirements:**
+
 - The system shall create or update a `weekend_roster_team_info` record linked to the user's active `weekend_roster` record via weekend_roster_id
 - The system shall update the `users.address` JSONB field with the submitted address data for all form submissions
 - The system shall save all user_experience entries to the database with proper upsert logic
@@ -176,6 +186,7 @@ Team member circumstances may change between initial form submission and the wee
 - The system shall pre-populate all fields with saved data on form re-access
 
 **Proof Artifacts:**
+
 - Database record: `users.address` JSONB field updated with submitted address demonstrates address persistence
 - Database record: `weekend_roster_team_info` record with weekend_roster_id foreign key demonstrates proper linking
 - Database records: Multiple `user_experience` records demonstrate experience tracking
@@ -197,6 +208,7 @@ Team member circumstances may change between initial form submission and the wee
 ## Design Considerations
 
 **Page Layout:**
+
 - Follow existing form patterns used in candidate forms (consistent field styling, validation messages)
 - Use a single-page form with all sections visible (no multi-step wizard)
 - Include progress indicator or section navigation for long form (optional)
@@ -204,6 +216,7 @@ Team member circumstances may change between initial form submission and the wee
 
 **Form Sections:**
 Group related fields into clear sections with headings:
+
 1. **Address Information**
    - "Use saved address?" toggle/radio (if saved address exists)
    - Address fields (collapsible if using saved address)
@@ -222,6 +235,7 @@ Group related fields into clear sections with headings:
    - Selected items displayed as tags/chips
 
 **Component Selection:**
+
 - Use shadcn/ui Form components (wraps React Hook Form)
 - Input, Select, DatePicker components from shadcn/ui
 - Button with loading state for submission
@@ -230,6 +244,7 @@ Group related fields into clear sections with headings:
 - Badge component for selected skills display
 
 **Address Fieldset Behavior:**
+
 - If saved address exists: Show radio buttons or toggle switch
 - Options: "Use saved address" (default) vs "Enter new address"
 - Selecting "Enter new address" reveals address fields with pre-filled values
@@ -237,6 +252,7 @@ Group related fields into clear sections with headings:
 - Pre-filled values should be editable
 
 **Experience Entry Management:**
+
 - Use "Add Another Experience" button (secondary variant) with Plus icon
 - Each entry in a Card component with subtle border
 - Remove button as icon button (Trash2 icon) in top-right of card
@@ -244,6 +260,7 @@ Group related fields into clear sections with headings:
 - Consider reasonable maximum (20 entries) to prevent abuse
 
 **Validation & Error Display:**
+
 - Show validation errors inline below each field
 - Use red text and error icons for errors
 - Highlight fields with errors (red border)
@@ -251,6 +268,7 @@ Group related fields into clear sections with headings:
 - Disable submit button while validation errors exist (or show errors on click)
 
 **Loading & Success States:**
+
 - Show loading spinner on submit button during submission
 - Disable all form fields during submission
 - Success: Redirect to homepage with toast notification
@@ -259,6 +277,7 @@ Group related fields into clear sections with headings:
 ## Repository Standards
 
 **Code Organization:**
+
 - Create /team-info page at `app/(public)/team-info/page.tsx`
 - Create form component at `components/team-forms/team-info-form.tsx`
 - Create reusable subcomponents:
@@ -271,6 +290,7 @@ Group related fields into clear sections with headings:
 - Update database types by running `yarn generate` after schema changes
 
 **Component Patterns:**
+
 - Use ONLY shadcn/ui components (NO Material-UI or other libraries)
 - Import UI components from `@/components/ui/` directory
 - Mark client components with 'use client' directive
@@ -279,6 +299,7 @@ Group related fields into clear sections with headings:
 - Use TypeScript for all components with proper typing
 
 **Database Operations:**
+
 - Use server actions pattern (not API routes) for all database operations
 - Return `Result<Error, T>` types for consistent error handling
 - Use generated types from `database.types.ts`
@@ -286,6 +307,7 @@ Group related fields into clear sections with headings:
 - Use transactions where appropriate (e.g., saving multiple experience entries)
 
 **Testing:**
+
 - Ensure `yarn build` completes successfully
 - Test responsive behavior on mobile and desktop viewports
 - Manually test form validation and error states
@@ -299,12 +321,15 @@ Group related fields into clear sections with headings:
 **Database Schema Changes:**
 
 Create `users.address` JSONB column:
+
 ```sql
 ALTER TABLE users ADD COLUMN address JSONB;
 ```
+
 Structure: `{addressLine1: string, addressLine2: string?, city: string, state: string, zip: string}`
 
 Create `weekend_roster_team_info` table:
+
 ```sql
 CREATE TABLE weekend_roster_team_info (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -320,6 +345,7 @@ CREATE TABLE weekend_roster_team_info (
 ```
 
 Create `user_experience` table:
+
 ```sql
 CREATE TABLE user_experience (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -334,12 +360,14 @@ CREATE TABLE user_experience (
 ```
 
 **RLS Policies:**
+
 - `users.address`: Users can read/update their own address only
 - `weekend_roster_team_info`: Users can read/write records linked to their own weekend_roster entries
 - `user_experience`: Users can read/write their own experience records
 - Weekend leadership with appropriate permissions can read all team info for their weekend
 
 **Form State Management:**
+
 - Use React Hook Form's `useForm` hook with Zod resolver
 - Define Zod schemas for validation in `lib/team-forms/validation.ts`
 - Use `defaultValues` to populate saved data from server
@@ -347,41 +375,48 @@ CREATE TABLE user_experience (
 - Handle async server actions with proper loading/error states
 
 **Data Fetching Strategy:**
+
 - Server-side: Fetch user's saved address and existing team_info in parallel
 - Check if user is on active weekend roster (redirect if not)
 - Pass data to client component via props
 - Client-side: Use React Hook Form to manage form state
 
 **Weekend Roster Validation:**
+
 - Verify user is assigned to an active weekend roster before allowing form access
 - Get weekend_roster_id for the user's active weekend
 - Use this ID when saving weekend_roster_team_info
 - Prevent users from submitting for weekends they're not assigned to
 
 **Past Weekend Formatting:**
+
 - Input: 3 separate fields (community dropdown, number input, location text)
 - Output format: "Community Name#12|Dallas, TX"
 - Validation: Ensure number is positive integer, location is not empty
 - Display format when editing: Parse string back into 3 fields
 
 **Essentials Training Date:**
+
 - Use shadcn/ui DatePicker in month/year mode (no day selection)
 - Store as string in format "YYYY-MM"
 - Display format: "January 2024" (human-readable)
 
 **User Experience Upsert Logic:**
+
 - Before inserting, check if record exists with matching (user_id, cha_role, date)
 - If exists: UPDATE with new community_weekend value
 - If not exists: INSERT new record
 - Use Supabase upsert functionality or manual check-then-insert
 
 **Performance Considerations:**
+
 - Fetch user's saved address and existing team_info data in parallel on page load
 - Use Supabase's RLS to scope queries automatically
 - Consider debouncing validation for text inputs (optional)
 - Batch user_experience inserts in a single transaction
 
 **Error Handling:**
+
 - Wrap server actions in try-catch blocks
 - Return Result<Error, T> for consistent error handling
 - Display user-friendly error messages (don't expose technical details)
@@ -391,18 +426,21 @@ CREATE TABLE user_experience (
 ## Security Considerations
 
 **Authentication & Authorization:**
+
 - Require authentication for /team-info route (handled by Supabase middleware)
 - Verify user is assigned to active weekend roster before allowing form access
 - Ensure users can only view/edit their own team information
 - Validate weekend_roster_id belongs to authenticated user before saving
 
 **Data Privacy:**
+
 - Address information is PII - ensure proper RLS policies
 - User experience data should be scoped to the user
 - Skills/abilities data should be accessible to weekend leadership but not public
 - Consider GDPR compliance for data retention and deletion
 
 **Input Validation:**
+
 - Validate all form inputs on both client (Zod) and server (server action validation)
 - Sanitize text inputs to prevent XSS attacks
 - Validate date formats and ensure reasonable date ranges (e.g., essentials training date not in future)
@@ -415,11 +453,13 @@ CREATE TABLE user_experience (
 - Validate weekend number is positive integer between 1-999
 
 **SQL Injection Prevention:**
+
 - Use Supabase client with parameterized queries (automatically handled)
 - Never construct raw SQL with user input
 - Rely on generated types and Supabase methods
 
 **Proof Artifact Security:**
+
 - Screenshots should not reveal sensitive data from other users
 - Database records in proof artifacts should only show test user's data
 - Do NOT commit any real user data in proof artifacts

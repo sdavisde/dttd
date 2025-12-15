@@ -12,12 +12,12 @@ import {
 
 export function SystemLinks() {
   return (
-    <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>System</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
-            <a href='/admin/settings'>
+            <a href="/admin/settings">
               <Settings2 />
               <span>Settings</span>
             </a>
@@ -25,7 +25,7 @@ export function SystemLinks() {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
-            <a href='/admin/roles'>
+            <a href="/admin/roles">
               <ShieldCheck />
               <span>Security</span>
             </a>

@@ -21,7 +21,7 @@ export default function PasswordInput({
   onChange,
   required = false,
   helpText,
-  disabled = false
+  disabled = false,
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false)
 
@@ -31,7 +31,7 @@ export default function PasswordInput({
       <div className="relative">
         <Input
           id={id}
-          type={showPassword ? "text" : "password"}
+          type={showPassword ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
@@ -53,9 +53,7 @@ export default function PasswordInput({
           )}
         </Button>
       </div>
-      {helpText && (
-        <p className="text-sm text-gray-500">{helpText}</p>
-      )}
+      {helpText && <p className="text-sm text-gray-500">{helpText}</p>}
     </div>
   )
 }

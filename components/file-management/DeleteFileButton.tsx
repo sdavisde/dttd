@@ -71,7 +71,9 @@ export function DeleteFileButton({
           ? err.message
           : 'An error occurred while deleting the file'
       toast.error(errorMessage)
-      logger.error(`Error deleting file: ${err instanceof Error ? err.message : String(err)}`)
+      logger.error(
+        `Error deleting file: ${err instanceof Error ? err.message : String(err)}`
+      )
     } finally {
       setIsDeleting(false)
       setDeleteDialogOpen(false)

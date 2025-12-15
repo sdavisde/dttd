@@ -4,7 +4,7 @@ import {
   getActiveRoster,
   getDroppedRoster,
   splitRosterByStatus,
-  getRosterCounts
+  getRosterCounts,
 } from '@/lib/weekend/roster-utils'
 
 export function useRoster(roster: Array<WeekendRosterMember>) {

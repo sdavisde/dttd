@@ -112,15 +112,11 @@ export function Payments({ payments }: PaymentsProps) {
   }, [payments, searchQuery])
 
   // Pagination setup
-  const {
-    paginatedData,
-    pagination,
-    setPage,
-    setPageSize,
-  } = useTablePagination(filteredPayments, {
-    initialPageSize: 10,
-    initialPage: 1,
-  })
+  const { paginatedData, pagination, setPage, setPageSize } =
+    useTablePagination(filteredPayments, {
+      initialPageSize: 10,
+      initialPage: 1,
+    })
 
   return (
     <div className="space-y-4">
@@ -201,7 +197,7 @@ export function Payments({ payments }: PaymentsProps) {
             </TableBody>
           </Table>
         </div>
-        
+
         {/* Pagination */}
         <TablePagination
           pagination={pagination}
@@ -265,7 +261,7 @@ export function Payments({ payments }: PaymentsProps) {
             </div>
           ))
         )}
-        
+
         {/* Mobile Pagination */}
         <div className="mt-4">
           <TablePagination

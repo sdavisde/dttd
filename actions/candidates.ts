@@ -3,7 +3,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { Result, err, ok } from '@/lib/results'
 import { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
-import { CandidateStatus, HydratedCandidate, CandidateFormData } from '@/lib/candidates/types'
+import {
+  CandidateStatus,
+  HydratedCandidate,
+  CandidateFormData,
+} from '@/lib/candidates/types'
 
 /**
  * Create a new candidate with sponsorship information
@@ -28,13 +32,17 @@ export async function createCandidateWithSponsorshipInfo(
     }
 
     // Create the sponsorship info record
-    const { error: sponsorshipInfoError } = await supabase.from('candidate_sponsorship_info').insert({
-      candidate_id: candidate.id,
-      ...sponsorshipInfo,
-    })
+    const { error: sponsorshipInfoError } = await supabase
+      .from('candidate_sponsorship_info')
+      .insert({
+        candidate_id: candidate.id,
+        ...sponsorshipInfo,
+      })
 
     if (sponsorshipInfoError) {
-      return err(`Failed to create sponsorship info: ${sponsorshipInfoError.message}`)
+      return err(
+        `Failed to create sponsorship info: ${sponsorshipInfoError.message}`
+      )
     }
 
     return ok(candidate as HydratedCandidate)
@@ -48,7 +56,9 @@ export async function createCandidateWithSponsorshipInfo(
 /**
  * Delete a candidate and all related data
  */
-export async function deleteCandidate(candidateId: string): Promise<Result<string, { success: boolean }>> {
+export async function deleteCandidate(
+  candidateId: string
+): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
@@ -59,18 +69,28 @@ export async function deleteCandidate(candidateId: string): Promise<Result<strin
       .eq('candidate_id', candidateId)
 
     if (sponsorshipInfoError) {
-      return err(`Failed to delete sponsorship info: ${sponsorshipInfoError.message}`)
+      return err(
+        `Failed to delete sponsorship info: ${sponsorshipInfoError.message}`
+      )
     }
 
     // Delete candidate info if it exists
-    const { error: candidateInfoError } = await supabase.from('candidate_info').delete().eq('candidate_id', candidateId)
+    const { error: candidateInfoError } = await supabase
+      .from('candidate_info')
+      .delete()
+      .eq('candidate_id', candidateId)
 
     if (candidateInfoError) {
-      return err(`Failed to delete candidate info: ${candidateInfoError.message}`)
+      return err(
+        `Failed to delete candidate info: ${candidateInfoError.message}`
+      )
     }
 
     // Finally delete the candidate
-    const { error: candidateError } = await supabase.from('candidates').delete().eq('id', candidateId)
+    const { error: candidateError } = await supabase
+      .from('candidates')
+      .delete()
+      .eq('id', candidateId)
 
     if (candidateError) {
       return err(`Failed to delete candidate: ${candidateError.message}`)
@@ -78,14 +98,18 @@ export async function deleteCandidate(candidateId: string): Promise<Result<strin
 
     return ok({ success: true })
   } catch (error) {
-    return err(`Error while deleting candidate: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    return err(
+      `Error while deleting candidate: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 }
 
 /**
  * Gets a candidate with all related information
  */
-export async function getHydratedCandidate(candidateId: string): Promise<Result<string, HydratedCandidate>> {
+export async function getHydratedCandidate(
+  candidateId: string
+): Promise<Result<string, HydratedCandidate>> {
   try {
     const supabase = await createClient()
 
@@ -102,7 +126,9 @@ export async function getHydratedCandidate(candidateId: string): Promise<Result<
       .single()
 
     if (candidateError) {
-      return err(`Failed to get candidate with details: ${candidateError.message}`)
+      return err(
+        `Failed to get candidate with details: ${candidateError.message}`
+      )
     }
 
     const hydratedCandidate: HydratedCandidate = {
@@ -173,8 +199,7 @@ export async function getAllCandidatesWithDetails(
     return ok(
       candidates.map((candidate) => ({
         ...candidate,
-        candidate_sponsorship_info:
-          candidate.candidate_sponsorship_info.at(0),
+        candidate_sponsorship_info: candidate.candidate_sponsorship_info.at(0),
         candidate_info: candidate.candidate_info.at(0),
       })) as HydratedCandidate[]
     )
@@ -192,7 +217,10 @@ export async function updateCandidateStatus(
   try {
     const supabase = await createClient()
 
-    const { error: updateError } = await supabase.from('candidates').update({ status }).eq('id', candidateId)
+    const { error: updateError } = await supabase
+      .from('candidates')
+      .update({ status })
+      .eq('id', candidateId)
 
     if (updateError) {
       return err(`Failed to update candidate status: ${updateError.message}`)
@@ -209,14 +237,19 @@ export async function updateCandidateStatus(
 /**
  * Add Candidate Info when a user submits their candidate forms
  */
-export async function addCandidateInfo(candidateId: string, data: CandidateFormData): Promise<Result<string, true>> {
+export async function addCandidateInfo(
+  candidateId: string,
+  data: CandidateFormData
+): Promise<Result<string, true>> {
   try {
     const supabase = await createClient()
 
-    const { error: candidateInfoError } = await supabase.from('candidate_info').insert({
-      candidate_id: candidateId,
-      ...data,
-    })
+    const { error: candidateInfoError } = await supabase
+      .from('candidate_info')
+      .insert({
+        candidate_id: candidateId,
+        ...data,
+      })
 
     if (candidateInfoError) {
       return err(`Failed to add candidate info: ${candidateInfoError.message}`)

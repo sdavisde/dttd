@@ -31,7 +31,7 @@ export function PublicFilesFolderContent({
       <Typography variant="small" className="text-muted-foreground">
         {files.length} item{files.length !== 1 ? 's' : ''}
       </Typography>
-      
+
       <PublicFileTable files={files} folderName={folderName} />
     </div>
   )

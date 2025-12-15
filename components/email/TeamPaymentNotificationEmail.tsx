@@ -75,13 +75,14 @@ export default function TeamPaymentNotificationEmail({
                   <strong>Payment Amount:</strong> ${paymentAmount.toFixed(2)}
                 </Text>
                 <Text className="text-gray-700 mb-2">
-                  <strong>Payment Status:</strong> <span className="text-green-600 font-semibold">Paid</span>
+                  <strong>Payment Status:</strong>{' '}
+                  <span className="text-green-600 font-semibold">Paid</span>
                 </Text>
               </Section>
 
               <Text className="text-gray-700 mb-6">
-                The team member has been marked as paid in the system. No further
-                action is required from you at this time.
+                The team member has been marked as paid in the system. No
+                further action is required from you at this time.
               </Text>
             </Section>
 

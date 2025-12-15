@@ -24,9 +24,7 @@ export async function sendSponsorshipNotificationEmail(
     const candidateResult = await getHydratedCandidate(candidateId)
 
     if (isErr(candidateResult)) {
-      return err(
-        `Failed to fetch candidate: ${candidateResult.error}`
-      )
+      return err(`Failed to fetch candidate: ${candidateResult.error}`)
     }
 
     const candidate = candidateResult.data
@@ -91,9 +89,7 @@ export async function sendCandidateForms(
       })
 
     if (candidateFormsEmailError) {
-      return err(
-        `Failed to send email: ${candidateFormsEmailError.message}`
-      )
+      return err(`Failed to send email: ${candidateFormsEmailError.message}`)
     }
 
     return ok({ data: candidateFormsEmail })
@@ -114,10 +110,8 @@ export async function sendPaymentRequestEmail(
 
     const candidateResult = await getHydratedCandidate(candidateId)
     if (isErr(candidateResult)) {
-        `Failed to fetch candidate ${candidateId}: ${candidateResult.error}`
-      return err(
-        `Failed to fetch candidate: ${candidateResult.error}`
-      )
+      ;`Failed to fetch candidate ${candidateId}: ${candidateResult.error}`
+      return err(`Failed to fetch candidate: ${candidateResult.error}`)
     }
 
     const candidate = candidateResult.data

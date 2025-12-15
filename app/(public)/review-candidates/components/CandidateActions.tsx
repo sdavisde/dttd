@@ -6,9 +6,7 @@ interface CandidateActionsProps {
   onClose: () => void
 }
 
-export function CandidateActions({
-  onClose,
-}: CandidateActionsProps) {
+export function CandidateActions({ onClose }: CandidateActionsProps) {
   return (
     <div className="w-full flex items-center justify-between gap-1">
       <div className="flex gap-1 w-full justify-between">

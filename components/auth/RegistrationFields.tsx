@@ -17,7 +17,7 @@ export default function RegistrationFields({
   lastName,
   setLastName,
   gender,
-  setGender
+  setGender,
 }: RegistrationFieldsProps) {
   return (
     <>

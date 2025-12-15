@@ -5,7 +5,10 @@ interface AuthModeToggleProps {
   onModeChange: (mode: 'login' | 'register') => void
 }
 
-export default function AuthModeToggle({ mode, onModeChange }: AuthModeToggleProps) {
+export default function AuthModeToggle({
+  mode,
+  onModeChange,
+}: AuthModeToggleProps) {
   return (
     <div className="flex w-full border-b">
       <Button

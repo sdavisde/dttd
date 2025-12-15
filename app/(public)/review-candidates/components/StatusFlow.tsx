@@ -4,7 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowRight, ArrowDown } from 'lucide-react'
 import { CandidateStatus } from '@/lib/candidates/types'
 
-const STATUSES: Array<{ id: CandidateStatus; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'warning' }> = [
+const STATUSES: Array<{
+  id: CandidateStatus
+  label: string
+  variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'warning'
+}> = [
   { id: 'sponsored', label: 'Sponsored', variant: 'default' },
   { id: 'awaiting_forms', label: 'Awaiting Forms', variant: 'warning' },
   { id: 'awaiting_payment', label: 'Awaiting Payment', variant: 'warning' },
@@ -19,14 +23,12 @@ export function StatusFlow({ currentStatus }: StatusFlowProps) {
   return (
     <div className="flex flex-col sm:flex-row items-center gap-2 my-4">
       {STATUSES.map((status, index) => (
-        <div
-          key={status.id}
-          className="flex flex-col sm:flex-row items-center"
-        >
+        <div key={status.id} className="flex flex-col sm:flex-row items-center">
           <Badge
             variant={currentStatus === status.id ? 'default' : 'outline'}
-            className={`min-w-[100px] text-center ${currentStatus === status.id ? 'font-bold' : 'font-normal'
-              }`}
+            className={`min-w-[100px] text-center ${
+              currentStatus === status.id ? 'font-bold' : 'font-normal'
+            }`}
           >
             {status.label}
           </Badge>

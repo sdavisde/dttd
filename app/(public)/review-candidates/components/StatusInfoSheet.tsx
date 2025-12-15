@@ -1,6 +1,12 @@
 'use client'
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import { CandidateStatus } from '@/lib/candidates/types'

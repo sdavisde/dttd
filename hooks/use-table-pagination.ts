@@ -26,22 +26,25 @@ export interface PaginationActions {
 }
 
 export function useTablePagination<T>(
-  data: T[], 
+  data: T[],
   options: UsePaginationOptions = {}
 ) {
   const { initialPage = 1, initialPageSize = 10 } = options
-  
+
   const [currentPage, setCurrentPage] = useState(initialPage)
   const [pageSize, setPageSize] = useState(initialPageSize)
 
   const paginationState = useMemo((): PaginationState => {
     const totalItems = data.length
     const totalPages = Math.ceil(totalItems / pageSize)
-    const validCurrentPage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages))
-    
+    const validCurrentPage = Math.min(
+      Math.max(1, currentPage),
+      Math.max(1, totalPages)
+    )
+
     const startIndex = (validCurrentPage - 1) * pageSize
     const endIndex = Math.min(startIndex + pageSize - 1, totalItems - 1)
-    
+
     return {
       currentPage: validCurrentPage,
       pageSize,

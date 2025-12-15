@@ -1,6 +1,12 @@
 import React from 'react'
 import { Controller, Control, FieldPath, FieldValues } from 'react-hook-form'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 
@@ -29,21 +35,17 @@ export function YesNoField<T extends FieldValues>({
           <FormControl>
             <RadioGroup
               onValueChange={(value) => field.onChange(value === 'yes')}
-              value={field.value === true ? 'yes' : field.value === false ? 'no' : ''}
-              className='flex flex-row space-x-4'
+              value={
+                field.value === true ? 'yes' : field.value === false ? 'no' : ''
+              }
+              className="flex flex-row space-x-4"
             >
-              <div className='flex items-center space-x-2'>
-                <RadioGroupItem
-                  value='yes'
-                  id={`${name}-yes`}
-                />
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id={`${name}-yes`} />
                 <Label htmlFor={`${name}-yes`}>Yes</Label>
               </div>
-              <div className='flex items-center space-x-2'>
-                <RadioGroupItem
-                  value='no'
-                  id={`${name}-no`}
-                />
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id={`${name}-no`} />
                 <Label htmlFor={`${name}-no`}>No</Label>
               </div>
             </RadioGroup>

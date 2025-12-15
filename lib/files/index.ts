@@ -135,7 +135,9 @@ export async function getFileFolders(isAdmin: boolean = false) {
       }))
       .sort((a, b) => a.title.localeCompare(b.title))
   } catch (error) {
-    logger.error(`Error in getFileFolders: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(
+      `Error in getFileFolders: ${error instanceof Error ? error.message : String(error)}`
+    )
     return []
   }
 }

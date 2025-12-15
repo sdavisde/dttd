@@ -22,7 +22,7 @@ export async function getRoles(): Promise<Result<string, Role[]>> {
     return ok(data || [])
   } catch (error) {
     return err(
-        `Error while fetching roles: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Error while fetching roles: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -46,19 +46,18 @@ export async function updateRolePermissions(
     return ok({ success: true })
   } catch (error) {
     return err(
-        `Error while updating role permissions: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Error while updating role permissions: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
 
-export async function deleteRole(roleId: string): Promise<Result<string, { success: boolean }>> {
+export async function deleteRole(
+  roleId: string
+): Promise<Result<string, { success: boolean }>> {
   try {
     const supabase = await createClient()
 
-    const { error } = await supabase
-      .from('roles')
-      .delete()
-      .eq('id', roleId)
+    const { error } = await supabase.from('roles').delete().eq('id', roleId)
 
     if (error) {
       return err(`Failed to delete role: ${error.message}`)
@@ -67,7 +66,7 @@ export async function deleteRole(roleId: string): Promise<Result<string, { succe
     return ok({ success: true })
   } catch (error) {
     return err(
-        `Error while deleting role: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Error while deleting role: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }
@@ -95,7 +94,7 @@ export async function createRole(
     return ok(data)
   } catch (error) {
     return err(
-        `Error while creating role: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Error while creating role: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }

@@ -66,6 +66,7 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
 ### Database Architecture
 
 The application uses Supabase with several key tables:
+
 - `candidates` - Main candidate records with status tracking
 - `candidate_sponsorship_info` - Sponsorship details
 - `candidate_info` - Detailed candidate forms and medical information
@@ -75,14 +76,16 @@ The application uses Supabase with several key tables:
 ### Business Domain
 
 **Core Concepts**:
+
 - **Weekend**: 72-hour spiritual renewal events (42 candidate capacity)
 - **Candidate**: Guest participant requiring sponsorship and approval
 - **Sponsor**: Community member who nominates candidates
 - **Pre-Weekend Couple**: Weekend organizers managing candidate approval
 
 **User Permissions**:
+
 - `FULL_ACCESS` - Complete system access
-- `READ_MEDICAL_HISTORY` - Access to medical information  
+- `READ_MEDICAL_HISTORY` - Access to medical information
 - `FILES_UPLOAD` - File upload permissions
 - `FILES_DELETE` - File deletion permissions
 
@@ -106,16 +109,19 @@ The application uses Supabase with several key tables:
    - **Mobile (sm and below)**: Implement card-based layouts for better mobile UX
 
 2. **Responsive Implementation Pattern**:
+
    ```tsx
-   {/* Desktop Table - Hidden on mobile */}
-   <div className="relative hidden md:block">
-     <Table>
-       {/* Existing desktop table implementation */}
-     </Table>
+   {
+     /* Desktop Table - Hidden on mobile */
+   }
+   ;<div className="relative hidden md:block">
+     <Table>{/* Existing desktop table implementation */}</Table>
    </div>
 
-   {/* Mobile Card Layout - Shown only on mobile */}
-   <div className="md:hidden space-y-3">
+   {
+     /* Mobile Card Layout - Shown only on mobile */
+   }
+   ;<div className="md:hidden space-y-3">
      {data.map((item) => (
        <div key={item.id} className="bg-card border rounded-lg p-4 space-y-3">
          {/* Mobile card content */}

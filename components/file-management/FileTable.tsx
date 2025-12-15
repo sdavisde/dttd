@@ -13,7 +13,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Download, FileText } from 'lucide-react'
 import { DeleteFileButton } from './DeleteFileButton'
 import { toast } from 'sonner'
@@ -33,14 +38,18 @@ export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
 
   const handlePreview = async (file: FileObject) => {
     const supabase = createClient()
-    const { data } = await supabase.storage.from('files').getPublicUrl(`${folderName}/${file.name}`)
+    const { data } = await supabase.storage
+      .from('files')
+      .getPublicUrl(`${folderName}/${file.name}`)
     window.open(data.publicUrl, '_blank')
   }
 
   const handleDeleteFile = (deletedFile: FileObject) => {
     // Remove the file from the local state immediately for responsive UI
-    setFiles(prevFiles => prevFiles.filter(file => file.name !== deletedFile.name))
-    
+    setFiles((prevFiles) =>
+      prevFiles.filter((file) => file.name !== deletedFile.name)
+    )
+
     // Show success toast
     toast.success(`File "${deletedFile.name}" deleted successfully`)
   }
@@ -100,16 +109,14 @@ export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  {file.metadata?.size 
+                  {file.metadata?.size
                     ? `${(file.metadata.size / 1024).toFixed(1)} KB`
-                    : '-'
-                  }
+                    : '-'}
                 </TableCell>
                 <TableCell>
-                  {file.updated_at 
+                  {file.updated_at
                     ? new Date(file.updated_at).toLocaleDateString()
-                    : '-'
-                  }
+                    : '-'}
                 </TableCell>
                 <TableCell className="sticky right-0 bg-background text-right border-l">
                   <div onClick={(e) => e.stopPropagation()}>

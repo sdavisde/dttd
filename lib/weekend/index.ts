@@ -1,9 +1,5 @@
 import { capitalize } from '@/lib/utils'
-import {
-  Weekend,
-  WeekendGroupWithId,
-  WeekendStatusValue,
-} from './types'
+import { Weekend, WeekendGroupWithId, WeekendStatusValue } from './types'
 
 export const genderMatchesWeekend = (
   gender: string | null,

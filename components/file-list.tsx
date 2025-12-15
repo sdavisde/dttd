@@ -2,7 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { FolderIcon, FileIcon, DownloadIcon, MoreVerticalIcon } from 'lucide-react'
+import {
+  FolderIcon,
+  FileIcon,
+  DownloadIcon,
+  MoreVerticalIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FileContextMenu } from './file-context-menu'
 
@@ -62,7 +67,9 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
         {items.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <div className="text-lg font-medium">This folder is empty</div>
-            <div className="text-sm">Upload files or create folders to get started</div>
+            <div className="text-sm">
+              Upload files or create folders to get started
+            </div>
           </div>
         ) : (
           items.map((item) => (
@@ -87,20 +94,15 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
                     href={`/admin/files/${currentPath ? `${currentPath}/${item.name}` : item.name}`}
                     className="block hover:text-primary"
                   >
-                    <div className="font-medium truncate">
-                      {item.name}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Folder
-                    </div>
+                    <div className="font-medium truncate">{item.name}</div>
+                    <div className="text-sm text-muted-foreground">Folder</div>
                   </Link>
                 ) : (
                   <div>
-                    <div className="font-medium truncate">
-                      {item.name}
-                    </div>
+                    <div className="font-medium truncate">{item.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      {formatFileSize(item.size)} • {formatDate(item.updated_at)}
+                      {formatFileSize(item.size)} •{' '}
+                      {formatDate(item.updated_at)}
                     </div>
                   </div>
                 )}
@@ -125,7 +127,7 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
                     </a>
                   </Button>
                 )}
-                
+
                 <Button
                   size="sm"
                   variant="ghost"
@@ -146,17 +148,23 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
       </div>
 
       <FileContextMenu
-        anchorEl={contextMenu ? { getBoundingClientRect: () => ({
-          top: contextMenu.mouseY,
-          left: contextMenu.mouseX,
-          right: contextMenu.mouseX,
-          bottom: contextMenu.mouseY,
-          width: 0,
-          height: 0,
-          x: contextMenu.mouseX,
-          y: contextMenu.mouseY,
-          toJSON: () => {}
-        }) } as HTMLElement : null}
+        anchorEl={
+          contextMenu
+            ? ({
+                getBoundingClientRect: () => ({
+                  top: contextMenu.mouseY,
+                  left: contextMenu.mouseX,
+                  right: contextMenu.mouseX,
+                  bottom: contextMenu.mouseY,
+                  width: 0,
+                  height: 0,
+                  x: contextMenu.mouseX,
+                  y: contextMenu.mouseY,
+                  toJSON: () => {},
+                }),
+              } as HTMLElement)
+            : null
+        }
         open={contextMenu !== null}
         onClose={handleClose}
         item={contextMenu?.item ?? { name: '', isFolder: false }}

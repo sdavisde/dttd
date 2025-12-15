@@ -33,7 +33,7 @@ Based on Spec: `0002-spec-user-experience-tracking-and-roster-enhancements.md`
 
 - [ ] 1.0 Database Schema and Server Actions Setup
   - Demo Criteria: "user_experience table exists in Supabase with all columns; VIEW_ROSTER_EXPERIENCE_LEVEL permission exists; server actions for fetching, creating, editing, and deleting experience records are functional; database types regenerated; can insert and query test records"
-  - Proof Artifact(s): "Screenshot of Supabase table structure; SQL query: SELECT * FROM user_experience LIMIT 5; Server action files in /actions/user-experience.ts; Updated database.types.ts with UserExperience types"
+  - Proof Artifact(s): "Screenshot of Supabase table structure; SQL query: SELECT \* FROM user_experience LIMIT 5; Server action files in /actions/user-experience.ts; Updated database.types.ts with UserExperience types"
 
 - [ ] 2.0 Experience Calculation and Helper Functions
   - Demo Criteria: "Helper functions calculate experience level (1, 2, 3) correctly based on distinct weekend count; Rector Ready status calculated with all four criteria (Head/Assistant Head, Team Head, 2+ talks, Dining); functions return correct data structures for UI consumption"
@@ -49,7 +49,7 @@ Based on Spec: `0002-spec-user-experience-tracking-and-roster-enhancements.md`
 
 - [ ] 5.0 Weekend Finalization Workflow
   - Demo Criteria: "Navigate to /admin/weekends/[weekend_id]; 'Finish Weekend' button triggers validation of required positions; If validation fails, modal shows missing positions with Override/Cancel options; If validation passes, confirmation modal warns about read-only state; After confirmation, weekend status becomes 'FINISHED' in database; user_experience records auto-created for all roster participants"
-  - Proof Artifact(s): "URL: /admin/weekends/[test_weekend_id]; Screenshots of: (1) validation warning modal, (2) confirmation modal; SQL queries: SELECT id, status FROM weekend WHERE id = ?; SELECT COUNT(*) FROM user_experience WHERE weekend_id = ?; Screenshot showing user's updated Previous Experience"
+  - Proof Artifact(s): "URL: /admin/weekends/[test_weekend_id]; Screenshots of: (1) validation warning modal, (2) confirmation modal; SQL queries: SELECT id, status FROM weekend WHERE id = ?; SELECT COUNT(\*) FROM user_experience WHERE weekend_id = ?; Screenshot showing user's updated Previous Experience"
 
 - [ ] 6.0 Read-Only Weekend Enforcement
   - Demo Criteria: "After weekend is finished, /admin/weekends/[finished_weekend_id] displays read-only view with disabled controls and banner message; All edit buttons hidden/disabled; Attempt to edit via server action returns error; Roster, candidates, and files all read-only"
@@ -57,5 +57,4 @@ Based on Spec: `0002-spec-user-experience-tracking-and-roster-enhancements.md`
 
 - [ ] 7.0 Experience Level Visibility on Weekend Roster (Permission-Based)
   - Demo Criteria: "Users with VIEW_ROSTER_EXPERIENCE_LEVEL permission see experience levels (1, 2, 3) next to team member names on /admin/weekends/[weekend_id]; Users without permission see roster without levels; Permission check works correctly; Experience levels update when user's experience changes"
-  - Proof Artifact(s): "URL: /admin/weekends/[weekend_id]; Side-by-side screenshots: (1) user with permission showing levels, (2) user without permission; Code comment noting 'Create Leaders Committee role' for product owner; SQL: SELECT * FROM user_permissions WHERE permission_name = 'VIEW_ROSTER_EXPERIENCE_LEVEL'"
-
+  - Proof Artifact(s): "URL: /admin/weekends/[weekend_id]; Side-by-side screenshots: (1) user with permission showing levels, (2) user without permission; Code comment noting 'Create Leaders Committee role' for product owner; SQL: SELECT \* FROM user_permissions WHERE permission_name = 'VIEW_ROSTER_EXPERIENCE_LEVEL'"

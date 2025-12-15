@@ -4,7 +4,13 @@ import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
@@ -30,40 +36,30 @@ export function WaiverDialog({
   className,
 }: WaiverDialogProps) {
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      <DialogContent className={cn('max-w-2xl max-h-[80vh] flex flex-col', className)}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={cn('max-w-2xl max-h-[80vh] flex flex-col', className)}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <div className='flex-1 overflow-y-auto'>
-          <div className='h-full pr-4 text-sm leading-relaxed'>
-            <div className='whitespace-pre-wrap'>{content}</div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="h-full pr-4 text-sm leading-relaxed">
+            <div className="whitespace-pre-wrap">{content}</div>
           </div>
         </div>
 
-        <DialogFooter className='flex-col gap-4 sm:flex-row sm:justify-between'>
-          <div className='flex items-center space-x-2'>
-            <Checkbox
-              id='acknowledge'
-              checked={true}
-            />
-            <Label
-              htmlFor='acknowledge'
-              className={cn('text-sm')}
-            >
+        <DialogFooter className="flex-col gap-4 sm:flex-row sm:justify-between">
+          <div className="flex items-center space-x-2">
+            <Checkbox id="acknowledge" checked={true} />
+            <Label htmlFor="acknowledge" className={cn('text-sm')}>
               {acknowledgeText}
             </Label>
           </div>
 
-          <div className='flex gap-2'>
-            <Button
-              variant='outline'
-              onClick={() => onOpenChange(false)}
-            >
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               {cancelText}
             </Button>
             <Button onClick={onAcknowledge}>Acknowledge</Button>

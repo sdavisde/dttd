@@ -7,7 +7,7 @@ export const PAYMENT_CONSTANTS = {
    * Standard team fee amount for weekend participation
    */
   TEAM_FEE: 195,
-  
+
   /**
    * Payment methods supported by the application
    */
@@ -16,7 +16,7 @@ export const PAYMENT_CONSTANTS = {
     CHECK: 'check',
     CARD: 'card',
   } as const,
-  
+
   /**
    * Payment statuses
    */
@@ -27,5 +27,7 @@ export const PAYMENT_CONSTANTS = {
   } as const,
 } as const
 
-export type PaymentMethod = typeof PAYMENT_CONSTANTS.PAYMENT_METHODS[keyof typeof PAYMENT_CONSTANTS.PAYMENT_METHODS]
-export type PaymentStatus = typeof PAYMENT_CONSTANTS.PAYMENT_STATUSES[keyof typeof PAYMENT_CONSTANTS.PAYMENT_STATUSES]
+export type PaymentMethod =
+  (typeof PAYMENT_CONSTANTS.PAYMENT_METHODS)[keyof typeof PAYMENT_CONSTANTS.PAYMENT_METHODS]
+export type PaymentStatus =
+  (typeof PAYMENT_CONSTANTS.PAYMENT_STATUSES)[keyof typeof PAYMENT_CONSTANTS.PAYMENT_STATUSES]

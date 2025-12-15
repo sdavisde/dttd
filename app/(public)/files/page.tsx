@@ -41,7 +41,7 @@ export default async function PublicFilesPage() {
               <Typography variant="h4" className="capitalize">
                 {bucket.name}
               </Typography>
-              
+
               {bucket.folders.length === 0 ? (
                 <Card>
                   <CardContent className="text-center py-8">

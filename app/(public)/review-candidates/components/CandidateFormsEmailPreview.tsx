@@ -27,9 +27,9 @@ export function CandidateFormsEmailPreview({
           </h2>
 
           <p className="text-gray-700 mb-4">
-            We are excited that you will be joining us for an upcoming Tres
-            Dias weekend! To help prepare for your weekend, there are some
-            important forms we need you to complete.
+            We are excited that you will be joining us for an upcoming Tres Dias
+            weekend! To help prepare for your weekend, there are some important
+            forms we need you to complete.
           </p>
 
           <p className="text-gray-700 mb-4">

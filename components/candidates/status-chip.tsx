@@ -8,7 +8,10 @@ interface StatusChipProps {
 export function StatusChip({ status }: StatusChipProps) {
   const statusConfig: Record<
     CandidateStatus,
-    { color: 'info' | 'warning' | 'secondary' | 'success' | 'error'; label: string }
+    {
+      color: 'info' | 'warning' | 'secondary' | 'success' | 'error'
+      label: string
+    }
   > = {
     sponsored: { color: 'info', label: 'Sponsored' },
     awaiting_forms: { color: 'warning', label: 'Awaiting Forms' },
@@ -17,12 +20,12 @@ export function StatusChip({ status }: StatusChipProps) {
     rejected: { color: 'error', label: 'Rejected' },
   }
 
-  const config = statusConfig[status] ?? { color: 'secondary' as const, label: 'Unknown' }
+  const config = statusConfig[status] ?? {
+    color: 'secondary' as const,
+    label: 'Unknown',
+  }
   return (
-    <Badge
-      color={config.color}
-      className='text-xs'
-    >
+    <Badge color={config.color} className="text-xs">
       {config.label}
     </Badge>
   )

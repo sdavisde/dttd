@@ -36,7 +36,9 @@ export async function beginCheckout(
   })
 
   if (!session.client_secret) {
-    throw new Error('Failed to create checkout session - no client secret defined')
+    throw new Error(
+      'Failed to create checkout session - no client secret defined'
+    )
   }
 
   return session.client_secret

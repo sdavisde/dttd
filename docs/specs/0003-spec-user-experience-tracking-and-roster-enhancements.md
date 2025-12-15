@@ -27,6 +27,7 @@ The solution introduces a comprehensive experience tracking system that automati
 When building a weekend team, Rectors need comprehensive visibility into each member's qualifications, past roles, and experience level to make appropriate team assignments and ensure a balanced, capable team.
 
 **Acceptance Criteria:**
+
 - View complete service history for any community member from Master Roster
 - See experience level (1, 2, or 3) calculated based on weekend participation count
 - View previous roles grouped by community (DTTD and external)
@@ -41,6 +42,7 @@ When building a weekend team, Rectors need comprehensive visibility into each me
 Pre-Weekend Couple members are responsible for identifying and mentoring future leadership. They need clear visibility into which community members meet the qualifications to serve as Rector based on defined criteria.
 
 **Acceptance Criteria:**
+
 - See overall "Rector Ready" status (yes/no) for each community member
 - View four individual criteria with pass/fail status:
   - Has served as Head or Assistant Head
@@ -58,6 +60,7 @@ Pre-Weekend Couple members are responsible for identifying and mentoring future 
 Community members serve in various roles across multiple weekends. The system should automatically capture and maintain their complete service history without requiring manual entry or maintenance.
 
 **Acceptance Criteria:**
+
 - Experience records created automatically when weekend is finalized
 - All roles served during the weekend are captured
 - Rollos (talks given) are recorded for speaking roles
@@ -72,6 +75,7 @@ Community members serve in various roles across multiple weekends. The system sh
 Many community members have served in other Tres Dias communities or may have served roles that weren't captured in the system. They need the ability to manually add this experience to their profile for a complete service record.
 
 **Acceptance Criteria:**
+
 - Access manual experience entry form from Master Roster
 - Select role from dropdown (excluding Head/Assistant Head)
 - Choose between DTTD weekend or enter external community location
@@ -88,6 +92,7 @@ Many community members have served in other Tres Dias communities or may have se
 Before a weekend is finalized, administrators need to verify that all critical leadership positions are filled. The system should validate roster completeness and warn if required positions are missing.
 
 **Acceptance Criteria:**
+
 - System validates all required leadership positions before finalization
 - Display warning modal if any required positions are unfilled
 - List specific missing positions in the warning
@@ -103,6 +108,7 @@ Before a weekend is finalized, administrators need to verify that all critical l
 Once a weekend is complete and finalized, its roster and related data should be permanently protected from accidental modifications to maintain historical accuracy and data integrity.
 
 **Acceptance Criteria:**
+
 - All weekend data becomes read-only after finalization (roster, candidates, files)
 - Clear visual indication of read-only status (banner/message)
 - All edit buttons, dropdowns, and form fields are disabled
@@ -118,6 +124,7 @@ Once a weekend is complete and finalized, its roster and related data should be 
 When planning a weekend, Leaders Committee members need to see the experience level of team members directly on the Weekend Roster page to ensure appropriate balance of experienced and newer members.
 
 **Acceptance Criteria:**
+
 - Experience level (1, 2, or 3) displays next to each person's name on Weekend Roster page
 - Only visible to users with VIEW_ROSTER_EXPERIENCE_LEVEL permission
 - Users without permission see Weekend Roster without experience levels
@@ -127,9 +134,11 @@ When planning a weekend, Leaders Committee members need to see the experience le
 ## Demoable Units of Work
 
 ### Unit 1: Database Schema and Server Actions Setup
+
 **Purpose:** Establish the foundational data structure for tracking user experience and create server actions to interact with the data.
 
 **Demo Criteria:**
+
 - `user_experience` table exists in Supabase with all required columns (see REQ-1)
 - `VIEW_ROSTER_EXPERIENCE_LEVEL` permission exists in the permissions system
 - Server actions created for:
@@ -139,6 +148,7 @@ When planning a weekend, Leaders Committee members need to see the experience le
   - Deleting experience entries (admin only)
 
 **Proof Artifact:**
+
 - Screenshot of Supabase table structure showing `user_experience` table
 - SQL query showing sample test records in the table
 - Server action file(s) in `/actions` directory
@@ -147,9 +157,11 @@ When planning a weekend, Leaders Committee members need to see the experience le
 **Note for Product Owner:** Manually create the `user_experience` table and `VIEW_ROSTER_EXPERIENCE_LEVEL` permission in Supabase before starting implementation work on other units.
 
 ### Unit 2: Master Roster User Sheet UI Updates
+
 **Purpose:** Display experience information in the Master Roster user detail sheet.
 
 **Demo Criteria:**
+
 - Click on a user in Master Roster opens updated sheet with new sections
 - Sections appear in order: Personal Information → Level → Rector Ready → Previous Experience → Security
 - Previous Experience shows grouped, comma-separated lists by community
@@ -158,14 +170,17 @@ When planning a weekend, Leaders Committee members need to see the experience le
 - Rector Ready shows overall status icon (✓ or ✗) plus four individual criteria with status icons
 
 **Proof Artifact:**
+
 - URL: `/admin/users` (Master roster page)
 - Screenshot showing expanded user sheet with all new sections
 - Test users with varying experience levels (1, 2, 3) to demonstrate calculation
 
 ### Unit 3: Manual Experience Entry
+
 **Purpose:** Allow users/admins to add other community experience or missed internal roles.
 
 **Demo Criteria:**
+
 - Button at bottom of Previous Experience opens a modal form with dropdown for selecting CHA role (except Head/Assistant Head which are disabled)
 - Form includes fields for: Role, Weekend (optional dropdown of system weekends), Other Community Location (text field), Date (month/year picker), Rollo (optional text field)
 - Validation prevents Head/Assistant Head roles from being manually added
@@ -173,15 +188,18 @@ When planning a weekend, Leaders Committee members need to see the experience le
 - Can add multiple roles for same weekend/community
 
 **Proof Artifact:**
+
 - Short video or screenshot series showing:
   1. Opening manual entry form
   2. Filling in other community experience
   3. Submitting and seeing it appear in the list
 
 ### Unit 4: Weekend Finalization Validation and Confirmation
+
 **Purpose:** Prevent premature weekend finalization and confirm roster accuracy.
 
 **Demo Criteria:**
+
 - When setting a new weekend to be "active", the currently active weekend is inherently set to "finished" and system validates required leadership positions
 - If validation fails, shows warning modal with option to override or cancel
 - If validation passes, shows confirmation modal stating rosters will become read-only
@@ -189,29 +207,35 @@ When planning a weekend, Leaders Committee members need to see the experience le
 - After confirmation, weekend status changes to "finished"
 
 **Proof Artifact:**
+
 - URL: `/admin/weekends/[weekend_id]` (Weekend management page)
 - Screenshot of validation warning modal (with missing positions listed)
 - Screenshot of confirmation modal
 - Database query showing weekend status: `SELECT id, status FROM weekend WHERE id = [test_weekend_id];`
 
 ### Unit 5: Automatic Experience Record Creation
+
 **Purpose:** Auto-generate user_experience records when weekend is finalized.
 
 **Demo Criteria:**
+
 - After confirming weekend finalization, system creates user_experience records for all roster participants
 - Each participant gets one record per role they held during the weekend
 - Records include: user_id, weekend_id, cha_role, rollo (if applicable), served_at (weekend start date)
 - Can query user_experience table and see new records for that weekend
 
 **Proof Artifact:**
+
 - Before/after SQL query: `SELECT COUNT(*) FROM user_experience WHERE weekend_id = [test_weekend_id];`
 - Detailed query showing created records: `SELECT * FROM user_experience WHERE weekend_id = [test_weekend_id] LIMIT 10;`
 - Screenshot of user's Previous Experience section showing newly added weekend
 
 ### Unit 6: Read-Only Weekend Rosters
+
 **Purpose:** Prevent modifications to finalized weekend data.
 
 **Demo Criteria:**
+
 - After weekend is finished, Weekend Roster page displays read-only view
 - All edit buttons, dropdowns, and form fields are disabled or hidden
 - Attempt to edit via UI shows "This weekend is finalized and cannot be modified" message
@@ -219,21 +243,25 @@ When planning a weekend, Leaders Committee members need to see the experience le
 - Everything related to the weekend (roster, candidates, files) is read-only
 
 **Proof Artifact:**
+
 - URL: `/admin/weekends/[finished_weekend_id]` (showing read-only state)
 - Screenshot comparing editable vs. read-only weekend roster views
 - Error message screenshot when attempting to edit
 - Test of API/server action showing rejected modification
 
 ### Unit 7: Experience Level Visibility on Weekend Roster (Permission-Based)
+
 **Purpose:** Show experience levels on Weekend Roster page for authorized users only.
 
 **Demo Criteria:**
+
 - New `VIEW_ROSTER_EXPERIENCE_LEVEL` permission exists in database
 - Weekend Roster page shows Level (1, 2, 3) next to each user's name for users with permission
 - Users without permission see Weekend Roster without Level information
 - Experience level updates when user's experience changes
 
 **Proof Artifact:**
+
 - URL: `/admin/weekends/[weekend_id]`
 - Side-by-side screenshots: one user with permission, one without
 - Database query showing permission: `SELECT * FROM user_permissions WHERE permission_name = 'VIEW_ROSTER_EXPERIENCE_LEVEL';`
@@ -272,8 +300,8 @@ When planning a weekend, Leaders Committee members need to see the experience le
 ### Rector Ready Calculation
 
 7. **REQ-7:** Calculate "Rector Ready" status based on four criteria:
-   - **Criterion 1:** Has served as Head or Assistant Head (check for CHA_ROLE.HEAD_* or CHA_ROLE.ASSISTANT_HEAD_* in experience)
-   - **Criterion 2:** Has served as Team Head (check for CHA_ROLE.*_HEAD in experience)
+   - **Criterion 1:** Has served as Head or Assistant Head (check for CHA*ROLE.HEAD*_ or CHA*ROLE.ASSISTANT_HEAD*_ in experience)
+   - **Criterion 2:** Has served as Team Head (check for CHA_ROLE.\*\_HEAD in experience)
    - **Criterion 3:** Has given 2+ talks (count experience records with `rollo` field populated for that user, must be >= 2)
    - **Criterion 4:** Has worked dining (check for CHA_ROLE.DINING or CHA_ROLE.HEAD_DINING in experience)
 
@@ -364,7 +392,7 @@ When planning a weekend, Leaders Committee members need to see the experience le
     - `cha_role` = the role they served in
     - `rollo` = populated if the role was a speaking role (application logic determines this)
     - `served_at` = the weekend's start date
-    - `weekend_reference` = `DTTD#<number>` 
+    - `weekend_reference` = `DTTD#<number>`
 
 ### Read-Only Weekend Data
 
@@ -495,22 +523,22 @@ When planning a weekend, Leaders Committee members need to see the experience le
 ## Open Questions
 
 1. **Experience Record Editing UI:** Should the edit/delete functionality for experience records be in the Master Roster user sheet, or in a separate admin page?
-   - *Recommendation:* Add edit/delete icons next to each experience entry in the Previous Experience section (visible only to admins).
+   - _Recommendation:_ Add edit/delete icons next to each experience entry in the Previous Experience section (visible only to admins).
 
 2. **Weekend Start Date:** Is the weekend start date reliably stored in the `weekend` table? If not, how should we determine the `served_at` date for auto-created experience records?
-   - *Action:* Verify weekend table schema includes start/end dates.
+   - _Action:_ Verify weekend table schema includes start/end dates.
 
 3. **Rollo Dropdown:** Should the Rollo field be a dropdown of predefined rollo names, or free-text entry?
-   - *Recommendation:* Start with free-text for flexibility, consider dropdown in future if standardization is needed.
+   - _Recommendation:_ Start with free-text for flexibility, consider dropdown in future if standardization is needed.
 
 4. **Experience Level on Master Roster:** Should the Level also be displayed on the main Master Roster table/list view (not just in the user sheet)?
-   - *Action:* Confirm with stakeholders. Current spec only includes it in the user detail sheet.
+   - _Action:_ Confirm with stakeholders. Current spec only includes it in the user detail sheet.
 
 5. **Multiple Roles Same Weekend:** If a user held multiple roles on the same weekend (e.g., Prayer and Dining), how should this be displayed in the Previous Experience list?
-   - *Recommendation:* Display as separate entries: "DTTD: Prayer (May 2023), Dining (May 2023), ..." (already covered in REQ-14, but confirm this is acceptable).
+   - _Recommendation:_ Display as separate entries: "DTTD: Prayer (May 2023), Dining (May 2023), ..." (already covered in REQ-14, but confirm this is acceptable).
 
 6. **Notification on Finalization:** Should users on the finished weekend roster receive a notification that their experience has been recorded?
-   - *Action:* Consider for future enhancement, out of scope for initial implementation.
+   - _Action:_ Consider for future enhancement, out of scope for initial implementation.
 
 ---
 

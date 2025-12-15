@@ -69,7 +69,6 @@ To strengthen individuals' walk with Christ through spiritual renewal weekends a
 #### Authentication Flow
 
 1. **Invitation-Only Access**
-
    - New members added through invitation system
    - First login creates community membership record
 
@@ -87,7 +86,6 @@ To strengthen individuals' walk with Christ through spiritual renewal weekends a
 #### Step 1: Initial Nomination
 
 1. **Sponsor Action**
-
    - Submit nomination form with sponsor and candidate details
    - Required fields: Sponsor information, basic candidate information
    - Data stored in `sponsorship_request` table
@@ -119,7 +117,6 @@ To strengthen individuals' walk with Christ through spiritual renewal weekends a
 #### Event Planning
 
 1. **Scheduling**
-
    - Bi-annual event planning
    - Gender-separated events
    - Sequential scheduling (one week apart)

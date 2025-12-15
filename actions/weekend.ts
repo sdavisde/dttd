@@ -266,9 +266,7 @@ export async function updateWeekendGroup(
   }
 
   if (!updates.mens && !updates.womens) {
-    return err(
-      'No updates were provided for either mens or womens weekend'
-    )
+    return err('No updates were provided for either mens or womens weekend')
   }
 
   const supabase = await createClient()

@@ -1,7 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -18,22 +22,26 @@ export function TeamSwitcher({
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
-          size='lg'
-          className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           asChild
         >
-          <Link href='/admin'>
-            <div className='text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+          <Link href="/admin">
+            <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
               <Image
-                src='/web-app-manifest-192x192.png'
+                src="/web-app-manifest-192x192.png"
                 width={32}
                 height={32}
-                alt='Dusty Trails Tres Dias Logo'
+                alt="Dusty Trails Tres Dias Logo"
               />
             </div>
-            <div className='grid flex-1 text-left text-sm leading-tight'>
-              <span className='truncate font-medium'>Dusty Trails Tres Dias</span>
-              <span className='truncate text-xs text-muted-foreground'>Admin</span>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">
+                Dusty Trails Tres Dias
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                Admin
+              </span>
             </div>
           </Link>
         </SidebarMenuButton>

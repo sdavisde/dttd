@@ -22,7 +22,6 @@ export const WeekendType = {
 
 export type WeekendType = (typeof WeekendType)[keyof typeof WeekendType]
 
-
 export enum WeekendStatus {
   PLANNING = 'PLANNING',
   ACTIVE = 'ACTIVE',

@@ -24,6 +24,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 **Purpose:** Provide team members on active weekends with a visible, trackable list of pre-meeting tasks directly on the homepage, with a configurable TODO list that developers can easily extend.
 
 **Functional Requirements:**
+
 - The system shall display a "Team TODO List" section on the homepage for users assigned to a weekend roster where the weekend status is "active"
 - The system shall position the TODO section below "Upcoming Weekends" and above existing content/widgets on the homepage
 - The system shall display each TODO item as a separate line with a checkbox, task name, and link/button
@@ -50,6 +51,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - The system shall visually distinguish between active links and disabled items (only item #1 initially)
 
 **Proof Artifacts:**
+
 - Screenshot: Homepage with TODO section showing uncompleted tasks demonstrates section visibility and layout
 - Screenshot: Homepage with TODOs showing "All Set!" alert (using mock checkCompletion callbacks) demonstrates completion state
 - Code snippet: Configuration object showing structure with checkCompletion callback demonstrates extensibility
@@ -68,12 +70,14 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 ## Design Considerations
 
 **TODO Section Layout:**
+
 - Position TODO section between "Upcoming Weekends" and main content on homepage
 - Use consistent spacing with existing homepage sections (maintain current design system)
 - Consider using a Card component with border for visual grouping
 - Section heading: "Team Preparation Tasks" or "Before the Third Team Meeting"
 
 **TODO Item Design:**
+
 - Each TODO item should have clear visual separation
 - Use Lucide React icons for checkboxes (CheckSquare for checked, Square for unchecked) - non-interactive, visual only
 - Checkboxes should not have pointer cursor or hover states (they are indicators, not controls)
@@ -82,17 +86,20 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - Include small info icon (ⓘ) next to disabled items that shows tooltip on hover
 
 **Completion States:**
+
 - Unchecked: Normal text color, unchecked icon (visual only, not interactive)
 - Checked: Muted foreground color (text-muted-foreground), strikethrough, checked icon
 - Strikethrough should not make text illegible (use appropriate opacity/color)
 
 **"All Set!" Alert:**
+
 - Use shadcn/ui Alert component with success variant (or custom green styling)
 - Include a celebration icon (PartyPopper, CheckCircle, or similar)
 - Position above or below the TODO list
 - Message: "All Set! You've completed all preparation tasks."
 
 **Responsive Design:**
+
 - TODO section should work well on mobile and desktop
 - Consider stacking on mobile if layout is complex
 - Ensure touch targets are adequate for mobile users
@@ -100,6 +107,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 ## Repository Standards
 
 **Code Organization:**
+
 - Create TODO section component at `components/team-todos/team-todo-section.tsx` (client component)
 - Create individual TODO item component at `components/team-todos/todo-item.tsx` (presentational)
 - Create TODO configuration at `lib/team-todos/config.ts`
@@ -108,6 +116,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - Consider creating a custom hook `useTeamTodoCompletion()` for calling completion callbacks
 
 **Component Patterns:**
+
 - Use ONLY shadcn/ui components (Alert, Card, Checkbox, etc.)
 - Import UI components from `@/components/ui/` directory
 - Mark client components with 'use client' directive
@@ -115,11 +124,13 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - Follow responsive design guidelines
 
 **Data Fetching:**
+
 - Use existing server-side data fetching patterns to check if user is on active weekend roster
 - Leverage existing `weekend_roster` queries (see `actions/roster.ts`)
 - Only render TODO section if user has active weekend assignment
 
 **Testing:**
+
 - Ensure `yarn build` completes successfully
 - Test responsive behavior on mobile and desktop viewports
 - Test that checkboxes are non-interactive (no cursor pointer, no click handler)
@@ -130,6 +141,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 ## Technical Considerations
 
 **Weekend Roster Check:**
+
 - Query `weekend_roster` table to check if logged-in user has a record with:
   - `weekend_id` matching an active weekend
   - Active weekend scoped to user's gender (existing logic in codebase)
@@ -137,6 +149,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - Server-side check determines if TODO section should render
 
 **TODO Configuration Object:**
+
 - Define TODO items in a configuration object/array in `lib/team-todos/config.ts`
 - Configuration structure for each TODO:
   ```typescript
@@ -159,6 +172,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - Developers can easily add new TODOs by adding to this configuration array
 
 **Completion Status Logic:**
+
 - Parent component (server or client) is responsible for determining completion state:
   1. For each TODO item, call its `checkCompletion` callback if defined
   2. If callback returns `true`, TODO is complete
@@ -168,6 +182,7 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - No client-side state management or localStorage needed
 
 **Disabled Item Behavior:**
+
 - Disabled items (href is null) should not be actual `<a>` tags (use `<span>` or `<button disabled>`)
 - Include `aria-disabled="true"` for accessibility
 - Tooltip on hover: Use shadcn/ui Tooltip component showing the tooltip text from config
@@ -175,12 +190,14 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 - Active links should be normal `<a>` or Next.js `<Link>` components
 
 **Performance Considerations:**
+
 - Weekend roster check happens server-side (no extra client queries)
 - Completion callbacks may be async (database queries) - consider caching/memoization
 - TODO section is small component with minimal re-renders
 - Consider server-side rendering completion state if all callbacks can run server-side
 
 **Future Integration Notes:**
+
 - When team info form is implemented (spec 0002), update TODO configuration for item #1:
   - Enable the link (change `href` from `null` to `/team-info`)
   - Add `checkCompletion` callback that queries `weekend_roster_team_info` table:
@@ -197,20 +214,24 @@ The Homepage Team TODOs feature provides weekend team members with a clear, visi
 ## Security Considerations
 
 **Authentication & Authorization:**
+
 - Require authentication for homepage (already handled by Supabase middleware)
 - Weekend roster check ensures users only see TODOs for their assigned weekends
 - No sensitive data displayed in TODO section itself
 
 **Data Privacy:**
+
 - Completion state is derived from backend data, not stored client-side
 - No PII displayed in TODO section
 
 **Input Validation:**
+
 - No user input in this feature (checkboxes are non-interactive)
 - Links are defined in configuration, not user-generated
 - Validate that configuration URLs are internal routes only (security best practice)
 
 **Proof Artifact Security:**
+
 - Screenshots should not reveal other users' data
 - Safe to share screenshots of TODO section (no PII)
 
