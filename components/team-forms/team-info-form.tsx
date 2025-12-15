@@ -18,6 +18,7 @@ import { Typography } from '@/components/ui/typography'
 import { Address, emptyAddress } from '@/lib/users/validation'
 import {
   BasicInfo,
+  MedicalInfo,
   TeamInfoFormValues,
   TeamInfoSchema,
   UserExperienceFormValue,
@@ -28,8 +29,12 @@ import { AddressSection } from './address-section'
 import { BasicInfoSection } from './basic-info-section'
 import { ExperienceSection } from './experience-section'
 import { SkillsSection } from './skills-section'
+import { MedicalInfoSection } from './medical-info-section'
 import { isNil } from 'lodash'
-import { completeInfoSheet } from '@/actions/team-forms'
+import {
+  completeInfoSheet,
+  updateRosterMedicalInfo,
+} from '@/actions/team-forms'
 
 interface TeamInfoFormProps {
   userId: string
@@ -37,6 +42,7 @@ interface TeamInfoFormProps {
   savedAddress: Address | null
   initialBasicInfo: BasicInfo
   initialServiceHistory: Array<UserExperienceFormValue>
+  initialMedicalInfo: MedicalInfo
 }
 
 export function TeamInfoForm({
@@ -45,6 +51,7 @@ export function TeamInfoForm({
   savedAddress,
   initialBasicInfo,
   initialServiceHistory,
+  initialMedicalInfo,
 }: TeamInfoFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -55,6 +62,7 @@ export function TeamInfoForm({
       address: savedAddress ?? emptyAddress,
       basicInfo: initialBasicInfo,
       experience: initialServiceHistory,
+      medicalInfo: initialMedicalInfo,
     },
   })
 
@@ -94,7 +102,18 @@ export function TeamInfoForm({
       }
     }
 
-    // Step 4: Update Info Sheet
+    // Step 4: Update Medical Info
+    const medicalInfoResult = await updateRosterMedicalInfo(
+      rosterId,
+      data.medicalInfo
+    )
+    if (isErr(medicalInfoResult)) {
+      toast.error(medicalInfoResult.error)
+      setIsSubmitting(false)
+      return
+    }
+
+    // Step 5: Update Info Sheet
     const infoSheetResult = await completeInfoSheet(rosterId)
     if (isErr(infoSheetResult)) {
       toast.error(infoSheetResult.error)
@@ -124,6 +143,7 @@ export function TeamInfoForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <AddressSection savedAddress={savedAddress} />
             <BasicInfoSection />
+            <MedicalInfoSection />
             <ExperienceSection />
             <SkillsSection />
 

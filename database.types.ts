@@ -464,7 +464,10 @@ export type Database = {
           completed_release_of_claim_at: string | null
           completed_statement_of_belief_at: string | null
           created_at: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           id: string
+          medical_conditions: string | null
           rollo: string | null
           special_needs: string | null
           status: string | null
@@ -480,7 +483,10 @@ export type Database = {
           completed_release_of_claim_at?: string | null
           completed_statement_of_belief_at?: string | null
           created_at?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           id?: string
+          medical_conditions?: string | null
           rollo?: string | null
           special_needs?: string | null
           status?: string | null
@@ -496,7 +502,10 @@ export type Database = {
           completed_release_of_claim_at?: string | null
           completed_statement_of_belief_at?: string | null
           created_at?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           id?: string
+          medical_conditions?: string | null
           rollo?: string | null
           special_needs?: string | null
           status?: string | null

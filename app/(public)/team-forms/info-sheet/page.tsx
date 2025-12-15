@@ -6,6 +6,7 @@ import { isNil } from 'lodash'
 import { getUserServiceHistory } from '@/actions/user-experience'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 import { experienceToFormValues } from '@/lib/users/experience'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function TeamInfoPage() {
   const userResult = await getLoggedInUser()
@@ -21,6 +22,22 @@ export default async function TeamInfoPage() {
     // Spec says: redirect to homepage with error toast if not assigned.
     // For now, simple redirect. Toast is client-side, would need query param or similar.
     redirect('/?error=UserNotOnRoster')
+  }
+
+  // Fetch medical info from weekend_roster
+  const supabase = await createClient()
+  const { data: rosterData } = await supabase
+    .from('weekend_roster')
+    .select(
+      'emergency_contact_name, emergency_contact_phone, medical_conditions'
+    )
+    .eq('id', user.teamMemberInfo.id)
+    .single()
+
+  const initialMedicalInfo = {
+    emergency_contact_name: rosterData?.emergency_contact_name ?? '',
+    emergency_contact_phone: rosterData?.emergency_contact_phone ?? '',
+    medical_conditions: rosterData?.medical_conditions ?? '',
   }
 
   const serviceHistoryResult = await getUserServiceHistory(user.id)
@@ -55,6 +72,7 @@ export default async function TeamInfoPage() {
       savedAddress={user.address}
       initialBasicInfo={basicInfo}
       initialServiceHistory={experience}
+      initialMedicalInfo={initialMedicalInfo}
     />
   )
 }

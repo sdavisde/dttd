@@ -33,10 +33,23 @@ const ExperienceEntrySchema = UserExperienceSchema.omit({
  */
 export type UserExperienceFormValue = z.infer<typeof ExperienceEntrySchema>
 
+export const MedicalInfoSchema = z.object({
+  emergency_contact_name: z
+    .string()
+    .min(1, 'Emergency contact name is required'),
+  emergency_contact_phone: z
+    .string()
+    .min(1, 'Emergency contact phone is required'),
+  medical_conditions: z.string().optional(),
+})
+
+export type MedicalInfo = z.infer<typeof MedicalInfoSchema>
+
 export const TeamInfoSchema = z.object({
   address: addressSchema,
   basicInfo: BasicInfoSchema,
   experience: z.array(ExperienceEntrySchema).optional(),
+  medicalInfo: MedicalInfoSchema,
 })
 
 export type TeamInfoFormValues = z.infer<typeof TeamInfoSchema>
