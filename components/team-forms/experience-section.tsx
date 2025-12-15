@@ -14,6 +14,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -27,6 +28,7 @@ import { toast } from 'sonner'
 import { isNil } from 'lodash'
 import { UserExperienceField } from './user-experience-field'
 import { useRouter } from 'next/navigation'
+import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 
 export function ExperienceSection() {
   const { control, watch } = useFormContext<TeamInfoFormValues>()
@@ -57,23 +59,8 @@ export function ExperienceSection() {
             Your previously entered experience is listed below. Please add any
             weekends you have served on that are not listed.
           </CardDescription>
-          <Button
-            onClick={() =>
-              append({
-                cha_role: '' as CHARole,
-                rollo: '',
-                community: '',
-                weekend_number: '',
-              })
-            }
-            variant="outline"
-            size="sm"
-            className="h-8 absolute -top-2 right-4"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add Experience
-          </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {fields.map((field, index) => {
             const experienceItem = watch(`experience.${index}`)
             const isExisting = !isNil(experienceItem.id)
@@ -81,46 +68,53 @@ export function ExperienceSection() {
               return (
                 <div
                   key={field.id}
-                  className="flex items-center justify-between p-2 border rounded-md"
+                  className="col-span-1 flex items-center justify-between p-2 border rounded-md"
                 >
-                  <div>
-                    <p className="font-semibold">{experienceItem.cha_role}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {experienceItem.community} #
-                      {experienceItem.weekend_number}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive/90"
-                    onClick={() => handleDelete(experienceItem.id!, index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <p className="font-semibold">{experienceItem.cha_role}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {experienceItem.community} #{experienceItem.weekend_number}
+                  </p>
                 </div>
               )
             }
 
             // New item, render fields
             return (
-              <UserExperienceField
-                key={field.id}
-                control={control}
-                index={index}
-                remove={remove}
-                baseFieldName={`experience.${index}`}
-              />
+              <div key={field.id} className="col-span-3">
+                <UserExperienceField
+                  control={control}
+                  index={index}
+                  remove={remove}
+                  baseFieldName={`experience.${index}`}
+                />
+              </div>
             )
           })}
+        </CardContent>
+
+        <CardFooter>
+          <Button
+            onClick={() =>
+              append({
+                cha_role: '' as CHARole,
+                rollo: '',
+                community: 'DTTD',
+                weekend_number: '',
+              })
+            }
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add Experience
+          </Button>
 
           {fields.length === 0 && (
             <Typography variant="muted" className="text-sm italic">
               No roles added. Click &quot;Add Experience&quot; to add entries.
             </Typography>
           )}
-        </CardContent>
+        </CardFooter>
       </Card>
     </div>
   )

@@ -5,7 +5,7 @@ export const UserExperienceSchema = z.object({
   id: z.uuid(),
   user_id: z.uuid(),
   weekend_id: z.uuid().nullable(),
-  cha_role: z.enum(CHARole, { error: 'Please select a role' }),
+  cha_role: z.enum(CHARole, { error: 'Role is required' }),
   weekend_reference: z.string(),
   rollo: z.string().nullable(),
   created_at: z.string().transform((str) => {
