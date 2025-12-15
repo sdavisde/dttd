@@ -164,9 +164,7 @@ export function CandidateReviewTable({
       logger.error(
         `Failed to send candidate forms: ${candidateFormsResult.error}`
       )
-      toast.error(
-        `Failed to send forms email: ${candidateFormsResult.error}`
-      )
+      toast.error(`Failed to send forms email: ${candidateFormsResult.error}`)
       return
     }
 
@@ -194,12 +192,8 @@ export function CandidateReviewTable({
     const result = await sendPaymentRequestEmail(candidateForSendPayment.id)
 
     if (Results.isErr(result)) {
-      logger.error(
-        `Failed to send payment request email: ${result.error}`
-      )
-      toast.error(
-        `Failed to send payment request email: ${result.error}`
-      )
+      logger.error(`Failed to send payment request email: ${result.error}`)
+      toast.error(`Failed to send payment request email: ${result.error}`)
       return
     }
 

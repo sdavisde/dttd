@@ -60,28 +60,6 @@ export function CandidateDetailSheet({
             </div>
           </div>
 
-          {/* Weekend Assignment */}
-          {/*<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-            <div>
-              <Typography variant="small" className="text-muted-foreground">
-                Weekend Assignment
-              </Typography>
-              <Typography variant="p">
-                {candidate.weekends?.type === 'MENS' ? "Men's Weekend" :
-                 candidate.weekends?.type === 'WOMENS' ? "Women's Weekend" :
-                 'Not yet assigned'}
-              </Typography>
-            </div>
-            <div>
-              <Typography variant="small" className="text-muted-foreground">
-                Weekend Title
-              </Typography>
-              <Typography variant="p">
-                {candidate.weekends?.title ?? 'N/A'}
-              </Typography>
-            </div>
-          </div>*/}
-
           {/* Candidate Assessment (from Sponsor) */}
           <Typography variant="h6" className="mb-2">
             Candidate Assessment
@@ -330,8 +308,8 @@ export function CandidateDetailSheet({
                     : candidate.candidate_sponsorship_info?.attends_secuela ===
                         'no'
                       ? 'No'
-                      : candidate.candidate_sponsorship_info?.attends_secuela ??
-                        'Not specified'}
+                      : (candidate.candidate_sponsorship_info
+                          ?.attends_secuela ?? 'Not specified')}
                 </Typography>
               </div>
               <div>

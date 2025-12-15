@@ -15,9 +15,8 @@ interface PageProps {
 }
 
 export default async function ReviewCandidatePage({ searchParams }: PageProps) {
-  const { candidates, weekendOptions, currentWeekendId } = await getReviewPageData(
-    searchParams
-  )
+  const { candidates, weekendOptions, currentWeekendId } =
+    await getReviewPageData(searchParams)
 
   return (
     <div className="container mx-auto p-4 min-h-[80vh]">
