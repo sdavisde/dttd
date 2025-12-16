@@ -6,6 +6,7 @@ import { addressSchema } from '@/lib/users/validation'
 import { UserExperienceSchema } from '@/lib/users/experience'
 import {
   calculateExperienceLevel,
+  calculateRectorReadyStatus,
   countDistinctWeekends,
 } from '@/lib/users/experience/calculations'
 import { Tables } from '@/database.types'
@@ -26,6 +27,11 @@ export async function getMasterRoster(): Promise<Result<string, MasterRoster>> {
   const members: Array<MasterRosterMember> = roster.map((member) => {
     const memberAddress =
       unwrapOr(addressSchema.safeParse(member.address), null) ?? null
+    const experience = normalizeUserExperience(member.users_experience)
+    const distinctWeekends = countDistinctWeekends(experience)
+    const level = calculateExperienceLevel(distinctWeekends)
+    const rectorReady = calculateRectorReadyStatus(experience)
+
     return {
       id: member.id,
       firstName: member.first_name,
@@ -42,7 +48,9 @@ export async function getMasterRoster(): Promise<Result<string, MasterRoster>> {
       },
       permissions: getPermissionsFromUserRoles(member.user_roles),
       roles: member.user_roles?.map((role) => role.roles) ?? [],
-      experience: normalizeUserExperience(member.users_experience),
+      experience,
+      level,
+      rectorReady,
     }
   })
 

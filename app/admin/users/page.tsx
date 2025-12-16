@@ -2,11 +2,10 @@ import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/auth'
 import { getRoles } from '@/actions/roles'
-import { getAllUsersServiceHistory } from '@/actions/user-experience'
 import MasterRoster from './components/master-roster'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { getMasterRoster } from '@/services/master-roster/master-roster-service'
+import { getMasterRoster } from '@/services/master-roster'
 
 export default async function MasterRosterPage() {
   const userResult = await getLoggedInUser()
@@ -41,15 +40,6 @@ export default async function MasterRosterPage() {
     Permission.READ_USER_EXPERIENCE,
   ])
 
-  // Fetch experience data if user has permission
-  let userExperienceMap = new Map()
-  if (canViewExperience) {
-    const experienceResult = await getAllUsersServiceHistory()
-    if (!isErr(experienceResult)) {
-      userExperienceMap = experienceResult.data
-    }
-  }
-
   return (
     <>
       <AdminBreadcrumbs
@@ -61,7 +51,6 @@ export default async function MasterRosterPage() {
           masterRoster={masterRosterResult.data}
           roles={rolesResult.data}
           canViewExperience={canViewExperience}
-          userExperienceMap={userExperienceMap}
         />
       </div>
     </>

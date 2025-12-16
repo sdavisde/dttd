@@ -13,7 +13,13 @@ import {
 import z from 'zod'
 import { isNil } from 'lodash'
 import { UserExperienceFormValue } from '@/components/team-forms/schemas'
+import { UserServiceHistory } from '@/services/master-roster/types'
+import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
+/**
+ * @deprecated - move a version of this function to the master roster service and call that instead.
+ * I figure we don't need to join on weekends anymore and can just use the weekend reference
+ */
 export async function getUserServiceHistory(
   userId: string
 ): Promise<Result<string, UserServiceHistory>> {
@@ -101,86 +107,9 @@ export async function getUserServiceHistory(
   }
 }
 
-export async function getAllUsersServiceHistory(): Promise<
-  Result<string, Map<string, UserServiceHistory>>
-> {
-  try {
-    const supabase = await createClient()
-
-    const { data, error } = await supabase
-      .from('users_experience')
-      .select(
-        `
-        id,
-        user_id,
-        weekend_id,
-        cha_role,
-        weekend_reference,
-        rollo,
-        created_at,
-        updated_at
-      `
-      )
-      .order('created_at', { ascending: true })
-
-    if (error) {
-      return err(`Failed to fetch users experience: ${error.message}`)
-    }
-
-    if (isNil(data)) {
-      return ok(new Map())
-    }
-
-    const parseResult = z.array(UserExperienceSchema).safeParse(data)
-
-    if (!parseResult.success) {
-      return err(
-        `Invalid experience data: ${parseResult.error.issues.map((e) => e.message).join(', ')}`
-      )
-    }
-
-    const records: UserExperience[] = parseResult.data
-
-    // Group records by user_id
-    const userRecordsMap = new Map<string, UserExperience[]>()
-    for (const record of records) {
-      const existing = userRecordsMap.get(record.user_id) ?? []
-      existing.push(record)
-      userRecordsMap.set(record.user_id, existing)
-    }
-
-    // Calculate service history for each user
-    const resultMap = new Map<string, UserServiceHistory>()
-    for (const [userId, userRecords] of userRecordsMap.entries()) {
-      const totalWeekends = countDistinctWeekends(userRecords)
-      const level = calculateExperienceLevel(totalWeekends)
-      const rectorReady = calculateRectorReadyStatus(userRecords)
-      const groupedExperience = groupExperienceByCommunity(userRecords)
-      const totalDTTDWeekends = groupedExperience.filter(
-        (g) => g.community === 'DTTD'
-      ).length
-
-      resultMap.set(userId, {
-        level,
-        rectorReady,
-        experience: userRecords,
-        totalWeekends,
-        totalDTTDWeekends,
-      })
-    }
-
-    return ok(resultMap)
-  } catch (error) {
-    return err(
-      `Error while fetching users experience: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
-  }
-}
-
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
-
 /**
  * Upserts a single user experience entry (External)
+ * @deprecated - move a version of this function to the master roster service and call that instead
  */
 export async function upsertUserExperience(
   userId: string,
@@ -223,6 +152,9 @@ export async function upsertUserExperience(
   }
 }
 
+/**
+ * @deprecated - move a version of this function to the master roster service and call that instead
+ */
 export async function deleteUserExperience(
   experienceId: string
 ): Promise<Result<string, void>> {

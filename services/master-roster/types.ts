@@ -1,6 +1,6 @@
 import { CommunityInformation } from '@/lib/users/types'
 import { Address } from '@/lib/users/validation'
-import { UserExperience } from '@/lib/users/experience'
+import { UserExperience } from '@/lib/users/experience/validation'
 
 export type MasterRosterMember = {
   id: string
@@ -48,4 +48,22 @@ export type ExperienceDistribution = {
   level2: ExperienceLevelDistribution
   level3: ExperienceLevelDistribution
   total: number
+}
+
+export type UserServiceHistory = {
+  level: ExperienceLevel
+  rectorReady: RectorReadyStatus
+  experience: UserExperience[]
+  totalWeekends: number
+  totalDTTDWeekends: number
+}
+
+export type GroupedExperience = {
+  community: string
+  records: UserExperience[]
+}
+
+export type UserExperienceRecord = {
+  weekend_id: string | null
+  weekend_reference: string
 }

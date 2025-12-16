@@ -3,12 +3,12 @@ import { Check, X } from 'lucide-react'
 
 type ExperienceLevelSectionProps = {
   level: number
-  totalWeekends: number
+  numDTTDWeekends: number
 }
 
 export function ExperienceLevelSection({
   level,
-  totalWeekends,
+  numDTTDWeekends,
 }: ExperienceLevelSectionProps) {
   return (
     <div className="space-y-4">
@@ -22,8 +22,8 @@ export function ExperienceLevelSection({
         <div className="space-y-1">
           <p className="font-medium">Level {level} Member</p>
           <p className="text-sm text-muted-foreground">
-            Has served on {totalWeekends}{' '}
-            {totalWeekends === 1 ? 'weekend' : 'weekends'}
+            Has served on {numDTTDWeekends}{' '}
+            {numDTTDWeekends === 1 ? 'weekend' : 'weekends'}
           </p>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { getUserServiceHistory } from '@/actions/user-experience'
+import { useState, useEffect, useMemo } from 'react'
+import { groupExperienceByCommunity } from '@/lib/users/experience'
 import {
   Sheet,
   SheetContent,
@@ -18,7 +18,6 @@ import { isErr } from '@/lib/results'
 import { ExperienceLevelSection } from './experience-level-section'
 import { RectorReadySection } from './rector-ready-section'
 import { PreviousExperienceSection } from './previous-experience-section'
-import { Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Permission, userHasPermission } from '@/lib/security'
 import { isNil, isEqual } from 'lodash'
@@ -45,11 +44,14 @@ export function UserRoleSidebar({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [serviceHistory, setServiceHistory] =
-    useState<UserServiceHistory | null>(null)
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
-
   const router = useRouter()
+
+  // Calculate total DTTD weekends from member experience
+  const totalDTTDWeekends = useMemo(() => {
+    if (!member?.experience?.length) return 0
+    const grouped = groupExperienceByCommunity(member.experience)
+    return grouped.find((g) => g.community === 'DTTD')?.records.length ?? 0
+  }, [member?.experience])
 
   const showSecuritySettings =
     !isNil(currentUser) &&
@@ -70,31 +72,12 @@ export function UserRoleSidebar({
     if (isOpen) {
       setError(null)
       setIsLoading(false)
-
-      // Fetch service history
-      if (!isNil(member) && showExperience) {
-        const fetchHistory = async () => {
-          setIsLoadingHistory(true)
-          const result = await getUserServiceHistory(member.id)
-          if (!isErr(result)) {
-            setServiceHistory(result.data)
-          } else {
-            console.error('Failed to fetch service history:', result.error)
-          }
-          setIsLoadingHistory(false)
-        }
-
-        fetchHistory()
-      } else {
-        setServiceHistory(null)
-      }
     } else {
       // Reset form state when modal closes
       setSelectedRoleIds(member?.roles?.map((r) => r.id) ?? [])
       setError(null)
-      setServiceHistory(null)
     }
-  }, [isOpen, member, showExperience])
+  }, [isOpen, member])
 
   const handleSave = async () => {
     if (isNil(member)) return
@@ -191,39 +174,25 @@ export function UserRoleSidebar({
             </div>
           </div>
 
-          {showExperience && (
+          {showExperience && member && (
             <div className="space-y-2">
               <Typography variant="muted" className="text-sm font-bold">
                 Experience & Qualifications
               </Typography>
 
               <div className="bg-muted/20 rounded-md p-4 space-y-6 w-full border">
-                {isLoadingHistory ? (
-                  <div className="flex justify-center py-8 text-muted-foreground">
-                    <Loader2 className="w-8 h-8 animate-spin" />
-                  </div>
-                ) : serviceHistory ? (
-                  <>
-                    <ExperienceLevelSection
-                      level={serviceHistory.level}
-                      totalWeekends={serviceHistory.totalDTTDWeekends}
-                    />
+                <ExperienceLevelSection
+                  level={member.level}
+                  numDTTDWeekends={totalDTTDWeekends}
+                />
 
-                    <Separator className="my-2" />
+                <Separator className="my-2" />
 
-                    <RectorReadySection status={serviceHistory.rectorReady} />
+                <RectorReadySection status={member.rectorReady} />
 
-                    <Separator className="my-2" />
+                <Separator className="my-2" />
 
-                    <PreviousExperienceSection
-                      experience={serviceHistory.experience}
-                    />
-                  </>
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground text-sm">
-                    Unable to load experience data.
-                  </div>
-                )}
+                <PreviousExperienceSection experience={member.experience} />
               </div>
             </div>
           )}

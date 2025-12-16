@@ -51,16 +51,13 @@ interface MasterRosterProps {
   masterRoster: MasterRoster
   roles: Array<{ id: string; label: string; permissions: string[] }>
   canViewExperience: boolean
-  userExperienceMap: Map<string, UserServiceHistory>
 }
 
 export default function MasterRoster({
   masterRoster,
   roles,
   canViewExperience,
-  userExperienceMap,
 }: MasterRosterProps) {
-  const { user } = useSession()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMember, setSelectedMember] =
     useState<MasterRosterMember | null>(null)
@@ -203,63 +200,54 @@ export default function MasterRoster({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedData.map((member, index) => {
-                const userExperience = userExperienceMap.get(member.id)
-                return (
-                  <TableRow
-                    key={member.id}
-                    className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
-                    onClick={() => handleMemberClick(member)}
-                  >
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <UserIcon className="h-4 w-4 text-gray-500" />
-                        {(member.firstName ?? member.lastName)
-                          ? `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
-                          : 'Unknown User'}
-                      </div>
-                    </TableCell>
-                    <TableCell>{member.email ?? '-'}</TableCell>
-                    <TableCell>
-                      {formatPhoneNumber(member.phoneNumber)}
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-muted-foreground">
-                        {isEmpty(member.roles)
-                          ? '-'
-                          : member.roles.map((it) => it.label).join(', ')}
-                      </span>
-                    </TableCell>
-                    {canViewExperience && (
-                      <>
-                        <TableCell className="text-center">
-                          {!isNil(userExperience) ? (
-                            <Badge
-                              variant="secondary"
-                              className="font-semibold"
-                              style={{
-                                backgroundColor: `var(--experience-level-${userExperience.level})`,
-                                color: `var(--experience-level-${userExperience.level}-fg)`,
-                              }}
-                            >
-                              {userExperience.level}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {userExperience?.rectorReady.isReady ? (
-                            <Check className="h-5 w-5 text-green-600 mx-auto" />
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      </>
-                    )}
-                  </TableRow>
-                )
-              })}
+              {paginatedData.map((member, index) => (
+                <TableRow
+                  key={member.id}
+                  className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
+                  onClick={() => handleMemberClick(member)}
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4 text-gray-500" />
+                      {(member.firstName ?? member.lastName)
+                        ? `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
+                        : 'Unknown User'}
+                    </div>
+                  </TableCell>
+                  <TableCell>{member.email ?? '-'}</TableCell>
+                  <TableCell>{formatPhoneNumber(member.phoneNumber)}</TableCell>
+                  <TableCell>
+                    <span className="text-muted-foreground">
+                      {isEmpty(member.roles)
+                        ? '-'
+                        : member.roles.map((it) => it.label).join(', ')}
+                    </span>
+                  </TableCell>
+                  {canViewExperience && (
+                    <>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant="secondary"
+                          className="font-semibold"
+                          style={{
+                            backgroundColor: `var(--experience-level-${member.level})`,
+                            color: `var(--experience-level-${member.level}-fg)`,
+                          }}
+                        >
+                          {member.level}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {member.rectorReady.isReady ? (
+                          <Check className="h-5 w-5 text-green-600 mx-auto" />
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))}
               {paginatedData.length === 0 && (
                 <TableRow>
                   <TableCell

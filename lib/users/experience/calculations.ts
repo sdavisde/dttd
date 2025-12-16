@@ -7,7 +7,7 @@ import type {
   RectorReadyCriteria,
   GroupedExperience,
   UserExperienceRecord,
-} from './types'
+} from '@/services/master-roster/types'
 import { UserExperience } from './validation'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
