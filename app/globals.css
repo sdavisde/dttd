@@ -27,6 +27,12 @@
   --chart-3: oklch(0.93 0 0);
   --chart-4: oklch(0.94 0.05 75.02);
   --chart-5: oklch(0.43 0.04 42);
+  --experience-level-1: oklch(0.92 0.12 85);
+  --experience-level-1-fg: oklch(0.42 0.12 85);
+  --experience-level-2: oklch(0.92 0.08 240);
+  --experience-level-2-fg: oklch(0.42 0.12 240);
+  --experience-level-3: oklch(0.92 0.12 145);
+  --experience-level-3-fg: oklch(0.42 0.12 145);
   --success: oklch(0.55 0.15 145);
   --success-foreground: oklch(0.98 0 0);
   --warning: oklch(0.75 0.15 85);
@@ -90,6 +96,12 @@
   --chart-3: oklch(0.29 0 0);
   --chart-4: oklch(0.35 0.02 67.11);
   --chart-5: oklch(0.92 0.05 67.14);
+  --experience-level-1: oklch(0.40 0.12 85);
+  --experience-level-1-fg: oklch(0.85 0.12 85);
+  --experience-level-2: oklch(0.40 0.08 240);
+  --experience-level-2-fg: oklch(0.85 0.12 240);
+  --experience-level-3: oklch(0.40 0.12 145);
+  --experience-level-3-fg: oklch(0.85 0.12 145);
   --success: oklch(0.45 0.15 145);
   --success-foreground: oklch(0.98 0 0);
   --warning: oklch(0.65 0.15 85);
@@ -145,6 +157,12 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-experience-level-1: var(--experience-level-1);
+  --color-experience-level-1-fg: var(--experience-level-1-fg);
+  --color-experience-level-2: var(--experience-level-2);
+  --color-experience-level-2-fg: var(--experience-level-2-fg);
+  --color-experience-level-3: var(--experience-level-3);
+  --color-experience-level-3-fg: var(--experience-level-3-fg);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
