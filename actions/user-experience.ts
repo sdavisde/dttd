@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Result, err, ok } from '@/lib/results'
 import {
-  UserServiceHistory,
   UserExperience,
   calculateExperienceLevel,
   calculateRectorReadyStatus,

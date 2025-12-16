@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import { User } from '@/lib/users/types'
-import { UserServiceHistory } from '@/lib/users/experience'
+
 import {
   Table,
   TableBody,
