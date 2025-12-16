@@ -59,11 +59,13 @@ export async function getUserServiceHistory(
         level: 1,
         rectorReady: {
           isReady: false,
+          statusLabel: 'In Progress',
           criteria: {
             hasServedHeadOrAssistantHead: false,
             hasServedTeamHead: false,
             hasGivenTwoOrMoreTalks: false,
             hasWorkedDining: false,
+            hasServedAsRector: false,
           },
         },
         experience: [],

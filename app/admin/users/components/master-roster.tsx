@@ -3,10 +3,9 @@
 import { useState, useMemo } from 'react'
 import {
   Search,
-  Edit,
   User as UserIcon,
-  Trash2,
   Users as UsersIcon,
+  Star,
 } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import { User } from '@/lib/users/types'
@@ -238,7 +237,12 @@ export default function MasterRoster({
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        {member.rectorReady.isReady ? (
+                        {member.rectorReady.criteria.hasServedAsRector ? (
+                          <div className="relative inline-flex items-center justify-center mx-auto">
+                            <Check className="h-5 w-5 text-green-600" />
+                            <Star className="h-3 w-3 text-amber-500 fill-amber-500 absolute -top-1 -right-1.5" />
+                          </div>
+                        ) : member.rectorReady.isReady ? (
                           <Check className="h-5 w-5 text-green-600 mx-auto" />
                         ) : (
                           <span className="text-muted-foreground">-</span>

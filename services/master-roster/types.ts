@@ -31,10 +31,14 @@ export type RectorReadyCriteria = {
   hasServedTeamHead: boolean
   hasGivenTwoOrMoreTalks: boolean
   hasWorkedDining: boolean
+  hasServedAsRector: boolean
 }
+
+export type RectorReadyStatusLabel = 'In Progress' | 'Qualified' | 'Has Served'
 
 export type RectorReadyStatus = {
   isReady: boolean
+  statusLabel: RectorReadyStatusLabel
   criteria: RectorReadyCriteria
 }
 

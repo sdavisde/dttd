@@ -5,11 +5,14 @@ import type {
   ExperienceLevel,
   RectorReadyStatus,
   RectorReadyCriteria,
+  RectorReadyStatusLabel,
   GroupedExperience,
   UserExperienceRecord,
 } from '@/services/master-roster/types'
 import { UserExperience } from './validation'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
+
+const DTTD_COMMUNITY = 'DTTD'
 
 const HEAD_AND_ASSISTANT_HEAD_ROLES: CHARole[] = [
   CHARole.HEAD,
@@ -48,6 +51,12 @@ export function calculateExperienceLevel(
 export function calculateRectorReadyStatus(
   records: UserExperience[]
 ): RectorReadyStatus {
+  const hasServedAsRector = records.some((r) => {
+    if (r.cha_role !== CHARole.RECTOR) return false
+    const { community } = WeekendReference.fromString(r.weekend_reference)
+    return community === DTTD_COMMUNITY
+  })
+
   const criteria: RectorReadyCriteria = {
     hasServedHeadOrAssistantHead: records.some((r) =>
       HEAD_AND_ASSISTANT_HEAD_ROLES.includes(r.cha_role)
@@ -57,6 +66,7 @@ export function calculateRectorReadyStatus(
     ),
     hasGivenTwoOrMoreTalks: records.filter((r) => r.rollo !== null).length >= 2,
     hasWorkedDining: records.some((r) => DINING_ROLES.includes(r.cha_role)),
+    hasServedAsRector,
   }
 
   const isReady =
@@ -65,7 +75,13 @@ export function calculateRectorReadyStatus(
     criteria.hasGivenTwoOrMoreTalks &&
     criteria.hasWorkedDining
 
-  return { isReady, criteria }
+  const statusLabel: RectorReadyStatusLabel = hasServedAsRector
+    ? 'Has Served'
+    : isReady
+      ? 'Qualified'
+      : 'In Progress'
+
+  return { isReady, statusLabel, criteria }
 }
 
 export function formatExperienceDate(date: Date): string {

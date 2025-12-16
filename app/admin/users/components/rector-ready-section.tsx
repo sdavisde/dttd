@@ -1,10 +1,25 @@
-import { Check, X, Minus } from 'lucide-react'
+import { Check, X, Minus, Star } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import type { RectorReadyStatus } from '@/services/master-roster/types'
+import type {
+  RectorReadyStatus,
+  RectorReadyStatusLabel,
+} from '@/services/master-roster/types'
 
 type RectorReadySectionProps = {
   status: RectorReadyStatus
+}
+
+function getStatusBadgeStyles(statusLabel: RectorReadyStatusLabel): string {
+  switch (statusLabel) {
+    case 'Has Served':
+      return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+    case 'Qualified':
+      return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+    case 'In Progress':
+    default:
+      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+  }
 }
 
 export function RectorReadySection({ status }: RectorReadySectionProps) {
@@ -25,6 +40,11 @@ export function RectorReadySection({ status }: RectorReadySectionProps) {
       label: 'Worked Dining Room',
       met: status.criteria.hasWorkedDining,
     },
+    {
+      label: 'Served as Rector on a DTTD Weekend',
+      met: status.criteria.hasServedAsRector,
+      isHighlight: true,
+    },
   ]
 
   return (
@@ -34,12 +54,10 @@ export function RectorReadySection({ status }: RectorReadySectionProps) {
         <div
           className={cn(
             'px-2 py-1 rounded-full text-xs font-medium',
-            status.isReady
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+            getStatusBadgeStyles(status.statusLabel)
           )}
         >
-          {status.isReady ? 'Qualified' : 'In Progress'}
+          {status.statusLabel}
         </div>
       </div>
 
@@ -53,12 +71,18 @@ export function RectorReadySection({ status }: RectorReadySectionProps) {
               className={cn(
                 'mt-0.5 flex items-center justify-center w-5 h-5 rounded-full text-xs shrink-0',
                 item.met
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  ? item.isHighlight
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                    : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-muted text-muted-foreground'
               )}
             >
               {item.met ? (
-                <Check className="w-3 h-3" />
+                item.isHighlight ? (
+                  <Star className="w-3 h-3 fill-current" />
+                ) : (
+                  <Check className="w-3 h-3" />
+                )
               ) : (
                 <Minus className="w-3 h-3" />
               )}
