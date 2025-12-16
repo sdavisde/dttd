@@ -1,25 +1,28 @@
-import { getActiveWeekends, getWeekendRoster } from '@/actions/weekend'
+import {
+  getActiveWeekends,
+  getWeekendRoster,
+  WeekendRosterMember,
+} from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-roster-table'
-import { DroppedRosterSection, ActiveRosterHeader } from '@/components/weekend'
+import {
+  DroppedRosterSection,
+  ActiveRosterHeader,
+  WeekendStatusBadge,
+} from '@/components/weekend'
 import { ExperienceDistributionChart } from '@/components/weekend/experience-distribution-chart'
 import { Typography } from '@/components/ui/typography'
+import { Datetime } from '@/components/ui/datetime'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/auth'
-import { getWeekendRosterExperienceDistribution } from '@/services/master-roster'
+import {
+  getWeekendRosterExperienceDistribution,
+  ExperienceDistribution,
+} from '@/services/master-roster'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CHARole } from '@/lib/weekend/types'
+import { CHARole, Weekend } from '@/lib/weekend/types'
 import { Permission, userHasCHARole, userHasPermission } from '@/lib/security'
-
-// todo: replace with lib funciton when merged in
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
+import { formatDateTime } from '@/lib/utils'
 
 export default async function RosterPage() {
   const userResult = await getLoggedInUser()
@@ -98,10 +101,20 @@ export default async function RosterPage() {
 
   // Generally it wouldn't make sense to use an array here, because we know we should have mens and womens weekends, and that's it.
   // I've added this here to make the render function cleaner by using a map - and gives type safety by handling edge case when mens or womens fail to fetch.
-  const rosters = []
-  if (mensRosterResult && !isErr(mensRosterResult)) {
+  const rosters: Array<{
+    value: string
+    weekend: Weekend
+    roster: WeekendRosterMember[]
+    experienceDistribution: ExperienceDistribution | null
+  }> = []
+  if (
+    mensRosterResult &&
+    !isErr(mensRosterResult) &&
+    activeWeekendsResult.data.MENS
+  ) {
     rosters.push({
       value: 'mens',
+      weekend: activeWeekendsResult.data.MENS,
       roster: mensRosterResult.data,
       experienceDistribution:
         mensExperienceResult && !isErr(mensExperienceResult)
@@ -109,9 +122,14 @@ export default async function RosterPage() {
           : null,
     })
   }
-  if (womensRosterResult && !isErr(womensRosterResult)) {
+  if (
+    womensRosterResult &&
+    !isErr(womensRosterResult) &&
+    activeWeekendsResult.data.WOMENS
+  ) {
     rosters.push({
       value: 'womens',
+      weekend: activeWeekendsResult.data.WOMENS,
       roster: womensRosterResult.data,
       experienceDistribution:
         womensExperienceResult && !isErr(womensExperienceResult)
@@ -125,89 +143,142 @@ export default async function RosterPage() {
   }
 
   if (rosters.length === 1) {
-    const { roster, experienceDistribution } = rosters[0]
+    const { roster, weekend, experienceDistribution } = rosters[0]
+    const startDate = formatDateTime(weekend.start_date)
+    const endDate = formatDateTime(weekend.end_date)
 
     return (
-      <div className="container mx-auto px-8 py-8">
+      <div className="container mx-auto px-8 pt-6 pb-2 md:pt-8 md:pb-4">
+        {/* Weekend Information Header */}
         <div className="mb-8">
-          <Typography variant="h1" className="text-2xl mb-2">
-            Weekend Roster
-          </Typography>
-
-          <div className="mb-4">
-            <ActiveRosterHeader roster={roster} />
-          </div>
-
-          {experienceDistribution && (
-            <div className="mb-4">
-              <ExperienceDistributionChart
-                distribution={experienceDistribution}
-              />
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            {/* Left side: Weekend info */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Typography variant="h5" className="text-2xl">
+                  {weekend.title ??
+                    `${weekend.type} Weekend #${weekend.number}`}
+                </Typography>
+                {weekend.status && (
+                  <WeekendStatusBadge status={weekend.status} />
+                )}
+              </div>
+              <Typography
+                as="span"
+                variant="muted"
+                className="text-lg flex items-center gap-2"
+              >
+                <Datetime dateTime={startDate} />
+                <span>-</span>
+                <Datetime dateTime={endDate} />
+              </Typography>
             </div>
-          )}
+
+            {/* Right side: Experience chart */}
+            {experienceDistribution && (
+              <div className="lg:w-auto">
+                <ExperienceDistributionChart
+                  distribution={experienceDistribution}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Team Roster Section */}
+        <div>
+          <div className="mb-4">
+            <ActiveRosterHeader roster={roster} title="Team Roster" />
+          </div>
 
           <WeekendRosterTable
             roster={roster}
             isEditable={false}
             includePaymentInformation={false}
           />
-
-          {/* Dropped Team Members Section - Only shown to specific CHA roles */}
-          {canViewDroppedMembers && <DroppedRosterSection roster={roster} />}
         </div>
+
+        {/* Dropped Team Members Section - Only shown to specific CHA roles */}
+        {canViewDroppedMembers && <DroppedRosterSection roster={roster} />}
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-8 py-8">
-      <div className="mb-8">
-        <Tabs defaultValue={user.gender === 'male' ? 'mens' : 'womens'}>
-          <Typography
-            variant="h2"
-            className="text-2xl mb-2 flex items-center justify-between"
-          >
-            <span>Weekend Rosters</span>
-            <TabsList className="md:w-sm lg:w-md">
-              {rosters.map((roster) => (
-                <TabsTrigger
-                  key={roster.value}
-                  value={roster.value}
-                  className="capitalize font-bold"
-                >
-                  {roster.value}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Typography>
-          {rosters.map(({ roster, value, experienceDistribution }) => (
+    <div className="container mx-auto px-8 pt-6 pb-2 md:pt-8 md:pb-4">
+      <Tabs defaultValue={user.gender === 'male' ? 'mens' : 'womens'}>
+        {rosters.map(({ roster, value, weekend, experienceDistribution }) => {
+          const startDate = formatDateTime(weekend.start_date)
+          const endDate = formatDateTime(weekend.end_date)
+
+          return (
             <TabsContent key={value} value={value}>
-              <div className="mb-4">
-                <ActiveRosterHeader roster={roster} />
+              {/* Weekend Information Header */}
+              <div className="mb-8">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                  {/* Left side: Weekend info */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Typography variant="h5" className="text-2xl">
+                        {weekend.title ??
+                          `${weekend.type} Weekend #${weekend.number}`}
+                      </Typography>
+                      {/* Gender toggle */}
+                      <TabsList>
+                        {rosters.map((r) => (
+                          <TabsTrigger
+                            key={r.value}
+                            value={r.value}
+                            className="capitalize font-bold"
+                          >
+                            {r.value}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </div>
+                    <Typography
+                      as="span"
+                      variant="muted"
+                      className="text-lg flex items-center gap-2"
+                    >
+                      <Datetime dateTime={startDate} />
+                      <span>-</span>
+                      <Datetime dateTime={endDate} />
+                    </Typography>
+                  </div>
+
+                  {/* Right side: Experience chart */}
+                  {experienceDistribution && (
+                    <div className="lg:w-auto">
+                      <ExperienceDistributionChart
+                        distribution={experienceDistribution}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {experienceDistribution && (
+              {/* Team Roster Section */}
+              <div>
                 <div className="mb-4">
-                  <ExperienceDistributionChart
-                    distribution={experienceDistribution}
-                  />
+                  <ActiveRosterHeader roster={roster} title="Team Roster" />
                 </div>
-              )}
 
-              <WeekendRosterTable
-                roster={roster}
-                isEditable={canEditRoster}
-                includePaymentInformation={canViewPaymentInfo}
-              />
+                <WeekendRosterTable
+                  roster={roster}
+                  isEditable={canEditRoster}
+                  includePaymentInformation={canViewPaymentInfo}
+                />
+              </div>
 
               {/* Dropped Team Members Section - Only shown to specific CHA roles */}
               {canViewDroppedMembers && (
                 <DroppedRosterSection roster={roster} />
               )}
             </TabsContent>
-          ))}
-        </Tabs>
-      </div>
+          )
+        })}
+      </Tabs>
     </div>
   )
 }

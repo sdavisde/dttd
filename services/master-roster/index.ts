@@ -2,6 +2,8 @@
 
 import * as MasterRosterService from './master-roster-service'
 
+export type { ExperienceDistribution } from './types'
+
 /**
  * @returns the master roster with all user information in the community.
  * Provides helpful information about each user to help with community management.

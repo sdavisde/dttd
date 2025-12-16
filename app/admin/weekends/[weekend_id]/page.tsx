@@ -16,6 +16,8 @@ import {
   ActiveRosterHeader,
   WeekendStatusBadge,
 } from '@/components/weekend'
+import { ExperienceDistributionChart } from '@/components/weekend/experience-distribution-chart'
+import { getWeekendRosterExperienceDistribution } from '@/services/master-roster'
 import { formatDateTime } from '@/lib/utils'
 import { Datetime } from '@/components/ui/datetime'
 
@@ -28,11 +30,13 @@ export default async function WeekendDetailPage({
 }: WeekendDetailPageProps) {
   const { weekend_id } = await params
 
-  const [weekendResult, rosterResult, usersResult] = await Promise.all([
-    getWeekendById(weekend_id),
-    getWeekendRoster(weekend_id),
-    getAllUsers(),
-  ])
+  const [weekendResult, rosterResult, usersResult, experienceResult] =
+    await Promise.all([
+      getWeekendById(weekend_id),
+      getWeekendRoster(weekend_id),
+      getAllUsers(),
+      getWeekendRosterExperienceDistribution(weekend_id),
+    ])
 
   if (isErr(weekendResult)) {
     if (weekendResult.error === 'Weekend not found') {
@@ -52,6 +56,7 @@ export default async function WeekendDetailPage({
   const weekend = weekendResult.data
   const roster = rosterResult.data
   const users = usersResult.data
+  const experienceDistribution = experienceResult.data ?? null
 
   // Filter users for add team member modal
   const rosterUserIds = new Set(roster.map((r) => r.user_id).filter(Boolean))
@@ -77,8 +82,9 @@ export default async function WeekendDetailPage({
       <div className="container mx-auto px-8 py-2 md:py-4">
         {/* Weekend Information */}
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-            <div>
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            {/* Left side: Weekend info */}
+            <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Typography variant="h5" className="text-2xl">
                   {weekend.title ??
@@ -96,6 +102,15 @@ export default async function WeekendDetailPage({
                 <Datetime dateTime={endDate} />
               </Typography>
             </div>
+
+            {/* Right side: Experience chart */}
+            {experienceDistribution && (
+              <div className="lg:w-auto">
+                <ExperienceDistributionChart
+                  distribution={experienceDistribution}
+                />
+              </div>
+            )}
           </div>
         </div>
 
