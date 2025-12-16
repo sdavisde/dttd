@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { TeamInfoFormValues } from './schemas'
 import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 
 type UserExperienceFieldProps = {

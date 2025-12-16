@@ -27,8 +27,6 @@ import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 import { isNil } from 'lodash'
 import { UserExperienceField } from './user-experience-field'
-import { useRouter } from 'next/navigation'
-import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 
 export function ExperienceSection() {
   const { control, watch } = useFormContext<TeamInfoFormValues>()

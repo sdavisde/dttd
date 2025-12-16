@@ -7,4 +7,5 @@ export enum RECOGNIZED_COMMUNITIES {
   SCTD = 'Space City',
   GGCTD = 'Grace Gulf Coast',
   SETTD = 'South East Texas',
+  OTHER = 'Other',
 }
