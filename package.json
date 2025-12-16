@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "yarn lint && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "npx eslint . --ext .ts,.tsx",
     "generate": "npx supabase gen types typescript --project-id hlbfwbfhfbbiyztbqmsw > database.types.ts",

@@ -9,3 +9,15 @@ import * as MasterRosterService from './master-roster-service'
 export async function getMasterRoster() {
   return await MasterRosterService.getMasterRoster()
 }
+
+/**
+ * @returns the experience level distribution for active members of a weekend roster.
+ * Calculates how many team members are at each experience level (1, 2, or 3).
+ */
+export async function getWeekendRosterExperienceDistribution(
+  weekendId: string
+) {
+  return await MasterRosterService.getWeekendRosterExperienceDistribution(
+    weekendId
+  )
+}

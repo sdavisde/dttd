@@ -19,3 +19,15 @@ export type MasterRosterMember = {
 export type MasterRoster = {
   members: Array<MasterRosterMember>
 }
+
+export type ExperienceLevelDistribution = {
+  count: number
+  percentage: number
+}
+
+export type ExperienceDistribution = {
+  level1: ExperienceLevelDistribution
+  level2: ExperienceLevelDistribution
+  level3: ExperienceLevelDistribution
+  total: number
+}

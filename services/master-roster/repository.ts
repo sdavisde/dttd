@@ -43,3 +43,28 @@ export async function getMasterRoster() {
 
   return fromSupabase(response)
 }
+
+const GetWeekendRosterWithExperienceQuery = `
+  id,
+  user_id,
+  status,
+  users (
+    id,
+    users_experience (
+      id,
+      user_id,
+      weekend_id,
+      weekend_reference
+    )
+  )
+`
+
+export async function getWeekendRosterWithExperience(weekendId: string) {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('weekend_roster')
+    .select(GetWeekendRosterWithExperienceQuery)
+    .eq('weekend_id', weekendId)
+
+  return fromSupabase(response)
+}

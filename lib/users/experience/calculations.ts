@@ -6,6 +6,7 @@ import type {
   RectorReadyStatus,
   RectorReadyCriteria,
   GroupedExperience,
+  UserExperienceRecord,
 } from './types'
 import { UserExperience } from './validation'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
@@ -101,7 +102,9 @@ export function groupExperienceByCommunity(
 /**
  * Counts the number of weekends served by the user
  */
-export function countDistinctWeekends(records: UserExperience[]): number {
+export function countDistinctWeekends(
+  records: Pick<UserExperienceRecord, 'weekend_id' | 'weekend_reference'>[]
+): number {
   const weekendIds = records
     .map((r) => r.weekend_id ?? r.weekend_reference)
     .filter((id): id is string => id !== null)
