@@ -1,7 +1,7 @@
 import { Check, X, Minus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import type { RectorReadyStatus } from '@/lib/users/experience'
+import type { RectorReadyStatus } from '@/services/master-roster/types'
 
 type RectorReadySectionProps = {
   status: RectorReadyStatus
