@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import { BookOpen, DollarSign, File, UserPlus, CheckCircle } from 'lucide-react'
-import Link from 'next/link'
 import { User } from '@/lib/users/types'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'

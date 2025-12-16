@@ -13,11 +13,29 @@ export type MasterRosterMember = {
   communityInformation: CommunityInformation
   roles: Array<{ id: string; label: string }>
   permissions: Array<string>
+  level: ExperienceLevel
+  rectorReady: RectorReadyStatus
   experience: Array<UserExperience>
 }
 
 export type MasterRoster = {
   members: Array<MasterRosterMember>
+}
+
+// User experience types
+
+export type ExperienceLevel = 1 | 2 | 3
+
+export type RectorReadyCriteria = {
+  hasServedHeadOrAssistantHead: boolean
+  hasServedTeamHead: boolean
+  hasGivenTwoOrMoreTalks: boolean
+  hasWorkedDining: boolean
+}
+
+export type RectorReadyStatus = {
+  isReady: boolean
+  criteria: RectorReadyCriteria
 }
 
 export type ExperienceLevelDistribution = {

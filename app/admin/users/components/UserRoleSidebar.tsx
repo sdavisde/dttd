@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { getUserServiceHistory } from '@/actions/user-experience'
-import { UserServiceHistory } from '@/lib/users/experience'
 import {
   Sheet,
   SheetContent,
