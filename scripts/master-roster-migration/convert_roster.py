@@ -302,8 +302,10 @@ def parse_weekend_list(weekend_str: str) -> list[str]:
             weekends.append(f"{current_community}#{number}")
         elif re.match(r"#?\s*(\d+)", part):
             # Just a number, use current community
-            number = re.search(r"(\d+)", part).group(1)
-            weekends.append(f"{current_community}#{number}")
+            match = re.search(r"(\d+)", part)
+            if match:
+                number = match.group(1)
+                weekends.append(f"{current_community}#{number}")
 
     return weekends
 

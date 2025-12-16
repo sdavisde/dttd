@@ -102,7 +102,7 @@ def process_roster(roster_path: Path, existing_users_path: Path, output_path: Pa
 
     with open(roster_path, "r", encoding="utf-8") as infile:
         reader = csv.DictReader(infile)
-        fieldnames = reader.fieldnames + ["user_id", "match_status"]
+        fieldnames = list(reader.fieldnames or []) + ["user_id", "match_status"]
 
         with open(output_path, "w", encoding="utf-8", newline="") as outfile:
             writer = csv.DictWriter(outfile, fieldnames=fieldnames)
