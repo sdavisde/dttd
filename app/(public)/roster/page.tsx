@@ -2,9 +2,11 @@ import { getActiveWeekends, getWeekendRoster } from '@/actions/weekend'
 import { isErr } from '@/lib/results'
 import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-roster-table'
 import { DroppedRosterSection, ActiveRosterHeader } from '@/components/weekend'
+import { ExperienceDistributionChart } from '@/components/weekend/experience-distribution-chart'
 import { Typography } from '@/components/ui/typography'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/auth'
+import { getWeekendRosterExperienceDistribution } from '@/services/master-roster'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CHARole } from '@/lib/weekend/types'
 import { Permission, userHasCHARole, userHasPermission } from '@/lib/security'
@@ -30,6 +32,7 @@ export default async function RosterPage() {
     userHasCHARole(user, [
       CHARole.RECTOR,
       CHARole.BACKUP_RECTOR,
+      CHARole.HEAD,
       CHARole.ASSISTANT_HEAD,
       CHARole.ROSTER,
     ])
@@ -39,6 +42,7 @@ export default async function RosterPage() {
     userHasCHARole(user, [
       CHARole.RECTOR,
       CHARole.BACKUP_RECTOR,
+      CHARole.HEAD,
       CHARole.ASSISTANT_HEAD,
       CHARole.ROSTER,
     ])
@@ -47,6 +51,18 @@ export default async function RosterPage() {
     userHasPermission(user, [Permission.WRITE_TEAM_ROSTER]) ||
     userHasCHARole(user, [
       CHARole.RECTOR,
+      CHARole.BACKUP_RECTOR,
+      CHARole.HEAD,
+      CHARole.ASSISTANT_HEAD,
+      CHARole.ROSTER,
+    ])
+
+  const canViewExperienceDistribution =
+    userHasPermission(user, [Permission.READ_USER_EXPERIENCE]) ||
+    userHasCHARole(user, [
+      CHARole.RECTOR,
+      CHARole.BACKUP_RECTOR,
+      CHARole.HEAD,
       CHARole.ASSISTANT_HEAD,
       CHARole.ROSTER,
     ])
@@ -66,14 +82,42 @@ export default async function RosterPage() {
     ? await getWeekendRoster(activeWeekendsResult.data.WOMENS.id)
     : null
 
+  // Fetch experience distribution data if user has permission
+  const mensExperienceResult =
+    canViewExperienceDistribution && activeWeekendsResult.data.MENS
+      ? await getWeekendRosterExperienceDistribution(
+          activeWeekendsResult.data.MENS.id
+        )
+      : null
+  const womensExperienceResult =
+    canViewExperienceDistribution && activeWeekendsResult.data.WOMENS
+      ? await getWeekendRosterExperienceDistribution(
+          activeWeekendsResult.data.WOMENS.id
+        )
+      : null
+
   // Generally it wouldn't make sense to use an array here, because we know we should have mens and womens weekends, and that's it.
   // I've added this here to make the render function cleaner by using a map - and gives type safety by handling edge case when mens or womens fail to fetch.
   const rosters = []
   if (mensRosterResult && !isErr(mensRosterResult)) {
-    rosters.push({ value: 'mens', roster: mensRosterResult.data })
+    rosters.push({
+      value: 'mens',
+      roster: mensRosterResult.data,
+      experienceDistribution:
+        mensExperienceResult && !isErr(mensExperienceResult)
+          ? mensExperienceResult.data
+          : null,
+    })
   }
   if (womensRosterResult && !isErr(womensRosterResult)) {
-    rosters.push({ value: 'womens', roster: womensRosterResult.data })
+    rosters.push({
+      value: 'womens',
+      roster: womensRosterResult.data,
+      experienceDistribution:
+        womensExperienceResult && !isErr(womensExperienceResult)
+          ? womensExperienceResult.data
+          : null,
+    })
   }
 
   if (rosters.length === 0) {
@@ -81,7 +125,7 @@ export default async function RosterPage() {
   }
 
   if (rosters.length === 1) {
-    const { roster } = rosters[0]
+    const { roster, experienceDistribution } = rosters[0]
 
     return (
       <div className="container mx-auto px-8 py-8">
@@ -93,6 +137,14 @@ export default async function RosterPage() {
           <div className="mb-4">
             <ActiveRosterHeader roster={roster} />
           </div>
+
+          {experienceDistribution && (
+            <div className="mb-4">
+              <ExperienceDistributionChart
+                distribution={experienceDistribution}
+              />
+            </div>
+          )}
 
           <WeekendRosterTable
             roster={roster}
@@ -128,11 +180,19 @@ export default async function RosterPage() {
               ))}
             </TabsList>
           </Typography>
-          {rosters.map(({ roster, value }) => (
+          {rosters.map(({ roster, value, experienceDistribution }) => (
             <TabsContent key={value} value={value}>
               <div className="mb-4">
                 <ActiveRosterHeader roster={roster} />
               </div>
+
+              {experienceDistribution && (
+                <div className="mb-4">
+                  <ExperienceDistributionChart
+                    distribution={experienceDistribution}
+                  />
+                </div>
+              )}
 
               <WeekendRosterTable
                 roster={roster}
