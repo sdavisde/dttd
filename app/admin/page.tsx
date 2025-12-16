@@ -1,19 +1,12 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Typography } from '@/components/ui/typography'
-import { Separator } from '@/components/ui/separator'
 import {
   Calendar,
-  Users,
   FileText,
   Settings,
   CreditCard,
   UserCheck,
-  Plus,
-  Activity,
-  TrendingUp,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -138,7 +131,7 @@ export default function Page() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserCheck className="h-5 w-5" />
-                  Roster &amp; Roles
+                  Master Roster
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">

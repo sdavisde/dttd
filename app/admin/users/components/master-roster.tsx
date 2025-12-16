@@ -198,9 +198,6 @@ export default function MasterRoster({
                     <TableHead className="min-w-[100px] text-center">
                       Rector Ready
                     </TableHead>
-                    <TableHead className="min-w-[100px] text-center">
-                      Weekends
-                    </TableHead>
                   </>
                 )}
               </TableRow>
@@ -252,21 +249,8 @@ export default function MasterRoster({
                           )}
                         </TableCell>
                         <TableCell className="text-center">
-                          {!isNil(userExperience) ? (
-                            userExperience.rectorReady.isReady ? (
-                              <Check className="h-5 w-5 text-green-600 mx-auto" />
-                            ) : (
-                              <Minus className="h-5 w-5 text-muted-foreground mx-auto" />
-                            )
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {!isNil(userExperience) ? (
-                            <span className="font-medium">
-                              {userExperience.totalWeekends}
-                            </span>
+                          {userExperience?.rectorReady.isReady ? (
+                            <Check className="h-5 w-5 text-green-600 mx-auto" />
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}

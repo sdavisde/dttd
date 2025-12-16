@@ -10,6 +10,9 @@
     "generate": "npx supabase gen types typescript --project-id hlbfwbfhfbbiyztbqmsw > database.types.ts",
     "prepare": "husky"
   },
+  "engines": {
+    "node": "22.21.1"
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-avatar": "^1.1.10",
