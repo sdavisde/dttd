@@ -4,7 +4,7 @@ import { logger } from './lib/logger'
 
 /** Do-nothing routes that we want to avoid middleware calls for */
 export const SKIP_REGEX_ROUTES = [
-  /^\/payment\/candidate-fee\/.*$/,
+  /^\/payment\/candidate-fee(\/.*)?$/,
   /^\/candidate\/.*$/,
   /^\/api\/.*$/,
 ]
