@@ -8,7 +8,7 @@ import { isNil } from 'lodash'
  * @param permissions - The permissions required to access the resource
  * @returns A callback that checks if the user has one of the required persmissions
  */
-export function permissionLock(permissions: string[]) {
+export function permissionLock(permissions: Array<Permission>) {
   return (user: User | null): true => {
     if (!user) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
@@ -22,14 +22,14 @@ export function permissionLock(permissions: string[]) {
   }
 }
 
-export function userHasPermission(user: User, permissions: string[]): boolean {
-  if (user.role?.permissions.includes('FULL_ACCESS')) {
+export function userHasPermission(user: User, permissions: Array<Permission>): boolean {
+  if (user.permissions.has(Permission.FULL_ACCESS)) {
     return true
   }
 
-  return permissions.some((permission) =>
-    user.role?.permissions.includes(permission)
-  )
+  const requiredPermissions = new Set(permissions)
+  // return whether or not the permissions set has any in common with the user's permissions
+  return requiredPermissions.intersection(user.permissions).size > 0
 }
 
 export function userHasCHARole(user: User, chaRoles: Array<CHARole>): boolean {

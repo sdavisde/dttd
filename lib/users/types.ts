@@ -16,7 +16,8 @@ export type User = {
   email: string
   phoneNumber: string | null
   address: Address | null
-  role: UserRoleInfo | null
+  roles: Array<UserRoleInfo>
+  permissions: Set<string>
   communityInformation: CommunityInformation
   /** Contains information about this user's CHA role and status if they are on the upcoming weekend team roster */
   teamMemberInfo: TeamMemberInfo | null

@@ -15,24 +15,30 @@ To support this pattern for React server actions while still maintaining the nic
 
 ## Structure
 
-A service is comprised of 4 files:
+Each service should reside in its own directory (e.g. `services/identity/user/`) and is comprised of 4-5 files:
 
-1. A server action file
+1. `index.ts`
+   - Entry point for the service.
+   - **Re-exports the server actions** and necessary types.
+   - Does NOT export the internal service logic directly if not needed.
 
-This file is used to define the server action and is the entry point for the service.
+2. `actions.ts`
+   - Defines the **Server Actions** (data mutations/fetches callable from Client).
+   - Uses `authorizedAction` wrapper to enforce permissions.
+   - Calls into the `*-service.ts` file for logic.
 
-2. A service file
+3. `*-service.ts` (e.g. `user-service.ts`)
+   - Pure business logic.
+   - Transformation of data (Entities -> DTOs).
+   - Calls `repository.ts` for data.
 
-This file is used to define the business logic for the "endpoints" and is the main file for the service.
+4. `repository.ts`
+   - Direct database access (Supabase queries).
+   - Returns Supabase results wrapped in `Result<E, D>`.
 
-3. A repository file
+5. `types.ts` (Optional)
+   - Domain-specific types.
 
-This file is used to define the data access - it accesses supabase, and that is its only purpose. This is where we should aim to make any db performance enhancements.
-
-4. A types file
-
-This file is used to define the types needed and defined for the service.
-Optimally these types will be entirely internal and not imported to the client.
 
 ## Data Transfer Objects (DTOs) vs Entities
 

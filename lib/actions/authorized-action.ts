@@ -1,6 +1,7 @@
 import 'server-only'
 import { Result, err, isErr } from '@/lib/results'
-import { getLoggedInUser } from '@/services/auth/auth-service'
+import { getLoggedInUser } from '@/services/identity/user/user-service'
+import { Permission, userHasPermission } from '@/lib/security'
 
 /**
  * A wrapper for server actions that ensures the user is authenticated and has the required permission.
@@ -9,7 +10,7 @@ import { getLoggedInUser } from '@/services/auth/auth-service'
  * @param action - The action to execute if the user is authorized.
  */
 export const authorizedAction = <T, R>(
-  requiredPermission: string | null,
+  requiredPermission: Permission,
   action: (data: T) => Promise<Result<string, R>>
 ) => {
   return async (data: T): Promise<Result<string, R>> => {
@@ -23,12 +24,8 @@ export const authorizedAction = <T, R>(
 
       const user = userResult.data
 
-      // 2. Check permissions (if required)
-      if (requiredPermission) {
-        const userPermissions = user.role?.permissions ?? []
-        if (!userPermissions.includes(requiredPermission)) {
-          return err(`Forbidden: Missing permission ${requiredPermission}`)
-        }
+      if (!userHasPermission(user, [requiredPermission])) {
+        return err(`Forbidden: Missing permission ${requiredPermission}`)
       }
 
       // 3. Execute action
