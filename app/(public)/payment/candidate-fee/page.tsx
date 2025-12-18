@@ -1,4 +1,4 @@
-import Checkout from '@/components/checkout'
+import PublicCheckout from '@/components/public-checkout'
 import { redirect } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import * as Results from '@/lib/results'
@@ -94,7 +94,7 @@ export default async function CandidateFeesPaymentPage({
 
   return (
     <div className="payment-page">
-      <Checkout
+      <PublicCheckout
         priceId={candidateFeePriceId}
         metadata={{
           candidateId: candidate.id,
