@@ -31,5 +31,21 @@ This file is used to define the data access - it accesses supabase, and that is 
 
 4. A types file
 
-This file is used to define the types needed and defined for the service. 
+This file is used to define the types needed and defined for the service.
 Optimally these types will be entirely internal and not imported to the client.
+
+## Data Transfer Objects (DTOs) vs Entities
+
+Services should return **DTOs** (Data Transfer Objects), not raw Database Entities.
+- **DTO**: A shape of data designed for the consumer (frontend). It may aggregate data from multiple tables, rename fields for clarity, or omit sensitive info.
+- **Entity**: The raw shape of the data in the database (e.g. `Tables<'users'>`).
+
+**Why?** This prevents leaking database schema details to the client and allows us to refactor the database without breaking the frontend. Use the Service layer to transform Entities into DTOs.
+
+## Authorization
+
+Authorization checks should be standardized at the **Action** layer.
+- **Actions** reference a `requiredPermission` when defined.
+- The Action layer checks the current user's permissions before calling the Service.
+- Services can assume the caller is authorized for the *action*, but may still need to perform resource-level ownership checks (e.g. "can this user edit *this specific* candidate?").
+
