@@ -28,7 +28,7 @@ async function getNavElements() {
     {
       name: 'Candidates',
       slug: 'review-candidates',
-      permissions_needed: [Permission.FULL_ACCESS],
+      permissions_needed: [Permission.READ_CANDIDATES],
     },
     {
       name: 'Roster',

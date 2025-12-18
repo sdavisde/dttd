@@ -6,7 +6,7 @@ export const PAYMENT_CONSTANTS = {
   /**
    * Standard team fee amount for weekend participation
    */
-  TEAM_FEE: 195,
+  TEAM_FEE: 210,
 
   /**
    * Payment methods supported by the application
