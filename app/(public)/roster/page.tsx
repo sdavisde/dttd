@@ -14,7 +14,7 @@ import { ExperienceDistributionChart } from '@/components/weekend/experience-dis
 import { Typography } from '@/components/ui/typography'
 import { Datetime } from '@/components/ui/datetime'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import {
   getWeekendRosterExperienceDistribution,
   ExperienceDistribution,

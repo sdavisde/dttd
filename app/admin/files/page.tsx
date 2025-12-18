@@ -2,7 +2,7 @@ import { getBuckets } from '@/lib/files'
 import { getStorageUsage } from '@/lib/storage'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import { isErr } from '@/lib/results'
 import Files from './components/Files'
 

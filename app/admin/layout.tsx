@@ -1,4 +1,4 @@
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'

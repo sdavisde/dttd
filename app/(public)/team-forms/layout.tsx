@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { TeamFormsStepper } from '@/components/team-forms/stepper'
 import { teamFormSteps } from '@/components/team-forms/steps.config'
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import { getTeamFormsProgress } from '@/actions/team-forms'
 import { isErr } from '@/lib/results'
 import { redirect } from 'next/navigation'

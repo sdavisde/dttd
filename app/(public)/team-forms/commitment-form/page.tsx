@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import { getWeekendById } from '@/actions/weekend'
 import { CommitmentFormComponent } from '@/components/team-forms/commitment-form-component'
 import { isErr } from '@/lib/results'

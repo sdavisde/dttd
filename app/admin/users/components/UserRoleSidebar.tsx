@@ -23,7 +23,7 @@ import { Permission, userHasPermission } from '@/lib/security'
 import { isNil, isEqual } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
 import { MasterRosterMember } from '@/services/master-roster/types'
-import { updateUserRoles } from '@/services/auth'
+import { updateUserRoles } from '@/services/identity/user'
 
 interface UserRoleSidebarProps {
   member: MasterRosterMember | null
@@ -86,7 +86,10 @@ export function UserRoleSidebar({
     setError(null)
 
     try {
-      const result = await updateUserRoles(member.id, selectedRoleIds)
+      const result = await updateUserRoles({
+        userId: member.id,
+        roleIds: selectedRoleIds,
+      })
 
       if (result && isErr(result)) {
         setError(result.error)

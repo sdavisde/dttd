@@ -1,4 +1,4 @@
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import { getUpcomingEvents, getPastEvents } from '@/actions/events'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import Meetings from './components/Meetings'

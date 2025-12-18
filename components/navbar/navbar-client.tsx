@@ -22,16 +22,13 @@ import {
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { permissionLock } from '@/lib/security'
-import { useToastListener } from '../toastbox'
+import { Permission, permissionLock } from '@/lib/security'
+import { useToastListener } from '@/components/toastbox'
 
 type NavElement = {
   name: string
   slug: string
-  /**
-   * Slightly overloaded - will try to match any of these permissions against user permissions or CHARole
-   */
-  permissions_needed: string[]
+  permissions_needed: Array<Permission>
   children?: NavElement[]
 }
 

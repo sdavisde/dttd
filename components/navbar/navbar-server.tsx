@@ -18,12 +18,12 @@ async function getNavElements() {
     {
       name: 'Home',
       slug: 'home',
-      permissions_needed: [] as string[],
+      permissions_needed: [],
     },
     {
       name: 'Files',
       slug: 'files',
-      permissions_needed: [] as string[],
+      permissions_needed: [],
     },
     {
       name: 'Candidates',

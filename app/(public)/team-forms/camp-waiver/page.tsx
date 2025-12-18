@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import { CampWaiverForm } from '@/components/team-forms/camp-waiver-form'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getLoggedInUser } from '@/services/auth'
+import { getLoggedInUser } from '@/services/identity/user'
 import { ReleaseOfClaimForm } from '@/components/team-forms/release-of-claim-form'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'
