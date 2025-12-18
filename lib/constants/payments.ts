@@ -9,6 +9,11 @@ export const PAYMENT_CONSTANTS = {
   TEAM_FEE: 210,
 
   /**
+   * Standard candidate fee amount for online payment
+   */
+  CANDIDATE_FEE: 210,
+
+  /**
    * Payment methods supported by the application
    */
   PAYMENT_METHODS: {

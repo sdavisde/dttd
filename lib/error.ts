@@ -6,6 +6,7 @@ export enum Errors {
   INVALID_CANDIDATE = 'INVALID_CANDIDATE',
   INVALID_CANDIDATE_STATUS = 'INVALID_CANDIDATE_STATUS',
   INVALID_PAYMENT_OWNER = 'INVALID_PAYMENT_OWNER',
+  CANDIDATE_FEES_ALREADY_PAID = 'CANDIDATE_FEES_ALREADY_PAID',
 }
 
 export function getErrorMessage(error: Errors): string {
@@ -24,5 +25,7 @@ export function getErrorMessage(error: Errors): string {
       return 'Candidate is not awaiting payment'
     case Errors.INVALID_PAYMENT_OWNER:
       return 'Invalid payment owner specified'
+    case Errors.CANDIDATE_FEES_ALREADY_PAID:
+      return 'Candidate fees already paid'
   }
 }

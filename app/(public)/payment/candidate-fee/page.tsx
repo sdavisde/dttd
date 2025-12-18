@@ -1,10 +1,12 @@
-import { getHydratedCandidate } from '@/actions/candidates'
 import Checkout from '@/components/checkout'
 import { redirect } from 'next/navigation'
 import { logger } from '@/lib/logger'
 import * as Results from '@/lib/results'
 import { getUrl } from '@/lib/url'
 import { Errors } from '@/lib/error'
+import { isEmpty, isNil } from 'lodash'
+import { getCandidateById } from '@/services/candidates'
+import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 
 interface CandidateFeesPaymentPageProps {
   searchParams: Promise<{
@@ -33,7 +35,7 @@ export default async function CandidateFeesPaymentPage({
     throw new Error('Missing candidate fee price id')
   }
 
-  if (!candidate_id) {
+  if (isNil(candidate_id) || isEmpty(candidate_id)) {
     logger.error({
       path: '/payment/candidate-fee',
       error: Errors.MISSING_CANDIDATE_ID,
@@ -42,7 +44,7 @@ export default async function CandidateFeesPaymentPage({
     redirect(`/home?error=${Errors.MISSING_CANDIDATE_ID}`)
   }
 
-  const candidateResult = await getHydratedCandidate(candidate_id)
+  const candidateResult = await getCandidateById(candidate_id)
   if (Results.isErr(candidateResult)) {
     logger.error({
       path: '/payment/candidate-fee',
@@ -56,7 +58,7 @@ export default async function CandidateFeesPaymentPage({
 
   const candidate = candidateResult.data
 
-  if (!candidate) {
+  if (isNil(candidate)) {
     logger.error({
       path: '/payment/candidate-fee',
       candidate_id,
@@ -66,29 +68,24 @@ export default async function CandidateFeesPaymentPage({
     redirect(`/home?error=${Errors.INVALID_CANDIDATE}`)
   }
 
-  // Check if candidate is in the correct status for payment
-  if (candidate.status !== 'awaiting_payment') {
-    logger.error({
+  // Check if candidate fees have already been paid for this candidate
+  if (candidate.amountPaid >= PAYMENT_CONSTANTS.CANDIDATE_FEE) {
+    logger.info({
       path: '/payment/candidate-fee',
       candidate_id,
-      currentStatus: candidate.status,
-      error: Errors.INVALID_CANDIDATE_STATUS,
-      msg: 'Candidate not in awaiting_payment status',
+      amountPaid: candidate.amountPaid,
+      candidateFee: PAYMENT_CONSTANTS.CANDIDATE_FEE,
+      msg: 'Candidate fees already paid',
     })
-    redirect(`/home?error=${Errors.INVALID_CANDIDATE_STATUS}`)
+    redirect(`/home?error=${Errors.CANDIDATE_FEES_ALREADY_PAID}`)
   }
 
   // Validate payment_owner parameter
-  if (
-    candidate.candidate_sponsorship_info?.payment_owner &&
-    !['candidate', 'sponsor'].includes(
-      candidate.candidate_sponsorship_info.payment_owner
-    )
-  ) {
+  if (!['candidate', 'sponsor'].includes(candidate.paymentOwner)) {
     logger.error({
       path: '/payment/candidate-fee',
       candidate_id,
-      payment_owner: candidate.candidate_sponsorship_info.payment_owner,
+      payment_owner: candidate.paymentOwner,
       error: Errors.INVALID_PAYMENT_OWNER,
       msg: 'Invalid payment_owner value',
     })
@@ -100,9 +97,8 @@ export default async function CandidateFeesPaymentPage({
       <Checkout
         priceId={candidateFeePriceId}
         metadata={{
-          candidate_id,
-          payment_owner:
-            candidate.candidate_sponsorship_info?.payment_owner ?? '',
+          candidateId: candidate.id,
+          payment_owner: candidate.paymentOwner,
         }}
         returnUrl={getUrl(
           '/payment/candidate-fee/success?session_id={CHECKOUT_SESSION_ID}'
