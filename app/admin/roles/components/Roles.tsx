@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { Search, Edit, Settings, Trash2, Plus } from 'lucide-react'
-import { Role, RolesSidebar } from './RolesSidebar'
-import { deleteRole } from '@/actions/roles'
+import { RolesSidebar } from './RolesSidebar'
+import { deleteRole, Role } from '@/services/identity/roles'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import {
   Table,
@@ -20,9 +20,10 @@ import { Typography } from '@/components/ui/typography'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { isErr } from '@/lib/results'
+import { Permission } from '@/lib/security'
 
 interface RolesProps {
-  roles: Array<{ id: string; label: string; permissions: string[] }>
+  roles: Array<{ id: string; label: string; permissions: Permission[] }>
   readOnly: boolean
 }
 

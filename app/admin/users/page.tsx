@@ -1,7 +1,7 @@
 import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getRoles } from '@/actions/roles'
+import { getRoles } from '@/services/identity/roles'
 import MasterRoster from './components/master-roster'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'

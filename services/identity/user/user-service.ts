@@ -99,12 +99,6 @@ export async function getUsers(): Promise<Result<string, Array<User>>> {
   return ok(users)
 }
 
-/**
- * Updates the roles of a user to match those provided
- */
-export async function updateUserRoles(userId: string, roleIds: string[]) {
-  return await UserRepository.updateUserRoles(userId, roleIds)
-}
 
 export async function updateUserAddress(userId: string, address: Address) {
   return await UserRepository.updateUserAddress(userId, address)
@@ -114,9 +108,6 @@ export async function deleteUser(userId: string) {
   return await UserRepository.deleteUser(userId)
 }
 
-export async function removeUserRole(userId: string) {
-  return await UserRepository.removeUserRole(userId)
-}
 
 export async function updateUserBasicInfo(userId: string, data: BasicInfo) {
   return await UserRepository.updateUserBasicInfo(userId, data)

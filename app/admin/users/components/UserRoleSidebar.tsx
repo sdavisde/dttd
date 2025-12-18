@@ -23,7 +23,7 @@ import { Permission, userHasPermission } from '@/lib/security'
 import { isNil, isEqual } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
 import { MasterRosterMember } from '@/services/master-roster/types'
-import { updateUserRoles } from '@/services/identity/user'
+import { updateUserRoles } from '@/services/identity/roles'
 
 interface UserRoleSidebarProps {
   member: MasterRosterMember | null

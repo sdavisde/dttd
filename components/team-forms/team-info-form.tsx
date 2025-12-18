@@ -23,7 +23,6 @@ import {
   TeamInfoSchema,
   UserExperienceFormValue,
 } from './schemas'
-import { updateUserAddress, updateUserBasicInfo } from '@/actions/users'
 import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'
 import { BasicInfoSection } from './basic-info-section'
@@ -35,6 +34,7 @@ import {
   completeInfoSheet,
   updateRosterMedicalInfo,
 } from '@/actions/team-forms'
+import { updateUserAddress, updateUserBasicInfo } from '@/services/identity/user'
 
 interface TeamInfoFormProps {
   userId: string

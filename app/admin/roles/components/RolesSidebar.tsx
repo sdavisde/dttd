@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Database } from '@/database.types'
-import { updateRolePermissions, createRole } from '@/actions/roles'
+import { updateRolePermissions, createRole } from '@/services/identity/roles'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -19,8 +18,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-
-export type Role = Database['public']['Tables']['roles']['Row']
+import { Role } from '@/services/identity/roles'
 
 interface RolesSidebar {
   role: Role | null
@@ -31,7 +29,7 @@ interface RolesSidebar {
 }
 
 interface PermissionOption {
-  value: string
+  value: Permission
   label: string
 }
 
@@ -48,7 +46,7 @@ export function RolesSidebar({
   onClose,
   readOnly,
 }: RolesSidebar) {
-  const [permissions, setPermissions] = useState<string[]>(
+  const [permissions, setPermissions] = useState<Permission[]>(
     role?.permissions ?? []
   )
   const [roleName, setRoleName] = useState(role?.label ?? '')
@@ -92,14 +90,20 @@ export function RolesSidebar({
     try {
       if (role) {
         // Update existing role
-        const result = await updateRolePermissions(role.id, permissions)
+        const result = await updateRolePermissions({
+          roleId: role.id,
+          permissions: permissions,
+        })
         if (isErr(result)) {
           setError(result.error)
           return
         }
       } else {
         // Create new role
-        const result = await createRole(roleName.trim(), permissions)
+        const result = await createRole({
+          label: roleName.trim(),
+          permissions: permissions,
+        })
         if (isErr(result)) {
           setError(result.error)
           return

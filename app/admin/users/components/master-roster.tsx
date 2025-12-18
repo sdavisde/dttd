@@ -22,7 +22,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Typography } from '@/components/ui/typography'
 import { formatPhoneNumber } from '@/lib/utils'
-import { deleteUser } from '@/actions/users'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import {
@@ -45,6 +44,7 @@ import type {
   MasterRosterMember,
 } from '@/services/master-roster/types'
 import { useSession } from '@/components/auth/session-provider'
+import { deleteUser } from '@/services/identity/user'
 
 interface MasterRosterProps {
   masterRoster: MasterRoster
