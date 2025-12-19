@@ -614,6 +614,7 @@ export type Database = {
       candidate_status:
         | 'sponsored'
         | 'awaiting_forms'
+        | 'completed_forms'
         | 'pending_approval'
         | 'awaiting_payment'
         | 'confirmed'
@@ -750,6 +751,7 @@ export const Constants = {
       candidate_status: [
         'sponsored',
         'awaiting_forms',
+        'completed_forms',
         'pending_approval',
         'awaiting_payment',
         'confirmed',

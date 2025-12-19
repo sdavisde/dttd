@@ -20,6 +20,7 @@ interface CandidateTableControlsProps {
 const STATUS_OPTIONS: { value: CandidateStatus; label: string }[] = [
   { value: 'sponsored', label: 'Sponsored' },
   { value: 'awaiting_forms', label: 'Awaiting Forms' },
+  { value: 'completed_forms', label: 'Forms Completed' },
   { value: 'awaiting_payment', label: 'Awaiting Payment' },
   { value: 'confirmed', label: 'Confirmed' },
   { value: 'rejected', label: 'Rejected' },
@@ -39,7 +40,7 @@ export function CandidateTableControls({
 
   const hasActiveFilters =
     searchQuery.trim() !== '' ||
-    statusFilters.length !== 5 || // Default is 5 (all except rejected)
+    statusFilters.length !== 6 || // Default is 6 (all except rejected)
     showArchived
 
   return (
