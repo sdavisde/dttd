@@ -11,6 +11,7 @@ const STATUSES: Array<{
 }> = [
   { id: 'sponsored', label: 'Sponsored', variant: 'default' },
   { id: 'awaiting_forms', label: 'Awaiting Forms', variant: 'warning' },
+  { id: 'completed_forms', label: 'Completed Forms', variant: 'default' },
   { id: 'awaiting_payment', label: 'Awaiting Payment', variant: 'warning' },
   { id: 'confirmed', label: 'Confirmed', variant: 'default' },
 ]

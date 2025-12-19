@@ -20,6 +20,7 @@ interface CandidateTableControlsProps {
 const STATUS_OPTIONS: { value: CandidateStatus; label: string }[] = [
   { value: 'sponsored', label: 'Sponsored' },
   { value: 'awaiting_forms', label: 'Awaiting Forms' },
+  { value: 'completed_forms', label: 'Completed Forms' },
   { value: 'awaiting_payment', label: 'Awaiting Payment' },
   { value: 'confirmed', label: 'Confirmed' },
   { value: 'rejected', label: 'Rejected' },

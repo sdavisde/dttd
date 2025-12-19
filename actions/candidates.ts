@@ -255,6 +255,16 @@ export async function addCandidateInfo(
       return err(`Failed to add candidate info: ${candidateInfoError.message}`)
     }
 
+    // Update candidate status to completed_forms
+    const { error: updateStatusError } = await supabase
+      .from('candidates')
+      .update({ status: 'completed_forms' })
+      .eq('id', candidateId)
+
+    if (updateStatusError) {
+      return err(`Failed to update candidate status: ${updateStatusError.message}`)
+    }
+
     return ok(true)
   } catch (error) {
     return err(
