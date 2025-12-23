@@ -22,7 +22,10 @@ export function permissionLock(permissions: Array<Permission>) {
   }
 }
 
-export function userHasPermission(user: User, permissions: Array<Permission>): boolean {
+export function userHasPermission(
+  user: User,
+  permissions: Array<Permission>
+): boolean {
   if (user.permissions.has(Permission.FULL_ACCESS)) {
     return true
   }
@@ -73,4 +76,7 @@ export enum Permission {
   // General
   FULL_ACCESS = 'FULL_ACCESS',
   READ_ADMIN_PORTAL = 'READ_ADMIN_PORTAL',
+
+  // Community
+  WRITE_COMMUNITY_ENCOURAGEMENT = 'WRITE_COMMUNITY_ENCOURAGEMENT',
 }
