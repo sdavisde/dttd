@@ -37,7 +37,7 @@
   --success-foreground: oklch(0.98 0 0);
   --warning: oklch(0.75 0.15 85);
   --warning-foreground: oklch(0.2 0 0);
-  --info: oklch(0.6 0.15 220);
+  --info:oklch(38% 26% 265deg);
   --info-foreground: oklch(0.98 0 0);
   --error: oklch(0.63 0.19 33.26);
   --error-foreground: oklch(0.98 0 0);

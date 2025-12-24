@@ -11,13 +11,9 @@ import { Tables } from '@/database.types'
 function normalizeCommunityEncouragement(
   rawEncouragement: Tables<'community_encouragements'>
 ) {
-  if (isNil(rawEncouragement.message) || isEmpty(rawEncouragement.message)) {
-    return null
-  }
-
   return {
     id: rawEncouragement.id,
-    message: rawEncouragement.message,
+    message: rawEncouragement.message ?? '',
     updatedAt: new Date(rawEncouragement.updated_at),
     updatedBy: rawEncouragement.updated_by_user_id,
   }
@@ -42,8 +38,9 @@ export async function getCommunityEncouragement(): Promise<
  * Update the community encouragement message
  */
 export async function updateCommunityEncouragement(
+  messageId: string,
   message: string
-): Promise<Result<string, CommunityEncouragement>> {
+): Promise<Result<string, CommunityEncouragement | null>> {
   // Get current user for updated_by_user_id
   const userResult = await getLoggedInUser()
   if (isErr(userResult)) {
@@ -51,19 +48,14 @@ export async function updateCommunityEncouragement(
   }
 
   const result = await CommunityRepository.updateCommunityEncouragement(
+    messageId,
     message,
     userResult.data.id
   )
 
   if (isErr(result)) {
-    return err('Failed to update community encouragement')
+    return err(`Failed to update community encouragement: ${result.error}`)
   }
 
-  const normalizedEncouragement = normalizeCommunityEncouragement(result.data)
-
-  if (isNil(normalizedEncouragement)) {
-    return err('Failed to update community encouragement - bad shape')
-  }
-
-  return ok(normalizedEncouragement)
+  return ok(normalizeCommunityEncouragement(result.data))
 }

@@ -14,13 +14,18 @@ export async function getCommunityEncouragement() {
   return await CommunityService.getCommunityEncouragement()
 }
 
+type UpdateCommunityEncouragementRequest = {
+  messageId: string
+  message: string
+}
+
 /**
  * Updates the community encouragement with the string provided
  * @returns the newly updated community encouragement data.
  */
 export const updateCommunityEncouragement = authorizedAction<
-  string,
-  CommunityEncouragement
->(Permission.WRITE_COMMUNITY_ENCOURAGEMENT, async (message: string) => {
-  return await CommunityService.updateCommunityEncouragement(message)
+  UpdateCommunityEncouragementRequest,
+  CommunityEncouragement | null
+>(Permission.WRITE_COMMUNITY_ENCOURAGEMENT, async ({ messageId, message }) => {
+  return await CommunityService.updateCommunityEncouragement(messageId, message)
 })

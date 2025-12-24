@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'
 import { isUserOnActiveTeam } from '@/lib/users'
 import { TeamMemberTodo, TeamMemberTodoLoading } from '@/components/team-todos'
+import { CommunityEncouragement } from '@/components/community-encouragement/CommunityEncouragement'
 
 interface DashboardProps {
   user: User
@@ -26,6 +27,8 @@ export function Dashboard({ user }: DashboardProps) {
             Here you&apos;ll find important information, updates, and resources.
           </Typography>
         </div>
+
+        <CommunityEncouragement user={user} />
 
         <UpcomingEvents />
 

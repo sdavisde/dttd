@@ -3,6 +3,7 @@ import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { fromSupabase, Result } from '@/lib/results'
 import { Tables } from '@/database.types'
+import { isEmpty } from 'lodash'
 
 /**
  * Get the current community encouragement message
@@ -25,6 +26,7 @@ export async function getCommunityEncouragement(): Promise<
  * Update the community encouragement message
  */
 export async function updateCommunityEncouragement(
+  messageId: string,
   message: string,
   userId: string
 ): Promise<Result<string, Tables<'community_encouragements'>>> {
@@ -32,10 +34,12 @@ export async function updateCommunityEncouragement(
 
   const result = await supabase
     .from('community_encouragements')
-    .update({
+    .upsert({
+      id: isEmpty(messageId) ? undefined : messageId,
       message: message ?? null,
       updated_by_user_id: userId,
     })
+    .eq('id', messageId)
     .select()
     .single()
 
