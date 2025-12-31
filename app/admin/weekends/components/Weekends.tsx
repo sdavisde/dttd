@@ -8,7 +8,7 @@ import { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendGroupGrid } from './WeekendGroupGrid'
 import { WeekendSidebar } from './WeekendSidebar'
 import { SetActiveWeekendButton } from './SetActiveWeekendButton'
-import { toLocalDateFromISO } from '@/lib/weekend/scheduling'
+import { toLocalDateFromISO } from '@/lib/utils'
 
 interface WeekendsProps {
   weekendGroups: WeekendGroupWithId[]

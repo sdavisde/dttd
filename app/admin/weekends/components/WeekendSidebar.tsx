@@ -33,7 +33,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { WeekendGroupWithId } from '@/lib/weekend/types'
-import { cn } from '@/lib/utils'
+import { cn, setDatetimeToMidnight } from '@/lib/utils'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import {
   saveWeekendGroupFromSidebar,
@@ -52,7 +52,6 @@ import {
   getWeekendTitle,
   getMensWeekendDateRange,
   isSameDay,
-  normalizeDate,
 } from '@/lib/weekend/scheduling'
 
 const weekendFormSchema = z.object({
@@ -143,8 +142,8 @@ export function WeekendSidebar({
   }
 
   const handleWeekendSelection = (range: DateRange) => {
-    form.setValue('mensStartDate', normalizeDate(range.start))
-    form.setValue('mensEndDate', normalizeDate(range.end))
+    form.setValue('mensStartDate', setDatetimeToMidnight(range.start))
+    form.setValue('mensEndDate', setDatetimeToMidnight(range.end))
   }
 
   const onSubmit = async (data: WeekendFormValues) => {

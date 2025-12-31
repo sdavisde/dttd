@@ -2,10 +2,9 @@
 
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
-import { capitalize, cn } from '@/lib/utils'
+import { capitalize, cn, toLocalDateFromISO } from '@/lib/utils'
 import { Weekend } from '@/lib/weekend/types'
-import { formatDateLabel, toLocalDateFromISO } from '@/lib/weekend/scheduling'
-import { formatWeekendTitle } from '@/lib/weekend'
+import { formatDateLabel } from '@/lib/weekend/scheduling'
 import Link from 'next/link'
 
 interface WeekendCardProps {

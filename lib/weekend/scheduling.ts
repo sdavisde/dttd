@@ -1,6 +1,7 @@
 import { isNil } from 'lodash'
 import { formatWeekendTitle } from '.'
-import { WeekendGroupWithId, Weekend } from './types'
+import { WeekendGroupWithId, Weekend } from '@/lib/weekend/types'
+import { setDatetimeToMidnight, toLocalDateFromISO } from '@/lib/utils'
 
 export type DateRange = {
   start: Date
@@ -25,12 +26,6 @@ export const addDays = (date: Date, days: number) => {
   return result
 }
 
-export const normalizeDate = (date: Date) => {
-  const normalized = new Date(date)
-  normalized.setHours(0, 0, 0, 0)
-  return normalized
-}
-
 export const getMonthKey = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 
@@ -47,31 +42,8 @@ export const formatDateLabel = (
 
 export const formatDateForApi = (date: Date) => date.toISOString().split('T')[0]
 
-export const toLocalDateFromISO = (dateString?: string | null): Date | null => {
-  if (!dateString) {
-    return null
-  }
-
-  const isoPortion = dateString.split('T')[0]
-  const [yearStr, monthStr, dayStr] = isoPortion.split('-')
-
-  if (!yearStr || !monthStr || !dayStr) {
-    return null
-  }
-
-  const year = Number(yearStr)
-  const month = Number(monthStr)
-  const day = Number(dayStr)
-
-  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
-    return null
-  }
-
-  return normalizeDate(new Date(year, month - 1, day))
-}
-
 export const getNextThursdayRange = (reference = new Date()): DateRange => {
-  const next = normalizeDate(reference)
+  const next = setDatetimeToMidnight(reference)
   let daysAhead = (4 - next.getDay() + 7) % 7
   if (daysAhead === 0) {
     daysAhead = 7
@@ -104,8 +76,8 @@ export const getMensWeekendDateRange = (
   if (mensStart && mensEnd) {
     return {
       range: {
-        start: normalizeDate(mensStart),
-        end: normalizeDate(mensEnd),
+        start: setDatetimeToMidnight(mensStart),
+        end: setDatetimeToMidnight(mensEnd),
       },
     }
   }
@@ -149,7 +121,7 @@ export const generateWeekendOptionsForMonth = (
   }
 
   const options: WeekendOption[] = []
-  let cursor = normalizeDate(firstThursday)
+  let cursor = setDatetimeToMidnight(firstThursday)
 
   while (cursor.getMonth() === month) {
     const start = new Date(cursor)
@@ -170,8 +142,9 @@ export const generateWeekendOptionsForMonth = (
 }
 
 export const isSameDay = (a: Date, b: Date) =>
-  Math.abs(normalizeDate(a).getTime() - normalizeDate(b).getTime()) <
-  MILLISECONDS_IN_DAY
+  Math.abs(
+    setDatetimeToMidnight(a).getTime() - setDatetimeToMidnight(b).getTime()
+  ) < MILLISECONDS_IN_DAY
 
 export const getWeekendTitle = (weekend: Weekend | null) => {
   if (isNil(weekend)) {

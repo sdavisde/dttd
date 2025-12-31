@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from 'clsx'
+import { isNil } from 'lodash'
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
@@ -55,7 +56,11 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
   if (!datetime) return 'Date TBD'
 
   try {
-    const date = new Date(datetime)
+    const date = toLocalDateFromISO(datetime)
+    if (isNil(date)) {
+      return 'Invalid Date'
+    }
+
     const dateStr = date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -73,6 +78,35 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
   } catch {
     return 'Invalid Date'
   }
+}
+
+export const setDatetimeToMidnight = (date: Date) => {
+  const normalized = new Date(date)
+  normalized.setHours(0, 0, 0, 0)
+  return normalized
+}
+
+export const toLocalDateFromISO = (dateString?: string | null): Date | null => {
+  if (!dateString) {
+    return null
+  }
+
+  const isoPortion = dateString.split('T')[0]
+  const [yearStr, monthStr, dayStr] = isoPortion.split('-')
+
+  if (!yearStr || !monthStr || !dayStr) {
+    return null
+  }
+
+  const year = Number(yearStr)
+  const month = Number(monthStr)
+  const day = Number(dayStr)
+
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+    return null
+  }
+
+  return setDatetimeToMidnight(new Date(year, month - 1, day))
 }
 
 export const capitalize = (str: string) => {
