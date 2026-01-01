@@ -74,6 +74,10 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
       hour12: true,
       timeZone: 'America/Chicago',
     })
+
+    console.log(
+      `🚀 - raw: ${datetime} - localDate: ${date} - dateStr: ${dateStr} - timeStr: ${timeStr}`
+    )
     return { dateStr, timeStr: `${timeStr} CT` }
   } catch {
     return 'Invalid Date'
