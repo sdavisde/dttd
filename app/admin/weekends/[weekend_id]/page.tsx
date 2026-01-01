@@ -18,7 +18,7 @@ import {
 } from '@/components/weekend'
 import { ExperienceDistributionChart } from '@/components/weekend/experience-distribution-chart'
 import { getWeekendRosterExperienceDistribution } from '@/services/master-roster'
-import { formatDateTime } from '@/lib/utils'
+import { formatDateOnly } from '@/lib/utils'
 import { Datetime } from '@/components/ui/datetime'
 
 type WeekendDetailPageProps = {
@@ -67,8 +67,8 @@ export default async function WeekendDetailPage({
     weekend.status === WeekendStatus.ACTIVE ||
     weekend.status === WeekendStatus.PLANNING
 
-  const startDate = formatDateTime(weekend.start_date)
-  const endDate = formatDateTime(weekend.end_date)
+  const startDate = formatDateOnly(weekend.start_date)
+  const endDate = formatDateOnly(weekend.end_date)
 
   return (
     <>

@@ -22,7 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CHARole, Weekend } from '@/lib/weekend/types'
 import { Permission, userHasCHARole, userHasPermission } from '@/lib/security'
-import { formatDateTime } from '@/lib/utils'
+import { formatDateOnly } from '@/lib/utils'
 
 export default async function RosterPage() {
   const userResult = await getLoggedInUser()
@@ -144,8 +144,8 @@ export default async function RosterPage() {
 
   if (rosters.length === 1) {
     const { roster, weekend, experienceDistribution } = rosters[0]
-    const startDate = formatDateTime(weekend.start_date)
-    const endDate = formatDateTime(weekend.end_date)
+    const startDate = formatDateOnly(weekend.start_date)
+    const endDate = formatDateOnly(weekend.end_date)
 
     return (
       <div className="container mx-auto px-8 pt-6 pb-2 md:pt-8 md:pb-4">
@@ -208,8 +208,8 @@ export default async function RosterPage() {
     <div className="container mx-auto px-8 pt-6 pb-2 md:pt-8 md:pb-4">
       <Tabs defaultValue={user.gender === 'male' ? 'mens' : 'womens'}>
         {rosters.map(({ roster, value, weekend, experienceDistribution }) => {
-          const startDate = formatDateTime(weekend.start_date)
-          const endDate = formatDateTime(weekend.end_date)
+          const startDate = formatDateOnly(weekend.start_date)
+          const endDate = formatDateOnly(weekend.end_date)
 
           return (
             <TabsContent key={value} value={value}>

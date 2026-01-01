@@ -52,12 +52,42 @@ export type FormattedDateTime =
       timeStr: string
     }
   | string
+
+/**
+ * Formats a date-only string (YYYY-MM-DD or datetime stored as midnight UTC).
+ * Use this for weekend start/end dates where only the date matters, not the time.
+ * Does NOT apply timezone conversion to avoid date shifting.
+ */
+export const formatDateOnly = (dateString: string | null): string => {
+  if (!dateString) return 'Date TBD'
+
+  try {
+    const date = toLocalDateFromISO(dateString)
+    if (isNil(date)) {
+      return 'Invalid Date'
+    }
+
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  } catch {
+    return 'Invalid Date'
+  }
+}
+
+/**
+ * Formats a datetime string with timezone conversion to Chicago time.
+ * Use this for events where the actual time matters.
+ */
 export const formatDateTime = (datetime: string | null): FormattedDateTime => {
   if (!datetime) return 'Date TBD'
 
   try {
-    const date = toLocalDateFromISO(datetime)
-    if (isNil(date)) {
+    const date = new Date(datetime)
+    if (isNaN(date.getTime())) {
       return 'Invalid Date'
     }
 
@@ -75,9 +105,6 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
       timeZone: 'America/Chicago',
     })
 
-    console.log(
-      `🚀 - raw: ${datetime} - localDate: ${date} - dateStr: ${dateStr} - timeStr: ${timeStr}`
-    )
     return { dateStr, timeStr: `${timeStr} CT` }
   } catch {
     return 'Invalid Date'
