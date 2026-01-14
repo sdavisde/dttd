@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { Result, ok, err, isErr } from '@/lib/results'
 import Stripe from 'stripe'
@@ -14,7 +14,13 @@ if (!webhookSecret) {
   throw new Error('Missing Stripe webhook secret')
 }
 
+// Admin client for webhook operations - bypasses RLS since webhooks have no user session
+let adminClient: ReturnType<typeof createAdminClient>
+
 export async function POST(request: NextRequest) {
+  // Initialize admin client for this request
+  adminClient = createAdminClient()
+
   try {
     const body = await request.text()
     const signature = request.headers.get('stripe-signature')
@@ -221,10 +227,8 @@ async function candidateIsAwaitingPayment(
     return err('💢 Candidate ID is null')
   }
 
-  const supabase = await createClient()
-
   // Verify the candidate exists and is in awaiting_payment status
-  const { data: candidate, error: fetchError } = await supabase
+  const { data: candidate, error: fetchError } = await adminClient
     .from('candidates')
     .select('*')
     .eq('id', candidateId)
@@ -252,9 +256,7 @@ async function recordCandidatePayment(
   candidateId: string,
   session: Stripe.Checkout.Session
 ): Promise<Result<string, Tables<'candidate_payments'>>> {
-  const supabase = await createClient()
-
-  const { data: paymentRecord, error: paymentRecordError } = await supabase
+  const { data: paymentRecord, error: paymentRecordError } = await adminClient
     .from('candidate_payments')
     .insert({
       candidate_id: candidateId,
@@ -282,10 +284,8 @@ async function recordCandidatePayment(
 async function confirmCandidate(
   candidateId: string
 ): Promise<Result<string, true>> {
-  const supabase = await createClient()
-
   // Update candidate status to confirmed
-  const { error: updateError } = await supabase
+  const { error: updateError } = await adminClient
     .from('candidates')
     .update({ status: 'confirmed' })
     .eq('id', candidateId)
@@ -303,10 +303,8 @@ async function recordWeekendRosterPayment(
   weekendRosterRecordId: string,
   session: Stripe.Checkout.Session
 ): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
-  const supabase = await createClient()
-
   const { data: weekendRosterPaymentRecord, error: paymentRecordError } =
-    await supabase
+    await adminClient
       .from('weekend_roster_payments')
       .insert({
         weekend_roster_id: weekendRosterRecordId,
@@ -328,9 +326,7 @@ async function recordWeekendRosterPayment(
 async function markTeamMemberAsPaid(
   weekendRosterId: string
 ): Promise<Result<string, true>> {
-  const supabase = await createClient()
-
-  const { error: updateError } = await supabase
+  const { error: updateError } = await adminClient
     .from('weekend_roster')
     .update({ status: 'paid' })
     .eq('id', weekendRosterId)

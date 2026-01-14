@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto'
 import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
 import { capitalize } from '@/lib/utils'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Tables } from '@/database.types'
 import { logger } from '@/lib/logger'
 import { Result, err, ok, isErr } from '@/lib/results'
@@ -578,6 +578,10 @@ export async function addUserToWeekendRoster(
   return ok(undefined)
 }
 
+/**
+ * Function specifically to fetch a roster record during the payment flow (preparing for it or during webhook)
+ * Uses the admin client to fetch the record, to bypass RLS. DANGEROUS AND SHOULD NOT BE DONE ELSEWHERE
+ */
 export async function getWeekendRosterRecord(
   teamUserId: string | null,
   weekendId: string | null
@@ -590,7 +594,7 @@ export async function getWeekendRosterRecord(
     return err('💢 Team user ID or weekend ID is null')
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: weekendRosterRecord, error: fetchError } = await supabase
     .from('weekend_roster')
