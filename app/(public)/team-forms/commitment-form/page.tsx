@@ -2,14 +2,15 @@ import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
 import { getWeekendById } from '@/actions/weekend'
 import { CommitmentFormComponent } from '@/components/team-forms/commitment-form-component'
-import { isErr } from '@/lib/results'
+import { Results } from '@/lib/results'
 import { isNil } from 'lodash'
 import { formatWeekendTitle } from '@/lib/weekend'
+import { getTeamFee } from '@/services/payment'
 
 export default async function CommitmentFormPage() {
   const userResult = await getLoggedInUser()
 
-  if (isErr(userResult)) {
+  if (Results.isErr(userResult)) {
     redirect('/login')
   }
 
@@ -22,7 +23,7 @@ export default async function CommitmentFormPage() {
 
   const weekendResult = await getWeekendById(user.teamMemberInfo.weekend_id)
 
-  if (isErr(weekendResult)) {
+  if (Results.isErr(weekendResult)) {
     redirect('/')
   }
 
@@ -30,6 +31,9 @@ export default async function CommitmentFormPage() {
   const weekendTitle = formatWeekendTitle(weekend)
   const userName = `${user.firstName} ${user.lastName}`.trim()
   const userRole = user.teamMemberInfo.cha_role ?? 'Team Member'
+  const teamFee = await getTeamFee()
+  const teamFeeAmount = Results.unwrapOr(teamFee, null)?.unit_amount ?? null
+  const teamFeeDollars = isNil(teamFeeAmount) ? null : teamFeeAmount / 100
 
   return (
     <CommitmentFormComponent
@@ -37,6 +41,7 @@ export default async function CommitmentFormPage() {
       weekendTitle={weekendTitle}
       userRole={userRole}
       rosterId={user.teamMemberInfo.id}
+      teamFeeAmount={teamFeeDollars}
     />
   )
 }

@@ -1,4 +1,5 @@
 import { PostgrestSingleResponse } from '@supabase/supabase-js'
+import { isNil } from 'lodash'
 import z from 'zod'
 
 export type ErrorResult<E> = {
@@ -95,6 +96,16 @@ export const match = <E, D, U>(
   return onErr(result.error)
 }
 
+export const fromNullable = <E, D>(
+  value: D | null | undefined,
+  error: E
+): Result<E, D> => {
+  if (isNil(value)) {
+    return err(error)
+  }
+  return ok(value)
+}
+
 export const fromSupabase = <D>(
   supabaseResponse: PostgrestSingleResponse<D>
 ): Result<string, D> => {
@@ -115,3 +126,20 @@ export const safeParse = <T>(
   }
   return ok(result.data)
 }
+
+export const Results = {
+  err,
+  ok,
+  isErr,
+  isOk,
+  map,
+  mapErr,
+  andThen,
+  unwrap,
+  unwrapErr,
+  unwrapOr,
+  match,
+  fromNullable,
+  fromSupabase,
+  safeParse,
+} as const

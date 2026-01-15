@@ -19,13 +19,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import {
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { isNil } from 'lodash'
 
 // Placeholder commitments - these will likely need to be updated with real content
 // Update commitments based on user provided content
@@ -39,7 +35,7 @@ const COMMITMENTS = [
   'I am leading a life of piety, study and action.',
   'I am regularly attending and serving in my local church.',
   'My household is in order and will not be harmed by my attendance of team meetings and participation on the weekend.',
-  'I agree that I am responsible for paying my team fee of $185 prior to the weekend.',
+  'I agree that I am responsible for paying my team fee of ${{TEAM_FEE_PRICE}} prior to the weekend.',
 ]
 
 // Create a schema where all commitments must be true and signature is required
@@ -59,6 +55,7 @@ interface CommitmentFormProps {
   weekendTitle: string
   userRole: string
   rosterId: string
+  teamFeeAmount: number | null
 }
 
 export function CommitmentFormComponent({
@@ -66,6 +63,7 @@ export function CommitmentFormComponent({
   weekendTitle,
   userRole,
   rosterId,
+  teamFeeAmount,
 }: CommitmentFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -125,28 +123,40 @@ export function CommitmentFormComponent({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              {COMMITMENTS.map((commitment, index) => (
-                <FormField
-                  key={index}
-                  control={form.control}
-                  name={`commitments.${index}`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none pt-1">
-                        <FormLabel className="text-sm font-normal cursor-pointer">
-                          {commitment}
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              ))}
+              {COMMITMENTS.map((commitment, index) => {
+                const isPriceField = commitment.includes('{{TEAM_FEE_PRICE}}')
+                if (isPriceField && isNil(teamFeeAmount)) {
+                  return null
+                } else {
+                  commitment = commitment.replace(
+                    '{{TEAM_FEE_PRICE}}',
+                    teamFeeAmount!.toString()
+                  )
+                }
+
+                return (
+                  <FormField
+                    key={index}
+                    control={form.control}
+                    name={`commitments.${index}`}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none pt-1">
+                          <FormLabel className="text-sm font-normal cursor-pointer">
+                            {commitment}
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                )
+              })}
             </div>
 
             {form.formState.errors.commitments && (
