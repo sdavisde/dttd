@@ -13,10 +13,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Edit, Search } from 'lucide-react'
+import { Edit, Search, Stethoscope } from 'lucide-react'
 import { useTablePagination } from '@/hooks/use-table-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { EditTeamMemberModal } from './edit-team-member-modal'
+import { MedicalInfoModal } from './medical-info-modal'
 import { CHARole } from '@/lib/weekend/types'
 import { WeekendRosterMember } from '@/actions/weekend'
 import { PaymentInfo } from './payment-info'
@@ -34,6 +35,7 @@ export function WeekendRosterTable({
   includePaymentInformation = true,
 }: WeekendRosterTableProps) {
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [medicalModalOpen, setMedicalModalOpen] = useState(false)
   const [selectedRosterMember, setSelectedRosterMember] =
     useState<WeekendRosterMember | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -55,6 +57,16 @@ export function WeekendRosterTable({
 
   const handleCloseEditModal = () => {
     setEditModalOpen(false)
+    setSelectedRosterMember(null)
+  }
+
+  const handleOpenMedicalModal = (rosterMember: WeekendRosterMember) => {
+    setSelectedRosterMember(rosterMember)
+    setMedicalModalOpen(true)
+  }
+
+  const handleCloseMedicalModal = () => {
+    setMedicalModalOpen(false)
     setSelectedRosterMember(null)
   }
 
@@ -116,10 +128,10 @@ export function WeekendRosterTable({
     })
 
   // Calculate total columns for colspan
-  // Base columns: Name, Email, Phone, Role, Forms = 5
+  // Base columns: Name, Email, Phone, Role, Forms, Emergency, Medical = 7
   // +1 if includePaymentInformation, +1 if isEditable
   const totalColumns =
-    5 + (includePaymentInformation ? 1 : 0) + (isEditable ? 1 : 0)
+    7 + (includePaymentInformation ? 1 : 0) + (isEditable ? 1 : 0)
 
   return (
     <>
@@ -155,6 +167,10 @@ export function WeekendRosterTable({
                   <TableHead className="min-w-[150px]">Phone</TableHead>
                   <TableHead className="min-w-[150px]">Role</TableHead>
                   <TableHead className="min-w-[80px]">Forms</TableHead>
+                  <TableHead className="min-w-[150px]">
+                    Emergency Contact
+                  </TableHead>
+                  <TableHead className="min-w-[80px]">Medical</TableHead>
                   {includePaymentInformation && (
                     <TableHead className="min-w-[100px]">Payment</TableHead>
                   )}
@@ -212,6 +228,31 @@ export function WeekendRosterTable({
                               : 'Team forms incomplete'
                           }
                         />
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {member.emergency_contact_name ? (
+                          <div className="text-sm">
+                            <div>{member.emergency_contact_name}</div>
+                            <div>{member.emergency_contact_phone ?? '-'}</div>
+                          </div>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {member.emergency_contact_name ||
+                        member.medical_conditions ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenMedicalModal(member)}
+                            aria-label="View medical information"
+                          >
+                            <Stethoscope className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       {includePaymentInformation && (
                         <TableCell>
@@ -301,6 +342,21 @@ export function WeekendRosterTable({
                   </div>
                 </div>
 
+                {/* Emergency Contact */}
+                {member.emergency_contact_name && (
+                  <div className="space-y-1 pt-2 border-t">
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Emergency Contact
+                    </span>
+                    <div className="text-sm">
+                      <div>{member.emergency_contact_name}</div>
+                      <div className="text-muted-foreground">
+                        {member.emergency_contact_phone ?? '-'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Role and Status */}
                 <div className="flex flex-wrap items-center gap-2 pt-2">
                   <Badge variant="outline">
@@ -320,6 +376,20 @@ export function WeekendRosterTable({
                     />
                     <span className="text-sm text-muted-foreground">Forms</span>
                   </div>
+
+                  {member.emergency_contact_name !== null ||
+                  member.medical_conditions !== null ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenMedicalModal(member)}
+                      aria-label="View medical information"
+                      className="h-8 px-2"
+                    >
+                      <Stethoscope className="h-4 w-4 mr-1" />
+                      <span className="text-sm">Medical</span>
+                    </Button>
+                  ) : null}
 
                   {includePaymentInformation && (
                     <PaymentInfo member={member} isEditable={isEditable} />
@@ -343,6 +413,12 @@ export function WeekendRosterTable({
         open={editModalOpen}
         onClose={handleCloseEditModal}
         rosterMember={selectedRosterMember}
+      />
+
+      <MedicalInfoModal
+        open={medicalModalOpen}
+        onClose={handleCloseMedicalModal}
+        member={selectedRosterMember}
       />
     </>
   )

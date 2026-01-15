@@ -36,6 +36,7 @@ export function userHasPermission(
 }
 
 export function userHasCHARole(user: User, chaRoles: Array<CHARole>): boolean {
+  console.log(user)
   if (isNil(user.teamMemberInfo?.cha_role)) {
     return false
   }

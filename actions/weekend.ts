@@ -478,6 +478,11 @@ export type WeekendRosterMember = {
   }>
   // Whether all 5 team forms have been completed
   forms_complete: boolean
+  // Emergency contact information
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  // Medical conditions
+  medical_conditions: string | null
 }
 
 export async function getWeekendRoster(
@@ -501,6 +506,9 @@ export async function getWeekendRoster(
       completed_release_of_claim_at,
       completed_camp_waiver_at,
       completed_info_sheet_at,
+      emergency_contact_name,
+      emergency_contact_phone,
+      medical_conditions,
       users (
         id,
         first_name,
