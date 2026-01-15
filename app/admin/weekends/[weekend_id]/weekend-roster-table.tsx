@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Edit, Search } from 'lucide-react'
 import { useTablePagination } from '@/hooks/use-table-pagination'
@@ -115,9 +116,10 @@ export function WeekendRosterTable({
     })
 
   // Calculate total columns for colspan
-  // Updated calculation after removing status column
+  // Base columns: Name, Email, Phone, Role, Forms = 5
+  // +1 if includePaymentInformation, +1 if isEditable
   const totalColumns =
-    (includePaymentInformation ? 4 : 3) + (isEditable ? 1 : 0)
+    5 + (includePaymentInformation ? 1 : 0) + (isEditable ? 1 : 0)
 
   return (
     <>
@@ -152,6 +154,7 @@ export function WeekendRosterTable({
                   <TableHead className="min-w-[150px]">Email</TableHead>
                   <TableHead className="min-w-[150px]">Phone</TableHead>
                   <TableHead className="min-w-[150px]">Role</TableHead>
+                  <TableHead className="min-w-[80px]">Forms</TableHead>
                   {includePaymentInformation && (
                     <TableHead className="min-w-[100px]">Payment</TableHead>
                   )}
@@ -198,6 +201,17 @@ export function WeekendRosterTable({
                         {member.rollo && (
                           <span className="ms-1">- {member.rollo}</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox
+                          checked={member.forms_complete}
+                          disabled
+                          aria-label={
+                            member.forms_complete
+                              ? 'Team forms completed'
+                              : 'Team forms incomplete'
+                          }
+                        />
                       </TableCell>
                       {includePaymentInformation && (
                         <TableCell>
@@ -293,6 +307,19 @@ export function WeekendRosterTable({
                     {formatRole(member.cha_role)}
                     {member.rollo && ` - ${member.rollo}`}
                   </Badge>
+
+                  <div className="flex items-center gap-1.5">
+                    <Checkbox
+                      checked={member.forms_complete}
+                      disabled
+                      aria-label={
+                        member.forms_complete
+                          ? 'Team forms completed'
+                          : 'Team forms incomplete'
+                      }
+                    />
+                    <span className="text-sm text-muted-foreground">Forms</span>
+                  </div>
 
                   {includePaymentInformation && (
                     <PaymentInfo member={member} isEditable={isEditable} />

@@ -476,6 +476,8 @@ export type WeekendRosterMember = {
     created_at: string
     notes: string | null
   }>
+  // Whether all 5 team forms have been completed
+  forms_complete: boolean
 }
 
 export async function getWeekendRoster(
@@ -494,6 +496,11 @@ export async function getWeekendRoster(
       user_id,
       created_at,
       rollo,
+      completed_statement_of_belief_at,
+      completed_commitment_form_at,
+      completed_release_of_claim_at,
+      completed_camp_waiver_at,
+      completed_info_sheet_at,
       users (
         id,
         first_name,
@@ -523,11 +530,20 @@ export async function getWeekendRoster(
       return sum + (payment.payment_amount ?? 0)
     }, 0)
 
+    // Check if all 5 team forms have been completed
+    const forms_complete =
+      !isNil(weekend_roster.completed_statement_of_belief_at) &&
+      !isNil(weekend_roster.completed_commitment_form_at) &&
+      !isNil(weekend_roster.completed_release_of_claim_at) &&
+      !isNil(weekend_roster.completed_camp_waiver_at) &&
+      !isNil(weekend_roster.completed_info_sheet_at)
+
     return {
       ...weekend_roster,
       payment_info: weekend_roster.weekend_roster_payments?.[0] ?? null,
       total_paid,
       all_payments,
+      forms_complete,
     }
   })
 
