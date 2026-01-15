@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Edit, Search, Stethoscope } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useTablePagination } from '@/hooks/use-table-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { EditTeamMemberModal } from './edit-team-member-modal'
@@ -127,11 +128,21 @@ export function WeekendRosterTable({
       initialPage: 1,
     })
 
-  // Calculate total columns for colspan
-  // Base columns: Name, Email, Phone, Role, Forms, Emergency, Medical = 7
-  // +1 if includePaymentInformation, +1 if isEditable
-  const totalColumns =
-    7 + (includePaymentInformation ? 1 : 0) + (isEditable ? 1 : 0)
+  // Define columns dynamically
+  const columns = [
+    { key: 'name', header: 'Name', minWidth: '200px', bold: true },
+    { key: 'phone', header: 'Phone', minWidth: '150px' },
+    { key: 'role', header: 'Role', minWidth: '150px' },
+    { key: 'forms', header: 'Forms', minWidth: '80px' },
+    { key: 'emergency', header: 'Emergency Contact', minWidth: '150px' },
+    { key: 'medical', header: 'Medical', minWidth: '80px' },
+    ...(includePaymentInformation
+      ? [{ key: 'payment', header: 'Payment', minWidth: '100px' }]
+      : []),
+    ...(isEditable
+      ? [{ key: 'actions', header: 'Actions', minWidth: '100px' }]
+      : []),
+  ]
 
   return (
     <>
@@ -160,30 +171,21 @@ export function WeekendRosterTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="font-bold min-w-[200px]">
-                    Name
-                  </TableHead>
-                  <TableHead className="min-w-[150px]">Email</TableHead>
-                  <TableHead className="min-w-[150px]">Phone</TableHead>
-                  <TableHead className="min-w-[150px]">Role</TableHead>
-                  <TableHead className="min-w-[80px]">Forms</TableHead>
-                  <TableHead className="min-w-[150px]">
-                    Emergency Contact
-                  </TableHead>
-                  <TableHead className="min-w-[80px]">Medical</TableHead>
-                  {includePaymentInformation && (
-                    <TableHead className="min-w-[100px]">Payment</TableHead>
-                  )}
-                  {isEditable && (
-                    <TableHead className="min-w-[100px]">Actions</TableHead>
-                  )}
+                  {columns.map((col) => (
+                    <TableHead
+                      key={col.key}
+                      className={cn(col.minWidth, col.bold && 'font-bold')}
+                    >
+                      {col.header}
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedData.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={totalColumns}
+                      colSpan={columns.length}
                       className="text-center py-8"
                     >
                       <p className="text-muted-foreground">
@@ -205,9 +207,6 @@ export function WeekendRosterTable({
                         {member.users?.first_name && member.users?.last_name
                           ? `${member.users.first_name} ${member.users.last_name}`
                           : 'Unknown User'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {member.users?.email ?? '-'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {member.users?.phone_number ?? '-'}
@@ -240,8 +239,7 @@ export function WeekendRosterTable({
                         )}
                       </TableCell>
                       <TableCell>
-                        {member.emergency_contact_name ||
-                        member.medical_conditions ? (
+                        {member.medical_conditions ? (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -377,8 +375,7 @@ export function WeekendRosterTable({
                     <span className="text-sm text-muted-foreground">Forms</span>
                   </div>
 
-                  {member.emergency_contact_name !== null ||
-                  member.medical_conditions !== null ? (
+                  {member.medical_conditions ? (
                     <Button
                       variant="ghost"
                       size="sm"

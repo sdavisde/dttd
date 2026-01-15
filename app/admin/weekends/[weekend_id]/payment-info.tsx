@@ -83,7 +83,7 @@ export const PaymentInfo = ({ member, isEditable }: PaymentInfoProps) => {
           title="Record manual payment"
         >
           <Plus className="text-muted-foreground hover:text-foreground transition-colors" />
-          <span>New Payment</span>
+          <span>Payment</span>
         </Button>
       )}
 
