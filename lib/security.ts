@@ -40,7 +40,7 @@ export function userHasCHARole(user: User, chaRoles: Array<CHARole>): boolean {
   if (isNil(user.teamMemberInfo?.cha_role)) {
     return false
   }
-  return chaRoles.map(toString).includes(user.teamMemberInfo.cha_role)
+  return chaRoles.includes(user.teamMemberInfo.cha_role as CHARole)
 }
 
 export enum Permission {

@@ -31,13 +31,14 @@ export default async function RosterPage() {
   }
   const user = userResult.data
   const canViewPaymentInfo =
-    userHasPermission(user, [Permission.READ_PAYMENTS]) ||
+    // userHasPermission(user, [Permission.READ_PAYMENTS]) ||
     userHasCHARole(user, [
       CHARole.RECTOR,
       CHARole.BACKUP_RECTOR,
       CHARole.HEAD,
       CHARole.ASSISTANT_HEAD,
       CHARole.ROSTER,
+      CHARole.TECH,
     ])
 
   const canEditRoster =
