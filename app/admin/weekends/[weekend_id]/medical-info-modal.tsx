@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { WeekendRosterMember } from '@/actions/weekend'
+import { WeekendRosterMember } from '@/services/weekend'
 
 type MedicalInfoModalProps = {
   open: boolean

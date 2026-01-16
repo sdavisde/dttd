@@ -2,7 +2,7 @@
 
 import { Typography } from '@/components/ui/typography'
 import { DroppedRosterTable } from '@/app/admin/weekends/[weekend_id]/dropped-roster-table'
-import { WeekendRosterMember } from '@/actions/weekend'
+import { WeekendRosterMember } from '@/services/weekend'
 import { useRoster } from '@/hooks/use-roster'
 
 type DroppedRosterSectionProps = {

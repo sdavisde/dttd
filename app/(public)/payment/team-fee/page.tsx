@@ -1,7 +1,7 @@
 import Checkout from '@/components/checkout'
 import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
-import { getWeekendRosterRecord } from '@/actions/weekend'
+import { getWeekendRosterRecord } from '@/services/weekend'
 import { getLoggedInUser } from '@/services/identity/user'
 import { isErr } from '@/lib/results'
 import { AlertTriangle } from 'lucide-react'

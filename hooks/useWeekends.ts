@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getActiveWeekends } from '@/actions/weekend'
+import { getActiveWeekends } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
 

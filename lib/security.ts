@@ -59,6 +59,7 @@ export enum Permission {
 
   // Weekend admin management
   READ_DROPPED_ROSTER = 'READ_DROPPED_ROSTER',
+  // READ_TEAM_ROSTER = 'READ_TEAM_ROSTER', everyone should be able to read team rosters
   WRITE_TEAM_ROSTER = 'WRITE_TEAM_ROSTER',
   READ_WEEKENDS = 'READ_WEEKENDS',
   WRITE_WEEKENDS = 'WRITE_WEEKENDS',

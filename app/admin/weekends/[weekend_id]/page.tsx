@@ -2,7 +2,7 @@ import {
   getWeekendById,
   getWeekendRoster,
   getAllUsers,
-} from '@/actions/weekend'
+} from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { genderMatchesWeekend } from '@/lib/weekend'
 import { WeekendStatus } from '@/lib/weekend/types'

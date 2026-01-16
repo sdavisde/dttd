@@ -1,0 +1,640 @@
+import 'server-only'
+
+import { randomUUID } from 'crypto'
+import { isEmpty, isNil, sumBy } from 'lodash'
+import { Result, err, ok, isErr } from '@/lib/results'
+import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
+import { logger } from '@/lib/logger'
+import { Tables } from '@/database.types'
+import {
+  Weekend,
+  WeekendType,
+  WeekendStatus,
+  WeekendStatusValue,
+  WeekendWithGroup,
+  RawWeekendRecord,
+  WeekendGroup,
+  WeekendGroupWithId,
+  WeekendWriteInput,
+  WeekendUpdateInput,
+  CreateWeekendGroupInput,
+  UpdateWeekendGroupInput,
+} from '@/lib/weekend/types'
+import {
+  RawWeekendRoster,
+  WeekendRosterMember,
+  WeekendSidebarPayload,
+} from './types'
+import * as WeekendRepository from './repository'
+
+// ============================================================================
+// Helper Functions (Private)
+// ============================================================================
+
+/**
+ * Transforms an array of weekends into a grouped object by type.
+ */
+function toWeekendGroup(weekends: WeekendWithGroup[]): WeekendGroup {
+  return {
+    MENS: weekends.find((weekend) => weekend.type === WeekendType.MENS) ?? null,
+    WOMENS:
+      weekends.find((weekend) => weekend.type === WeekendType.WOMENS) ?? null,
+  }
+}
+
+/**
+ * Maps a raw weekend record to a typed weekend with group.
+ */
+function toWeekendWithGroup(weekend: RawWeekendRecord): WeekendWithGroup {
+  return {
+    ...weekend,
+    group_id: weekend.group_id ?? null,
+  }
+}
+
+/**
+ * Validates that required dates are present.
+ */
+function ensureRequiredDates(
+  type: WeekendType,
+  payload: WeekendWriteInput
+): Result<string, void> {
+  if (isEmpty(payload.start_date) || isEmpty(payload.end_date)) {
+    return err(
+      `${type} weekend requires both start_date and end_date before saving`
+    )
+  }
+  return ok(undefined)
+}
+
+/**
+ * Prepares the insert payload for a weekend record.
+ */
+function prepareInsertPayload(
+  groupId: string,
+  type: WeekendType,
+  payload: WeekendWriteInput
+) {
+  return {
+    group_id: groupId,
+    type,
+    start_date: payload.start_date,
+    end_date: payload.end_date,
+    number: payload.number ?? null,
+    status: payload.status ?? WeekendStatus.PLANNING,
+    title: payload.title ?? null,
+  }
+}
+
+/**
+ * Normalizes the sidebar title by trimming whitespace.
+ */
+function normalizeSidebarTitle(title?: string | null): string | null {
+  if (isNil(title)) {
+    return null
+  }
+  const trimmed = title.trim()
+  return isEmpty(trimmed) ? null : trimmed
+}
+
+/**
+ * Checks if an update payload has any defined values.
+ */
+function hasDefinedUpdateValues(payload: WeekendUpdateInput): boolean {
+  return Object.values(payload).some((value) => !isNil(value))
+}
+
+/**
+ * Formats a weekend label for display.
+ */
+function getWeekendLabel(weekend: Weekend | null): string {
+  if (isNil(weekend)) {
+    return 'Unknown Weekend'
+  }
+  return trimWeekendTypeFromTitle(formatWeekendTitle(weekend))
+}
+
+/**
+ * Normalizes a raw weekend roster record into a WeekendRosterMember.
+ */
+function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
+  const all_payments = raw.weekend_roster_payments ?? []
+  const total_paid = sumBy(all_payments, (p) => p.payment_amount ?? 0)
+
+  // Check if all 5 team forms have been completed
+  const forms_complete =
+    !isNil(raw.completed_statement_of_belief_at) &&
+    !isNil(raw.completed_commitment_form_at) &&
+    !isNil(raw.completed_release_of_claim_at) &&
+    !isNil(raw.completed_camp_waiver_at) &&
+    !isNil(raw.completed_info_sheet_at)
+
+  return {
+    id: raw.id,
+    cha_role: raw.cha_role,
+    status: raw.status,
+    weekend_id: raw.weekend_id,
+    user_id: raw.user_id,
+    created_at: raw.created_at,
+    rollo: raw.rollo,
+    users: raw.users,
+    payment_info: raw.weekend_roster_payments?.[0] ?? null,
+    total_paid,
+    all_payments,
+    forms_complete,
+    emergency_contact_name: raw.emergency_contact_name,
+    emergency_contact_phone: raw.emergency_contact_phone,
+    medical_conditions: raw.medical_conditions,
+  }
+}
+
+// ============================================================================
+// Service Functions (Exported)
+// ============================================================================
+
+/**
+ * Fetches active weekends grouped by type.
+ */
+export async function getActiveWeekends(): Promise<
+  Result<string, Record<WeekendType, Weekend | null>>
+> {
+  const result = await WeekendRepository.findActiveWeekends()
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+  if (isEmpty(data)) {
+    return ok({
+      MENS: null,
+      WOMENS: null,
+    })
+  }
+
+  return ok({
+    MENS:
+      (data.find((weekend) => weekend.type === WeekendType.MENS) as Weekend) ??
+      null,
+    WOMENS:
+      (data.find(
+        (weekend) => weekend.type === WeekendType.WOMENS
+      ) as Weekend) ?? null,
+  })
+}
+
+/**
+ * Fetches a weekend group by its group ID.
+ */
+export async function getWeekendGroup(
+  groupId: string
+): Promise<Result<string, WeekendGroupWithId>> {
+  if (!groupId) {
+    return err('group_id is required to fetch a group')
+  }
+
+  const result = await WeekendRepository.findWeekendsByGroupId(groupId)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+  if (isEmpty(data)) {
+    return err(`Weekend group ${groupId} not found`)
+  }
+
+  const typedWeekends = data.map(toWeekendWithGroup)
+  return ok({ groupId, weekends: toWeekendGroup(typedWeekends) })
+}
+
+/**
+ * Fetches all weekend groups, optionally filtered by statuses.
+ */
+export async function getWeekendGroupsByStatus(
+  statuses?: WeekendStatusValue[]
+): Promise<Result<string, WeekendGroupWithId[]>> {
+  const result = await WeekendRepository.findWeekendsByStatuses(statuses)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+  if (isEmpty(data)) {
+    return ok([])
+  }
+
+  // Group weekends by group_id
+  const groups = new Map<string, WeekendWithGroup[]>()
+
+  for (const rawWeekend of data) {
+    const weekend = toWeekendWithGroup(rawWeekend)
+
+    if (isNil(weekend.group_id)) {
+      continue
+    }
+
+    const existing = groups.get(weekend.group_id) ?? []
+    existing.push(weekend)
+    groups.set(weekend.group_id, existing)
+  }
+
+  // Transform and sort by weekend number
+  const grouped: WeekendGroupWithId[] = Array.from(groups.entries())
+    .map(([groupId, weekends]) => ({
+      groupId,
+      weekends: toWeekendGroup(weekends),
+    }))
+    .sort((a, b) => {
+      const aNumber =
+        a.weekends.MENS?.number ??
+        a.weekends.WOMENS?.number ??
+        Number.MAX_SAFE_INTEGER
+      const bNumber =
+        b.weekends.MENS?.number ??
+        b.weekends.WOMENS?.number ??
+        Number.MAX_SAFE_INTEGER
+      return aNumber - bNumber
+    })
+
+  return ok(grouped)
+}
+
+/**
+ * Sets a weekend group as active, marking the previous active group as finished.
+ */
+export async function setActiveWeekendGroup(
+  groupId: string
+): Promise<Result<string, WeekendGroupWithId>> {
+  if (!groupId) {
+    return err('group_id is required to set active weekend')
+  }
+
+  // 1. Find all currently ACTIVE weekends and update them to FINISHED
+  const finishResult =
+    await WeekendRepository.updateWeekendStatusByCurrentStatus(
+      WeekendStatus.ACTIVE,
+      WeekendStatus.FINISHED
+    )
+
+  if (isErr(finishResult)) {
+    return err(
+      `Failed to mark previous active weekends as finished: ${finishResult.error}`
+    )
+  }
+
+  // 2. Update the selected weekend group to ACTIVE
+  const activateResult = await WeekendRepository.updateWeekendStatusByGroupId(
+    groupId,
+    WeekendStatus.ACTIVE
+  )
+
+  if (isErr(activateResult)) {
+    return err(`Failed to set weekend group as active: ${activateResult.error}`)
+  }
+
+  // 3. Return the updated group
+  return getWeekendGroup(groupId)
+}
+
+/**
+ * Creates a new weekend group with MENS and WOMENS weekends.
+ */
+export async function createWeekendGroup(
+  input: CreateWeekendGroupInput
+): Promise<Result<string, WeekendGroupWithId>> {
+  if (!input.groupId) {
+    return err('groupId is required when creating a weekend group')
+  }
+
+  // Validate both weekends have required dates
+  const mensValidation = ensureRequiredDates(WeekendType.MENS, input.mens)
+  if (isErr(mensValidation)) {
+    return err(mensValidation.error)
+  }
+
+  const womensValidation = ensureRequiredDates(WeekendType.WOMENS, input.womens)
+  if (isErr(womensValidation)) {
+    return err(womensValidation.error)
+  }
+
+  // Prepare and insert payloads
+  const insertPayload = [
+    prepareInsertPayload(input.groupId, WeekendType.MENS, input.mens),
+    prepareInsertPayload(input.groupId, WeekendType.WOMENS, input.womens),
+  ]
+
+  const result = await WeekendRepository.insertWeekendGroup(insertPayload)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+  if (isEmpty(data)) {
+    return err('Failed to create weekend group')
+  }
+
+  return ok({
+    groupId: input.groupId,
+    weekends: toWeekendGroup(data.map(toWeekendWithGroup)),
+  })
+}
+
+/**
+ * Updates an existing weekend group.
+ */
+export async function updateWeekendGroup(
+  groupId: string,
+  updates: UpdateWeekendGroupInput
+): Promise<Result<string, WeekendGroupWithId>> {
+  if (isNil(groupId)) {
+    return err('group_id is required to update a group')
+  }
+
+  if (isNil(updates.mens) && isNil(updates.womens)) {
+    return err('No updates were provided for either mens or womens weekend')
+  }
+
+  // Apply updates to each weekend type if provided
+  const applyUpdate = async (
+    type: WeekendType,
+    payload?: WeekendUpdateInput
+  ): Promise<Result<string, WeekendWithGroup | null>> => {
+    if (isNil(payload)) {
+      return ok(null)
+    }
+
+    if (!hasDefinedUpdateValues(payload)) {
+      return ok(null)
+    }
+
+    const result = await WeekendRepository.updateWeekendByGroupAndType(
+      groupId,
+      type,
+      payload
+    )
+
+    if (isErr(result)) {
+      return result
+    }
+
+    if (isNil(result.data)) {
+      return err(`Failed to update ${type} weekend`)
+    }
+
+    return ok(toWeekendWithGroup(result.data))
+  }
+
+  const mensResult = await applyUpdate(WeekendType.MENS, updates.mens)
+  if (isErr(mensResult)) {
+    return err(mensResult.error)
+  }
+
+  const womensResult = await applyUpdate(WeekendType.WOMENS, updates.womens)
+  if (isErr(womensResult)) {
+    return err(womensResult.error)
+  }
+
+  // Return the full updated group
+  return getWeekendGroup(groupId)
+}
+
+/**
+ * Deletes a weekend group.
+ */
+export async function deleteWeekendGroup(
+  groupId: string
+): Promise<Result<string, { success: boolean }>> {
+  if (!groupId) {
+    return err('group_id is required to delete a group')
+  }
+
+  const result = await WeekendRepository.deleteWeekendsByGroupId(groupId)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  return ok({ success: true })
+}
+
+/**
+ * Saves a weekend group from the sidebar UI (creates or updates).
+ */
+export async function saveWeekendGroupFromSidebar(
+  payload: WeekendSidebarPayload
+): Promise<Result<string, WeekendGroupWithId>> {
+  const sharedTitle = normalizeSidebarTitle(payload.title)
+
+  const mensCreate: WeekendWriteInput = {
+    start_date: payload.mensStart,
+    end_date: payload.mensEnd,
+    title: `Mens ${sharedTitle}`,
+  }
+
+  const womensCreate: WeekendWriteInput = {
+    start_date: payload.womensStart,
+    end_date: payload.womensEnd,
+    title: `Womens ${sharedTitle}`,
+  }
+
+  // If no groupId, create a new group
+  if (isNil(payload.groupId)) {
+    const groupId = randomUUID()
+    return createWeekendGroup({
+      groupId,
+      mens: mensCreate,
+      womens: womensCreate,
+    })
+  }
+
+  // Otherwise, update existing group
+  const mensUpdate: WeekendUpdateInput = {
+    start_date: payload.mensStart,
+    end_date: payload.mensEnd,
+    title: sharedTitle,
+  }
+
+  const womensUpdate: WeekendUpdateInput = {
+    start_date: payload.womensStart,
+    end_date: payload.womensEnd,
+    title: sharedTitle,
+  }
+
+  return updateWeekendGroup(payload.groupId, {
+    mens: mensUpdate,
+    womens: womensUpdate,
+  })
+}
+
+/**
+ * Fetches a single weekend by ID.
+ */
+export async function getWeekendById(
+  weekendId: string
+): Promise<Result<string, Weekend>> {
+  const result = await WeekendRepository.findWeekendById(weekendId)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  if (isNil(result.data)) {
+    return err('Weekend not found')
+  }
+
+  return ok(result.data)
+}
+
+/**
+ * Fetches the roster for a weekend with normalized data.
+ */
+export async function getWeekendRoster(
+  weekendId: string
+): Promise<Result<string, Array<WeekendRosterMember>>> {
+  const result = await WeekendRepository.findWeekendRoster(weekendId)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  if (isNil(result.data)) {
+    return err('No roster found for weekend')
+  }
+
+  const normalizedRoster = result.data.map(normalizeRosterMember)
+  return ok(normalizedRoster)
+}
+
+/**
+ * Fetches all users.
+ */
+export async function getAllUsers(): Promise<
+  Result<string, Array<Tables<'users'>>>
+> {
+  const result = await WeekendRepository.findAllUsers()
+
+  if (isErr(result)) {
+    return result
+  }
+
+  if (isEmpty(result.data)) {
+    return err('No users found')
+  }
+
+  return ok(result.data)
+}
+
+/**
+ * Adds a user to a weekend roster.
+ */
+export async function addUserToWeekendRoster(
+  weekendId: string,
+  userId: string,
+  role: string,
+  rollo?: string
+): Promise<Result<string, void>> {
+  return WeekendRepository.insertWeekendRosterMember({
+    weekend_id: weekendId,
+    user_id: userId,
+    status: 'awaiting_payment',
+    cha_role: role,
+    rollo: rollo ?? null,
+  })
+}
+
+/**
+ * Fetches a weekend roster record for payment flow.
+ * Uses admin client to bypass RLS - required for webhook flows.
+ */
+export async function getWeekendRosterRecord(
+  teamUserId: string | null,
+  weekendId: string | null
+): Promise<Result<string, Tables<'weekend_roster'>>> {
+  if (!teamUserId || !weekendId) {
+    return err('Team user ID or weekend ID is null')
+  }
+
+  const result = await WeekendRepository.findWeekendRosterRecord(
+    teamUserId,
+    weekendId
+  )
+
+  if (isErr(result)) {
+    return result
+  }
+
+  if (isNil(result.data)) {
+    return err('Weekend roster record not found')
+  }
+
+  if (result.data.status === 'paid') {
+    return err('Weekend roster record is already in status "paid"')
+  }
+
+  return ok(result.data)
+}
+
+/**
+ * Records a manual (cash/check) payment for a weekend roster member.
+ */
+export async function recordManualPayment(
+  weekendRosterId: string,
+  paymentAmount: number,
+  paymentMethod: 'cash' | 'check',
+  notes?: string
+): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
+  // Verify the weekend roster record exists
+  const rosterResult =
+    await WeekendRepository.findRosterRecordById(weekendRosterId)
+
+  if (isErr(rosterResult)) {
+    return err(`Failed to find roster record: ${rosterResult.error}`)
+  }
+
+  if (isNil(rosterResult.data)) {
+    return err('Weekend roster record not found')
+  }
+
+  // Insert the payment record
+  const result = await WeekendRepository.insertManualPayment({
+    weekend_roster_id: weekendRosterId,
+    payment_amount: paymentAmount,
+    payment_method: paymentMethod,
+    payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+    notes: notes ?? null,
+  })
+
+  if (isErr(result)) {
+    return err(`Failed to record payment: ${result.error}`)
+  }
+
+  logger.info(
+    `Manual payment recorded: ${paymentMethod} payment of $${paymentAmount} for roster ID ${weekendRosterId}`
+  )
+
+  return ok(result.data)
+}
+
+/**
+ * Fetches weekend options for dropdowns/selectors.
+ */
+export async function getWeekendOptions(): Promise<
+  Result<string, Array<{ id: string; label: string }>>
+> {
+  const groupsResult = await getWeekendGroupsByStatus()
+  if (isErr(groupsResult)) return err(groupsResult.error)
+
+  const options = groupsResult.data.map((group) => {
+    const mens = group.weekends.MENS
+    const womens = group.weekends.WOMENS
+    const anyWeekend = mens ?? womens ?? null
+
+    return { id: group.groupId, label: getWeekendLabel(anyWeekend) }
+  })
+
+  // Return reversed (newest first)
+  return ok(options.reverse())
+}

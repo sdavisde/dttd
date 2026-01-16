@@ -15,7 +15,7 @@ import { Search } from 'lucide-react'
 import { useTablePagination } from '@/hooks/use-table-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { CHARole } from '@/lib/weekend/types'
-import { WeekendRosterMember } from '@/actions/weekend'
+import { WeekendRosterMember } from '@/services/weekend'
 
 type DroppedRosterTableProps = {
   roster: Array<WeekendRosterMember>

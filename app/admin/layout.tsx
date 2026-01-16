@@ -9,7 +9,7 @@ import { permissionLock, Permission } from '@/lib/security'
 import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
-import { getActiveWeekends } from '@/actions/weekend'
+import { getActiveWeekends } from '@/services/weekend'
 import { formatWeekendTitle } from '@/lib/weekend'
 
 type AdminLayoutProps = {

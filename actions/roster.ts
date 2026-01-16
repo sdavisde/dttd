@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getActiveWeekends } from '@/actions/weekend'
+import { getActiveWeekends } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { Result, err, ok } from '@/lib/results'
 

@@ -38,7 +38,7 @@ import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-di
 import {
   saveWeekendGroupFromSidebar,
   deleteWeekendGroup,
-} from '@/actions/weekend'
+} from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 import {
@@ -184,7 +184,7 @@ export function WeekendSidebar({
 
     setIsDeleting(true)
     try {
-      const result = await deleteWeekendGroup(weekendGroup.groupId)
+      const result = await deleteWeekendGroup({ groupId: weekendGroup.groupId })
 
       if (isErr(result)) {
         toast.error('Failed to delete weekends', {

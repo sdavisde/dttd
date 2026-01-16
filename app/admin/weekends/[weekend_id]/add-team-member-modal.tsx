@@ -36,7 +36,7 @@ import { Tables } from '@/database.types'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { addUserToWeekendRoster } from '@/actions/weekend'
+import { addUserToWeekendRoster } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -98,12 +98,12 @@ export function AddTeamMemberModal({
     console.log(userId, role, rollo)
 
     try {
-      const result = await addUserToWeekendRoster(
+      const result = await addUserToWeekendRoster({
         weekendId,
         userId,
         role,
-        rollo
-      )
+        rollo,
+      })
 
       if (isErr(result)) {
         setError('root', { message: result.error })

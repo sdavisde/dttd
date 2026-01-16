@@ -1,7 +1,7 @@
 'use server'
 
 import { isNil } from 'lodash'
-import { getWeekendById } from '@/actions/weekend'
+import { getWeekendById } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { teamTodoItems } from './todos.config'
 import {

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getWeekendById } from '@/actions/weekend'
+import { getWeekendById } from '@/services/weekend'
 import { CommitmentFormComponent } from '@/components/team-forms/commitment-form-component'
 import { Results } from '@/lib/results'
 import { isNil } from 'lodash'

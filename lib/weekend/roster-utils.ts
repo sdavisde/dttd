@@ -1,4 +1,4 @@
-import { WeekendRosterMember } from '@/actions/weekend'
+import { WeekendRosterMember } from '@/services/weekend'
 
 /**
  * Filters roster members by their status

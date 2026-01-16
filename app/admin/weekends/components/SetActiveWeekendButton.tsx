@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { WeekendGroupWithId, WeekendStatus } from '@/lib/weekend/types'
 import { getGroupStatus } from '@/lib/weekend'
-import { setActiveWeekendGroup } from '@/actions/weekend'
+import { setActiveWeekendGroup } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 
@@ -42,7 +42,7 @@ export function SetActiveWeekendButton({
     setIsLoading(true)
 
     try {
-      const result = await setActiveWeekendGroup(groupId)
+      const result = await setActiveWeekendGroup({ groupId })
 
       if (isErr(result)) {
         toast.error('Failed to set active weekend', {

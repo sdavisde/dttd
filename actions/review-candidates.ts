@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { isNil } from 'lodash'
-import { getActiveWeekends, getWeekendOptions } from '@/actions/weekend'
+import { getActiveWeekends, getWeekendOptions } from '@/services/weekend'
 import { getAllCandidatesWithDetails } from '@/actions/candidates'
 import { WeekendType } from '@/lib/weekend/types'
 import { Result, isErr, isOk } from '@/lib/results'

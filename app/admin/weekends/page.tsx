@@ -1,4 +1,4 @@
-import { getWeekendGroupsByStatus } from '@/actions/weekend'
+import { getWeekendGroupsByStatus } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Weekends } from './components/Weekends'
@@ -8,7 +8,7 @@ import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 
 export default async function WeekendsPage() {
-  const weekendGroupsResult = await getWeekendGroupsByStatus()
+  const weekendGroupsResult = await getWeekendGroupsByStatus({})
 
   const userResult = await getLoggedInUser()
   const user = userResult?.data

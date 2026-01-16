@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { WeekendRosterMember, recordManualPayment } from '@/actions/weekend'
+import { WeekendRosterMember, recordManualPayment } from '@/services/weekend'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { isOk } from '@/lib/results'

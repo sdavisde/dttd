@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import { Result, ok, err, isErr } from '@/lib/results'
 import Stripe from 'stripe'
 import { Tables } from '@/database.types'
-import { getWeekendRosterRecord } from '@/actions/weekend'
+import { getWeekendRosterRecord } from '@/services/weekend'
 import { notifyAssistantHeadForTeamPayment } from '@/actions/emails'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!

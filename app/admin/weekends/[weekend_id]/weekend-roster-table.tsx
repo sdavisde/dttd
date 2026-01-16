@@ -20,7 +20,7 @@ import { TablePagination } from '@/components/ui/table-pagination'
 import { EditTeamMemberModal } from './edit-team-member-modal'
 import { MedicalInfoModal } from './medical-info-modal'
 import { CHARole } from '@/lib/weekend/types'
-import { WeekendRosterMember } from '@/actions/weekend'
+import { WeekendRosterMember } from '@/services/weekend'
 import { PaymentInfo } from './payment-info'
 
 type WeekendRosterTableProps = {

@@ -2,7 +2,7 @@ import {
   getActiveWeekends,
   getWeekendRoster,
   WeekendRosterMember,
-} from '@/actions/weekend'
+} from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-roster-table'
 import {
