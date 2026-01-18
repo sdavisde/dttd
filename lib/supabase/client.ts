@@ -11,15 +11,15 @@ export function createClient() {
     )
     throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set')
   }
-  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
     logger.error(
-      'Trying to create client-side supabase client but NEXT_PUBLIC_SUPABASE_ANON_KEY is not set'
+      'Trying to create client-side supabase client but NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set'
     )
-    throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set')
+    throw new Error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set')
   }
 
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   )
 }

@@ -10,7 +10,7 @@
     "prepare": "husky",
     "semantic-release": "semantic-release",
     "db:start": "supabase start",
-    "db:stop": "supabase stop --project-id vortex-core",
+    "db:stop": "supabase stop --project-id dttd",
     "db:status": "supabase status",
     "db:reset": "supabase db reset",
     "db:generate": "supabase gen types typescript --local > lib/supabase/database.types.ts"

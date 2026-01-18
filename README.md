@@ -11,16 +11,7 @@ yarn dev
 
 ## Environment Variables
 
-Create `.env`:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key
-STRIPE_SECRET_KEY=your_stripe_secret
-RESEND_API_KEY=your_resend_key
-```
+Copy `.env.example` into `.env.local`, and follow the instructions inside
 
 ## Tech Stack
 
