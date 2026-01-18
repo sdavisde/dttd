@@ -7,8 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "npx eslint . --ext .ts,.tsx",
-    "generate": "npx supabase gen types typescript --project-id hlbfwbfhfbbiyztbqmsw > database.types.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "semantic-release": "semantic-release",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop --project-id vortex-core",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:generate": "supabase gen types typescript --local > lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -52,7 +57,7 @@
     "resend": "^4.6.0",
     "sonner": "^2.0.6",
     "stripe": "^18.2.0",
-    "supabase": "^2.63.1",
+    "supabase": "^2.72.8",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.0.5"
   },
