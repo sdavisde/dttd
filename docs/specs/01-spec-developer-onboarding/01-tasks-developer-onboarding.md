@@ -4,7 +4,7 @@ Task list generated from [01-spec-developer-onboarding.md](./01-spec-developer-o
 
 ## Tasks
 
-### [~] 1.0 Create Taskfile Foundation with Prerequisite Checking
+### [x] 1.0 Create Taskfile Foundation with Prerequisite Checking
 
 Establish go-task infrastructure with `Taskfile.yml` that checks for required prerequisites (Node.js v22+, Yarn, Docker, Infisical CLI, Stripe CLI) and prompts for installation when missing.
 
