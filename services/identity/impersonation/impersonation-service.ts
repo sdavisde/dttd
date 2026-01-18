@@ -38,5 +38,5 @@ export async function impersonateUser(userId: string) {
 
 export async function clearImpersonation() {
   const cookieStore = await cookies()
-  return cookieStore.delete(IMPERSONATION_COOKIE_KEY)
+  cookieStore.delete(IMPERSONATION_COOKIE_KEY)
 }

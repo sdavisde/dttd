@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -9,13 +9,18 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { getAllUsers } from '@/services/weekend'
-import { impersonateUser } from '@/services/identity/impersonation/actions'
+import {
+  impersonateUser,
+  clearImpersonation,
+} from '@/services/identity/impersonation/actions'
 import { Results } from '@/lib/results'
 import { useRouter } from 'next/navigation'
 import { isEmpty, isNil } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useSession } from '@/components/auth/session-provider'
 
 type ImpersonationDialogProps = {
   open: boolean
@@ -27,6 +32,7 @@ export function ImpersonationDialog({
   onOpenChange,
 }: ImpersonationDialogProps) {
   const router = useRouter()
+  const { user: currentUser, refreshSession } = useSession()
   const { data: users } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -35,6 +41,8 @@ export function ImpersonationDialog({
     },
   })
   const [search, setSearch] = useState('')
+
+  const isImpersonating = !isNil(currentUser?.originalUser)
 
   const filteredUsers = useMemo(() => {
     if (isNil(users)) return []
@@ -56,6 +64,14 @@ export function ImpersonationDialog({
       toast.error(result.error)
     }
     onOpenChange(false)
+    refreshSession()
+    router.refresh()
+  }
+
+  const handleClearImpersonation = async () => {
+    await clearImpersonation()
+    onOpenChange(false)
+    refreshSession()
     router.refresh()
   }
 
@@ -69,6 +85,23 @@ export function ImpersonationDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          {isImpersonating && (
+            <div className="flex items-center justify-between rounded-md border p-3 bg-muted/50">
+              <div className="text-sm">
+                <span className="text-muted-foreground">Viewing as </span>
+                <span className="font-medium">
+                  {currentUser?.firstName} {currentUser?.lastName}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearImpersonation}
+              >
+                Stop Impersonating
+              </Button>
+            </div>
+          )}
           <Input
             placeholder="Search by name or email..."
             value={search}
