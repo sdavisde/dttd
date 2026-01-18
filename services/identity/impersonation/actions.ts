@@ -1,9 +1,10 @@
 'use server'
 
-import { authorizedAction } from '@/lib/actions/authorized-action'
-import { Permission } from '@/lib/security'
+import { Permission, userHasPermission } from '@/lib/security'
 import * as ImperstonationService from './impersonation-service'
 import { Results } from '@/lib/results'
+import { getLoggedInUser } from '@/services/identity/user'
+import { isNil } from 'lodash'
 
 type ImpersonateUserRequest = {
   userId: string
@@ -12,11 +13,30 @@ type ImpersonateUserRequest = {
  * Requires FULL_ACCESS - adds impersonation cookie to the response, and kicks off
  * the impersonation flow. Impersonation = view the site as another user.
  */
-export const impersonateUser = authorizedAction<ImpersonateUserRequest, void>(
-  Permission.FULL_ACCESS,
-  async ({ userId }) =>
-    Results.ok(await ImperstonationService.impersonateUser(userId))
-)
+export const impersonateUser = async ({ userId }: ImpersonateUserRequest) => {
+  // 1. Authenticate and get user
+  const userResult = await getLoggedInUser()
+
+  if (Results.isErr(userResult)) {
+    return Results.err('Unauthorized: User not authenticated')
+  }
+
+  const user = userResult.data
+
+  // 2. test if user has permission to impersonate (FULL_ACCESS)
+  // or, if they are already impersonating, check if original user has full_access
+  if (
+    userHasPermission(user, [Permission.FULL_ACCESS]) ||
+    (!isNil(user.originalUser) &&
+      userHasPermission(user.originalUser, [Permission.FULL_ACCESS]))
+  ) {
+    return Results.ok(await ImperstonationService.impersonateUser(userId))
+  }
+
+  return Results.err(
+    `Forbidden: Cannot impersonate users unless you have FULL_ACCESS permission`
+  )
+}
 
 /**
  * Don't really care to protect this function, since it's removing any impersonation cookies

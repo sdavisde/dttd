@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   SidebarMenu,
@@ -8,13 +9,18 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useSession } from '@/components/auth/session-provider'
+import { canImpersonate } from '@/lib/security'
+import { ImpersonationDialog } from './impersonation-dialog'
 
 export function NavUser() {
   const { user, loading } = useSession()
+  const [impersonationOpen, setImpersonationOpen] = useState(false)
 
   if (loading || !user) {
     return <></>
   }
+
+  const showImpersonation = canImpersonate(user)
 
   return (
     <SidebarMenu>
@@ -22,6 +28,9 @@ export function NavUser() {
         <SidebarMenuButton
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          onClick={
+            showImpersonation ? () => setImpersonationOpen(true) : undefined
+          }
         >
           <Avatar className="h-8 w-8 rounded-lg">
             {/* <AvatarImage
@@ -41,6 +50,12 @@ export function NavUser() {
           </div>
           {/* <ChevronsUpDown className='ml-auto size-4' /> */}
         </SidebarMenuButton>
+        {showImpersonation && (
+          <ImpersonationDialog
+            open={impersonationOpen}
+            onOpenChange={setImpersonationOpen}
+          />
+        )}
         {/* // todo: we may want to keep this as an idea for actions users should be able to make to their account */}
         {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -22,8 +22,9 @@ import {
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Permission, permissionLock } from '@/lib/security'
+import { Permission, permissionLock, canImpersonate } from '@/lib/security'
 import { useToastListener } from '@/components/toastbox'
+import { ImpersonationDialog } from '@/components/admin/sidebar/impersonation-dialog'
 
 type NavElement = {
   name: string
@@ -39,8 +40,10 @@ type NavbarClientProps = {
 export function Navbar({ navElements }: NavbarClientProps) {
   useToastListener()
   const [isOpen, setIsOpen] = useState(false)
+  const [impersonationOpen, setImpersonationOpen] = useState(false)
   const { isAuthenticated, user } = useSession()
   const router = useRouter()
+  const showImpersonation = canImpersonate(user)
   const filteredNavElements = navElements.filter((item) => {
     try {
       if (item.permissions_needed.length === 0) {
@@ -111,32 +114,45 @@ export function Navbar({ navElements }: NavbarClientProps) {
 
         {/* Avatar */}
         {isAuthenticated ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <div className="flex-shrink-0">
-                <Avatar className="h-10 w-10 bg-white">
-                  <AvatarFallback className="bg-white text-amber-900 font-bold text-lg">
-                    {user?.email?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <Link href="/profile">Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive hover:text-destructive"
-                onClick={async () => {
-                  const supabase = createClient()
-                  await supabase.auth.signOut()
-                  router.refresh()
-                }}
-              >
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <div className="flex-shrink-0">
+                  <Avatar className="h-10 w-10 bg-white">
+                    <AvatarFallback className="bg-white text-amber-900 font-bold text-lg">
+                      {user?.email?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
+                {showImpersonation && (
+                  <DropdownMenuItem onClick={() => setImpersonationOpen(true)}>
+                    Impersonate User
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  className="text-destructive hover:text-destructive"
+                  onClick={async () => {
+                    const supabase = createClient()
+                    await supabase.auth.signOut()
+                    router.refresh()
+                  }}
+                >
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {showImpersonation && (
+              <ImpersonationDialog
+                open={impersonationOpen}
+                onOpenChange={setImpersonationOpen}
+              />
+            )}
+          </>
         ) : (
           <Button variant="outline" href="/login">
             Login

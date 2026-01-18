@@ -36,11 +36,19 @@ export function userHasPermission(
 }
 
 export function userHasCHARole(user: User, chaRoles: Array<CHARole>): boolean {
-  console.log(user)
   if (isNil(user.teamMemberInfo?.cha_role)) {
     return false
   }
   return chaRoles.includes(user.teamMemberInfo.cha_role as CHARole)
+}
+
+export function canImpersonate(user: User | null): boolean {
+  if (isNil(user)) return false
+  return (
+    userHasPermission(user, [Permission.FULL_ACCESS]) ||
+    (!isNil(user.originalUser) &&
+      userHasPermission(user.originalUser, [Permission.FULL_ACCESS]))
+  )
 }
 
 export enum Permission {

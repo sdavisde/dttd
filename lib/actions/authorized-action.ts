@@ -1,6 +1,6 @@
 import 'server-only'
 import { Result, err, isErr } from '@/lib/results'
-import { getLoggedInUser } from '@/services/identity/user/user-service'
+import { getLoggedInUser } from '@/services/identity/user'
 import { Permission, userHasPermission } from '@/lib/security'
 
 /**
