@@ -22,7 +22,10 @@ export const PUBLIC_REGEX_ROUTES = [
   /^\/$/,
 ]
 
-export async function middleware(req: NextRequest) {
+/**
+ * A.K.A. middleware - this function has been renamed as part of Next 16
+ */
+export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
   if (SKIP_REGEX_ROUTES.some((route) => route.test(pathname))) {

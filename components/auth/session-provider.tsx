@@ -13,7 +13,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import { User } from '@/lib/users/types'
 import { isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
-import { PUBLIC_REGEX_ROUTES, SKIP_REGEX_ROUTES } from '@/middleware'
+import { PUBLIC_REGEX_ROUTES, SKIP_REGEX_ROUTES } from '@/proxy'
 
 type Session = {
   user: User | null
