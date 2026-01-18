@@ -1,0 +1,177 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  NODE_VERSION_REQUIRED: "22"
+  NODE_VERSION_EXACT: "22.21.1"
+
+tasks:
+  setup:
+    desc: Set up local development environment
+    silent: true
+    cmds:
+      - task: check-prereqs
+      - echo ""
+      - echo "✓ All prerequisites satisfied"
+      - echo ""
+      - echo "Proceeding with environment setup..."
+
+  check-prereqs:
+    desc: Check that all required development prerequisites are installed
+    silent: true
+    cmds:
+      - task: check-node
+      - task: check-yarn
+      - task: check-docker
+      - task: check-infisical
+      - task: check-stripe
+
+  check-node:
+    desc: Check Node.js is installed and meets version requirements
+    internal: true
+    silent: true
+    cmds:
+      - |
+        if ! command -v node &> /dev/null; then
+          echo "Node.js is required; install? [Y/n]"
+          read -r response
+          response=${response:-Y}
+          if [[ "$response" =~ ^[Yy]$ ]]; then
+            echo "Installing Node.js via nvm..."
+            if command -v nvm &> /dev/null; then
+              nvm install {{.NODE_VERSION_EXACT}}
+              nvm use {{.NODE_VERSION_EXACT}}
+            else
+              echo "Please install Node.js v{{.NODE_VERSION_EXACT}} manually:"
+              echo "  - Install nvm: https://github.com/nvm-sh/nvm"
+              echo "  - Then run: nvm install {{.NODE_VERSION_EXACT}}"
+              exit 1
+            fi
+          else
+            echo "Node.js is required to continue. Exiting."
+            exit 1
+          fi
+        fi
+
+        NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
+        if [ "$NODE_VERSION" -lt "{{.NODE_VERSION_REQUIRED}}" ]; then
+          echo "Node.js v{{.NODE_VERSION_REQUIRED}}+ is required. Current version: $(node -v)"
+          echo "Please upgrade Node.js to v{{.NODE_VERSION_EXACT}} (see .nvmrc)"
+          exit 1
+        fi
+        echo "✓ Node.js $(node -v)"
+
+  check-yarn:
+    desc: Check Yarn is installed
+    internal: true
+    silent: true
+    cmds:
+      - |
+        if ! command -v yarn &> /dev/null; then
+          echo "Yarn is required; install? [Y/n]"
+          read -r response
+          response=${response:-Y}
+          if [[ "$response" =~ ^[Yy]$ ]]; then
+            echo "Installing Yarn via npm..."
+            npm install -g yarn
+            if [ $? -ne 0 ]; then
+              echo "Failed to install Yarn. Please install manually: npm install -g yarn"
+              exit 1
+            fi
+          else
+            echo "Yarn is required to continue. Exiting."
+            exit 1
+          fi
+        fi
+        echo "✓ Yarn $(yarn -v)"
+
+  check-docker:
+    desc: Check Docker is installed and running
+    internal: true
+    silent: true
+    cmds:
+      - |
+        if ! command -v docker &> /dev/null; then
+          echo "Docker is required; install? [Y/n]"
+          read -r response
+          response=${response:-Y}
+          if [[ "$response" =~ ^[Yy]$ ]]; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+              echo "Installing Docker via Homebrew..."
+              brew install --cask docker
+              echo "Please open Docker Desktop to complete setup, then run this task again."
+              exit 1
+            else
+              echo "Please install Docker Desktop manually: https://www.docker.com/products/docker-desktop"
+              exit 1
+            fi
+          else
+            echo "Docker is required to continue. Exiting."
+            exit 1
+          fi
+        fi
+
+        if ! docker info &> /dev/null; then
+          echo "Docker is installed but not running. Please start Docker Desktop."
+          exit 1
+        fi
+        echo "✓ Docker $(docker -v | cut -d' ' -f3 | tr -d ',')"
+
+  check-infisical:
+    desc: Check Infisical CLI is installed
+    internal: true
+    silent: true
+    cmds:
+      - |
+        if ! command -v infisical &> /dev/null; then
+          echo "Infisical CLI is required; install? [Y/n]"
+          read -r response
+          response=${response:-Y}
+          if [[ "$response" =~ ^[Yy]$ ]]; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+              echo "Installing Infisical CLI via Homebrew..."
+              brew install infisical/get-cli/infisical
+              if [ $? -ne 0 ]; then
+                echo "Failed to install Infisical CLI."
+                exit 1
+              fi
+            else
+              echo "Please install Infisical CLI manually: https://infisical.com/docs/cli/overview"
+              exit 1
+            fi
+          else
+            echo "Infisical CLI is required to continue. Exiting."
+            exit 1
+          fi
+        fi
+        echo "✓ Infisical CLI $(infisical --version 2>/dev/null | head -1)"
+
+  check-stripe:
+    desc: Check Stripe CLI is installed
+    internal: true
+    silent: true
+    cmds:
+      - |
+        if ! command -v stripe &> /dev/null; then
+          echo "Stripe CLI is required; install? [Y/n]"
+          read -r response
+          response=${response:-Y}
+          if [[ "$response" =~ ^[Yy]$ ]]; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+              echo "Installing Stripe CLI via Homebrew..."
+              brew install stripe/stripe-cli/stripe
+              if [ $? -ne 0 ]; then
+                echo "Failed to install Stripe CLI."
+                exit 1
+              fi
+            else
+              echo "Please install Stripe CLI manually: https://stripe.com/docs/stripe-cli"
+              exit 1
+            fi
+          else
+            echo "Stripe CLI is required to continue. Exiting."
+            exit 1
+          fi
+        fi
+        echo "✓ Stripe CLI $(stripe version 2>/dev/null)"

@@ -5,6 +5,23 @@ Christian community management platform for spiritual renewal weekends.
 ## Quick Start
 
 ```bash
+# Install go-task (required for automated setup)
+brew install go-task
+
+# Run the setup script (installs dependencies, configures environment)
+task setup
+
+# Run development server
+yarn dev
+```
+
+For detailed setup instructions, see [SETUP.md](./SETUP.md).
+
+## Manual Setup (Alternative)
+
+If you prefer manual setup or need more control:
+
+```bash
 # Install dependencies
 yarn
 
