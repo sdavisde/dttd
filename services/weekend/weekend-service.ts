@@ -144,8 +144,21 @@ function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
     forms_complete,
     emergency_contact_name: raw.emergency_contact_name,
     emergency_contact_phone: raw.emergency_contact_phone,
-    medical_conditions: raw.medical_conditions,
+    medical_conditions: filterMedicalConditions(raw.medical_conditions),
   }
+}
+
+function filterMedicalConditions(
+  medical_conditions: string | null
+): string | null {
+  const NONE_SYNONYM_REGEX = /^\s*(?:no|none|n\/a|na)\s*$/i
+  if (
+    isNil(medical_conditions) ||
+    NONE_SYNONYM_REGEX.test(medical_conditions)
+  ) {
+    return null
+  }
+  return medical_conditions
 }
 
 // ============================================================================
