@@ -21,6 +21,11 @@ export type User = {
   communityInformation: CommunityInformation
   /** Contains information about this user's CHA role and status if they are on the upcoming weekend team roster */
   teamMemberInfo: TeamMemberInfo | null
+  /**
+   * When impersonating a user, this will contain information about the original user before impersonation
+   * If this is null, the logged-in user is not impersonating anyone.
+   */
+  originalUser: User | null
 }
 
 /**

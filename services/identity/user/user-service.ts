@@ -2,7 +2,7 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { isNil } from 'lodash'
-import { err, isErr, ok, Result, unwrapOr } from '@/lib/results'
+import { err, isErr, ok, Result, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
 import { User, UserRoleInfo } from '@/lib/users/types'
 import { WeekendStatus } from '@/lib/weekend/types'
@@ -57,6 +57,7 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       specialGiftsAndSkills: rawUser.special_gifts_and_skills,
     },
     teamMemberInfo,
+    originalUser: null,
   })
 }
 
@@ -64,7 +65,9 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
  * Gets the logged in user's session using middleware server session,
  * then returns the normalized user information by id.
  */
-export async function getLoggedInUser(): Promise<Result<string, User>> {
+export async function getLoggedInUser(
+  impersonatingUser: User | null
+): Promise<Result<string, User>> {
   const supabase = await createClient()
 
   const {
@@ -73,7 +76,15 @@ export async function getLoggedInUser(): Promise<Result<string, User>> {
 
   if (isNil(authUser)) return err('User not logged in')
 
-  return await getUserById(authUser.id)
+  const loggedInUser = await getUserById(authUser.id)
+  if (isNil(impersonatingUser)) {
+    return loggedInUser
+  }
+
+  return Results.map(loggedInUser, (user) => ({
+    ...impersonatingUser,
+    originalUser: user,
+  }))
 }
 
 export async function getUserById(
@@ -99,7 +110,6 @@ export async function getUsers(): Promise<Result<string, Array<User>>> {
   return ok(users)
 }
 
-
 export async function updateUserAddress(userId: string, address: Address) {
   return await UserRepository.updateUserAddress(userId, address)
 }
@@ -107,7 +117,6 @@ export async function updateUserAddress(userId: string, address: Address) {
 export async function deleteUser(userId: string) {
   return await UserRepository.deleteUser(userId)
 }
-
 
 export async function updateUserBasicInfo(userId: string, data: BasicInfo) {
   return await UserRepository.updateUserBasicInfo(userId, data)
