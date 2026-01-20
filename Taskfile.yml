@@ -235,7 +235,6 @@ tasks:
         echo "Pulling secrets from Infisical..."
 
         # Get secrets from Infisical in dotenv format
-        # Store in temp file to properly check exit code
         TMP_SECRETS=$(mktemp)
         if ! infisical secrets --env=dev --path="{{.INFISICAL_PATH}}" --output=dotenv > "$TMP_SECRETS" 2>&1; then
           echo "Failed to fetch secrets from Infisical."
@@ -250,39 +249,29 @@ tasks:
         if [ -z "$INFISICAL_SECRETS" ]; then
           echo "⚠ No secrets found in Infisical (dev environment). Skipping secret sync."
           echo "  Add secrets at: https://app.infisical.com"
-          touch .env.local
+          # Still copy .env.example as template if .env.local doesn't exist
+          if [ ! -f .env.local ]; then
+            cp .env.example .env.local
+          fi
           exit 0
         fi
 
-        # Create .env.local if it doesn't exist
-        touch .env.local
+        # Start with .env.example as the template (preserves comments and structure)
+        cp .env.example .env.local
 
-        # Create a temporary file for the new .env.local
-        TMP_ENV=$(mktemp)
+        # Replace placeholder values with secrets from Infisical
+        # .env.example uses KEY=\x7b\x7bKEY\x7d\x7d as placeholders (double braces)
+        while IFS='=' read -r key value || [ -n "$key" ]; do
+          # Skip empty lines
+          [ -z "$key" ] && continue
 
-        # Write Infisical secrets first
-        echo "$INFISICAL_SECRETS" > "$TMP_ENV"
+          # Escape special characters in value for sed
+          escaped_value=$(printf '%s' "$value" | sed 's/[&/\]/\\&/g')
 
-        # Append existing local-only values (keys not in Infisical secrets)
-        # This preserves Supabase keys and other local-only settings
-        while IFS= read -r line || [ -n "$line" ]; do
-          # Skip empty lines and comments
-          case "$line" in
-            ""|\#*) continue ;;
-          esac
+          # Replace KEY=<any-value> with KEY=<secret-value>
+          sed -i '' "s|^${key}=.*|${key}=${escaped_value}|g" .env.local
+        done <<< "$INFISICAL_SECRETS"
 
-          # Extract the key name
-          KEY=$(echo "$line" | cut -d= -f1)
-
-          # Check if this key exists in Infisical secrets
-          if ! echo "$INFISICAL_SECRETS" | grep -q "^${KEY}="; then
-            echo "$line" >> "$TMP_ENV"
-          fi
-        done < .env.local
-
-        # Move temp file to .env.local
-        mv "$TMP_ENV" .env.local
-
-        # Count secrets written
+        # Count secrets replaced
         SECRET_COUNT=$(echo "$INFISICAL_SECRETS" | grep -c "=" || echo "0")
-        echo "✓ $SECRET_COUNT secrets written to .env.local"
+        echo "✓ $SECRET_COUNT secrets applied to .env.local"
