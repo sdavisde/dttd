@@ -1,3 +1,18 @@
+## [1.2.0](https://github.com/sdavisde/dttd/compare/v1.1.0...v1.2.0) (2026-01-20)
+
+### Features
+
+- add Stripe webhook listener task for local development ([69349a8](https://github.com/sdavisde/dttd/commit/69349a826016a7f7f46c832e3730d2f9b0ce9d80))
+- add yarn install step to setup task ([1c316c3](https://github.com/sdavisde/dttd/commit/1c316c37c82b19da5e760782ea2852f030d7c6e7))
+- automate Supabase local key population in setup task ([deb8c42](https://github.com/sdavisde/dttd/commit/deb8c4253cfcad1cad1f2b40bcc5461d911f8fad))
+- integrate Infisical for secret management ([cdb8261](https://github.com/sdavisde/dttd/commit/cdb82616366ca38bfb3445368dbc2314448a6ae7))
+
+### Bug Fixes
+
+- add Infisical path for Development folder ([ff7c6d6](https://github.com/sdavisde/dttd/commit/ff7c6d63a5e05f9f84efb033d5899f9405add1f5))
+- improve Infisical auth check and secret pulling ([87deaa5](https://github.com/sdavisde/dttd/commit/87deaa565b903123858ed8fbb0c2833e223477e6))
+- update README with better description ([0c8f8b6](https://github.com/sdavisde/dttd/commit/0c8f8b6d895c1edf6efc4e2b040bd23863be03de))
+
 ## [1.1.0](https://github.com/sdavisde/dttd/compare/v1.0.0...v1.1.0) (2026-01-20)
 
 ### Features
