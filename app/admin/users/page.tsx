@@ -6,16 +6,16 @@ import MasterRoster from './components/master-roster'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { getMasterRoster } from '@/services/master-roster'
+import { isNil } from 'lodash'
 
 export default async function MasterRosterPage() {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
 
   try {
-    if (isErr(userResult) || !user) {
+    if (isErr(userResult) || isNil(user)) {
       throw new Error('User not found')
     }
-    permissionLock([Permission.READ_MASTER_ROSTER])(user)
   } catch (error) {
     redirect('/')
   }

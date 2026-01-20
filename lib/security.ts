@@ -57,7 +57,7 @@ export enum Permission {
   FILES_DELETE = 'FILES_DELETE',
 
   // User management
-  READ_MASTER_ROSTER = 'READ_MASTER_ROSTER',
+  // READ_MASTER_ROSTER = 'READ_MASTER_ROSTER', // Right now we're going to assume that anyone can read the master roster
   READ_USER_EXPERIENCE = 'READ_USER_EXPERIENCE',
 
   // Candidate management
