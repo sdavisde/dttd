@@ -5,6 +5,7 @@ version: '3'
 vars:
   NODE_VERSION_REQUIRED: "22"
   NODE_VERSION_EXACT: "22.21.1"
+  INFISICAL_PATH: "/Development"
 
 tasks:
   setup:
@@ -236,7 +237,7 @@ tasks:
         # Get secrets from Infisical in dotenv format
         # Store in temp file to properly check exit code
         TMP_SECRETS=$(mktemp)
-        if ! infisical secrets --env=dev --output=dotenv > "$TMP_SECRETS" 2>&1; then
+        if ! infisical secrets --env=dev --path="{{.INFISICAL_PATH}}" --output=dotenv > "$TMP_SECRETS" 2>&1; then
           echo "Failed to fetch secrets from Infisical."
           rm -f "$TMP_SECRETS"
           exit 1
