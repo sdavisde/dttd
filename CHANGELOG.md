@@ -1,3 +1,14 @@
+## [1.1.0](https://github.com/sdavisde/dttd/compare/v1.0.0...v1.1.0) (2026-01-20)
+
+### Features
+
+- create Taskfile foundation with prerequisite checking ([b008155](https://github.com/sdavisde/dttd/commit/b008155a5dc21b55e84868fb21028344a0fc1955))
+
+### Bug Fixes
+
+- Remove READ_MASTER_ROSTER permission ([1cecb42](https://github.com/sdavisde/dttd/commit/1cecb42308ac0e4ee66c18c06a058c1d8377ddd0))
+- use POSIX-compatible shell syntax in Taskfile ([27c07ea](https://github.com/sdavisde/dttd/commit/27c07ea11eb5d319109fab4ddc21986c037e6a38))
+
 ## 1.0.0 (2026-01-18)
 
 ### ⚠ BREAKING CHANGES
