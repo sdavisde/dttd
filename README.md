@@ -1,6 +1,6 @@
 # DTTD - Dusty Trails Tres Dias
 
-Christian community management platform for spiritual renewal weekends.
+Community management platform for Dusty Trails Tres Dias, a christian community based out of south-central Texas
 
 ## Quick Start
 
@@ -13,6 +13,9 @@ task setup
 
 # Run development server
 yarn dev
+
+# Optionally, if you are testing any online payments:
+task dev:webhooks # will startup a webhook listener locally to receive Stripe webhook events
 ```
 
 For detailed setup instructions, see [SETUP.md](./SETUP.md).
