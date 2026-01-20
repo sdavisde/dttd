@@ -43,7 +43,7 @@ Add `infisical.json` configuration and implement secret pulling in the setup tas
 
 ---
 
-### [ ] 3.0 Automate Supabase Local Key Population
+### [x] 3.0 Automate Supabase Local Key Population
 
 Extend the setup task to start Supabase, parse `yarn db:start` or `yarn db:status` output, and write local Supabase keys to `.env.local` without overwriting Infisical-sourced secrets.
 
@@ -55,7 +55,10 @@ Extend the setup task to start Supabase, parse `yarn db:start` or `yarn db:statu
 
 #### 3.0 Tasks
 
-TBD
+- [x] 3.1 Add `start-supabase` task that runs `yarn db:start` and waits for Supabase to be ready, handling the case where it's already running
+- [x] 3.2 Add `get-supabase-keys` task that parses `yarn db:status` output to extract Project URL, Publishable key, and Secret key
+- [x] 3.3 Add `write-supabase-keys` task that updates `.env.local` with extracted Supabase keys without overwriting other values
+- [x] 3.4 Update `setup` task to call Supabase tasks after `pull-secrets` to complete the local environment setup
 
 ---
 

@@ -18,6 +18,9 @@ tasks:
       - echo ""
       - echo "Proceeding with environment setup..."
       - task: pull-secrets
+      - task: write-supabase-keys
+      - echo ""
+      - echo "🎉 Setup complete! Run 'yarn dev' to start the development server."
 
   check-prereqs:
     desc: Check that all required development prerequisites are installed
@@ -275,3 +278,67 @@ tasks:
         # Count secrets replaced
         SECRET_COUNT=$(echo "$INFISICAL_SECRETS" | grep -c "=" || echo "0")
         echo "✓ $SECRET_COUNT secrets applied to .env.local"
+
+  start-supabase:
+    desc: Start Supabase local development environment
+    internal: true
+    silent: true
+    cmds:
+      - |
+        # Check if Supabase is already running by looking for the authentication keys
+        if yarn db:status 2>&1 | grep -q "sb_publishable"; then
+          echo "✓ Supabase is already running"
+          exit 0
+        fi
+
+        echo "Starting Supabase..."
+        yarn db:start
+
+        # Verify it started successfully
+        if ! yarn db:status 2>&1 | grep -q "sb_publishable"; then
+          echo "Failed to start Supabase. Please check Docker is running."
+          exit 1
+        fi
+        echo "✓ Supabase started"
+
+  write-supabase-keys:
+    desc: Extract Supabase keys and write to .env.local
+    internal: true
+    silent: true
+    deps:
+      - start-supabase
+    cmds:
+      - |
+        echo "Extracting Supabase keys..."
+
+        # Get the status output
+        STATUS_OUTPUT=$(yarn db:status 2>&1)
+
+        # Extract keys using the sb_publishable and sb_secret prefixes
+        SUPABASE_URL=$(echo "$STATUS_OUTPUT" | grep -o 'http://[0-9.]*:54321' | head -1)
+        PUBLISHABLE_KEY=$(echo "$STATUS_OUTPUT" | grep -o 'sb_publishable[^[:space:]│]*' | head -1)
+        SECRET_KEY=$(echo "$STATUS_OUTPUT" | grep -o 'sb_secret[^[:space:]│]*' | head -1)
+
+        if [ -z "$PUBLISHABLE_KEY" ] || [ -z "$SECRET_KEY" ]; then
+          echo "Failed to extract Supabase keys. Is Supabase running?"
+          exit 1
+        fi
+
+        # Default URL if not found
+        SUPABASE_URL=${SUPABASE_URL:-"http://127.0.0.1:54321"}
+
+        # Update .env.local with Supabase keys
+        if [ ! -f .env.local ]; then
+          echo ".env.local not found. Run 'task pull-secrets' first."
+          exit 1
+        fi
+
+        # Replace the placeholder values with actual keys
+        sed -i '' "s|^NEXT_PUBLIC_SUPABASE_URL=.*|NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}|" .env.local
+        sed -i '' "s|^NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=.*|NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY}|" .env.local
+        sed -i '' "s|^SUPABASE_SECRET_KEY=.*|SUPABASE_SECRET_KEY=${SECRET_KEY}|" .env.local
+
+        echo "✓ Supabase keys written to .env.local"
+        echo "  URL: $SUPABASE_URL"
+        echo "  Publishable: ${PUBLISHABLE_KEY:0:20}..."
+        echo "  Secret: ${SECRET_KEY:0:15}..."
