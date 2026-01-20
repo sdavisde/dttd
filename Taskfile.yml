@@ -201,7 +201,8 @@ tasks:
     silent: true
     cmds:
       - |
-        if ! infisical secrets --env=dev --silent > /dev/null 2>&1; then
+        # Use 'infisical user get token' for fast auth check (doesn't try to fetch secrets)
+        if ! infisical user get token > /dev/null 2>&1; then
           echo "You are not logged in to Infisical."
           printf "Run 'infisical login' now? [Y/n] "
           read response
@@ -233,17 +234,27 @@ tasks:
         echo "Pulling secrets from Infisical..."
 
         # Get secrets from Infisical in dotenv format
-        INFISICAL_SECRETS=$(infisical secrets --env=dev --output=dotenv 2>/dev/null)
-        if [ $? -ne 0 ]; then
+        # Store in temp file to properly check exit code
+        TMP_SECRETS=$(mktemp)
+        if ! infisical secrets --env=dev --output=dotenv > "$TMP_SECRETS" 2>&1; then
           echo "Failed to fetch secrets from Infisical."
+          rm -f "$TMP_SECRETS"
           exit 1
+        fi
+
+        INFISICAL_SECRETS=$(cat "$TMP_SECRETS")
+        rm -f "$TMP_SECRETS"
+
+        # Check if any secrets were returned
+        if [ -z "$INFISICAL_SECRETS" ]; then
+          echo "⚠ No secrets found in Infisical (dev environment). Skipping secret sync."
+          echo "  Add secrets at: https://app.infisical.com"
+          touch .env.local
+          exit 0
         fi
 
         # Create .env.local if it doesn't exist
         touch .env.local
-
-        # Read existing .env.local content
-        EXISTING_ENV=$(cat .env.local 2>/dev/null || echo "")
 
         # Create a temporary file for the new .env.local
         TMP_ENV=$(mktemp)
@@ -271,4 +282,6 @@ tasks:
         # Move temp file to .env.local
         mv "$TMP_ENV" .env.local
 
-        echo "✓ Secrets written to .env.local"
+        # Count secrets written
+        SECRET_COUNT=$(echo "$INFISICAL_SECRETS" | grep -c "=" || echo "0")
+        echo "✓ $SECRET_COUNT secrets written to .env.local"
