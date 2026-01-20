@@ -16,6 +16,7 @@ tasks:
       - echo "✓ All prerequisites satisfied"
       - echo ""
       - echo "Proceeding with environment setup..."
+      - task: pull-secrets
 
   check-prereqs:
     desc: Check that all required development prerequisites are installed
@@ -193,3 +194,81 @@ tasks:
           esac
         fi
         echo "✓ Stripe CLI $(stripe version 2>/dev/null)"
+
+  check-infisical-auth:
+    desc: Check user is authenticated to Infisical
+    internal: true
+    silent: true
+    cmds:
+      - |
+        if ! infisical secrets --env=dev --silent > /dev/null 2>&1; then
+          echo "You are not logged in to Infisical."
+          printf "Run 'infisical login' now? [Y/n] "
+          read response
+          response=${response:-Y}
+          case "$response" in
+            [Yy]*)
+              infisical login
+              if [ $? -ne 0 ]; then
+                echo "Failed to login to Infisical. Please try again."
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Infisical authentication is required to continue. Exiting."
+              exit 1
+              ;;
+          esac
+        fi
+        echo "✓ Infisical authenticated"
+
+  pull-secrets:
+    desc: Pull secrets from Infisical and merge into .env.local
+    internal: true
+    silent: true
+    deps:
+      - check-infisical-auth
+    cmds:
+      - |
+        echo "Pulling secrets from Infisical..."
+
+        # Get secrets from Infisical in dotenv format
+        INFISICAL_SECRETS=$(infisical secrets --env=dev --output=dotenv 2>/dev/null)
+        if [ $? -ne 0 ]; then
+          echo "Failed to fetch secrets from Infisical."
+          exit 1
+        fi
+
+        # Create .env.local if it doesn't exist
+        touch .env.local
+
+        # Read existing .env.local content
+        EXISTING_ENV=$(cat .env.local 2>/dev/null || echo "")
+
+        # Create a temporary file for the new .env.local
+        TMP_ENV=$(mktemp)
+
+        # Write Infisical secrets first
+        echo "$INFISICAL_SECRETS" > "$TMP_ENV"
+
+        # Append existing local-only values (keys not in Infisical secrets)
+        # This preserves Supabase keys and other local-only settings
+        while IFS= read -r line || [ -n "$line" ]; do
+          # Skip empty lines and comments
+          case "$line" in
+            ""|\#*) continue ;;
+          esac
+
+          # Extract the key name
+          KEY=$(echo "$line" | cut -d= -f1)
+
+          # Check if this key exists in Infisical secrets
+          if ! echo "$INFISICAL_SECRETS" | grep -q "^${KEY}="; then
+            echo "$line" >> "$TMP_ENV"
+          fi
+        done < .env.local
+
+        # Move temp file to .env.local
+        mv "$TMP_ENV" .env.local
+
+        echo "✓ Secrets written to .env.local"

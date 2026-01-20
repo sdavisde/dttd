@@ -24,7 +24,7 @@ Establish go-task infrastructure with `Taskfile.yml` that checks for required pr
 
 ---
 
-### [ ] 2.0 Integrate Infisical for Secret Management
+### [~] 2.0 Integrate Infisical for Secret Management
 
 Add `infisical.json` configuration and implement secret pulling in the setup task. Secrets from Infisical should be written to `.env.local` while preserving any existing local-only values. The org id is `195424da-3845-458c-b28f-d774c4a05b17` and the project is `47fdbab8-b400-4b5f-a665-be90283edbb4`
 
@@ -36,7 +36,10 @@ Add `infisical.json` configuration and implement secret pulling in the setup tas
 
 #### 2.0 Tasks
 
-TBD
+- [x] 2.1 Create `.infisical.json` configuration file with project ID (`47fdbab8-b400-4b5f-a665-be90283edbb4`)
+- [x] 2.2 Add `check-infisical-auth` task to verify user is logged in to Infisical, prompting `infisical login` if not authenticated
+- [x] 2.3 Add `pull-secrets` task that exports secrets from Infisical and merges them into `.env.local` while preserving existing local-only values
+- [x] 2.4 Update `setup` task to call `pull-secrets` after `check-prereqs`
 
 ---
 
