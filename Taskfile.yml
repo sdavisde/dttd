@@ -17,10 +17,25 @@ tasks:
       - echo "✓ All prerequisites satisfied"
       - echo ""
       - echo "Proceeding with environment setup..."
+      - task: install-deps
       - task: pull-secrets
       - task: write-supabase-keys
       - echo ""
       - echo "🎉 Setup complete! Run 'yarn dev' to start the development server."
+
+  install-deps:
+    desc: Install project dependencies
+    internal: true
+    silent: true
+    cmds:
+      - |
+        echo "Installing project dependencies..."
+        yarn install
+        if [ $? -ne 0 ]; then
+          echo "Failed to install dependencies."
+          exit 1
+        fi
+        echo "✓ Dependencies installed"
 
   check-prereqs:
     desc: Check that all required development prerequisites are installed
