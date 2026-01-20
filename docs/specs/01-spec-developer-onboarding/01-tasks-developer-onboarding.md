@@ -62,7 +62,7 @@ Extend the setup task to start Supabase, parse `yarn db:start` or `yarn db:statu
 
 ---
 
-### [ ] 4.0 Create Stripe Webhook Listener Task
+### [x] 4.0 Create Stripe Webhook Listener Task
 
 Implement `task dev:webhooks` that uses `STRIPE_SECRET_KEY` from `.env.local` for non-interactive authentication, captures the dynamic webhook signing secret, and updates `.env.local`.
 
@@ -74,7 +74,9 @@ Implement `task dev:webhooks` that uses `STRIPE_SECRET_KEY` from `.env.local` fo
 
 #### 4.0 Tasks
 
-TBD
+- [x] 4.1 Add `dev:webhooks` task that uses `STRIPE_SECRET_KEY` from `.env.local` for API authentication via the `--api-key` flag
+- [x] 4.2 Implement webhook signing secret capture from Stripe CLI output and write to `.env.local` before starting the listener
+- [x] 4.3 Configure webhook forwarding to `localhost:3000/api/webhooks/complete-checkout` and display ready message
 
 ---
 

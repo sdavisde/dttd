@@ -342,3 +342,56 @@ tasks:
         echo "  URL: $SUPABASE_URL"
         echo "  Publishable: ${PUBLISHABLE_KEY:0:20}..."
         echo "  Secret: ${SECRET_KEY:0:15}..."
+
+  dev:webhooks:
+    desc: Start Stripe webhook listener for local development
+    silent: true
+    cmds:
+      - |
+        # Verify .env.local exists
+        if [ ! -f .env.local ]; then
+          echo "Error: .env.local not found. Run 'task setup' first."
+          exit 1
+        fi
+
+        # Extract STRIPE_SECRET_KEY from .env.local
+        STRIPE_KEY=$(grep "^STRIPE_SECRET_KEY=" .env.local | cut -d '=' -f2)
+
+        if [ -z "$STRIPE_KEY" ] || [ "$STRIPE_KEY" = '{{"{{"}}STRIPE_SECRET_KEY{{"}}"}}' ]; then
+          echo "Error: STRIPE_SECRET_KEY not configured in .env.local"
+          echo "Run 'task setup' to pull secrets from Infisical."
+          exit 1
+        fi
+
+        echo "Configuring Stripe webhook listener..."
+
+        # Get the webhook signing secret using --print-secret
+        WEBHOOK_SECRET=$(stripe listen --api-key "$STRIPE_KEY" --print-secret 2>&1)
+
+        if [ -z "$WEBHOOK_SECRET" ] || ! echo "$WEBHOOK_SECRET" | grep -q "^whsec_"; then
+          echo "Error: Failed to get webhook signing secret from Stripe CLI"
+          echo "Output: $WEBHOOK_SECRET"
+          exit 1
+        fi
+
+        # Update STRIPE_WEBHOOK_SECRET in .env.local
+        if grep -q "^STRIPE_WEBHOOK_SECRET=" .env.local; then
+          sed -i '' "s|^STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=${WEBHOOK_SECRET}|" .env.local
+        else
+          echo "STRIPE_WEBHOOK_SECRET=${WEBHOOK_SECRET}" >> .env.local
+        fi
+
+        echo "✓ Webhook secret written to .env.local"
+        echo "  Secret: ${WEBHOOK_SECRET:0:15}..."
+        echo ""
+        echo "Starting Stripe webhook listener..."
+        echo "Forwarding to: http://localhost:3000/api/webhooks/complete-checkout"
+        echo ""
+        echo "Ready! Use 'stripe trigger checkout.session.completed' in another terminal to test."
+        echo "Press Ctrl+C to stop."
+        echo ""
+
+        # Start the listener with forwarding
+        stripe listen \
+          --api-key "$STRIPE_KEY" \
+          --forward-to "http://localhost:3000/api/webhooks/complete-checkout"
