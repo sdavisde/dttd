@@ -3,11 +3,9 @@
 import { useState } from 'react'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { logger } from '@/lib/logger'
-import { deleteCandidate, updateCandidateStatus } from '@/actions/candidates'
+import { updateCandidateStatus } from '@/actions/candidates'
 import { CandidateTable } from './CandidateTable'
-import { CandidateDetailSheet } from './CandidateDetailSheet'
 import { CandidateTableControls } from './CandidateTableControls'
-import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { useCandidateReviewTable } from '@/hooks/use-candidate-review-table'
 import * as Results from '@/lib/results'
@@ -26,11 +24,6 @@ interface CandidateReviewTableProps {
 export function CandidateReviewTable({
   candidates,
 }: CandidateReviewTableProps) {
-  const [selectedCandidate, setSelectedCandidate] =
-    useState<HydratedCandidate | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [isSendFormsModalOpen, setIsSendFormsModalOpen] = useState(false)
   const [candidateForSendForms, setCandidateForSendForms] =
     useState<HydratedCandidate | null>(null)
@@ -62,40 +55,6 @@ export function CandidateReviewTable({
     initialPageSize: 25,
     initialPage: 1,
   })
-
-  const handleRowClick = (candidate: HydratedCandidate) => {
-    setSelectedCandidate(candidate)
-    setIsSheetOpen(true)
-  }
-
-  const handleDeleteConfirm = async () => {
-    if (!selectedCandidate) return
-
-    setIsDeleting(true)
-    try {
-      const result = await deleteCandidate(selectedCandidate.id)
-
-      if (Results.isOk(result)) {
-        // Close both dialogs and refresh the page to update the table
-        setIsDeleteDialogOpen(false)
-        setIsSheetOpen(false)
-        setSelectedCandidate(null)
-        router.refresh()
-      } else {
-        logger.error(`Failed to delete candidate: ${result.error}`)
-        toast.error(`Failed to delete: ${result.error}`)
-      }
-    } catch (error) {
-      logger.error('Error deleting candidate')
-      toast.error('An unexpected error occurred while deleting')
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  const handleDeleteCancel = () => {
-    setIsDeleteDialogOpen(false)
-  }
 
   const handleReject = (candidate: HydratedCandidate) => {
     setCandidateForReject(candidate)
@@ -208,11 +167,6 @@ export function CandidateReviewTable({
     setCandidateForSendPayment(null)
   }
 
-  // Refresh data when changes happen in the sheet
-  const handleDataChange = () => {
-    router.refresh()
-  }
-
   return (
     <>
       <div className="space-y-4">
@@ -228,7 +182,6 @@ export function CandidateReviewTable({
 
         <CandidateTable
           candidates={paginatedCandidates}
-          onRowClick={handleRowClick}
           sortColumn={sortColumn}
           sortDirection={sortDirection}
           onSort={handleSort}
@@ -245,23 +198,6 @@ export function CandidateReviewTable({
           pageSizeOptions={[10, 25, 50, 100]}
         />
       </div>
-
-      <CandidateDetailSheet
-        candidate={selectedCandidate}
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        onDataChange={handleDataChange}
-      />
-
-      <DeleteConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        title="Delete Candidate"
-        itemName={selectedCandidate?.candidate_sponsorship_info?.candidate_name}
-        isDeleting={isDeleting}
-        onCancel={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-        confirmText="Delete Candidate"
-      />
 
       <SendFormsConfirmationModal
         isOpen={isSendFormsModalOpen}

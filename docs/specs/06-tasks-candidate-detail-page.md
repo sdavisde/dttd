@@ -1,12 +1,12 @@
-# 01-tasks-candidate-detail-page
+# 06-tasks-candidate-detail-page
 
 ## Summary
 
-This task list implements the Candidate Detail Page feature as specified in `01-spec-candidate-detail-page.md`. The feature replaces the CandidateDetailSheet component with a dedicated page at `/review-candidates/[candidate_id]`, enabling inline editing with auto-save, organized sections, and mobile-responsive design.
+This task list implements the Candidate Detail Page feature as specified in `06-spec-candidate-detail-page.md`. The feature replaces the CandidateDetailSheet component with a dedicated page at `/review-candidates/[candidate_id]`, enabling inline editing with auto-save, organized sections, and mobile-responsive design.
 
 ## Tasks
 
-### [ ] 1.0 Candidate Detail Page Route and Navigation
+### [x] 1.0 Candidate Detail Page Route and Navigation
 
 Establish the new page route structure and navigation flow from the candidate list to the detail page.
 
@@ -19,11 +19,16 @@ Establish the new page route structure and navigation flow from the candidate li
 
 #### 1.0 Tasks
 
-TBD
+- [x] 1.1 Create the dynamic route directory structure at `app/(public)/review-candidates/[candidate_id]/` with a `page.tsx` server component
+- [x] 1.2 Implement server-side data fetching using `getHydratedCandidate()` to load candidate data by ID with error handling for invalid/missing candidates
+- [x] 1.3 Create the page header component displaying candidate name and status using the existing `StatusChip` component
+- [x] 1.4 Add breadcrumb navigation component showing "Review Candidates > [Candidate Name]" with link back to `/review-candidates`
+- [x] 1.5 Update `CandidateTable.tsx` to change row click behavior from opening sheet to navigating to `/review-candidates/[candidate_id]`
+- [x] 1.6 Verify route protection matches existing review-candidates page authentication
 
 ---
 
-### [ ] 2.0 Read-Only Detail View with Sections
+### [x] 2.0 Read-Only Detail View with Sections
 
 Display all candidate information in organized sections, handling both complete and incomplete form states.
 
@@ -36,7 +41,12 @@ Display all candidate information in organized sections, handling both complete 
 
 #### 2.0 Tasks
 
-TBD
+- [x] 2.1 Create `CandidateInformationSection` component displaying basic candidate info (name, email, status, weekend assignment)
+- [x] 2.2 Create `CandidateAssessmentSection` component displaying sponsor's assessment fields (church_environment, home_environment, social_environment, work_environment, god_evidence, support_plan, prayer_request)
+- [x] 2.3 Create `CandidateFormDetailsSection` component displaying candidate form data (personal info, address, church, marital status, medical info, emergency contact, shirt size)
+- [x] 2.4 Create `SponsorInformationSection` component displaying sponsor details (name, email, phone, church, address, weekend, reunion group, attends secuela, contact frequency)
+- [x] 2.5 Implement conditional rendering to show "[Candidate Name] has not completed their forms yet" message when `candidate_info` is null, hiding the Candidate Form Details section
+- [x] 2.6 Assemble all sections in the detail page with proper layout and spacing using responsive grid
 
 ---
 

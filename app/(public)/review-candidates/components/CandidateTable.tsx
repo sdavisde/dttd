@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Table,
   TableBody,
@@ -24,12 +26,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { StatusLegend } from './StatusLegend'
+import { useRouter } from 'next/navigation'
 
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 
 interface CandidateTableProps {
   candidates: HydratedCandidate[]
-  onRowClick: (candidate: HydratedCandidate) => void
   sortColumn?: SortColumn
   sortDirection?: 'asc' | 'desc'
   onSort?: (column: SortColumn) => void
@@ -41,7 +43,6 @@ interface CandidateTableProps {
 
 export function CandidateTable({
   candidates,
-  onRowClick,
   sortColumn = null,
   sortDirection = 'asc',
   onSort,
@@ -50,6 +51,11 @@ export function CandidateTable({
   onSendPaymentRequest,
   onReject,
 }: CandidateTableProps) {
+  const router = useRouter()
+
+  const handleRowClick = (candidate: HydratedCandidate) => {
+    router.push(`/review-candidates/${candidate.id}`)
+  }
   if (isEmpty(candidates)) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg border-dashed bg-muted/10">
@@ -136,7 +142,7 @@ export function CandidateTable({
             {candidates.map((candidate, index) => (
               <TableRow
                 key={candidate.id}
-                onClick={() => onRowClick(candidate)}
+                onClick={() => handleRowClick(candidate)}
                 className={cn(
                   index % 2 === 0 ? 'bg-transparent' : 'bg-muted',
                   'hover:bg-muted/50 cursor-pointer',
@@ -173,7 +179,7 @@ export function CandidateTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => onRowClick(candidate)}
+                        onClick={() => handleRowClick(candidate)}
                         className="cursor-pointer"
                       >
                         View Details
@@ -218,7 +224,7 @@ export function CandidateTable({
           <div
             key={candidate.id}
             className="bg-card border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-muted/50"
-            onClick={() => onRowClick(candidate)}
+            onClick={() => handleRowClick(candidate)}
           >
             {/* Header with name and status */}
             <div className="flex items-center justify-between">
