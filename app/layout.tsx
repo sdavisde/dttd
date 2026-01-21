@@ -5,6 +5,7 @@ import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { Toastbox } from '@/components/toastbox'
+import { Analytics } from '@vercel/analytics/next'
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`font-sans antialiased ${nunito.className}`}>
         <QueryProvider>
           <SessionProvider>
+            <Analytics />
             {children}
             <Toastbox />
           </SessionProvider>
