@@ -1005,3 +1005,649 @@ INSERT INTO public.weekends (id, group_id, type, number, title, start_date, end_
   -- Weekend Group 5: PLANNING (Spring 2026 - future)
   ('c0000009-0000-0000-0000-000000000005', 'd0000005-0000-0000-0000-000000000005', 'MENS', 46, 'DTTD Mens #46', '2026-03-12', '2026-03-15', 'PLANNING'),
   ('c0000010-0000-0000-0000-000000000005', 'd0000005-0000-0000-0000-000000000005', 'WOMENS', 46, 'DTTD Womens #46', '2026-03-12', '2026-03-15', 'PLANNING');
+
+-- =============================================================================
+-- SECTION: Candidates
+-- =============================================================================
+-- Create candidate records across different weekends with various statuses
+-- Historic weekends: 24 candidates per gender (all confirmed)
+-- Active weekend: Various statuses with edge cases
+
+-- -----------------------------------------------------------------------------
+-- Historic Weekend #42 (Men's) - All confirmed
+-- -----------------------------------------------------------------------------
+INSERT INTO public.candidates (id, weekend_id, status, created_at, updated_at) VALUES
+  ('e0000001-0000-0000-0000-000000000001', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-01', '2024-03-01'),
+  ('e0000002-0000-0000-0000-000000000002', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-02', '2024-03-01'),
+  ('e0000003-0000-0000-0000-000000000003', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-03', '2024-03-01'),
+  ('e0000004-0000-0000-0000-000000000004', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-04', '2024-03-01'),
+  ('e0000005-0000-0000-0000-000000000005', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-05', '2024-03-01'),
+  ('e0000006-0000-0000-0000-000000000006', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-06', '2024-03-01'),
+  ('e0000007-0000-0000-0000-000000000007', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-07', '2024-03-01'),
+  ('e0000008-0000-0000-0000-000000000008', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-08', '2024-03-01'),
+  ('e0000009-0000-0000-0000-000000000009', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-09', '2024-03-01'),
+  ('e0000010-0000-0000-0000-000000000010', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-10', '2024-03-01'),
+  ('e0000011-0000-0000-0000-000000000011', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-11', '2024-03-01'),
+  ('e0000012-0000-0000-0000-000000000012', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-12', '2024-03-01'),
+  ('e0000013-0000-0000-0000-000000000013', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-13', '2024-03-01'),
+  ('e0000014-0000-0000-0000-000000000014', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-14', '2024-03-01'),
+  ('e0000015-0000-0000-0000-000000000015', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-15', '2024-03-01'),
+  ('e0000016-0000-0000-0000-000000000016', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-16', '2024-03-01'),
+  ('e0000017-0000-0000-0000-000000000017', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-17', '2024-03-01'),
+  ('e0000018-0000-0000-0000-000000000018', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-18', '2024-03-01'),
+  ('e0000019-0000-0000-0000-000000000019', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-19', '2024-03-01'),
+  ('e0000020-0000-0000-0000-000000000020', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-20', '2024-03-01'),
+  ('e0000021-0000-0000-0000-000000000021', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-21', '2024-03-01'),
+  ('e0000022-0000-0000-0000-000000000022', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-22', '2024-03-01'),
+  ('e0000023-0000-0000-0000-000000000023', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-23', '2024-03-01'),
+  ('e0000024-0000-0000-0000-000000000024', 'c0000001-0000-0000-0000-000000000001', 'confirmed', '2024-02-24', '2024-03-01');
+
+-- -----------------------------------------------------------------------------
+-- Historic Weekend #42 (Women's) - All confirmed
+-- -----------------------------------------------------------------------------
+INSERT INTO public.candidates (id, weekend_id, status, created_at, updated_at) VALUES
+  ('e0000025-0000-0000-0000-000000000025', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-01', '2024-03-01'),
+  ('e0000026-0000-0000-0000-000000000026', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-02', '2024-03-01'),
+  ('e0000027-0000-0000-0000-000000000027', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-03', '2024-03-01'),
+  ('e0000028-0000-0000-0000-000000000028', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-04', '2024-03-01'),
+  ('e0000029-0000-0000-0000-000000000029', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-05', '2024-03-01'),
+  ('e0000030-0000-0000-0000-000000000030', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-06', '2024-03-01'),
+  ('e0000031-0000-0000-0000-000000000031', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-07', '2024-03-01'),
+  ('e0000032-0000-0000-0000-000000000032', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-08', '2024-03-01'),
+  ('e0000033-0000-0000-0000-000000000033', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-09', '2024-03-01'),
+  ('e0000034-0000-0000-0000-000000000034', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-10', '2024-03-01'),
+  ('e0000035-0000-0000-0000-000000000035', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-11', '2024-03-01'),
+  ('e0000036-0000-0000-0000-000000000036', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-12', '2024-03-01'),
+  ('e0000037-0000-0000-0000-000000000037', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-13', '2024-03-01'),
+  ('e0000038-0000-0000-0000-000000000038', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-14', '2024-03-01'),
+  ('e0000039-0000-0000-0000-000000000039', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-15', '2024-03-01'),
+  ('e0000040-0000-0000-0000-000000000040', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-16', '2024-03-01'),
+  ('e0000041-0000-0000-0000-000000000041', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-17', '2024-03-01'),
+  ('e0000042-0000-0000-0000-000000000042', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-18', '2024-03-01'),
+  ('e0000043-0000-0000-0000-000000000043', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-19', '2024-03-01'),
+  ('e0000044-0000-0000-0000-000000000044', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-20', '2024-03-01'),
+  ('e0000045-0000-0000-0000-000000000045', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-21', '2024-03-01'),
+  ('e0000046-0000-0000-0000-000000000046', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-22', '2024-03-01'),
+  ('e0000047-0000-0000-0000-000000000047', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-23', '2024-03-01'),
+  ('e0000048-0000-0000-0000-000000000048', 'c0000002-0000-0000-0000-000000000001', 'confirmed', '2024-02-24', '2024-03-01');
+
+-- -----------------------------------------------------------------------------
+-- Active Weekend #45 (Men's) - Various statuses with edge cases
+-- -----------------------------------------------------------------------------
+INSERT INTO public.candidates (id, weekend_id, status, created_at, updated_at) VALUES
+  -- Confirmed candidates (10)
+  ('e1000100-0000-0000-0000-000000000100', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-01', '2025-08-01'),
+  ('e1000101-0000-0000-0000-000000000101', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-02', '2025-08-02'),
+  ('e1000102-0000-0000-0000-000000000102', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-03', '2025-08-03'),
+  ('e1000103-0000-0000-0000-000000000103', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-04', '2025-08-04'),
+  ('e1000104-0000-0000-0000-000000000104', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-05', '2025-08-05'),
+  ('e1000105-0000-0000-0000-000000000105', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-06', '2025-08-06'),
+  ('e1000106-0000-0000-0000-000000000106', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-07', '2025-08-07'),
+  ('e1000107-0000-0000-0000-000000000107', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-08', '2025-08-08'),
+  ('e1000108-0000-0000-0000-000000000108', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-09', '2025-08-09'),
+  ('e1000109-0000-0000-0000-000000000109', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-10', '2025-08-10'),
+  
+  -- Awaiting payment (3)
+  ('e1000110-0000-0000-0000-000000000110', 'c0000007-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-01', '2025-07-20'),
+  ('e1000111-0000-0000-0000-000000000111', 'c0000007-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-02', '2025-07-21'),
+  ('e1000112-0000-0000-0000-000000000112', 'c0000007-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-03', '2025-07-22'),
+  
+  -- Awaiting forms (4)
+  ('e1000113-0000-0000-0000-000000000113', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-10', '2025-07-15'),
+  ('e1000114-0000-0000-0000-000000000114', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-11', '2025-07-16'),
+  ('e1000115-0000-0000-0000-000000000115', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-12', '2025-07-17'),
+  ('e1000116-0000-0000-0000-000000000116', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-13', '2025-07-18'),
+  
+  -- Sponsored (just sponsored, no forms sent yet) (3)
+  ('e1000117-0000-0000-0000-000000000117', 'c0000007-0000-0000-0000-000000000004', 'sponsored', '2025-08-01', '2025-08-01'),
+  ('e1000118-0000-0000-0000-000000000118', 'c0000007-0000-0000-0000-000000000004', 'sponsored', '2025-08-02', '2025-08-02'),
+  ('e1000119-0000-0000-0000-000000000119', 'c0000007-0000-0000-0000-000000000004', 'sponsored', '2025-08-03', '2025-08-03'),
+  
+  -- Rejected (2)
+  ('e1000120-0000-0000-0000-000000000120', 'c0000007-0000-0000-0000-000000000004', 'rejected', '2025-06-15', '2025-06-20'),
+  ('e1000121-0000-0000-0000-000000000121', 'c0000007-0000-0000-0000-000000000004', 'rejected', '2025-06-16', '2025-06-21');
+
+-- -----------------------------------------------------------------------------
+-- Active Weekend #45 (Women's) - Various statuses with edge cases
+-- -----------------------------------------------------------------------------
+INSERT INTO public.candidates (id, weekend_id, status, created_at, updated_at) VALUES
+  -- Confirmed candidates (8)
+  ('e1000122-0000-0000-0000-000000000122', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-01', '2025-08-01'),
+  ('e1000123-0000-0000-0000-000000000123', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-02', '2025-08-02'),
+  ('e1000124-0000-0000-0000-000000000124', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-03', '2025-08-03'),
+  ('e1000125-0000-0000-0000-000000000125', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-04', '2025-08-04'),
+  ('e1000126-0000-0000-0000-000000000126', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-05', '2025-08-05'),
+  ('e1000127-0000-0000-0000-000000000127', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-06', '2025-08-06'),
+  ('e1000128-0000-0000-0000-000000000128', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-07', '2025-08-07'),
+  ('e1000129-0000-0000-0000-000000000129', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-08', '2025-08-08'),
+  
+  -- Awaiting payment (2)
+  ('e1000130-0000-0000-0000-000000000130', 'c0000008-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-01', '2025-07-20'),
+  ('e1000131-0000-0000-0000-000000000131', 'c0000008-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-02', '2025-07-21'),
+  
+  -- Awaiting forms (3)
+  ('e1000132-0000-0000-0000-000000000132', 'c0000008-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-10', '2025-07-15'),
+  ('e1000133-0000-0000-0000-000000000133', 'c0000008-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-11', '2025-07-16'),
+  ('e1000134-0000-0000-0000-000000000134', 'c0000008-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-12', '2025-07-17'),
+  
+  -- Sponsored (4)
+  ('e1000135-0000-0000-0000-000000000135', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-01', '2025-08-01'),
+  ('e1000136-0000-0000-0000-000000000136', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-02', '2025-08-02'),
+  ('e1000137-0000-0000-0000-000000000137', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-03', '2025-08-03'),
+  ('e1000138-0000-0000-0000-000000000138', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-04', '2025-08-04'),
+  
+  -- Rejected (1)
+  ('e1000139-0000-0000-0000-000000000139', 'c0000008-0000-0000-0000-000000000004', 'rejected', '2025-06-15', '2025-06-20');
+
+-- =============================================================================
+-- SECTION: Candidate Sponsorship Info (abbreviated - just key edge cases for active weekend)
+-- =============================================================================
+
+-- Men's Active Weekend - Sample sponsorship info for different statuses
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  -- Confirmed
+  ('f1000100-0000-0000-0000-000000000100', 'e1000100-0000-0000-0000-000000000100',
+    'Marcus Thompson', 'marcus.thompson@example.com', 'John Smith', 'john.smith@example.com', '555-123-4567',
+    'First Baptist Church', 'DTTD Mens #40', 'Monthly', 'Married with 2 children',
+    'Shows interest in deepening faith', 'Weekly check-ins', 'john.smith@example.com', '2025-06-01'),
+  -- Awaiting payment
+  ('f1000110-0000-0000-0000-000000000110', 'e1000110-0000-0000-0000-000000000110',
+    'James Wilson', 'james.wilson@example.com', 'Robert Rodriguez', 'robert.rodriguez@example.com', '555-456-7890',
+    'Trinity Methodist Church', 'DTTD Mens #41', 'Monthly', 'Married, expecting first child',
+    'Wants to be godly father', 'Weekly coffee', 'robert.rodriguez@example.com', '2025-07-01'),
+  -- Awaiting forms
+  ('f1000113-0000-0000-0000-000000000113', 'e1000113-0000-0000-0000-000000000113',
+    'Thomas Anderson', 'thomas.anderson@example.com', 'James Garcia', 'james.garcia@example.com', '555-567-8901',
+    'Crossroads Bible Church', 'DTTD Mens #40', 'Weekly', 'Widower, grieving',
+    'Searching for renewed purpose', 'Regular contact', 'james.garcia@example.com', '2025-07-10'),
+  -- Sponsored
+  ('f1000117-0000-0000-0000-000000000117', 'e1000117-0000-0000-0000-000000000117',
+    'Daniel Park', 'daniel.park@example.com', 'Christopher Wilson', 'christopher.wilson@example.com', '555-789-0123',
+    'Grace Community Church', 'DTTD Mens #41', 'Bi-weekly', 'Engaged, getting married next year',
+    'Seeking spiritual foundation for marriage', 'Flexible meetings', 'christopher.wilson@example.com', '2025-08-01'),
+  -- Rejected
+  ('f1000120-0000-0000-0000-000000000120', 'e1000120-0000-0000-0000-000000000120',
+    'Todd Harrison', 'todd.harrison@example.com', 'Patrick Mitchell', 'patrick.mitchell@example.com', '555-999-0001',
+    'Grace Community Church', 'DTTD Mens #41', 'Rarely', 'Unstable living situation',
+    'Seems motivated by free weekend', 'Would meet weekly if approved', 'patrick.mitchell@example.com', '2025-06-15');
+
+-- Women's Active Weekend - Sample sponsorship info
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  -- Confirmed
+  ('f1000122-0000-0000-0000-000000000122', 'e1000122-0000-0000-0000-000000000122',
+    'Jennifer Adams', 'jennifer.adams@example.com', 'Sarah Williams', 'sarah.williams@example.com', '555-111-2222',
+    'First Baptist Church', 'DTTD Womens #40', 'Monthly', 'Married, homeschools 4 children',
+    'Deep faith but overwhelmed', 'Respite care and prayer', 'sarah.williams@example.com', '2025-06-01'),
+  -- Awaiting payment
+  ('f1000130-0000-0000-0000-000000000130', 'e1000130-0000-0000-0000-000000000130',
+    'Patricia Moore', 'patricia.moore@example.com', 'Jessica Hernandez', 'jessica.hernandez@example.com', '555-444-5555',
+    'Crossroads Bible Church', 'DTTD Womens #41', 'Monthly', 'Single, never married, age 45',
+    'Trusting God with marriage desire', 'Walk with her in trust', 'jessica.hernandez@example.com', '2025-07-01'),
+  -- Awaiting forms
+  ('f1000132-0000-0000-0000-000000000132', 'e1000132-0000-0000-0000-000000000132',
+    'Karen Taylor', 'karen.taylor@example.com', 'Stephanie Taylor', 'stephanie.taylor@example.com', '555-555-6666',
+    'Trinity Methodist Church', 'DTTD Womens #40', 'Weekly', 'Widow, processing grief',
+    'Seeking joy again', 'Grief support', 'stephanie.taylor@example.com', '2025-07-10'),
+  -- Sponsored
+  ('f1000135-0000-0000-0000-000000000135', 'e1000135-0000-0000-0000-000000000135',
+    'Angela White', 'angela.white@example.com', 'Ashley Gonzalez', 'ashley.gonzalez@example.com', '555-777-8888',
+    'Grace Community Church', 'DTTD Womens #41', 'Bi-weekly', 'Single mom, 2 kids, financially struggling',
+    'Wants faith foundation for kids', 'Childcare and financial help', 'ashley.gonzalez@example.com', '2025-08-01'),
+  -- Rejected
+  ('f1000139-0000-0000-0000-000000000139', 'e1000139-0000-0000-0000-000000000139',
+    'Melissa Ford', 'melissa.ford@example.com', 'Katherine Campbell', 'katherine.campbell@example.com', '555-999-0003',
+    'Trinity Methodist Church', 'DTTD Womens #41', 'Rarely', 'Recently separated, very angry',
+    'Resistant and bitter', 'Would support but not receptive', 'katherine.campbell@example.com', '2025-06-15');
+
+
+-- =============================================================================
+-- SECTION: Candidate Info (Completed Forms - Only confirmed & awaiting_payment)
+-- =============================================================================
+
+-- Men's Active Weekend - Confirmed candidates with edge case variations
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status, spouse_name, 
+  has_spouse_attended_weekend, spouse_weekend_location, is_christian, member_of_clergy,
+  has_friends_attending_weekend, reason_for_attending, emergency_contact_name, 
+  emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  -- Married with spouse who attended
+  ('a1000100-0000-0001-0000-000000000100', 'e1000100-0000-0000-0000-000000000100',
+    'Marcus', 'Thompson', 'marcus.thompson@example.com', '555-100-0001', '1985-03-15', 39,
+    '1234 Desert View Dr', 'Phoenix', 'AZ', '85001', 'First Baptist Church', 'Married', 'Sarah Thompson',
+    true, 'DTTD Womens #38', true, false, true, 
+    'Want to deepen my faith and be a better husband and father. My wife had an amazing experience.',
+    'Sarah Thompson', '555-100-0002', 'High blood pressure (controlled with medication)', 'L', '2025-07-15'),
+  -- Single, never married
+  ('a1000101-0000-0001-0000-000000000101', 'e1000101-0000-0000-0000-000000000101',
+    'David', 'Chen', 'david.chen@example.com', '555-100-0003', '1992-11-22', 32,
+    '5678 Mountain Ridge Ln', 'Phoenix', 'AZ', '85002', 'Grace Community Church', 'Single', NULL,
+    false, NULL, true, false, false,
+    'Seeking deeper relationship with Christ and authentic faith.',
+    'Linda Chen (Mother)', '555-100-0004', 'None', 'M', '2025-07-16'),
+  -- Divorced with medical conditions
+  ('a1000102-0000-0001-0000-000000000102', 'e1000102-0000-0000-0000-000000000102',
+    'Robert', 'Martinez', 'robert.martinez@example.com', '555-100-0005', '1978-07-08', 46,
+    '9012 Canyon Creek Rd', 'Phoenix', 'AZ', '85003', 'St. Mary''s Catholic Church', 'Divorced', NULL,
+    false, NULL, true, false, false,
+    'Going through difficult time after divorce. Looking for healing and God''s plan.',
+    'Maria Martinez (Sister)', '555-100-0006', 'Type 2 Diabetes (diet controlled), previous knee surgery', 'XL', '2025-07-17'),
+  -- Not yet Christian (exploring faith)
+  ('a1000103-0000-0001-0000-000000000103', 'e1000103-0000-0000-0000-000000000103',
+    'Anthony', 'Baker', 'anthony.baker@example.com', '555-100-0007', '1995-01-30', 29,
+    '3456 Sunset Valley Way', 'Phoenix', 'AZ', '85004', 'Trinity Methodist Church', 'Single', NULL,
+    NULL, NULL, false, false, false,
+    'Raised in church but walked away. Started attending again, want to explore if Christianity is true.',
+    'Richard Baker (Father)', '555-100-0008', 'Asthma (uses inhaler)', 'L', '2025-07-18'),
+  -- Member of clergy
+  ('a1000104-0000-0001-0000-000000000104', 'e1000104-0000-0000-0000-000000000104',
+    'Steven', 'Foster', 'steven.foster@example.com', '555-100-0009', '1980-09-12', 44,
+    '7890 Palm Springs Dr', 'Phoenix', 'AZ', '85005', 'Crossroads Bible Church', 'Married', 'Rachel Foster',
+    false, NULL, true, true, false,
+    'Associate pastor wanting to experience this retreat and deepen my own walk.',
+    'Rachel Foster', '555-100-0010', 'None', 'M', '2025-07-19'),
+  -- Widowed with mental health treatment
+  ('a1000105-0000-0001-0000-000000000105', 'e1000105-0000-0000-0000-000000000105',
+    'Gregory', 'Walsh', 'gregory.walsh@example.com', '555-100-0011', '1988-05-25', 36,
+    '2468 Cactus Flower Ct', 'Phoenix', 'AZ', '85006', 'First Baptist Church', 'Widowed', NULL,
+    false, NULL, true, false, true,
+    'Wife passed 18 months ago. Friend says this helped him. Need spiritual refreshment.',
+    'Thomas Walsh (Brother)', '555-100-0012', 'Depression (in treatment with therapist and medication)', 'L', '2025-07-20'),
+  -- Older candidate, previous health issues
+  ('a1000106-0000-0001-0000-000000000106', 'e1000106-0000-0000-0000-000000000106',
+    'Raymond', 'Cooper', 'raymond.cooper@example.com', '555-100-0013', '1970-12-03', 54,
+    '1357 Adobe Trail', 'Phoenix', 'AZ', '85007', 'Grace Community Church', 'Married', 'Patricia Cooper',
+    true, 'DTTD Womens #44', true, false, false,
+    'Wife attended and came back transformed. Want to experience same and grow together.',
+    'Patricia Cooper', '555-100-0014', 'High cholesterol, previous heart attack (3 years ago, recovered)', 'XL', '2025-07-21'),
+  -- Engaged couple
+  ('a1000107-0000-0001-0000-000000000107', 'e1000107-0000-0000-0000-000000000107',
+    'Philip', 'Hughes', 'philip.hughes@example.com', '555-100-0015', '1998-08-17', 26,
+    '8024 Saguaro Heights', 'Phoenix', 'AZ', '85008', 'Trinity Methodist Church', 'Engaged', 'Emma Collins',
+    false, NULL, true, false, true,
+    'Getting married next summer. Want spiritual foundation for marriage. Friends also attending.',
+    'Emma Collins (Fiancée)', '555-100-0016', 'None', 'M', '2025-07-22'),
+  -- Separated (marital crisis)
+  ('a1000108-0000-0001-0000-000000000108', 'e1000108-0000-0000-0000-000000000108',
+    'Dennis', 'Murray', 'dennis.murray@example.com', '555-100-0017', '1975-04-20', 49,
+    '4681 Red Rock Ave', 'Phoenix', 'AZ', '85009', 'Crossroads Bible Church', 'Separated', NULL,
+    NULL, NULL, true, false, false,
+    'Wife and I separated. Trying to save marriage. Pastor recommended this.',
+    'Frank Murray (Brother)', '555-100-0018', 'Back pain (chronic, manages with PT)', 'L', '2025-07-23'),
+  -- Dietary restrictions
+  ('a1000109-0000-0001-0000-000000000109', 'e1000109-0000-0000-0000-000000000109',
+    'Gerald', 'Dixon', 'gerald.dixon@example.com', '555-100-0019', '1982-10-11', 42,
+    '3690 Copper Ridge Rd', 'Phoenix', 'AZ', '85010', 'St. Mary''s Catholic Church', 'Married', 'Catherine Dixon',
+    false, NULL, true, false, false,
+    'Feeling spiritually dry despite being active. Want to reignite passion for Christ.',
+    'Catherine Dixon', '555-100-0020', 'Lactose intolerant, gluten sensitive', 'XL', '2025-07-24');
+
+-- Men's Active Weekend - Awaiting payment (forms completed)
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status, spouse_name,
+  is_christian, member_of_clergy, has_friends_attending_weekend, reason_for_attending,
+  emergency_contact_name, emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  ('a1000110-0000-0001-0000-000000000110', 'e1000110-0000-0000-0000-000000000110',
+    'James', 'Wilson', 'james.wilson@example.com', '555-100-0021', '1990-06-14', 34,
+    '7531 Desert Bloom Dr', 'Phoenix', 'AZ', '85011', 'Trinity Methodist Church', 'Married', 'Jessica Wilson',
+    true, false, false, 'About to be a father. Want to grow spiritually to lead family well.',
+    'Jessica Wilson', '555-100-0022', 'None', 'M', '2025-07-25');
+
+-- Women's Active Weekend - Confirmed with edge cases
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status, spouse_name,
+  has_spouse_attended_weekend, spouse_weekend_location, is_christian, member_of_clergy,
+  has_friends_attending_weekend, reason_for_attending, emergency_contact_name,
+  emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  -- Overwhelmed mom
+  ('a1000122-0000-0001-0000-000000000122', 'e1000122-0000-0000-0000-000000000122',
+    'Jennifer', 'Adams', 'jennifer.adams@example.com', '555-200-0001', '1987-02-28', 37,
+    '2583 Morning Glory Ln', 'Phoenix', 'AZ', '85012', 'First Baptist Church', 'Married', 'Daniel Adams',
+    true, 'DTTD Mens #43', true, false, true,
+    'Homeschooling mom of four feeling overwhelmed. Need to remember identity beyond "mom".',
+    'Daniel Adams', '555-200-0002', 'Anxiety (in treatment), migraines', 'M', '2025-07-26'),
+  -- Blended family
+  ('a1000123-0000-0001-0000-000000000123', 'e1000123-0000-0000-0000-000000000123',
+    'Lisa', 'Robinson', 'lisa.robinson@example.com', '555-200-0003', '1983-11-09', 41,
+    '9247 Twilight Vista Dr', 'Phoenix', 'AZ', '85013', 'Grace Community Church', 'Married', 'Mark Robinson',
+    false, NULL, true, false, false,
+    'Recently remarried with blended family. Strengthen marriage with Christ at center.',
+    'Mark Robinson', '555-200-0004', 'None', 'L', '2025-07-27'),
+  -- Empty nester
+  ('a1000124-0000-0001-0000-000000000124', 'e1000124-0000-0000-0000-000000000124',
+    'Susan', 'Clark', 'susan.clark@example.com', '555-200-0005', '1965-07-16', 59,
+    '4826 Whispering Pines Way', 'Phoenix', 'AZ', '85014', 'St. Mary''s Catholic Church', 'Married', 'George Clark',
+    false, NULL, true, false, true,
+    'Empty nest and caring for aging mother. Seeking guidance for new chapter.',
+    'George Clark', '555-200-0006', 'Osteoarthritis (mild), hypertension', 'L', '2025-07-28'),
+  -- Career-focused single
+  ('a1000125-0000-0001-0000-000000000125', 'e1000125-0000-0000-0000-000000000125',
+    'Barbara', 'Hill', 'barbara.hill@example.com', '555-200-0007', '1993-03-22', 31,
+    '6148 Sunrise Peak Ct', 'Phoenix', 'AZ', '85015', 'Trinity Methodist Church', 'Single', NULL,
+    false, NULL, true, false, false,
+    'Career-driven but empty. Want God''s purpose beyond professional achievements.',
+    'Margaret Hill (Mother)', '555-200-0008', 'None', 'S', '2025-07-29'),
+  -- Divorced, struggling
+  ('a1000126-0000-0001-0000-000000000126', 'e1000126-0000-0000-0000-000000000126',
+    'Dorothy', 'Scott', 'dorothy.scott@example.com', '555-200-0009', '1972-09-05', 52,
+    '1472 Roadrunner Trail', 'Phoenix', 'AZ', '85016', 'Crossroads Bible Church', 'Divorced', NULL,
+    false, NULL, true, false, false,
+    'Divorced after 25 years. Struggling with identity and forgiveness. Need healing.',
+    'Sandra Peters (Sister)', '555-200-0010', 'Depression (in treatment), fibromyalgia', 'M', '2025-07-30'),
+  -- Widow ready for new season
+  ('a1000127-0000-0001-0000-000000000127', 'e1000127-0000-0000-0000-000000000127',
+    'Nancy', 'Reed', 'nancy.reed@example.com', '555-200-0011', '1968-12-30', 56,
+    '8359 Pueblo Vista Ave', 'Phoenix', 'AZ', '85017', 'First Baptist Church', 'Widowed', NULL,
+    false, NULL, true, false, false,
+    'Husband passed 3 years ago. Ready for new season, need God''s direction.',
+    'Carol Reed (Daughter)', '555-200-0012', 'None', 'L', '2025-07-31'),
+  -- Spouse attended, dietary needs
+  ('a1000128-0000-0001-0000-000000000128', 'e1000128-0000-0000-0000-000000000128',
+    'Helen', 'Bryant', 'helen.bryant@example.com', '555-200-0013', '1991-05-18', 33,
+    '3705 Mesquite Grove Dr', 'Phoenix', 'AZ', '85018', 'Grace Community Church', 'Married', 'Charles Bryant',
+    true, 'DTTD Mens #44', true, false, true,
+    'Husband attended and transformed our marriage. Want to experience myself.',
+    'Charles Bryant', '555-200-0014', 'Celiac disease (strict gluten-free)', 'M', '2025-08-01'),
+  -- Religious busyness
+  ('a1000129-0000-0001-0000-000000000129', 'e1000129-0000-0000-0000-000000000129',
+    'Maria', 'Flores', 'maria.flores@example.com', '555-200-0015', '1986-08-24', 38,
+    '5914 Ocotillo Canyon Rd', 'Phoenix', 'AZ', '85019', 'Trinity Methodist Church', 'Married', 'Luis Flores',
+    false, NULL, true, false, false,
+    'Distant from God despite church busyness. Want authentic faith, not religion.',
+    'Luis Flores', '555-200-0016', 'None', 'S', '2025-08-02');
+
+-- Women's Active Weekend - Awaiting payment (forms completed)
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status,
+  is_christian, member_of_clergy, has_friends_attending_weekend, reason_for_attending,
+  emergency_contact_name, emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  ('a1000130-0000-0001-0000-000000000130', 'e1000130-0000-0000-0000-000000000130',
+    'Patricia', 'Moore', 'patricia.moore@example.com', '555-200-0017', '1979-04-07', 45,
+    '7260 Ironwood Mesa Dr', 'Phoenix', 'AZ', '85020', 'Crossroads Bible Church', 'Single',
+    true, false, false, 'Never married, trusting God. Want to grow in contentment.',
+    'Laura Moore (Sister)', '555-200-0018', 'None', 'M', '2025-08-03');
+
+-- =============================================================================
+-- SECTION: Complete Sponsorship Info for ALL remaining candidates
+-- =============================================================================
+
+-- Men's Active Weekend - Remaining confirmed candidates (e1000103-109)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000101-0000-0000-0000-000000000101', 'e1000101-0000-0000-0000-000000000101',
+    'David Chen', 'david.chen@example.com', 'Michael Johnson', 'michael.johnson@example.com', '555-234-5678',
+    'Grace Community Church', 'DTTD Mens #41', 'Weekly', 'Single, living with roommates',
+    'Recently started attending Bible study', 'Connect with young adult ministry', 'michael.johnson@example.com', '2025-06-02'),
+  ('f1000102-0000-0000-0000-000000000102', 'e1000102-0000-0000-0000-000000000102',
+    'Robert Martinez', 'robert.martinez@example.com', 'David Brown', 'david.brown@example.com', '555-345-6789',
+    'St. Mary''s Catholic Church', 'DTTD Mens #42', 'Bi-weekly', 'Divorced, shares custody of 3 kids',
+    'Seeking healing and restoration', 'Support through transition', 'david.brown@example.com', '2025-06-03'),
+  ('f1000103-0000-0000-0000-000000000103', 'e1000103-0000-0000-0000-000000000103',
+    'Anthony Baker', 'anthony.baker@example.com', 'Eric Adams', 'eric.adams@example.com', '555-400-0001',
+    'Trinity Methodist Church', 'DTTD Mens #40', 'Monthly', 'Single, questioning faith',
+    'Exploring if Christianity is really true', 'Patient discipleship', 'eric.adams@example.com', '2025-06-04'),
+  ('f1000104-0000-0000-0000-000000000104', 'e1000104-0000-0000-0000-000000000104',
+    'Steven Foster', 'steven.foster@example.com', 'Jacob Baker', 'jacob.baker@example.com', '555-400-0002',
+    'Crossroads Bible Church', 'DTTD Mens #41', 'Monthly', 'Married, associate pastor',
+    'Wants deeper personal walk with Christ', 'Peer mentorship in ministry', 'jacob.baker@example.com', '2025-06-05'),
+  ('f1000105-0000-0000-0000-000000000105', 'e1000105-0000-0000-0000-000000000105',
+    'Gregory Walsh', 'gregory.walsh@example.com', 'Samuel Rivera', 'samuel.rivera@example.com', '555-400-0003',
+    'First Baptist Church', 'DTTD Mens #42', 'Weekly', 'Widower, grieving wife',
+    'Friend said this helped during hard times', 'Grief support and prayer', 'samuel.rivera@example.com', '2025-06-06'),
+  ('f1000106-0000-0000-0000-000000000106', 'e1000106-0000-0000-0000-000000000106',
+    'Raymond Cooper', 'raymond.cooper@example.com', 'Patrick Mitchell', 'patrick.mitchell@example.com', '555-400-0004',
+    'Grace Community Church', 'DTTD Mens #40', 'Monthly', 'Married, wife attended recently',
+    'Wife transformed, wants same experience', 'Couples prayer and fellowship', 'patrick.mitchell@example.com', '2025-06-07'),
+  ('f1000107-0000-0000-0000-000000000107', 'e1000107-0000-0000-0000-000000000107',
+    'Philip Hughes', 'philip.hughes@example.com', 'Nathan Flores', 'nathan.flores@example.com', '555-400-0005',
+    'Trinity Methodist Church', 'DTTD Mens #41', 'Bi-weekly', 'Engaged, getting married next summer',
+    'Wants spiritual foundation for marriage', 'Pre-marital spiritual mentorship', 'nathan.flores@example.com', '2025-06-08'),
+  ('f1000108-0000-0000-0000-000000000108', 'e1000108-0000-0000-0000-000000000108',
+    'Dennis Murray', 'dennis.murray@example.com', 'Adam Nguyen', 'adam.nguyen@example.com', '555-400-0006',
+    'Crossroads Bible Church', 'DTTD Mens #42', 'Weekly', 'Separated, trying to save marriage',
+    'Pastor recommended for spiritual strength', 'Marriage crisis support', 'adam.nguyen@example.com', '2025-06-09'),
+  ('f1000109-0000-0000-0000-000000000109', 'e1000109-0000-0000-0000-000000000109',
+    'Gerald Dixon', 'gerald.dixon@example.com', 'Aaron Scott', 'aaron.scott@example.com', '555-400-0007',
+    'St. Mary''s Catholic Church', 'DTTD Mens #40', 'Monthly', 'Married, active in church',
+    'Spiritually dry despite activity', 'Accountability and deeper fellowship', 'aaron.scott@example.com', '2025-06-10');
+
+-- Men's Active Weekend - Remaining awaiting payment (e1000111-112)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000111-0000-0000-0000-000000000111', 'e1000111-0000-0000-0000-000000000111',
+    'Brian Thompson', 'brian.thompson@example.com', 'Brandon Young', 'brandon.young@example.com', '555-400-0008',
+    'Grace Community Church', 'DTTD Mens #41', 'Bi-weekly', 'Married with teenagers',
+    'Wants to be better spiritual leader', 'Family discipleship support', 'brandon.young@example.com', '2025-07-02'),
+  ('f1000112-0000-0000-0000-000000000112', 'e1000112-0000-0000-0000-000000000112',
+    'Kevin Sanders', 'kevin.sanders@example.com', 'Tyler King', 'tyler.king@example.com', '555-400-0009',
+    'First Baptist Church', 'DTTD Mens #42', 'Monthly', 'Single dad with young son',
+    'Wants to raise son in faith', 'Single parent support', 'tyler.king@example.com', '2025-07-03');
+
+-- Men's Active Weekend - Remaining awaiting forms (e1000114-116)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000114-0000-0000-0000-000000000114', 'e1000114-0000-0000-0000-000000000114',
+    'Christopher Lee', 'christopher.lee@example.com', 'William Lopez', 'william.lopez@example.com', '555-400-0010',
+    'First Baptist Church', 'DTTD Mens #42', 'Monthly', 'Married, owns small business',
+    'Wants to prioritize faith over business', 'Business mentorship and accountability', 'william.lopez@example.com', '2025-07-11'),
+  ('f1000115-0000-0000-0000-000000000115', 'e1000115-0000-0000-0000-000000000115',
+    'Matthew Davis', 'matthew.davis@example.com', 'Justin Robinson', 'justin.robinson@example.com', '555-400-0011',
+    'Grace Community Church', 'DTTD Mens #40', 'Weekly', 'Married, deployed to Iraq previously',
+    'Struggling with PTSD and faith', 'Veteran support and prayer', 'justin.robinson@example.com', '2025-07-12'),
+  ('f1000116-0000-0000-0000-000000000116', 'e1000116-0000-0000-0000-000000000116',
+    'Andrew Nelson', 'andrew.nelson@example.com', 'Ryan Ramirez', 'ryan.ramirez@example.com', '555-400-0012',
+    'Trinity Methodist Church', 'DTTD Mens #41', 'Bi-weekly', 'Single, recovering alcoholic',
+    'One year sober, seeking spiritual foundation', 'Recovery support and discipleship', 'ryan.ramirez@example.com', '2025-07-13');
+
+-- Men's Active Weekend - Remaining sponsored (e1000118-119)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000118-0000-0000-0000-000000000118', 'e1000118-0000-0000-0000-000000000118',
+    'Kevin Murphy', 'kevin.murphy@example.com', 'Matthew Thomas', 'matthew.thomas@example.com', '555-400-0013',
+    'Trinity Methodist Church', 'DTTD Mens #40', 'Monthly', 'Single parent with teenage daughter',
+    'Wants to be better spiritual leader', 'Single parent support around shift work', 'matthew.thomas@example.com', '2025-08-02'),
+  ('f1000119-0000-0000-0000-000000000119', 'e1000119-0000-0000-0000-000000000119',
+    'Timothy Wright', 'timothy.wright@example.com', 'Daniel Moore', 'daniel.moore@example.com', '555-400-0014',
+    'Crossroads Bible Church', 'DTTD Mens #42', 'Bi-weekly', 'Married, new believer',
+    'Recently saved, eager to grow', 'New believer discipleship', 'daniel.moore@example.com', '2025-08-03');
+
+-- Men's Active Weekend - Remaining rejected (e1000121)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000121-0000-0000-0000-000000000121', 'e1000121-0000-0000-0000-000000000121',
+    'Brian Stevens', 'brian.stevens@example.com', 'Samuel Rivera', 'samuel.rivera@example.com', '555-400-0015',
+    'First Baptist Church', 'DTTD Mens #42', 'Rarely', 'Living with girlfriend, not married',
+    'Sponsor enthusiastic but candidate limited interest', 'Would try monthly contact', 'samuel.rivera@example.com', '2025-06-16');
+
+-- Women's Active Weekend - Remaining confirmed (e1000123-129)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000123-0000-0000-0000-000000000123', 'e1000123-0000-0000-0000-000000000123',
+    'Lisa Robinson', 'lisa.robinson@example.com', 'Emily Jones', 'emily.jones@example.com', '555-500-0001',
+    'Grace Community Church', 'DTTD Womens #41', 'Weekly', 'Remarried, blended family',
+    'Wants Christ-centered marriage and family unity', 'Marriage mentorship', 'emily.jones@example.com', '2025-06-02'),
+  ('f1000124-0000-0000-0000-000000000124', 'e1000124-0000-0000-0000-000000000124',
+    'Susan Clark', 'susan.clark@example.com', 'Amanda Martinez', 'amanda.martinez@example.com', '555-500-0002',
+    'St. Mary''s Catholic Church', 'DTTD Womens #42', 'Bi-weekly', 'Empty nester, cares for aging mother',
+    'Seeking deeper prayer life', 'Spiritual direction partnership', 'amanda.martinez@example.com', '2025-06-03'),
+  ('f1000125-0000-0000-0000-000000000125', 'e1000125-0000-0000-0000-000000000125',
+    'Barbara Hill', 'barbara.hill@example.com', 'Tiffany Nelson', 'tiffany.nelson@example.com', '555-500-0003',
+    'Trinity Methodist Church', 'DTTD Womens #40', 'Monthly', 'Single, career-focused',
+    'Success but feeling empty', 'Help discover purpose beyond career', 'tiffany.nelson@example.com', '2025-06-04'),
+  ('f1000126-0000-0000-0000-000000000126', 'e1000126-0000-0000-0000-000000000126',
+    'Dorothy Scott', 'dorothy.scott@example.com', 'Brittany Hall', 'brittany.hall@example.com', '555-500-0004',
+    'Crossroads Bible Church', 'DTTD Womens #41', 'Weekly', 'Divorced after 25 years',
+    'Struggling with identity and forgiveness', 'Divorce recovery support', 'brittany.hall@example.com', '2025-06-05'),
+  ('f1000127-0000-0000-0000-000000000127', 'e1000127-0000-0000-0000-000000000127',
+    'Nancy Reed', 'nancy.reed@example.com', 'Katherine Campbell', 'katherine.campbell@example.com', '555-500-0005',
+    'First Baptist Church', 'DTTD Womens #42', 'Bi-weekly', 'Widow, ready for new season',
+    'Wants renewed purpose after loss', 'Widow support and encouragement', 'katherine.campbell@example.com', '2025-06-06'),
+  ('f1000128-0000-0000-0000-000000000128', 'e1000128-0000-0000-0000-000000000128',
+    'Helen Bryant', 'helen.bryant@example.com', 'Christina Torres', 'christina.torres@example.com', '555-500-0006',
+    'Grace Community Church', 'DTTD Womens #40', 'Monthly', 'Married, husband attended',
+    'Husband transformed by weekend', 'Couples spiritual growth', 'christina.torres@example.com', '2025-06-07'),
+  ('f1000129-0000-0000-0000-000000000129', 'e1000129-0000-0000-0000-000000000129',
+    'Maria Flores', 'maria.flores@example.com', 'Samantha Hill', 'samantha.hill@example.com', '555-500-0007',
+    'Trinity Methodist Church', 'DTTD Womens #41', 'Weekly', 'Married, very busy with church',
+    'Feeling distant despite church activity', 'Help move from busyness to intimacy', 'samantha.hill@example.com', '2025-06-08');
+
+-- Women's Active Weekend - Remaining awaiting payment (e1000131)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000131-0000-0000-0000-000000000131', 'e1000131-0000-0000-0000-000000000131',
+    'Rachel Cooper', 'rachel.cooper@example.com', 'Victoria Green', 'victoria.green@example.com', '555-500-0008',
+    'Grace Community Church', 'DTTD Womens #42', 'Monthly', 'Married with young twins',
+    'Overwhelmed mom needing refreshment', 'Practical support and prayer', 'victoria.green@example.com', '2025-07-02');
+
+-- Women's Active Weekend - Remaining awaiting forms (e1000133-134)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000133-0000-0000-0000-000000000133', 'e1000133-0000-0000-0000-000000000133',
+    'Michelle Davis', 'michelle.davis@example.com', 'Jennifer Anderson', 'jennifer.anderson@example.com', '555-500-0009',
+    'First Baptist Church', 'DTTD Womens #42', 'Monthly', 'Married, husband not believer',
+    'Prays for husband''s salvation', 'Support in unequally yoked marriage', 'jennifer.anderson@example.com', '2025-07-11'),
+  ('f1000134-0000-0000-0000-000000000134', 'e1000134-0000-0000-0000-000000000134',
+    'Laura Patterson', 'laura.patterson@example.com', 'Megan Wright', 'megan.wright@example.com', '555-500-0010',
+    'Trinity Methodist Church', 'DTTD Womens #40', 'Bi-weekly', 'Single, works night shift as nurse',
+    'Difficult to connect with church due to schedule', 'Flexible meeting times', 'megan.wright@example.com', '2025-07-12');
+
+-- Women's Active Weekend - Remaining sponsored (e1000136-138)
+INSERT INTO public.candidate_sponsorship_info (
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
+  god_evidence, support_plan, payment_owner, created_at
+) VALUES
+  ('f1000136-0000-0000-0000-000000000136', 'e1000136-0000-0000-0000-000000000136',
+    'Rebecca Brown', 'rebecca.brown@example.com', 'Kimberly Lee', 'kimberly.lee@example.com', '555-500-0011',
+    'Crossroads Bible Church', 'DTTD Womens #40', 'Monthly', 'Married, husband deployed military',
+    'Needs spiritual support during separation', 'Military spouse support', 'kimberly.lee@example.com', '2025-08-02'),
+  ('f1000137-0000-0000-0000-000000000137', 'e1000137-0000-0000-0000-000000000137',
+    'Sharon Hayes', 'sharon.hayes@example.com', 'Melissa Thompson', 'melissa.thompson@example.com', '555-500-0012',
+    'First Baptist Church', 'DTTD Womens #41', 'Weekly', 'Single, caring for disabled parent',
+    'Isolated due to caregiver responsibilities', 'Caregiver support and respite', 'melissa.thompson@example.com', '2025-08-03'),
+  ('f1000138-0000-0000-0000-000000000138', 'e1000138-0000-0000-0000-000000000138',
+    'Deborah King', 'deborah.king@example.com', 'Elizabeth Carter', 'elizabeth.carter@example.com', '555-500-0013',
+    'Grace Community Church', 'DTTD Womens #42', 'Bi-weekly', 'Married, adult children with special needs',
+    'Seeking strength for lifelong caregiving', 'Special needs parent support', 'elizabeth.carter@example.com', '2025-08-04');
+
+
+-- =============================================================================
+-- SECTION: Additional Candidate Info (Remaining confirmed & awaiting_payment)
+-- =============================================================================
+
+-- Men's Active Weekend - Remaining awaiting payment candidates (e1000111-112)
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status, spouse_name,
+  is_christian, member_of_clergy, has_friends_attending_weekend, reason_for_attending,
+  emergency_contact_name, emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  ('a1000111-0000-0001-0000-000000000111', 'e1000111-0000-0000-0000-000000000111',
+    'Brian', 'Thompson', 'brian.thompson@example.com', '555-400-0101', '1980-03-18', 44,
+    '4521 Coyote Ridge Ave', 'Phoenix', 'AZ', '85021', 'Grace Community Church', 'Married', 'Laura Thompson',
+    true, false, false, 'Want to be better spiritual leader for my teenage kids.',
+    'Laura Thompson', '555-400-0102', 'None', 'L', '2025-07-26'),
+  ('a1000112-0000-0001-0000-000000000112', 'e1000112-0000-0000-0000-000000000112',
+    'Kevin', 'Sanders', 'kevin.sanders@example.com', '555-400-0103', '1986-09-25', 38,
+    '8642 Mesa View Dr', 'Phoenix', 'AZ', '85022', 'First Baptist Church', 'Divorced', NULL,
+    true, false, false, 'Single dad wanting to raise my son in the faith.',
+    'Tom Sanders (Brother)', '555-400-0104', 'None', 'M', '2025-07-27');
+
+-- Women's Active Weekend - Remaining awaiting payment (e1000131)
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status, spouse_name,
+  is_christian, member_of_clergy, has_friends_attending_weekend, reason_for_attending,
+  emergency_contact_name, emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  ('a1000131-0000-0001-0000-000000000131', 'e1000131-0000-0000-0000-000000000131',
+    'Rachel', 'Cooper', 'rachel.cooper@example.com', '555-500-0101', '1990-11-12', 34,
+    '9753 Sunset Canyon Rd', 'Phoenix', 'AZ', '85023', 'Grace Community Church', 'Married', 'Mark Cooper',
+    true, false, true, 'Overwhelmed mom of twins needing spiritual refreshment.',
+    'Mark Cooper', '555-500-0102', 'Postpartum anxiety (in treatment)', 'M', '2025-08-04');
+
+-- =============================================================================
+-- SECTION: Summary Documentation
+-- =============================================================================
+-- 
+-- SEED DATA SUMMARY:
+-- 
+-- CANDIDATES SEEDED:
+-- - Historic Weekend #42: 48 candidates (24 men, 24 women) - all confirmed
+-- - Active Weekend #45 Men: 22 candidates across all statuses
+-- - Active Weekend #45 Women: 18 candidates across all statuses
+-- Total: 88 candidates
+--
+-- SPONSORSHIP INFO: All 88 candidates have sponsorship records
+-- 
+-- CANDIDATE INFO (completed forms): 
+-- - Men's: 12 confirmed + 3 awaiting payment = 15 total
+-- - Women's: 8 confirmed + 2 awaiting payment = 10 total
+-- Total: 25 candidate_info records
+--
+-- EDGE CASES COVERED:
+-- Marital Status: married (spouse attended/didn't), single, divorced, widowed, separated, engaged
+-- Demographics: ages 26-59, male and female
+-- Faith Journey: strong believers, new believers, exploring faith, clergy
+-- Medical: diabetes, heart disease, mental health (depression/anxiety), dietary restrictions,
+--          chronic pain, PTSD, postpartum issues, fibromyalgia
+-- Family: young children, teenagers, adult children, empty nesters, single parents,
+--         blended families, deployed spouse, special needs children
+-- Life Situations: career-driven, caregivers, financially struggling, grieving,
+--                  marital crisis, recovery (alcoholism), military/veterans
+-- Church Involvement: new attendees, regular attendees, leaders, spiritually dry despite activity
+-- Social: isolated, active, unbelieving spouse, friends attending together
+--
+-- CANDIDATE STATUS DISTRIBUTION (Active Weekend #45):
+-- Men's:
+--   - confirmed: 10 (all have candidate_info)
+--   - awaiting_payment: 3 (all have candidate_info)
+--   - awaiting_forms: 4 (sponsorship only)
+--   - sponsored: 3 (sponsorship only)
+--   - rejected: 2 (sponsorship only)
+--
+-- Women's:
+--   - confirmed: 8 (all have candidate_info)
+--   - awaiting_payment: 2 (all have candidate_info)
+--   - awaiting_forms: 3 (sponsorship only)
+--   - sponsored: 4 (sponsorship only)
+--   - rejected: 1 (sponsorship only)
