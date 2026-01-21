@@ -1,3 +1,16 @@
+## [1.3.0](https://github.com/sdavisde/dttd/compare/v1.2.0...v1.3.0) (2026-01-21)
+
+### Features
+
+- add error catching pages ([0fbfabc](https://github.com/sdavisde/dttd/commit/0fbfabcee58c859eafd0096a6217908ee1e0e1e2))
+- add specific candidate page to replace the candidate sheet ([6de87b2](https://github.com/sdavisde/dttd/commit/6de87b2e92bf66fd402213a9ef9a4b314eca7f87))
+- add test candidate info ([cf81a81](https://github.com/sdavisde/dttd/commit/cf81a819f59dfa6c5c04c71640bfd16580cbff79))
+- enable analytics ([99818e3](https://github.com/sdavisde/dttd/commit/99818e3de944ee803a473f3044cf61d1e779330e))
+
+### Bug Fixes
+
+- fix build error ([96618f4](https://github.com/sdavisde/dttd/commit/96618f418255e9086b170e93a716ea3e20cf0a8e))
+
 ## [1.2.0](https://github.com/sdavisde/dttd/compare/v1.1.0...v1.2.0) (2026-01-20)
 
 ### Features
