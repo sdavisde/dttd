@@ -66,7 +66,7 @@ export default function Error({
   useEffect(() => {
     // Log the error to our logging service
     // The error digest can be used to correlate with server-side logs
-    logger.error('Error caught:', {
+    logger.error({
       message: error.message,
       digest: error.digest,
       stack: error.stack,
