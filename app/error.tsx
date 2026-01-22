@@ -1,5 +1,6 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -64,9 +65,9 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to our logging service
+    // todo: Log the error to our logging service, powered by sentry instead of just pino
     // The error digest can be used to correlate with server-side logs
-    logger.error({
+    Sentry.captureException({
       message: error.message,
       digest: error.digest,
       stack: error.stack,

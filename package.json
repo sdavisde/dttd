@@ -40,6 +40,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "0.1.0",
     "@react-email/tailwind": "1.0.5",
+    "@sentry/nextjs": "^10",
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.3.1",
     "@supabase/ssr": "^0.8.0",
