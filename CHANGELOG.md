@@ -1,3 +1,15 @@
+## [1.6.0](https://github.com/sdavisde/dttd/compare/v1.5.0...v1.6.0) (2026-01-23)
+
+### Features
+
+- add inline editable form for candidate details ([64d5c35](https://github.com/sdavisde/dttd/commit/64d5c355222440b18accee1cfad692235ebadc3e))
+- add pencil icon for better UX on the editable inline fields ([6ce1b63](https://github.com/sdavisde/dttd/commit/6ce1b63a2c03f86c7937bdab75054d8a44fa5c69))
+
+### Bug Fixes
+
+- add date picker field ([551a564](https://github.com/sdavisde/dttd/commit/551a56412f5ac514737b1dd066d7f22e5e1b2891))
+- add number and boolean inline fields ([a63afab](https://github.com/sdavisde/dttd/commit/a63afabe1b0c29ed070314afd1793e9f0de5269b))
+
 ## [1.5.0](https://github.com/sdavisde/dttd/compare/v1.4.0...v1.5.0) (2026-01-23)
 
 ### Features
