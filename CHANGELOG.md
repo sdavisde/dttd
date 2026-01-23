@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/sdavisde/dttd/compare/v1.6.0...v1.7.0) (2026-01-23)
+
+### Features
+
+- add back pending approval status ([c9adf88](https://github.com/sdavisde/dttd/commit/c9adf883023d2143be5c1c04823d0a01aced6b0c))
+
 ## [1.6.0](https://github.com/sdavisde/dttd/compare/v1.5.0...v1.6.0) (2026-01-23)
 
 ### Features
