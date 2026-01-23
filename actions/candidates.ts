@@ -246,6 +246,7 @@ export async function updateCandidateStatus(
 
 /**
  * Add Candidate Info when a user submits their candidate forms
+ * Also updates the candidate status to 'pending_approval'
  */
 export async function addCandidateInfo(
   candidateId: string,
@@ -263,6 +264,16 @@ export async function addCandidateInfo(
 
     if (candidateInfoError) {
       return err(`Failed to add candidate info: ${candidateInfoError.message}`)
+    }
+
+    // Update candidate status to pending_approval after forms are completed
+    const { error: statusError } = await supabase
+      .from('candidates')
+      .update({ status: 'pending_approval' })
+      .eq('id', candidateId)
+
+    if (statusError) {
+      return err(`Failed to update candidate status: ${statusError.message}`)
     }
 
     return ok(true)

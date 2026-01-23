@@ -1,9 +1,6 @@
 import { Database, Tables } from '@/database.types'
 
-export type CandidateStatus = Exclude<
-  Database['public']['Enums']['candidate_status'],
-  'pending_approval'
->
+export type CandidateStatus = Database['public']['Enums']['candidate_status']
 
 export type CandidatePayment = Tables<'candidate_payments'>
 

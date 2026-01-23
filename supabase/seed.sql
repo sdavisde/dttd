@@ -1086,23 +1086,27 @@ INSERT INTO public.candidates (id, weekend_id, status, created_at, updated_at) V
   ('e1000107-0000-0000-0000-000000000107', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-08', '2025-08-08'),
   ('e1000108-0000-0000-0000-000000000108', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-09', '2025-08-09'),
   ('e1000109-0000-0000-0000-000000000109', 'c0000007-0000-0000-0000-000000000004', 'confirmed', '2025-06-10', '2025-08-10'),
-  
+
   -- Awaiting payment (3)
   ('e1000110-0000-0000-0000-000000000110', 'c0000007-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-01', '2025-07-20'),
   ('e1000111-0000-0000-0000-000000000111', 'c0000007-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-02', '2025-07-21'),
   ('e1000112-0000-0000-0000-000000000112', 'c0000007-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-03', '2025-07-22'),
-  
+
   -- Awaiting forms (4)
   ('e1000113-0000-0000-0000-000000000113', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-10', '2025-07-15'),
   ('e1000114-0000-0000-0000-000000000114', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-11', '2025-07-16'),
   ('e1000115-0000-0000-0000-000000000115', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-12', '2025-07-17'),
   ('e1000116-0000-0000-0000-000000000116', 'c0000007-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-13', '2025-07-18'),
-  
+
+  -- Pending approval (forms completed, awaiting review) (2)
+  ('e1000140-0000-0000-0000-000000000140', 'c0000007-0000-0000-0000-000000000004', 'pending_approval', '2025-07-05', '2025-07-25'),
+  ('e1000141-0000-0000-0000-000000000141', 'c0000007-0000-0000-0000-000000000004', 'pending_approval', '2025-07-06', '2025-07-26'),
+
   -- Sponsored (just sponsored, no forms sent yet) (3)
   ('e1000117-0000-0000-0000-000000000117', 'c0000007-0000-0000-0000-000000000004', 'sponsored', '2025-08-01', '2025-08-01'),
   ('e1000118-0000-0000-0000-000000000118', 'c0000007-0000-0000-0000-000000000004', 'sponsored', '2025-08-02', '2025-08-02'),
   ('e1000119-0000-0000-0000-000000000119', 'c0000007-0000-0000-0000-000000000004', 'sponsored', '2025-08-03', '2025-08-03'),
-  
+
   -- Rejected (2)
   ('e1000120-0000-0000-0000-000000000120', 'c0000007-0000-0000-0000-000000000004', 'rejected', '2025-06-15', '2025-06-20'),
   ('e1000121-0000-0000-0000-000000000121', 'c0000007-0000-0000-0000-000000000004', 'rejected', '2025-06-16', '2025-06-21');
@@ -1120,22 +1124,26 @@ INSERT INTO public.candidates (id, weekend_id, status, created_at, updated_at) V
   ('e1000127-0000-0000-0000-000000000127', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-06', '2025-08-06'),
   ('e1000128-0000-0000-0000-000000000128', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-07', '2025-08-07'),
   ('e1000129-0000-0000-0000-000000000129', 'c0000008-0000-0000-0000-000000000004', 'confirmed', '2025-06-08', '2025-08-08'),
-  
+
   -- Awaiting payment (2)
   ('e1000130-0000-0000-0000-000000000130', 'c0000008-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-01', '2025-07-20'),
   ('e1000131-0000-0000-0000-000000000131', 'c0000008-0000-0000-0000-000000000004', 'awaiting_payment', '2025-07-02', '2025-07-21'),
-  
+
   -- Awaiting forms (3)
   ('e1000132-0000-0000-0000-000000000132', 'c0000008-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-10', '2025-07-15'),
   ('e1000133-0000-0000-0000-000000000133', 'c0000008-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-11', '2025-07-16'),
   ('e1000134-0000-0000-0000-000000000134', 'c0000008-0000-0000-0000-000000000004', 'awaiting_forms', '2025-07-12', '2025-07-17'),
-  
+
+  -- Pending approval (forms completed, awaiting review) (2)
+  ('e1000142-0000-0000-0000-000000000142', 'c0000008-0000-0000-0000-000000000004', 'pending_approval', '2025-07-07', '2025-07-27'),
+  ('e1000143-0000-0000-0000-000000000143', 'c0000008-0000-0000-0000-000000000004', 'pending_approval', '2025-07-08', '2025-07-28'),
+
   -- Sponsored (4)
   ('e1000135-0000-0000-0000-000000000135', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-01', '2025-08-01'),
   ('e1000136-0000-0000-0000-000000000136', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-02', '2025-08-02'),
   ('e1000137-0000-0000-0000-000000000137', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-03', '2025-08-03'),
   ('e1000138-0000-0000-0000-000000000138', 'c0000008-0000-0000-0000-000000000004', 'sponsored', '2025-08-04', '2025-08-04'),
-  
+
   -- Rejected (1)
   ('e1000139-0000-0000-0000-000000000139', 'c0000008-0000-0000-0000-000000000004', 'rejected', '2025-06-15', '2025-06-20');
 
@@ -1145,8 +1153,8 @@ INSERT INTO public.candidates (id, weekend_id, status, created_at, updated_at) V
 
 -- Men's Active Weekend - Sample sponsorship info for different statuses
 INSERT INTO public.candidate_sponsorship_info (
-  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
-  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
   god_evidence, support_plan, payment_owner, created_at
 ) VALUES
   -- Confirmed
@@ -1164,6 +1172,15 @@ INSERT INTO public.candidate_sponsorship_info (
     'Thomas Anderson', 'thomas.anderson@example.com', 'James Garcia', 'james.garcia@example.com', '555-567-8901',
     'Crossroads Bible Church', 'DTTD Mens #40', 'Weekly', 'Widower, grieving',
     'Searching for renewed purpose', 'Regular contact', 'james.garcia@example.com', '2025-07-10'),
+  -- Pending approval (forms completed, awaiting review)
+  ('f1000140-0000-0000-0000-000000000140', 'e1000140-0000-0000-0000-000000000140',
+    'Michael Rivera', 'michael.rivera@example.com', 'David Brown', 'david.brown@example.com', '555-140-0001',
+    'First Baptist Church', 'DTTD Mens #42', 'Weekly', 'Married with 3 children',
+    'Actively seeking deeper faith', 'Weekly discipleship meetings', 'david.brown@example.com', '2025-07-05'),
+  ('f1000141-0000-0000-0000-000000000141', 'e1000141-0000-0000-0000-000000000141',
+    'Christopher Lee', 'christopher.lee@example.com', 'William Lopez', 'william.lopez@example.com', '555-141-0002',
+    'Grace Community Church', 'DTTD Mens #43', 'Bi-weekly', 'Single, career focused',
+    'Wants balance between faith and work', 'Regular check-ins', 'william.lopez@example.com', '2025-07-06'),
   -- Sponsored
   ('f1000117-0000-0000-0000-000000000117', 'e1000117-0000-0000-0000-000000000117',
     'Daniel Park', 'daniel.park@example.com', 'Christopher Wilson', 'christopher.wilson@example.com', '555-789-0123',
@@ -1196,6 +1213,15 @@ INSERT INTO public.candidate_sponsorship_info (
     'Karen Taylor', 'karen.taylor@example.com', 'Stephanie Taylor', 'stephanie.taylor@example.com', '555-555-6666',
     'Trinity Methodist Church', 'DTTD Womens #40', 'Weekly', 'Widow, processing grief',
     'Seeking joy again', 'Grief support', 'stephanie.taylor@example.com', '2025-07-10'),
+  -- Pending approval (forms completed, awaiting review)
+  ('f1000142-0000-0000-0000-000000000142', 'e1000142-0000-0000-0000-000000000142',
+    'Rebecca Martinez', 'rebecca.martinez@example.com', 'Emily Jones', 'emily.jones@example.com', '555-142-0003',
+    'Crossroads Bible Church', 'DTTD Womens #42', 'Weekly', 'Married, empty nester',
+    'Rediscovering purpose after kids left', 'Prayer and coffee meetings', 'emily.jones@example.com', '2025-07-07'),
+  ('f1000143-0000-0000-0000-000000000143', 'e1000143-0000-0000-0000-000000000143',
+    'Lauren Thompson', 'lauren.thompson@example.com', 'Amanda Martinez', 'amanda.martinez@example.com', '555-143-0004',
+    'First Baptist Church', 'DTTD Womens #43', 'Monthly', 'Divorced, rebuilding life',
+    'Seeking God in new chapter', 'Support through transition', 'amanda.martinez@example.com', '2025-07-08'),
   -- Sponsored
   ('f1000135-0000-0000-0000-000000000135', 'e1000135-0000-0000-0000-000000000135',
     'Angela White', 'angela.white@example.com', 'Ashley Gonzalez', 'ashley.gonzalez@example.com', '555-777-8888',
@@ -1209,22 +1235,22 @@ INSERT INTO public.candidate_sponsorship_info (
 
 
 -- =============================================================================
--- SECTION: Candidate Info (Completed Forms - Only confirmed & awaiting_payment)
+-- SECTION: Candidate Info (Completed Forms - confirmed, awaiting_payment, & pending_approval)
 -- =============================================================================
 
 -- Men's Active Weekend - Confirmed candidates with edge case variations
 INSERT INTO public.candidate_info (
   id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
-  address_line_1, city, state, zip, church, marital_status, spouse_name, 
+  address_line_1, city, state, zip, church, marital_status, spouse_name,
   has_spouse_attended_weekend, spouse_weekend_location, is_christian, member_of_clergy,
-  has_friends_attending_weekend, reason_for_attending, emergency_contact_name, 
+  has_friends_attending_weekend, reason_for_attending, emergency_contact_name,
   emergency_contact_phone, medical_conditions, shirt_size, created_at
 ) VALUES
   -- Married with spouse who attended
   ('a1000100-0000-0001-0000-000000000100', 'e1000100-0000-0000-0000-000000000100',
     'Marcus', 'Thompson', 'marcus.thompson@example.com', '555-100-0001', '1985-03-15', 39,
     '1234 Desert View Dr', 'Phoenix', 'AZ', '85001', 'First Baptist Church', 'Married', 'Sarah Thompson',
-    true, 'DTTD Womens #38', true, false, true, 
+    true, 'DTTD Womens #38', true, false, true,
     'Want to deepen my faith and be a better husband and father. My wife had an amazing experience.',
     'Sarah Thompson', '555-100-0002', 'High blood pressure (controlled with medication)', 'L', '2025-07-15'),
   -- Single, never married
@@ -1304,6 +1330,24 @@ INSERT INTO public.candidate_info (
     true, false, false, 'About to be a father. Want to grow spiritually to lead family well.',
     'Jessica Wilson', '555-100-0022', 'None', 'M', '2025-07-25');
 
+-- Men's Active Weekend - Pending approval (forms completed, awaiting review)
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status, spouse_name,
+  is_christian, member_of_clergy, has_friends_attending_weekend, reason_for_attending,
+  emergency_contact_name, emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  ('a1000140-0000-0001-0000-000000000140', 'e1000140-0000-0000-0000-000000000140',
+    'Michael', 'Rivera', 'michael.rivera@example.com', '555-140-0005', '1983-02-18', 41,
+    '2847 Mesa View Dr', 'Phoenix', 'AZ', '85012', 'First Baptist Church', 'Married', 'Christina Rivera',
+    true, false, true, 'Want to strengthen my faith and be a better spiritual leader for my family.',
+    'Christina Rivera', '555-140-0006', 'None', 'L', '2025-07-25'),
+  ('a1000141-0000-0001-0000-000000000141', 'e1000141-0000-0000-0000-000000000141',
+    'Christopher', 'Lee', 'christopher.lee@example.com', '555-141-0007', '1991-09-05', 33,
+    '5123 Canyon Pass Rd', 'Phoenix', 'AZ', '85013', 'Grace Community Church', 'Single', NULL,
+    true, false, false, 'Successful career but feeling spiritually empty. Seeking purpose beyond work.',
+    'Susan Lee (Mother)', '555-141-0008', 'Mild anxiety (managed without medication)', 'M', '2025-07-26');
+
 -- Women's Active Weekend - Confirmed with edge cases
 INSERT INTO public.candidate_info (
   id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
@@ -1382,14 +1426,32 @@ INSERT INTO public.candidate_info (
     true, false, false, 'Never married, trusting God. Want to grow in contentment.',
     'Laura Moore (Sister)', '555-200-0018', 'None', 'M', '2025-08-03');
 
+-- Women's Active Weekend - Pending approval (forms completed, awaiting review)
+INSERT INTO public.candidate_info (
+  id, candidate_id, first_name, last_name, email, phone, date_of_birth, age,
+  address_line_1, city, state, zip, church, marital_status,
+  is_christian, member_of_clergy, has_friends_attending_weekend, reason_for_attending,
+  emergency_contact_name, emergency_contact_phone, medical_conditions, shirt_size, created_at
+) VALUES
+  ('a1000142-0000-0001-0000-000000000142', 'e1000142-0000-0000-0000-000000000142',
+    'Rebecca', 'Martinez', 'rebecca.martinez@example.com', '555-142-0009', '1968-11-23', 56,
+    '9134 Palo Verde Ln', 'Phoenix', 'AZ', '85021', 'Crossroads Bible Church', 'Married',
+    true, false, false, 'Kids all grown and moved out. Searching for new purpose in this season.',
+    'Carlos Martinez (Husband)', '555-142-0010', 'Arthritis (mild, takes OTC medication)', 'L', '2025-07-27'),
+  ('a1000143-0000-0001-0000-000000000143', 'e1000143-0000-0000-0000-000000000143',
+    'Lauren', 'Thompson', 'lauren.thompson@example.com', '555-143-0011', '1986-07-14', 38,
+    '4521 Sunset Ridge Way', 'Phoenix', 'AZ', '85022', 'First Baptist Church', 'Divorced',
+    true, false, true, 'Divorced 2 years ago. Ready to move forward and find God''s plan for my life.',
+    'Karen Thompson (Mother)', '555-143-0012', 'None', 'S', '2025-07-28');
+
 -- =============================================================================
 -- SECTION: Complete Sponsorship Info for ALL remaining candidates
 -- =============================================================================
 
 -- Men's Active Weekend - Remaining confirmed candidates (e1000103-109)
 INSERT INTO public.candidate_sponsorship_info (
-  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
-  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
   god_evidence, support_plan, payment_owner, created_at
 ) VALUES
   ('f1000101-0000-0000-0000-000000000101', 'e1000101-0000-0000-0000-000000000101',
@@ -1431,8 +1493,8 @@ INSERT INTO public.candidate_sponsorship_info (
 
 -- Men's Active Weekend - Remaining awaiting payment (e1000111-112)
 INSERT INTO public.candidate_sponsorship_info (
-  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
-  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
   god_evidence, support_plan, payment_owner, created_at
 ) VALUES
   ('f1000111-0000-0000-0000-000000000111', 'e1000111-0000-0000-0000-000000000111',
@@ -1446,8 +1508,8 @@ INSERT INTO public.candidate_sponsorship_info (
 
 -- Men's Active Weekend - Remaining awaiting forms (e1000114-116)
 INSERT INTO public.candidate_sponsorship_info (
-  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
-  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
   god_evidence, support_plan, payment_owner, created_at
 ) VALUES
   ('f1000114-0000-0000-0000-000000000114', 'e1000114-0000-0000-0000-000000000114',
@@ -1465,8 +1527,8 @@ INSERT INTO public.candidate_sponsorship_info (
 
 -- Men's Active Weekend - Remaining sponsored (e1000118-119)
 INSERT INTO public.candidate_sponsorship_info (
-  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
-  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
   god_evidence, support_plan, payment_owner, created_at
 ) VALUES
   ('f1000118-0000-0000-0000-000000000118', 'e1000118-0000-0000-0000-000000000118',
@@ -1480,8 +1542,8 @@ INSERT INTO public.candidate_sponsorship_info (
 
 -- Men's Active Weekend - Remaining rejected (e1000121)
 INSERT INTO public.candidate_sponsorship_info (
-  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone, 
-  sponsor_church, sponsor_weekend, contact_frequency, home_environment, 
+  id, candidate_id, candidate_name, candidate_email, sponsor_name, sponsor_email, sponsor_phone,
+  sponsor_church, sponsor_weekend, contact_frequency, home_environment,
   god_evidence, support_plan, payment_owner, created_at
 ) VALUES
   ('f1000121-0000-0000-0000-000000000121', 'e1000121-0000-0000-0000-000000000121',
@@ -1608,9 +1670,9 @@ INSERT INTO public.candidate_info (
 -- =============================================================================
 -- SECTION: Summary Documentation
 -- =============================================================================
--- 
+--
 -- SEED DATA SUMMARY:
--- 
+--
 -- CANDIDATES SEEDED:
 -- - Historic Weekend #42: 48 candidates (24 men, 24 women) - all confirmed
 -- - Active Weekend #45 Men: 22 candidates across all statuses
@@ -1618,8 +1680,8 @@ INSERT INTO public.candidate_info (
 -- Total: 88 candidates
 --
 -- SPONSORSHIP INFO: All 88 candidates have sponsorship records
--- 
--- CANDIDATE INFO (completed forms): 
+--
+-- CANDIDATE INFO (completed forms):
 -- - Men's: 12 confirmed + 3 awaiting payment = 15 total
 -- - Women's: 8 confirmed + 2 awaiting payment = 10 total
 -- Total: 25 candidate_info records

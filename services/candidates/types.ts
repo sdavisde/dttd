@@ -1,10 +1,7 @@
 import { Database, Tables } from '@/database.types'
 import { Address } from '@/lib/users/validation'
 
-export type CandidateStatus = Exclude<
-  Database['public']['Enums']['candidate_status'],
-  'pending_approval'
->
+export type CandidateStatus = Database['public']['Enums']['candidate_status']
 
 export type EmergencyContact = {
   name: string

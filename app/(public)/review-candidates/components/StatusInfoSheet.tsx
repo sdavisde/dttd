@@ -21,6 +21,7 @@ export function StatusInfoSheet({ isOpen, onClose }: StatusInfoSheetProps) {
   const statusDescriptions: Record<CandidateStatus, string> = {
     sponsored: 'Candidate has been sponsored and is ready for the next step',
     awaiting_forms: 'Candidate needs to complete their information forms',
+    pending_approval: 'Candidate has completed forms and is awaiting approval',
     awaiting_payment: 'Payment is required to confirm the candidate',
     confirmed: 'Candidate has been confirmed and is ready for the weekend',
     rejected: 'Candidate application has been rejected',
@@ -29,6 +30,7 @@ export function StatusInfoSheet({ isOpen, onClose }: StatusInfoSheetProps) {
   const allStatuses: CandidateStatus[] = [
     'sponsored',
     'awaiting_forms',
+    'pending_approval',
     'awaiting_payment',
     'confirmed',
     'rejected',

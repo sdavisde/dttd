@@ -16,6 +16,7 @@ import { CandidateInformationSection } from './components/CandidateInformationSe
 import { CandidateAssessmentSection } from './components/CandidateAssessmentSection'
 import { CandidateFormDetailsSection } from './components/CandidateFormDetailsSection'
 import { SponsorInformationSection } from './components/SponsorInformationSection'
+import { StatusSelect } from './components/StatusSelect'
 import { getLoggedInUser } from '@/services/identity/user'
 import { Permission, userHasPermission } from '@/lib/security'
 
@@ -66,7 +67,14 @@ export default async function CandidateDetailPage({ params }: PageProps) {
       {/* Page Header */}
       <div className="flex items-center gap-3 mb-6">
         <Typography variant="h1">{candidateName}</Typography>
-        <StatusChip status={candidate.status} />
+        {canEdit ? (
+          <StatusSelect
+            candidateId={candidate.id}
+            currentStatus={candidate.status}
+          />
+        ) : (
+          <StatusChip status={candidate.status} />
+        )}
       </div>
 
       {/* Content Sections */}

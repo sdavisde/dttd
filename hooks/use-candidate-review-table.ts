@@ -5,6 +5,16 @@ import { useTablePagination } from './use-table-pagination'
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 type SortDirection = 'asc' | 'desc'
 
+// Status order based on expected candidate journey
+const STATUS_ORDER: Record<CandidateStatus, number> = {
+  sponsored: 0,
+  awaiting_forms: 1,
+  pending_approval: 2,
+  awaiting_payment: 3,
+  confirmed: 4,
+  rejected: 5,
+}
+
 interface UseCandidateReviewTableOptions {
   initialPageSize?: number
   initialPage?: number
@@ -21,6 +31,7 @@ export function useCandidateReviewTable(
   const [statusFilters, setStatusFilters] = useState<CandidateStatus[]>([
     'sponsored',
     'awaiting_forms',
+    'pending_approval',
     'awaiting_payment',
     'confirmed',
     // Note: 'rejected' is excluded by default (archived)
@@ -28,7 +39,7 @@ export function useCandidateReviewTable(
   const [showArchived, setShowArchived] = useState(false)
 
   // Sort state
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null)
+  const [sortColumn, setSortColumn] = useState<SortColumn>('status')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
   // Toggle sort column
@@ -62,6 +73,7 @@ export function useCandidateReviewTable(
     setStatusFilters([
       'sponsored',
       'awaiting_forms',
+      'pending_approval',
       'awaiting_payment',
       'confirmed',
     ])
@@ -140,7 +152,7 @@ export function useCandidateReviewTable(
             break
           }
           case 'status': {
-            compareValue = a.status.localeCompare(b.status)
+            compareValue = STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
             break
           }
         }
