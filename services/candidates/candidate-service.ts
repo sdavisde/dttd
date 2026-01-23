@@ -10,6 +10,8 @@ import {
   EmergencyContact,
 } from './types'
 import { addressSchema } from '@/lib/users/validation'
+import { Tables } from '@/database.types'
+import { logger } from '@/lib/logger'
 
 function normalizeCandidate(
   rawCandidate: RawCandidate
@@ -133,4 +135,47 @@ export async function getAllCandidates(): Promise<
     .filter((c) => !isNil(c))
 
   return ok(candidates)
+}
+
+/**
+ * Records a manual (cash/check) payment for a candidate.
+ */
+export async function recordManualCandidatePayment(
+  candidateId: string,
+  paymentAmount: number,
+  paymentMethod: 'cash' | 'check',
+  paymentOwner: string,
+  notes?: string
+): Promise<Result<string, Tables<'candidate_payments'>>> {
+  // Verify the candidate record exists
+  const candidateResult =
+    await CandidateRepository.findCandidateById(candidateId)
+
+  if (isErr(candidateResult)) {
+    return err(`Failed to find candidate: ${candidateResult.error}`)
+  }
+
+  if (isNil(candidateResult.data)) {
+    return err('Candidate not found')
+  }
+
+  // Insert the payment record
+  const result = await CandidateRepository.insertManualCandidatePayment({
+    candidate_id: candidateId,
+    payment_amount: paymentAmount,
+    payment_method: paymentMethod,
+    payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+    payment_owner: paymentOwner,
+    notes: notes ?? null,
+  })
+
+  if (isErr(result)) {
+    return err(`Failed to record payment: ${result.error}`)
+  }
+
+  logger.info(
+    `Manual candidate payment recorded: ${paymentMethod} payment of $${paymentAmount} for candidate ID ${candidateId}`
+  )
+
+  return ok(result.data)
 }

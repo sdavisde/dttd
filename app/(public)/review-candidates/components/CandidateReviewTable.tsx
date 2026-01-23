@@ -19,10 +19,12 @@ import { RejectCandidateConfirmationModal } from './RejectCandidateConfirmationM
 
 interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
+  canEditPayments?: boolean
 }
 
 export function CandidateReviewTable({
   candidates,
+  canEditPayments = false,
 }: CandidateReviewTableProps) {
   const [isSendFormsModalOpen, setIsSendFormsModalOpen] = useState(false)
   const [candidateForSendForms, setCandidateForSendForms] =
@@ -186,6 +188,7 @@ export function CandidateReviewTable({
           sortDirection={sortDirection}
           onSort={handleSort}
           showArchived={showArchived}
+          canEditPayments={canEditPayments}
           onSendForms={onSendForms}
           onSendPaymentRequest={onSendPaymentRequest}
           onReject={handleReject}

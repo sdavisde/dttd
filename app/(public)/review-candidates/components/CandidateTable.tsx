@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { StatusLegend } from './StatusLegend'
 import { useRouter } from 'next/navigation'
+import { CandidatePaymentInfo } from './CandidatePaymentInfo'
 
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 
@@ -36,6 +37,7 @@ interface CandidateTableProps {
   sortDirection?: 'asc' | 'desc'
   onSort?: (column: SortColumn) => void
   showArchived?: boolean
+  canEditPayments?: boolean
   onSendForms?: (candidate: HydratedCandidate) => void
   onSendPaymentRequest?: (candidate: HydratedCandidate) => void
   onReject?: (candidate: HydratedCandidate) => void
@@ -47,6 +49,7 @@ export function CandidateTable({
   sortDirection = 'asc',
   onSort,
   showArchived = false,
+  canEditPayments = false,
   onSendForms,
   onSendPaymentRequest,
   onReject,
@@ -135,6 +138,7 @@ export function CandidateTable({
 
                 {renderSortIcon('status')}
               </TableHead>
+              <TableHead>Payment</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -168,6 +172,12 @@ export function CandidateTable({
                 </TableCell>
                 <TableCell>
                   <StatusChip status={candidate.status} />
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <CandidatePaymentInfo
+                    candidate={candidate}
+                    canEditPayments={canEditPayments}
+                  />
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
@@ -267,6 +277,14 @@ export function CandidateTable({
                   {new Date(candidate.created_at).toLocaleDateString()}
                 </span>
               </div>
+            </div>
+
+            {/* Payment section */}
+            <div className="pt-2 border-t" onClick={(e) => e.stopPropagation()}>
+              <CandidatePaymentInfo
+                candidate={candidate}
+                canEditPayments={canEditPayments}
+              />
             </div>
           </div>
         ))}

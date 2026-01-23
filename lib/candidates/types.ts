@@ -5,6 +5,8 @@ export type CandidateStatus = Exclude<
   'pending_approval'
 >
 
+export type CandidatePayment = Tables<'candidate_payments'>
+
 // Union type that combines all candidate-related fields from the three tables
 export type HydratedCandidate = Omit<
   Database['public']['Tables']['candidates']['Row'],
@@ -13,6 +15,7 @@ export type HydratedCandidate = Omit<
   status: CandidateStatus
   candidate_sponsorship_info?: Database['public']['Tables']['candidate_sponsorship_info']['Row']
   candidate_info?: Database['public']['Tables']['candidate_info']['Row']
+  candidate_payments?: CandidatePayment[]
 }
 
 export type CandidateFormData = Omit<

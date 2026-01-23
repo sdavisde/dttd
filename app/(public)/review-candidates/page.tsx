@@ -6,6 +6,9 @@ import { Info } from 'lucide-react'
 import { getReviewPageData } from '@/actions/review-candidates'
 import { WeekendType } from '@/lib/weekend/types'
 import { isNil } from 'lodash'
+import { getLoggedInUser } from '@/services/identity/user'
+import { Permission, userHasPermission } from '@/lib/security'
+import { isOk } from '@/lib/results'
 
 interface PageProps {
   searchParams: Promise<{
@@ -15,8 +18,17 @@ interface PageProps {
 }
 
 export default async function ReviewCandidatePage({ searchParams }: PageProps) {
-  const { candidates, weekendOptions, currentWeekendId } =
-    await getReviewPageData(searchParams)
+  const [pageData, userResult] = await Promise.all([
+    getReviewPageData(searchParams),
+    getLoggedInUser(),
+  ])
+
+  const { candidates, weekendOptions, currentWeekendId } = pageData
+
+  // Check if user has permission to record payments
+  const canEditPayments =
+    isOk(userResult) &&
+    userHasPermission(userResult.data, [Permission.WRITE_PAYMENTS])
 
   return (
     <div className="container mx-auto p-4 min-h-[80vh]">
@@ -29,7 +41,10 @@ export default async function ReviewCandidatePage({ searchParams }: PageProps) {
         <WeekendFilterSelector weekendOptions={weekendOptions} />
 
         {!isNil(currentWeekendId) ? (
-          <CandidateReviewTable candidates={candidates} />
+          <CandidateReviewTable
+            candidates={candidates}
+            canEditPayments={canEditPayments}
+          />
         ) : (
           <Alert>
             <Info className="h-4 w-4" />

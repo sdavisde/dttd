@@ -172,6 +172,7 @@ export async function getAllCandidatesWithDetails(
         *,
         candidate_sponsorship_info(*),
         candidate_info(*),
+        candidate_payments(*),
         weekends${weekendJoinType} (
           id,
           title,
@@ -201,6 +202,7 @@ export async function getAllCandidatesWithDetails(
         ...candidate,
         candidate_sponsorship_info: candidate.candidate_sponsorship_info.at(0),
         candidate_info: candidate.candidate_info.at(0),
+        candidate_payments: candidate.candidate_payments ?? [],
       })) as HydratedCandidate[]
     )
   } catch (error) {
