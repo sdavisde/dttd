@@ -1,24 +1,216 @@
+'use client'
+
 import { Typography } from '@/components/ui/typography'
 import { Separator } from '@/components/ui/separator'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Info } from 'lucide-react'
+import { InlineTextField } from '@/components/ui/inline-text-field'
+import { EditableField } from '@/components/ui/editable-field'
+import { EditableTextArea } from '@/components/ui/editable-text-area'
+import { updateCandidateInfoField } from '@/actions/candidates'
+import { toast } from 'sonner'
+import * as Results from '@/lib/results'
+import { Database } from '@/database.types'
+import { useCallback } from 'react'
+
+type CandidateInfoUpdate =
+  Database['public']['Tables']['candidate_info']['Update']
 
 interface CandidateFormDetailsSectionProps {
   candidate: HydratedCandidate
+  canEdit: boolean
+}
+
+interface ReadOnlyFieldProps {
+  label: string
+  value: string | null | undefined
+  emptyText?: string
+}
+
+function ReadOnlyField({
+  label,
+  value,
+  emptyText = 'Not provided',
+}: ReadOnlyFieldProps) {
+  return (
+    <div>
+      <Typography variant="small" className="text-muted-foreground">
+        {label}
+      </Typography>
+      <Typography variant="p">{value ?? emptyText}</Typography>
+    </div>
+  )
+}
+
+interface BooleanFieldProps {
+  label: string
+  value: boolean | null | undefined
+}
+
+function BooleanField({ label, value }: BooleanFieldProps) {
+  const displayValue =
+    value === null || value === undefined
+      ? 'Not provided'
+      : value
+        ? 'Yes'
+        : 'No'
+
+  return (
+    <div>
+      <Typography variant="small" className="text-muted-foreground">
+        {label}
+      </Typography>
+      <Typography variant="p">{displayValue}</Typography>
+    </div>
+  )
+}
+
+interface EditableNameFieldProps {
+  firstName: string | null
+  lastName: string | null
+  canEdit: boolean
+  onSaveFirst: (value: string | null) => Promise<void>
+  onSaveLast: (value: string | null) => Promise<void>
+}
+
+function EditableNameField({
+  firstName,
+  lastName,
+  canEdit,
+  onSaveFirst,
+  onSaveLast,
+}: EditableNameFieldProps) {
+  return (
+    <div>
+      <Typography variant="small" className="text-muted-foreground">
+        Name
+      </Typography>
+      {canEdit ? (
+        <div className="flex gap-1">
+          <InlineTextField
+            value={firstName}
+            onSave={(value) => onSaveFirst(value ?? null)}
+            emptyText="First"
+          />
+          <InlineTextField
+            value={lastName}
+            onSave={(value) => onSaveLast(value ?? null)}
+            emptyText="Last"
+          />
+        </div>
+      ) : (
+        <Typography variant="p">
+          {firstName} {lastName}
+        </Typography>
+      )}
+    </div>
+  )
+}
+
+interface EditableAddressFieldProps {
+  addressLine1: string | null
+  addressLine2: string | null
+  city: string | null
+  state: string | null
+  zip: string | null
+  canEdit: boolean
+  onSave: (
+    field: keyof CandidateInfoUpdate,
+    value: string | null
+  ) => Promise<void>
+}
+
+function EditableAddressField({
+  addressLine1,
+  addressLine2,
+  city,
+  state,
+  zip,
+  canEdit,
+  onSave,
+}: EditableAddressFieldProps) {
+  return (
+    <div>
+      <Typography variant="small" className="text-muted-foreground">
+        Address
+      </Typography>
+      {canEdit ? (
+        <div className="space-y-1">
+          <InlineTextField
+            value={addressLine1}
+            onSave={(value) => onSave('address_line_1', value || null)}
+            emptyText="Address Line 1"
+          />
+          <InlineTextField
+            value={addressLine2}
+            onSave={(value) => onSave('address_line_2', value || null)}
+            emptyText="Address Line 2"
+          />
+          <div className="flex gap-1 flex-wrap">
+            <InlineTextField
+              value={city}
+              onSave={(value) => onSave('city', value || null)}
+              emptyText="City"
+            />
+            <InlineTextField
+              value={state}
+              onSave={(value) => onSave('state', value || null)}
+              emptyText="State"
+            />
+            <InlineTextField
+              value={zip}
+              onSave={(value) => onSave('zip', value || null)}
+              emptyText="ZIP"
+            />
+          </div>
+        </div>
+      ) : (
+        <Typography variant="p">
+          {addressLine1}
+          {addressLine2 && <>, {addressLine2}</>}
+          <br />
+          {city}, {state} {zip}
+        </Typography>
+      )}
+    </div>
+  )
 }
 
 export function CandidateFormDetailsSection({
   candidate,
+  canEdit,
 }: CandidateFormDetailsSectionProps) {
   const candidateInfo = candidate.candidate_info
   const candidateName =
     candidate.candidate_sponsorship_info?.candidate_name ?? 'This candidate'
 
+  const handleSave = useCallback(
+    async (
+      field: keyof CandidateInfoUpdate,
+      value: string | number | boolean | null
+    ) => {
+      const result = await updateCandidateInfoField({
+        candidateId: candidate.id,
+        field,
+        value,
+      })
+
+      if (Results.isErr(result)) {
+        toast.error(result.error)
+        throw new Error(result.error)
+      }
+
+      toast.success('Changes saved')
+    },
+    [candidate.id]
+  )
+
   // Show message if candidate hasn't completed their forms
   if (!candidateInfo) {
     return (
       <section>
+        <Separator className="my-4" />
         <Typography variant="h3" className="mb-4">
           Candidate Form Details
         </Typography>
@@ -45,212 +237,163 @@ export function CandidateFormDetailsSection({
 
       {/* Personal Information */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Full Name
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.first_name} {candidateInfo.last_name}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Email
-          </Typography>
-          <Typography variant="p">{candidateInfo.email}</Typography>
-        </div>
+        <EditableNameField
+          firstName={candidateInfo.first_name}
+          lastName={candidateInfo.last_name}
+          canEdit={canEdit}
+          onSaveFirst={(value) => handleSave('first_name', value)}
+          onSaveLast={(value) => handleSave('last_name', value)}
+        />
+        <EditableField
+          label="Email"
+          value={candidateInfo.email}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('email', value)}
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Phone
-          </Typography>
-          <Typography variant="p">{candidateInfo.phone}</Typography>
-        </div>
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Date of Birth
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.date_of_birth
+        <EditableField
+          label="Phone"
+          value={candidateInfo.phone}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('phone', value)}
+        />
+        <ReadOnlyField
+          label="Date of Birth"
+          value={
+            candidateInfo.date_of_birth
               ? new Date(candidateInfo.date_of_birth).toLocaleDateString()
-              : 'Not provided'}
-          </Typography>
-        </div>
+              : null
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Age
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.age ?? 'Not provided'}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Shirt Size
-          </Typography>
-          <Typography variant="p">{candidateInfo.shirt_size}</Typography>
-        </div>
+        <ReadOnlyField
+          label="Age"
+          value={candidateInfo.age?.toString() ?? null}
+        />
+        <EditableField
+          label="Shirt Size"
+          value={candidateInfo.shirt_size}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('shirt_size', value)}
+        />
       </div>
 
       {/* Address */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Address
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.address_line_1}
-            {candidateInfo.address_line_2 && (
-              <>, {candidateInfo.address_line_2}</>
-            )}
-            <br />
-            {candidateInfo.city}, {candidateInfo.state} {candidateInfo.zip}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Church
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.church ?? 'Not provided'}
-          </Typography>
-        </div>
+        <EditableAddressField
+          addressLine1={candidateInfo.address_line_1}
+          addressLine2={candidateInfo.address_line_2}
+          city={candidateInfo.city}
+          state={candidateInfo.state}
+          zip={candidateInfo.zip}
+          canEdit={canEdit}
+          onSave={handleSave}
+        />
+        <EditableField
+          label="Church"
+          value={candidateInfo.church}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('church', value)}
+        />
       </div>
 
       {/* Marital Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Marital Status
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.marital_status ?? 'Not provided'}
-          </Typography>
-        </div>
+        <EditableField
+          label="Marital Status"
+          value={candidateInfo.marital_status}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('marital_status', value)}
+        />
         {candidateInfo.spouse_name && (
-          <div>
-            <Typography variant="small" className="text-muted-foreground">
-              Spouse Name
-            </Typography>
-            <Typography variant="p">{candidateInfo.spouse_name}</Typography>
-          </div>
+          <EditableField
+            label="Spouse Name"
+            value={candidateInfo.spouse_name}
+            canEdit={canEdit}
+            onSave={(value) => handleSave('spouse_name', value)}
+          />
         )}
       </div>
 
       {/* Spouse Weekend Info */}
       {candidateInfo.has_spouse_attended_weekend !== null && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <div>
-            <Typography variant="small" className="text-muted-foreground">
-              Has Spouse Attended Weekend?
-            </Typography>
-            <Typography variant="p">
-              {candidateInfo.has_spouse_attended_weekend ? 'Yes' : 'No'}
-            </Typography>
-          </div>
+          <BooleanField
+            label="Has Spouse Attended Weekend?"
+            value={candidateInfo.has_spouse_attended_weekend}
+          />
           {candidateInfo.spouse_weekend_location && (
-            <div>
-              <Typography variant="small" className="text-muted-foreground">
-                Spouse Weekend Location
-              </Typography>
-              <Typography variant="p">
-                {candidateInfo.spouse_weekend_location}
-              </Typography>
-            </div>
+            <EditableField
+              label="Spouse Weekend Location"
+              value={candidateInfo.spouse_weekend_location}
+              canEdit={canEdit}
+              onSave={(value) => handleSave('spouse_weekend_location', value)}
+            />
           )}
         </div>
       )}
 
       {/* Additional Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Has Friends Attending Weekend?
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.has_friends_attending_weekend === null
-              ? 'Not provided'
-              : candidateInfo.has_friends_attending_weekend
-                ? 'Yes'
-                : 'No'}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Is Christian?
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.is_christian === null
-              ? 'Not provided'
-              : candidateInfo.is_christian
-                ? 'Yes'
-                : 'No'}
-          </Typography>
-        </div>
+        <BooleanField
+          label="Has Friends Attending Weekend?"
+          value={candidateInfo.has_friends_attending_weekend}
+        />
+        <BooleanField
+          label="Is Christian?"
+          value={candidateInfo.is_christian}
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Member of Clergy?
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.member_of_clergy === null
-              ? 'Not provided'
-              : candidateInfo.member_of_clergy
-                ? 'Yes'
-                : 'No'}
-          </Typography>
-        </div>
+        <BooleanField
+          label="Member of Clergy?"
+          value={candidateInfo.member_of_clergy}
+        />
       </div>
 
       {/* Reason for Attending */}
-      {candidateInfo.reason_for_attending && (
+      {(candidateInfo.reason_for_attending ?? canEdit) && (
         <div className="mb-4">
-          <Typography variant="small" className="text-muted-foreground">
-            Reason for Attending
-          </Typography>
-          <Typography variant="p" style={{ whiteSpace: 'pre-wrap' }}>
-            {candidateInfo.reason_for_attending}
-          </Typography>
+          <EditableTextArea
+            label="Reason for Attending"
+            value={candidateInfo.reason_for_attending}
+            canEdit={canEdit}
+            onSave={(value) => handleSave('reason_for_attending', value)}
+          />
         </div>
       )}
 
       {/* Medical Conditions */}
-      {candidateInfo.medical_conditions && (
+      {(candidateInfo.medical_conditions ?? canEdit) && (
         <div className="mb-4">
-          <Typography variant="small" className="text-muted-foreground">
-            Medical Conditions
-          </Typography>
-          <Typography variant="p" style={{ whiteSpace: 'pre-wrap' }}>
-            {candidateInfo.medical_conditions}
-          </Typography>
+          <EditableTextArea
+            label="Medical Conditions"
+            value={candidateInfo.medical_conditions}
+            canEdit={canEdit}
+            onSave={(value) => handleSave('medical_conditions', value)}
+          />
         </div>
       )}
 
       {/* Emergency Contact */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Emergency Contact Name
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.emergency_contact_name}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="small" className="text-muted-foreground">
-            Emergency Contact Phone
-          </Typography>
-          <Typography variant="p">
-            {candidateInfo.emergency_contact_phone}
-          </Typography>
-        </div>
+        <EditableField
+          label="Emergency Contact Name"
+          value={candidateInfo.emergency_contact_name}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('emergency_contact_name', value)}
+        />
+        <EditableField
+          label="Emergency Contact Phone"
+          value={candidateInfo.emergency_contact_phone}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('emergency_contact_phone', value)}
+        />
       </div>
     </section>
   )

@@ -48,9 +48,7 @@ Display all candidate information in organized sections, handling both complete 
 - [x] 2.5 Implement conditional rendering to show "[Candidate Name] has not completed their forms yet" message when `candidate_info` is null, hiding the Candidate Form Details section
 - [x] 2.6 Assemble all sections in the detail page with proper layout and spacing using responsive grid
 
----
-
-### [ ] 3.0 Inline Editing with Auto-Save
+### [~] 3.0 Inline Editing with Auto-Save
 
 Allow authorized users to edit candidate fields inline with automatic saving on blur.
 
@@ -61,9 +59,15 @@ Allow authorized users to edit candidate fields inline with automatic saving on 
 - Screenshot: Toast notification showing error message when save fails (can simulate via network error)
 - CLI: Server action `updateCandidateField` successfully updates database record (verify via Supabase logs or query)
 
-#### 3.0 Tasks
-
-TBD
+- [x] 3.1 Create server action `updateCandidateSponsorshipField` in `actions/candidates.ts` that updates a single field in `candidate_sponsorship_info` table, wrapped with `authorizedAction` requiring `WRITE_CANDIDATES` permission
+- [x] 3.2 Create server action `updateCandidateInfoField` in `actions/candidates.ts` that updates a single field in `candidate_info` table, wrapped with `authorizedAction` requiring `WRITE_CANDIDATES` permission
+- [x] 3.3 Create server action `updateCandidateStatusField` in `actions/candidates.ts` that updates the candidate status field, wrapped with `authorizedAction` requiring `WRITE_CANDIDATES` permission
+- [x] 3.4 Update page.tsx to check for `WRITE_CANDIDATES` permission and pass `canEdit` prop to all section components
+- [x] 3.5 Update `CandidateInformationSection` to use `InlineTextField` for editable fields (candidate_name, candidate_email) when `canEdit` is true, with toast notifications on save success/failure
+- [x] 3.6 Update `CandidateAssessmentSection` to use inline editable textarea components for assessment fields (church_environment, home_environment, social_environment, work_environment, god_evidence, support_plan, prayer_request) when `canEdit` is true
+- [x] 3.7 Update `CandidateFormDetailsSection` to use `InlineTextField` for editable fields when `canEdit` is true
+- [x] 3.8 Update `SponsorInformationSection` to use `InlineTextField` for editable sponsor fields when `canEdit` is true
+- [x] 3.9 Verify all inline editing works correctly with toast notifications and auto-save on blur
 
 ---
 

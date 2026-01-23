@@ -8,6 +8,14 @@ import {
   HydratedCandidate,
   CandidateFormData,
 } from '@/lib/candidates/types'
+import { authorizedAction } from '@/lib/actions/authorized-action'
+import { Permission } from '@/lib/security'
+import { Database } from '@/database.types'
+
+type CandidateSponsorshipInfoUpdate =
+  Database['public']['Tables']['candidate_sponsorship_info']['Update']
+type CandidateInfoUpdate =
+  Database['public']['Tables']['candidate_info']['Update']
 
 /**
  * Create a new candidate with sponsorship information
@@ -291,3 +299,95 @@ export async function updateCandidatePaymentOwner(
     )
   }
 }
+
+/**
+ * Update a single field in the candidate_sponsorship_info table
+ * Requires WRITE_CANDIDATES permission
+ */
+export const updateCandidateSponsorshipField = authorizedAction<
+  {
+    candidateId: string
+    field: keyof CandidateSponsorshipInfoUpdate
+    value: string | null
+  },
+  { success: boolean }
+>(Permission.WRITE_CANDIDATES, async ({ candidateId, field, value }) => {
+  try {
+    const supabase = await createClient()
+
+    const { error: updateError } = await supabase
+      .from('candidate_sponsorship_info')
+      .update({ [field]: value })
+      .eq('candidate_id', candidateId)
+
+    if (updateError) {
+      return err(`Failed to update ${field}: ${updateError.message}`)
+    }
+
+    return ok({ success: true })
+  } catch (error) {
+    return err(
+      `Error while updating ${field}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
+})
+
+/**
+ * Update a single field in the candidate_info table
+ * Requires WRITE_CANDIDATES permission
+ */
+export const updateCandidateInfoField = authorizedAction<
+  {
+    candidateId: string
+    field: keyof CandidateInfoUpdate
+    value: string | number | boolean | null
+  },
+  { success: boolean }
+>(Permission.WRITE_CANDIDATES, async ({ candidateId, field, value }) => {
+  try {
+    const supabase = await createClient()
+
+    const { error: updateError } = await supabase
+      .from('candidate_info')
+      .update({ [field]: value })
+      .eq('candidate_id', candidateId)
+
+    if (updateError) {
+      return err(`Failed to update ${field}: ${updateError.message}`)
+    }
+
+    return ok({ success: true })
+  } catch (error) {
+    return err(
+      `Error while updating ${field}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
+})
+
+/**
+ * Update the candidate status field
+ * Requires WRITE_CANDIDATES permission
+ */
+export const updateCandidateStatusField = authorizedAction<
+  { candidateId: string; status: CandidateStatus },
+  { success: boolean }
+>(Permission.WRITE_CANDIDATES, async ({ candidateId, status }) => {
+  try {
+    const supabase = await createClient()
+
+    const { error: updateError } = await supabase
+      .from('candidates')
+      .update({ status })
+      .eq('id', candidateId)
+
+    if (updateError) {
+      return err(`Failed to update status: ${updateError.message}`)
+    }
+
+    return ok({ success: true })
+  } catch (error) {
+    return err(
+      `Error while updating status: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
+})

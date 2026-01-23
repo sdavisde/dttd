@@ -16,6 +16,8 @@ import { CandidateInformationSection } from './components/CandidateInformationSe
 import { CandidateAssessmentSection } from './components/CandidateAssessmentSection'
 import { CandidateFormDetailsSection } from './components/CandidateFormDetailsSection'
 import { SponsorInformationSection } from './components/SponsorInformationSection'
+import { getLoggedInUser } from '@/services/identity/user'
+import { Permission, userHasPermission } from '@/lib/security'
 
 interface PageProps {
   params: Promise<{
@@ -25,14 +27,21 @@ interface PageProps {
 
 export default async function CandidateDetailPage({ params }: PageProps) {
   const { candidate_id } = await params
-
-  const result = await getHydratedCandidate(candidate_id)
+  const [result, userResult] = await Promise.all([
+    getHydratedCandidate(candidate_id),
+    getLoggedInUser(),
+  ])
 
   if (Results.isErr(result)) {
     notFound()
   }
 
   const candidate = result.data
+
+  // Check if user has permission to edit candidates
+  const canEdit =
+    Results.isOk(userResult) &&
+    userHasPermission(userResult.data, [Permission.WRITE_CANDIDATES])
 
   const candidateName =
     candidate.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
@@ -61,19 +70,10 @@ export default async function CandidateDetailPage({ params }: PageProps) {
       </div>
 
       {/* Content Sections */}
-      <div className="space-y-8">
-        {/* Candidate Information Section */}
-        <CandidateInformationSection candidate={candidate} />
-
-        {/* Candidate Assessment Section */}
-        <CandidateAssessmentSection candidate={candidate} />
-
-        {/* Candidate Form Details Section */}
-        <CandidateFormDetailsSection candidate={candidate} />
-
-        {/* Sponsor Information Section */}
-        <SponsorInformationSection candidate={candidate} />
-      </div>
+      <CandidateInformationSection candidate={candidate} canEdit={canEdit} />
+      <CandidateAssessmentSection candidate={candidate} canEdit={canEdit} />
+      <CandidateFormDetailsSection candidate={candidate} canEdit={canEdit} />
+      <SponsorInformationSection candidate={candidate} canEdit={canEdit} />
     </div>
   )
 }
