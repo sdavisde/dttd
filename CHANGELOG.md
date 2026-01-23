@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/sdavisde/dttd/compare/v1.4.0...v1.5.0) (2026-01-23)
+
+### Features
+
+- add candidate payments to table ([b247450](https://github.com/sdavisde/dttd/commit/b247450ffd541f0687e3bc077f5bd35487794040))
+
 ## [1.4.0](https://github.com/sdavisde/dttd/compare/v1.3.0...v1.4.0) (2026-01-23)
 
 ### Features
