@@ -8,11 +8,15 @@ import { Info } from 'lucide-react'
 import { InlineTextField } from '@/components/ui/inline-text-field'
 import { EditableField } from '@/components/ui/editable-field'
 import { EditableTextArea } from '@/components/ui/editable-text-area'
+import { EditableBooleanField } from '@/components/ui/editable-boolean-field'
+import { EditableNumberField } from '@/components/ui/editable-number-field'
 import { updateCandidateInfoField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
 import { Database } from '@/database.types'
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { z } from 'zod'
 
 type CandidateInfoUpdate =
   Database['public']['Tables']['candidate_info']['Update']
@@ -39,29 +43,6 @@ function ReadOnlyField({
         {label}
       </Typography>
       <Typography variant="p">{value ?? emptyText}</Typography>
-    </div>
-  )
-}
-
-interface BooleanFieldProps {
-  label: string
-  value: boolean | null | undefined
-}
-
-function BooleanField({ label, value }: BooleanFieldProps) {
-  const displayValue =
-    value === null || value === undefined
-      ? 'Not provided'
-      : value
-        ? 'Yes'
-        : 'No'
-
-  return (
-    <div>
-      <Typography variant="small" className="text-muted-foreground">
-        {label}
-      </Typography>
-      <Typography variant="p">{displayValue}</Typography>
     </div>
   )
 }
@@ -177,10 +158,13 @@ function EditableAddressField({
   )
 }
 
+const ageSchema = z.number().int().min(0).max(150)
+
 export function CandidateFormDetailsSection({
   candidate,
   canEdit,
 }: CandidateFormDetailsSectionProps) {
+  const router = useRouter()
   const candidateInfo = candidate.candidate_info
   const candidateName =
     candidate.candidate_sponsorship_info?.candidate_name ?? 'This candidate'
@@ -202,8 +186,9 @@ export function CandidateFormDetailsSection({
       }
 
       toast.success('Changes saved')
+      router.refresh()
     },
-    [candidate.id]
+    [candidate.id, router]
   )
 
   // Show message if candidate hasn't completed their forms
@@ -270,9 +255,12 @@ export function CandidateFormDetailsSection({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <ReadOnlyField
+        <EditableNumberField
           label="Age"
-          value={candidateInfo.age?.toString() ?? null}
+          value={candidateInfo.age}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('age', value)}
+          schema={ageSchema}
         />
         <EditableField
           label="Shirt Size"
@@ -320,13 +308,15 @@ export function CandidateFormDetailsSection({
       </div>
 
       {/* Spouse Weekend Info */}
-      {candidateInfo.has_spouse_attended_weekend !== null && (
+      {(candidateInfo.has_spouse_attended_weekend !== null || canEdit) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <BooleanField
+          <EditableBooleanField
             label="Has Spouse Attended Weekend?"
             value={candidateInfo.has_spouse_attended_weekend}
+            canEdit={canEdit}
+            onSave={(value) => handleSave('has_spouse_attended_weekend', value)}
           />
-          {candidateInfo.spouse_weekend_location && (
+          {(candidateInfo.spouse_weekend_location ?? canEdit) && (
             <EditableField
               label="Spouse Weekend Location"
               value={candidateInfo.spouse_weekend_location}
@@ -339,20 +329,26 @@ export function CandidateFormDetailsSection({
 
       {/* Additional Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <BooleanField
+        <EditableBooleanField
           label="Has Friends Attending Weekend?"
           value={candidateInfo.has_friends_attending_weekend}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('has_friends_attending_weekend', value)}
         />
-        <BooleanField
+        <EditableBooleanField
           label="Is Christian?"
           value={candidateInfo.is_christian}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('is_christian', value)}
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <BooleanField
+        <EditableBooleanField
           label="Member of Clergy?"
           value={candidateInfo.member_of_clergy}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('member_of_clergy', value)}
         />
       </div>
 
