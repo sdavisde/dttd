@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/sdavisde/dttd/compare/v1.3.0...v1.4.0) (2026-01-23)
+
+### Features
+
+- Integrate Sentry for better error aggregation ([20ef2be](https://github.com/sdavisde/dttd/commit/20ef2be2e1f1de4a202b929421ade9a35a5fa26e))
+
 ## [1.3.0](https://github.com/sdavisde/dttd/compare/v1.2.0...v1.3.0) (2026-01-21)
 
 ### Features
