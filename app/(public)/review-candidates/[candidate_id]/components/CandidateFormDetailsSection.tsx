@@ -10,6 +10,7 @@ import { EditableField } from '@/components/ui/editable-field'
 import { EditableTextArea } from '@/components/ui/editable-text-area'
 import { EditableBooleanField } from '@/components/ui/editable-boolean-field'
 import { EditableNumberField } from '@/components/ui/editable-number-field'
+import { EditableDateField } from '@/components/ui/editable-date-field'
 import { updateCandidateInfoField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
@@ -244,13 +245,13 @@ export function CandidateFormDetailsSection({
           canEdit={canEdit}
           onSave={(value) => handleSave('phone', value)}
         />
-        <ReadOnlyField
+        <EditableDateField
           label="Date of Birth"
-          value={
-            candidateInfo.date_of_birth
-              ? new Date(candidateInfo.date_of_birth).toLocaleDateString()
-              : null
-          }
+          value={candidateInfo.date_of_birth}
+          canEdit={canEdit}
+          onSave={(value) => handleSave('date_of_birth', value)}
+          startYear={1920}
+          endYear={new Date().getFullYear()}
         />
       </div>
 
