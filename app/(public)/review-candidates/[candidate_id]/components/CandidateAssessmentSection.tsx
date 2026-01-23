@@ -2,18 +2,19 @@
 
 import { Typography } from '@/components/ui/typography'
 import { HydratedCandidate } from '@/lib/candidates/types'
-import { InlineTextArea } from '@/components/ui/inline-text-area'
+import { EditableTextArea } from '@/components/ui/editable-text-area'
 import { updateCandidateSponsorshipField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface CandidateAssessmentSectionProps {
   candidate: HydratedCandidate
   canEdit: boolean
 }
 
-type AssessmentField =
+type AssessmentFieldName =
   | 'church_environment'
   | 'home_environment'
   | 'social_environment'
@@ -22,52 +23,19 @@ type AssessmentField =
   | 'support_plan'
   | 'prayer_request'
 
-interface AssessmentFieldProps {
-  label: string
-  value: string | null | undefined
-  canEdit: boolean
-  onSave: (value: string) => Promise<void>
-}
-
-function AssessmentField({
-  label,
-  value,
-  canEdit,
-  onSave,
-}: AssessmentFieldProps) {
-  return (
-    <div>
-      <Typography variant="small" className="text-muted-foreground">
-        {label}
-      </Typography>
-      {canEdit ? (
-        <InlineTextArea
-          value={value ?? null}
-          onSave={onSave}
-          emptyText="Not provided"
-          rows={3}
-        />
-      ) : (
-        <Typography variant="p" style={{ whiteSpace: 'pre-wrap' }}>
-          {value ?? 'Not provided'}
-        </Typography>
-      )}
-    </div>
-  )
-}
-
 export function CandidateAssessmentSection({
   candidate,
   canEdit,
 }: CandidateAssessmentSectionProps) {
+  const router = useRouter()
   const sponsorshipInfo = candidate.candidate_sponsorship_info
 
   const handleSave = useCallback(
-    async (field: AssessmentField, value: string) => {
+    async (field: AssessmentFieldName, value: string | null) => {
       const result = await updateCandidateSponsorshipField({
         candidateId: candidate.id,
         field,
-        value: value || null,
+        value: value ?? null,
       })
 
       if (Results.isErr(result)) {
@@ -76,8 +44,9 @@ export function CandidateAssessmentSection({
       }
 
       toast.success('Changes saved')
+      router.refresh()
     },
-    [candidate.id]
+    [candidate.id, router]
   )
 
   return (
@@ -89,57 +58,64 @@ export function CandidateAssessmentSection({
         Environment descriptions provided by sponsor:
       </Typography>
 
-      <div>
-        <AssessmentField
+      <div className="space-y-4 mb-4">
+        <EditableTextArea
           label="Church Environment"
           value={sponsorshipInfo?.church_environment}
           canEdit={canEdit}
           onSave={(value) => handleSave('church_environment', value)}
+          rows={3}
         />
-        <AssessmentField
+        <EditableTextArea
           label="Home Environment"
           value={sponsorshipInfo?.home_environment}
           canEdit={canEdit}
           onSave={(value) => handleSave('home_environment', value)}
+          rows={3}
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <AssessmentField
+        <EditableTextArea
           label="Social Environment"
           value={sponsorshipInfo?.social_environment}
           canEdit={canEdit}
           onSave={(value) => handleSave('social_environment', value)}
+          rows={3}
         />
-        <AssessmentField
+        <EditableTextArea
           label="Work Environment"
           value={sponsorshipInfo?.work_environment}
           canEdit={canEdit}
           onSave={(value) => handleSave('work_environment', value)}
+          rows={3}
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <AssessmentField
+        <EditableTextArea
           label="Evidence of God's Leading"
           value={sponsorshipInfo?.god_evidence}
           canEdit={canEdit}
           onSave={(value) => handleSave('god_evidence', value)}
+          rows={3}
         />
-        <AssessmentField
+        <EditableTextArea
           label="Support Plan"
           value={sponsorshipInfo?.support_plan}
           canEdit={canEdit}
           onSave={(value) => handleSave('support_plan', value)}
+          rows={3}
         />
       </div>
 
       <div className="mb-4">
-        <AssessmentField
+        <EditableTextArea
           label="Prayer Request"
           value={sponsorshipInfo?.prayer_request}
           canEdit={canEdit}
           onSave={(value) => handleSave('prayer_request', value)}
+          rows={3}
         />
       </div>
     </section>

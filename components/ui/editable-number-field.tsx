@@ -4,6 +4,7 @@ import { Typography } from '@/components/ui/typography'
 import { InlineNumberField } from '@/components/ui/inline-number-field'
 import { isNil } from 'lodash'
 import { z } from 'zod'
+import { Pencil } from 'lucide-react'
 
 interface EditableNumberFieldProps {
   label: string
@@ -32,8 +33,12 @@ export function EditableNumberField({
 
   return (
     <div>
-      <Typography variant="small" className="text-muted-foreground">
+      <Typography
+        variant="small"
+        className="text-muted-foreground flex items-center gap-1"
+      >
         {label}
+        {canEdit && <Pencil className="h-3 w-3" />}
       </Typography>
       {canEdit ? (
         <InlineNumberField

@@ -2,6 +2,7 @@
 
 import { Typography } from '@/components/ui/typography'
 import { InlineTextField } from '@/components/ui/inline-text-field'
+import { Pencil } from 'lucide-react'
 
 interface EditableFieldProps {
   label: string
@@ -20,8 +21,12 @@ export function EditableField({
 }: EditableFieldProps) {
   return (
     <div>
-      <Typography variant="small" className="text-muted-foreground">
+      <Typography
+        variant="small"
+        className="text-muted-foreground flex items-center gap-1"
+      >
         {label}
+        {canEdit && <Pencil className="h-3 w-3" />}
       </Typography>
       {canEdit ? (
         <InlineTextField

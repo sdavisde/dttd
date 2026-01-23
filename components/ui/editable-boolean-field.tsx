@@ -3,6 +3,7 @@
 import { Typography } from '@/components/ui/typography'
 import { InlineBooleanField } from '@/components/ui/inline-boolean-field'
 import { isNil } from 'lodash'
+import { Pencil } from 'lucide-react'
 
 interface EditableBooleanFieldProps {
   label: string
@@ -27,8 +28,12 @@ export function EditableBooleanField({
 
   return (
     <div>
-      <Typography variant="small" className="text-muted-foreground">
+      <Typography
+        variant="small"
+        className="text-muted-foreground flex items-center gap-1"
+      >
         {label}
+        {canEdit && <Pencil className="h-3 w-3" />}
       </Typography>
       {canEdit ? (
         <InlineBooleanField
