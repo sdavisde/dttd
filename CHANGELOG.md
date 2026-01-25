@@ -1,3 +1,9 @@
+## [1.7.3](https://github.com/sdavisde/dttd/compare/v1.7.2...v1.7.3) (2026-01-25)
+
+### Bug Fixes
+
+- fix build ([de326c3](https://github.com/sdavisde/dttd/commit/de326c3f64a577f0edd8aeef74c2dcdb4093ed09))
+
 ## [1.7.2](https://github.com/sdavisde/dttd/compare/v1.7.1...v1.7.2) (2026-01-25)
 
 ### Bug Fixes
