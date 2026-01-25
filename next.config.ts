@@ -2,7 +2,8 @@ import { withSentryConfig } from '@sentry/nextjs'
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
+  // todo: flip this on for performance benefits after understanding the diffs
+  cacheComponents: false,
 }
 
 export default withSentryConfig(nextConfig, {

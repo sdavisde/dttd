@@ -38,12 +38,6 @@ export function DeleteFileButton({
     try {
       permissionLock([Permission.FILES_DELETE])(user)
 
-      // Check if this is the last file
-      if (totalFiles === 1) {
-        toast.error('Cannot delete the last file in a folder')
-        return
-      }
-
       setIsDeleting(true)
 
       // Delete the file from backend immediately after confirmation
@@ -80,8 +74,6 @@ export function DeleteFileButton({
     }
   }
 
-  const isDisabled = totalFiles === 1
-
   return (
     <TooltipProvider>
       <Tooltip>
@@ -90,16 +82,13 @@ export function DeleteFileButton({
             variant="ghost"
             size="sm"
             onClick={() => setDeleteDialogOpen(true)}
-            disabled={isDisabled}
             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />
             <span className="sr-only">Delete file</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
-          {isDisabled ? 'Cannot delete the last file' : 'Delete'}
-        </TooltipContent>
+        <TooltipContent>Delete</TooltipContent>
       </Tooltip>
 
       <DeleteConfirmationDialog
