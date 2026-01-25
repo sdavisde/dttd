@@ -1,3 +1,9 @@
+## [1.7.2](https://github.com/sdavisde/dttd/compare/v1.7.1...v1.7.2) (2026-01-25)
+
+### Bug Fixes
+
+- allow deleting last file ([fd4f682](https://github.com/sdavisde/dttd/commit/fd4f682d5f3b147af985ba5d2b219f6ec0898156))
+
 ## [1.7.1](https://github.com/sdavisde/dttd/compare/v1.7.0...v1.7.1) (2026-01-25)
 
 ### Bug Fixes
