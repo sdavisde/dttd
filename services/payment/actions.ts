@@ -1,6 +1,5 @@
 'use server'
 
-import { cacheLife } from 'next/cache'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import { PaymentRecord } from '@/lib/payments/types'
@@ -39,8 +38,6 @@ export const getAllPayments = authorizedAction<void, PaymentRecord[]>(
  * Cached with max lifetime since Stripe prices rarely change.
  */
 export async function getTeamFee() {
-  'use cache'
-  cacheLife('max')
   return await PaymentService.getTeamFee()
 }
 
@@ -50,7 +47,5 @@ export async function getTeamFee() {
  * Cached with max lifetime since Stripe prices rarely change.
  */
 export async function getCandidateFee() {
-  'use cache'
-  cacheLife('max')
   return await PaymentService.getCandidateFee()
 }
