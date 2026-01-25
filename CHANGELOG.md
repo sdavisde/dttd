@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/sdavisde/dttd/compare/v1.7.0...v1.7.1) (2026-01-25)
+
+### Bug Fixes
+
+- fee validation should be dynamic based on payment type ([d54d289](https://github.com/sdavisde/dttd/commit/d54d28944f29342704092c1ad3a835203b0f4852))
+
 ## [1.7.0](https://github.com/sdavisde/dttd/compare/v1.6.0...v1.7.0) (2026-01-23)
 
 ### Features
