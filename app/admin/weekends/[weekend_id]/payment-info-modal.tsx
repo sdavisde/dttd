@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink, CreditCard, DollarSign, Hash } from 'lucide-react'
+import { ExternalLink, CreditCard, Hash, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { WeekendRosterMember } from '@/services/weekend'
+import { getTeamFee } from '@/services/payment/actions'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
+import { Results } from '@/lib/results'
+import { useQuery } from '@tanstack/react-query'
 
 type PaymentInfoModalProps = {
   open: boolean
@@ -23,6 +26,16 @@ export function PaymentInfoModal({
   onClose,
   rosterMember,
 }: PaymentInfoModalProps) {
+  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
+    queryKey: ['teamFee'],
+    queryFn: async () => {
+      const result = await getTeamFee()
+      const price = Results.toNullable(result)
+      return price?.unit_amount ? price.unit_amount / 100 : null
+    },
+    staleTime: Infinity,
+  })
+
   if (!rosterMember) {
     return null
   }
@@ -39,12 +52,11 @@ export function PaymentInfoModal({
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(amount) // Assuming amount is in dollars
+    }).format(amount)
   }
 
   const getStripeDashboardUrl = (paymentIntentId: string | null) => {
     if (!paymentIntentId || paymentIntentId.startsWith('manual_')) return null
-    // Stripe dashboard URL format: https://dashboard.stripe.com/payments/{payment_intent_id}
     return `https://dashboard.stripe.com/payments/${paymentIntentId}`
   }
 
@@ -52,8 +64,17 @@ export function PaymentInfoModal({
     (sum, payment) => sum + (payment.payment_amount ?? 0),
     0
   )
-  const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
-  const remainingBalance = totalFee - totalPaid
+
+  // Check if there are any manual payments to determine if discount applies
+  const hasManualPayments = all_payments.some((p) =>
+    p.payment_intent_id?.startsWith('manual_')
+  )
+  const totalFee = stripePriceDollars
+    ? hasManualPayments
+      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
+      : stripePriceDollars
+    : null
+  const remainingBalance = totalFee !== null ? totalFee - totalPaid : null
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -93,24 +114,39 @@ export function PaymentInfoModal({
 
           {/* Payment Summary */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Total Team Fee:</span>
-              <span className="font-medium">${totalFee}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Total Paid:</span>
-              <span className="font-medium">${totalPaid}</span>
-            </div>
-            <div className="flex justify-between text-sm font-semibold border-t pt-2">
-              <span>Balance Remaining:</span>
-              <span
-                className={
-                  remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
-                }
-              >
-                ${remainingBalance}
-              </span>
-            </div>
+            {isLoadingPrice ? (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">
+                  Loading fee...
+                </span>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span>Total Team Fee:</span>
+                  <span className="font-medium">
+                    {totalFee !== null ? `$${totalFee}` : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Total Paid:</span>
+                  <span className="font-medium">${totalPaid}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                  <span>Balance Remaining:</span>
+                  <span
+                    className={
+                      remainingBalance !== null && remainingBalance > 0
+                        ? 'text-amber-600'
+                        : 'text-green-600'
+                    }
+                  >
+                    {remainingBalance !== null ? `$${remainingBalance}` : '—'}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Payment History */}

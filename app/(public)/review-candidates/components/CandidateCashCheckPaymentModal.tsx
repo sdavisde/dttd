@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DollarSign, CreditCard, FileText } from 'lucide-react'
+import { DollarSign, CreditCard, FileText, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -21,10 +21,12 @@ import {
 } from '@/components/ui/select'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { recordManualCandidatePayment } from '@/services/candidates/actions'
+import { getCandidateFee } from '@/services/payment/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { isOk } from '@/lib/results'
+import { isOk, Results } from '@/lib/results'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
+import { useQuery } from '@tanstack/react-query'
 
 type CandidateCashCheckPaymentModalProps = {
   open: boolean
@@ -38,10 +40,20 @@ export function CandidateCashCheckPaymentModal({
   candidate,
 }: CandidateCashCheckPaymentModalProps) {
   const [paymentAmount, setPaymentAmount] = useState('')
-  const [paymentType, setPaymentType] = useState<'cash' | 'check'>('cash')
+  const [paymentType, setPaymentType] = useState<'cash' | 'check' | null>(null)
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
+    queryKey: ['candidateFee'],
+    queryFn: async () => {
+      const result = await getCandidateFee()
+      const price = Results.toNullable(result)
+      return price?.unit_amount ? price.unit_amount / 100 : null
+    },
+    staleTime: Infinity,
+  })
 
   if (!candidate) {
     return null
@@ -52,16 +64,20 @@ export function CandidateCashCheckPaymentModal({
   const paymentOwner =
     candidate.candidate_sponsorship_info?.payment_owner ?? 'candidate'
 
-  const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
+  const totalFee =
+    paymentType && stripePriceDollars
+      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
+      : null
   const currentPaid =
     candidate.candidate_payments?.reduce(
       (sum, p) => sum + (p.payment_amount ?? 0),
       0
     ) ?? 0
-  const remainingBalance = totalFee - currentPaid
+  const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!paymentType) return
     setIsSubmitting(true)
 
     try {
@@ -80,7 +96,7 @@ export function CandidateCashCheckPaymentModal({
 
         // Reset form and close modal
         setPaymentAmount('')
-        setPaymentType('cash')
+        setPaymentType(null)
         setNotes('')
         onClose()
 
@@ -100,7 +116,7 @@ export function CandidateCashCheckPaymentModal({
   const handleClose = () => {
     // Reset form when closing
     setPaymentAmount('')
-    setPaymentType('cash')
+    setPaymentType(null)
     setNotes('')
     onClose()
   }
@@ -124,58 +140,73 @@ export function CandidateCashCheckPaymentModal({
             <span className="ml-2 font-semibold">{candidateName}</span>
           </div>
 
-          {/* Payment Summary */}
+          {/* Payment Type - moved above summary */}
+          <div className="space-y-2">
+            <Label htmlFor="payment-type">Payment Type</Label>
+            <Select
+              value={paymentType ?? ''}
+              onValueChange={(value: 'cash' | 'check') => setPaymentType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment type..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Cash
+                  </div>
+                </SelectItem>
+                <SelectItem value="check">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Check
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Payment Summary - conditional display */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Total Candidate Fee:</span>
-              <span className="font-medium">${totalFee}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Already Paid:</span>
-              <span className="font-medium">${currentPaid}</span>
-            </div>
-            <div className="flex justify-between text-sm font-semibold">
-              <span>Remaining Balance:</span>
-              <span
-                className={
-                  remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
-                }
-              >
-                ${remainingBalance}
-              </span>
-            </div>
+            {isLoadingPrice ? (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">
+                  Loading fee...
+                </span>
+              </div>
+            ) : !paymentType ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Select a payment method to see fee details
+              </p>
+            ) : (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span>Total Candidate Fee:</span>
+                  <span className="font-medium">${totalFee}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Already Paid:</span>
+                  <span className="font-medium">${currentPaid}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>Remaining Balance:</span>
+                  <span
+                    className={
+                      remainingBalance !== null && remainingBalance > 0
+                        ? 'text-amber-600'
+                        : 'text-green-600'
+                    }
+                  >
+                    ${remainingBalance}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Payment Type */}
-            <div className="space-y-2">
-              <Label htmlFor="payment-type">Payment Type</Label>
-              <Select
-                value={paymentType}
-                onValueChange={(value: 'cash' | 'check') =>
-                  setPaymentType(value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Cash
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="check">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Check
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Payment Amount */}
             <div className="space-y-2">
               <Label htmlFor="payment-amount">Payment Amount</Label>
@@ -185,20 +216,22 @@ export function CandidateCashCheckPaymentModal({
                   id="payment-amount"
                   type="number"
                   min="0"
-                  max={remainingBalance}
+                  max={remainingBalance ?? undefined}
                   step="0.01"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder="0.00"
                   className="pl-10"
                   required
+                  disabled={!paymentType}
                 />
               </div>
-              {parseFloat(paymentAmount) > remainingBalance && (
-                <p className="text-xs text-amber-600">
-                  Amount exceeds remaining balance
-                </p>
-              )}
+              {remainingBalance !== null &&
+                parseFloat(paymentAmount) > remainingBalance && (
+                  <p className="text-xs text-amber-600">
+                    Amount exceeds remaining balance
+                  </p>
+                )}
             </div>
 
             {/* Notes */}
@@ -216,6 +249,7 @@ export function CandidateCashCheckPaymentModal({
                     : 'Optional notes about the payment...'
                 }
                 rows={3}
+                disabled={!paymentType}
               />
             </div>
 
@@ -233,7 +267,7 @@ export function CandidateCashCheckPaymentModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isSubmitting || !paymentAmount}
+                disabled={isSubmitting || !paymentAmount || !paymentType}
               >
                 {isSubmitting ? 'Recording...' : 'Record Payment'}
               </Button>

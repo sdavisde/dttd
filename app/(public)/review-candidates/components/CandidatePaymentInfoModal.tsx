@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink, CreditCard, Hash } from 'lucide-react'
+import { ExternalLink, CreditCard, Hash, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { HydratedCandidate } from '@/lib/candidates/types'
+import { getCandidateFee } from '@/services/payment/actions'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
+import { Results } from '@/lib/results'
+import { useQuery } from '@tanstack/react-query'
 
 type CandidatePaymentInfoModalProps = {
   open: boolean
@@ -23,6 +26,16 @@ export function CandidatePaymentInfoModal({
   onClose,
   candidate,
 }: CandidatePaymentInfoModalProps) {
+  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
+    queryKey: ['candidateFee'],
+    queryFn: async () => {
+      const result = await getCandidateFee()
+      const price = Results.toNullable(result)
+      return price?.unit_amount ? price.unit_amount / 100 : null
+    },
+    staleTime: Infinity,
+  })
+
   if (!candidate) {
     return null
   }
@@ -48,8 +61,17 @@ export function CandidatePaymentInfoModal({
     (sum, payment) => sum + (payment.payment_amount ?? 0),
     0
   )
-  const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
-  const remainingBalance = totalFee - totalPaid
+
+  // Check if there are any manual payments to determine if discount applies
+  const hasManualPayments = payments.some((p) =>
+    p.payment_intent_id?.startsWith('manual_')
+  )
+  const totalFee = stripePriceDollars
+    ? hasManualPayments
+      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
+      : stripePriceDollars
+    : null
+  const remainingBalance = totalFee !== null ? totalFee - totalPaid : null
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -93,24 +115,39 @@ export function CandidatePaymentInfoModal({
 
           {/* Payment Summary */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Total Candidate Fee:</span>
-              <span className="font-medium">${totalFee}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Total Paid:</span>
-              <span className="font-medium">${totalPaid}</span>
-            </div>
-            <div className="flex justify-between text-sm font-semibold border-t pt-2">
-              <span>Balance Remaining:</span>
-              <span
-                className={
-                  remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
-                }
-              >
-                ${remainingBalance}
-              </span>
-            </div>
+            {isLoadingPrice ? (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">
+                  Loading fee...
+                </span>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span>Total Candidate Fee:</span>
+                  <span className="font-medium">
+                    {totalFee !== null ? `$${totalFee}` : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Total Paid:</span>
+                  <span className="font-medium">${totalPaid}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold border-t pt-2">
+                  <span>Balance Remaining:</span>
+                  <span
+                    className={
+                      remainingBalance !== null && remainingBalance > 0
+                        ? 'text-amber-600'
+                        : 'text-green-600'
+                    }
+                  >
+                    {remainingBalance !== null ? `$${remainingBalance}` : '—'}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Payment History */}

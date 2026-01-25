@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DollarSign, Calendar, CreditCard, FileText } from 'lucide-react'
+import { DollarSign, CreditCard, FileText, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -21,10 +20,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { WeekendRosterMember, recordManualPayment } from '@/services/weekend'
+import { getTeamFee } from '@/services/payment/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { isOk } from '@/lib/results'
+import { isOk, Results } from '@/lib/results'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
+import { useQuery } from '@tanstack/react-query'
 
 type CashCheckPaymentModalProps = {
   open: boolean
@@ -38,10 +39,20 @@ export function CashCheckPaymentModal({
   rosterMember,
 }: CashCheckPaymentModalProps) {
   const [paymentAmount, setPaymentAmount] = useState('')
-  const [paymentType, setPaymentType] = useState<'cash' | 'check'>('cash')
+  const [paymentType, setPaymentType] = useState<'cash' | 'check' | null>(null)
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
+    queryKey: ['teamFee'],
+    queryFn: async () => {
+      const result = await getTeamFee()
+      const price = Results.toNullable(result)
+      return price?.unit_amount ? price.unit_amount / 100 : null
+    },
+    staleTime: Infinity,
+  })
 
   if (!rosterMember?.users) {
     return null
@@ -53,12 +64,16 @@ export function CashCheckPaymentModal({
       ? `${users.first_name} ${users.last_name}`
       : 'Unknown User'
 
-  const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
+  const totalFee =
+    paymentType && stripePriceDollars
+      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
+      : null
   const currentPaid = rosterMember.total_paid ?? 0
-  const remainingBalance = totalFee - currentPaid
+  const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!paymentType) return
     setIsSubmitting(true)
 
     try {
@@ -76,7 +91,7 @@ export function CashCheckPaymentModal({
 
         // Reset form and close modal
         setPaymentAmount('')
-        setPaymentType('cash')
+        setPaymentType(null)
         setNotes('')
         onClose()
 
@@ -96,7 +111,7 @@ export function CashCheckPaymentModal({
   const handleClose = () => {
     // Reset form when closing
     setPaymentAmount('')
-    setPaymentType('cash')
+    setPaymentType(null)
     setNotes('')
     onClose()
   }
@@ -118,58 +133,73 @@ export function CashCheckPaymentModal({
             <span className="ml-2 font-semibold">{memberName}</span>
           </div>
 
-          {/* Payment Summary */}
+          {/* Payment Type - moved above summary */}
+          <div className="space-y-2">
+            <Label htmlFor="payment-type">Payment Type</Label>
+            <Select
+              value={paymentType ?? ''}
+              onValueChange={(value: 'cash' | 'check') => setPaymentType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment type..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Cash
+                  </div>
+                </SelectItem>
+                <SelectItem value="check">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Check
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Payment Summary - conditional display */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Total Team Fee:</span>
-              <span className="font-medium">${totalFee}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span>Already Paid:</span>
-              <span className="font-medium">${currentPaid}</span>
-            </div>
-            <div className="flex justify-between text-sm font-semibold">
-              <span>Remaining Balance:</span>
-              <span
-                className={
-                  remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
-                }
-              >
-                ${remainingBalance}
-              </span>
-            </div>
+            {isLoadingPrice ? (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">
+                  Loading fee...
+                </span>
+              </div>
+            ) : !paymentType ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Select a payment method to see fee details
+              </p>
+            ) : (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span>Total Team Fee:</span>
+                  <span className="font-medium">${totalFee}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Already Paid:</span>
+                  <span className="font-medium">${currentPaid}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>Remaining Balance:</span>
+                  <span
+                    className={
+                      remainingBalance !== null && remainingBalance > 0
+                        ? 'text-amber-600'
+                        : 'text-green-600'
+                    }
+                  >
+                    ${remainingBalance}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Payment Type */}
-            <div className="space-y-2">
-              <Label htmlFor="payment-type">Payment Type</Label>
-              <Select
-                value={paymentType}
-                onValueChange={(value: 'cash' | 'check') =>
-                  setPaymentType(value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Cash
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="check">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Check
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Payment Amount */}
             <div className="space-y-2">
               <Label htmlFor="payment-amount">Payment Amount</Label>
@@ -179,20 +209,22 @@ export function CashCheckPaymentModal({
                   id="payment-amount"
                   type="number"
                   min="0"
-                  max={remainingBalance}
+                  max={remainingBalance ?? undefined}
                   step="0.01"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder="0.00"
                   className="pl-10"
                   required
+                  disabled={!paymentType}
                 />
               </div>
-              {parseFloat(paymentAmount) > remainingBalance && (
-                <p className="text-xs text-amber-600">
-                  Amount exceeds remaining balance
-                </p>
-              )}
+              {remainingBalance !== null &&
+                parseFloat(paymentAmount) > remainingBalance && (
+                  <p className="text-xs text-amber-600">
+                    Amount exceeds remaining balance
+                  </p>
+                )}
             </div>
 
             {/* Notes */}
@@ -210,6 +242,7 @@ export function CashCheckPaymentModal({
                     : 'Optional notes about the payment...'
                 }
                 rows={3}
+                disabled={!paymentType}
               />
             </div>
 
@@ -227,7 +260,7 @@ export function CashCheckPaymentModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isSubmitting || !paymentAmount}
+                disabled={isSubmitting || !paymentAmount || !paymentType}
               >
                 {isSubmitting ? 'Recording...' : 'Record Payment'}
               </Button>

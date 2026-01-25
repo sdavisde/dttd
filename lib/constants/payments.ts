@@ -30,6 +30,11 @@ export const PAYMENT_CONSTANTS = {
     PAID: 'paid',
     DROP: 'drop',
   } as const,
+
+  /**
+   * Discount applied to manual payments (cash/check) vs online payments
+   */
+  MANUAL_PAYMENT_DISCOUNT: 10,
 } as const
 
 export type PaymentMethod =
