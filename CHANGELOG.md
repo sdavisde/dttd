@@ -1,3 +1,14 @@
+## [1.8.0](https://github.com/sdavisde/dttd/compare/v1.7.3...v1.8.0) (2026-01-26)
+
+### Features
+
+- send pre-weekend couple an email when candidates complete forms or ([0be8500](https://github.com/sdavisde/dttd/commit/0be8500a7f656135c9a854e98067f10a6e216690))
+
+### Bug Fixes
+
+- update status colors to try and be more clear ([be910c7](https://github.com/sdavisde/dttd/commit/be910c70e658d3c0cb6045b1ed80e876caffcd5d))
+- update styles of candidate rows ([71e5afd](https://github.com/sdavisde/dttd/commit/71e5afd653caa7586854486d6c32a0aa3ee1a135))
+
 ## [1.7.3](https://github.com/sdavisde/dttd/compare/v1.7.2...v1.7.3) (2026-01-25)
 
 ### Bug Fixes
