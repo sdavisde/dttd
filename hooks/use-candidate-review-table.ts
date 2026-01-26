@@ -5,11 +5,11 @@ import { useTablePagination } from './use-table-pagination'
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 type SortDirection = 'asc' | 'desc'
 
-// Status order based on expected candidate journey
+// Status order based on desired action items
 const STATUS_ORDER: Record<CandidateStatus, number> = {
   sponsored: 0,
-  awaiting_forms: 1,
-  pending_approval: 2,
+  pending_approval: 1,
+  awaiting_forms: 2,
   awaiting_payment: 3,
   confirmed: 4,
   rejected: 5,

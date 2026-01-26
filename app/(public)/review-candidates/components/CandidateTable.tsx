@@ -28,6 +28,7 @@ import {
 import { StatusLegend } from './StatusLegend'
 import { useRouter } from 'next/navigation'
 import { CandidatePaymentInfo } from './CandidatePaymentInfo'
+import { CandidateStatus } from '@/services/candidates'
 
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 
@@ -143,87 +144,90 @@ export function CandidateTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {candidates.map((candidate, index) => (
-              <TableRow
-                key={candidate.id}
-                onClick={() => handleRowClick(candidate)}
-                className={cn(
-                  index % 2 === 0 ? 'bg-transparent' : 'bg-muted',
-                  'hover:bg-muted/50 cursor-pointer',
-                  candidate.status === 'rejected' &&
-                    showArchived &&
-                    'opacity-50 bg-muted/30'
-                )}
-              >
-                <TableCell>
-                  {candidate.candidate_sponsorship_info?.candidate_name}
-                </TableCell>
-                <TableCell>
-                  {candidate.candidate_sponsorship_info?.candidate_email}
-                </TableCell>
-                <TableCell>
-                  {candidate.candidate_sponsorship_info?.sponsor_name}
-                </TableCell>
-                {/*<TableCell>
-                  {candidate.weekends?.type === 'MENS' ? "Men's" : candidate.weekends?.type === 'WOMENS' ? "Women's" : 'Unassigned'}
-                </TableCell>*/}
-                <TableCell>
-                  {new Date(candidate.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <StatusChip status={candidate.status} />
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <CandidatePaymentInfo
-                    candidate={candidate}
-                    canEditPayments={canEditPayments}
-                  />
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleRowClick(candidate)}
-                        className="cursor-pointer"
-                      >
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onSendForms?.(candidate)}
-                        className="cursor-pointer"
-                      >
-                        Send Forms
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onSendPaymentRequest?.(candidate)}
-                        className="flex justify-between items-center cursor-pointer"
-                      >
-                        Request Payment
-                        {candidate.candidate_sponsorship_info?.payment_owner ===
-                          'sponsor' && (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            (sponsor)
-                          </span>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        variant="destructive"
-                        className="cursor-pointer"
-                        onClick={() => onReject?.(candidate)}
-                      >
-                        Reject
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+            {candidates.map((candidate, index) => {
+              const backgroundColor = getCandidateRowStyles(
+                candidate.status,
+                index
+              )
+              return (
+                <TableRow
+                  key={candidate.id}
+                  onClick={() => handleRowClick(candidate)}
+                  className={cn(
+                    backgroundColor,
+                    'cursor-pointer',
+                    candidate.status === 'rejected' &&
+                      showArchived &&
+                      'opacity-50 bg-muted/30'
+                  )}
+                >
+                  <TableCell>
+                    {candidate.candidate_sponsorship_info?.candidate_name}
+                  </TableCell>
+                  <TableCell>
+                    {candidate.candidate_sponsorship_info?.candidate_email}
+                  </TableCell>
+                  <TableCell>
+                    {candidate.candidate_sponsorship_info?.sponsor_name}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(candidate.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <StatusChip status={candidate.status} />
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <CandidatePaymentInfo
+                      candidate={candidate}
+                      canEditPayments={canEditPayments}
+                    />
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleRowClick(candidate)}
+                          className="cursor-pointer"
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onSendForms?.(candidate)}
+                          className="cursor-pointer"
+                        >
+                          Send Forms
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onSendPaymentRequest?.(candidate)}
+                          className="flex justify-between items-center cursor-pointer"
+                        >
+                          Request Payment
+                          {candidate.candidate_sponsorship_info
+                            ?.payment_owner === 'sponsor' && (
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              (sponsor)
+                            </span>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          variant="destructive"
+                          className="cursor-pointer"
+                          onClick={() => onReject?.(candidate)}
+                        >
+                          Reject
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </div>
@@ -291,4 +295,23 @@ export function CandidateTable({
       </div>
     </>
   )
+}
+
+function getCandidateRowStyles(
+  status: CandidateStatus,
+  candidateIndex: number
+) {
+  switch (status) {
+    // Requires action by pre-weekend couple
+    case 'sponsored':
+    case 'pending_approval':
+      return cn(
+        'hover:bg-warning/5',
+        candidateIndex % 2 === 0 ? 'bg-transparent' : 'bg-muted'
+      )
+    case 'confirmed':
+      return 'bg-success-40 hover:bg-success/5'
+    default:
+      return candidateIndex % 2 === 0 ? 'bg-transparent' : 'bg-muted'
+  }
 }
