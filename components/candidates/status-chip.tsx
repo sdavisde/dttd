@@ -13,9 +13,9 @@ export function StatusChip({ status }: StatusChipProps) {
       label: string
     }
   > = {
-    sponsored: { color: 'info', label: 'Sponsored' },
+    sponsored: { color: 'error', label: 'Sponsored' },
     awaiting_forms: { color: 'warning', label: 'Awaiting Forms' },
-    pending_approval: { color: 'secondary', label: 'Pending Approval' },
+    pending_approval: { color: 'error', label: 'Pending Approval' },
     awaiting_payment: { color: 'warning', label: 'Awaiting Payment' },
     confirmed: { color: 'success', label: 'Confirmed' },
     rejected: { color: 'error', label: 'Rejected' },
