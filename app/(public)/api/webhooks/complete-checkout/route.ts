@@ -7,6 +7,8 @@ import Stripe from 'stripe'
 import { Tables } from '@/database.types'
 import { getWeekendRosterRecord } from '@/services/weekend'
 import { notifyAssistantHeadForTeamPayment } from '@/actions/emails'
+import { notifyCandidatePaymentReceivedAdmin } from '@/services/notifications'
+import { isNil } from 'lodash'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -67,7 +69,15 @@ export async function POST(request: NextRequest) {
     // Check if this is a candidate payment
     switch (priceId) {
       case process.env.CANDIDATE_FEE_PRICE_ID:
-        const candidateId = session.metadata?.candidate_id ?? null
+        const candidateId = session.metadata?.candidateId ?? null
+        if (isNil(candidateId)) {
+          logger.error(`💢 Missing candidate ID in session`)
+          return NextResponse.json(
+            { error: 'Missing candidate ID' },
+            { status: 400 }
+          )
+        }
+
         logger.info(
           `Processing candidate payment for candidate: ${candidateId}`
         )
@@ -120,6 +130,27 @@ export async function POST(request: NextRequest) {
         }
 
         logger.info(`✅ Successfully confirmed candidate ${candidateId}`)
+
+        // Notify pre-weekend couple of payment (don't fail webhook if email fails)
+        const candidatePaymentAmount = session.amount_total
+          ? session.amount_total / 100
+          : 0
+        const notifyPreWeekendResult =
+          await notifyCandidatePaymentReceivedAdmin(
+            candidateId!,
+            candidatePaymentAmount,
+            'card'
+          )
+        if (isErr(notifyPreWeekendResult)) {
+          logger.error(
+            notifyPreWeekendResult,
+            `💢 Failed to notify pre-weekend couple of candidate payment`
+          )
+        } else {
+          logger.info(
+            `✅ Successfully notified pre-weekend couple of candidate payment`
+          )
+        }
         break
       case process.env.TEAM_FEE_PRICE_ID:
         const teamUserId = session.metadata?.user_id ?? null

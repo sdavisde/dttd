@@ -33,6 +33,9 @@ import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
 import { calculateAge } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
+import { Database } from '@/database.types'
+
+type CandidateInfo = Database['public']['Tables']['candidate_info']['Row']
 
 const formSchema = z.object({
   /** Personal Info */
@@ -73,38 +76,46 @@ type FormValues = z.infer<typeof formSchema>
 
 type CandidateFormsProps = {
   candidateId: string
+  initialData?: CandidateInfo
 }
 
-export function CandidateForms({ candidateId }: CandidateFormsProps) {
+export function CandidateForms({
+  candidateId,
+  initialData,
+}: CandidateFormsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [waiverOpen, setWaiverOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
   const form = useForm<FormValues>({
     defaultValues: {
-      addressLine1: '',
-      addressLine2: '',
-      city: '',
-      state: '',
-      zip: '',
-      phone: '',
-      firstName: '',
-      lastName: '',
-      email: '',
-      dateOfBirth: '',
-      shirtSize: '',
-      maritalStatus: undefined,
-      hasSpouseAttendedWeekend: false,
-      spouseWeekendLocation: '',
-      spouseName: '',
-      hasFriendsAttendingWeekend: false,
-      isChristian: false,
-      church: '',
-      memberOfClergy: false,
-      reasonForAttending: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      medicalConditions: '',
+      addressLine1: initialData?.address_line_1 ?? '',
+      addressLine2: initialData?.address_line_2 ?? '',
+      city: initialData?.city ?? '',
+      state: initialData?.state ?? '',
+      zip: initialData?.zip ?? '',
+      phone: initialData?.phone ?? '',
+      firstName: initialData?.first_name ?? '',
+      lastName: initialData?.last_name ?? '',
+      email: initialData?.email ?? '',
+      dateOfBirth: initialData?.date_of_birth ?? '',
+      shirtSize: initialData?.shirt_size ?? '',
+      maritalStatus:
+        (initialData?.marital_status as FormValues['maritalStatus']) ??
+        undefined,
+      hasSpouseAttendedWeekend:
+        initialData?.has_spouse_attended_weekend ?? false,
+      spouseWeekendLocation: initialData?.spouse_weekend_location ?? '',
+      spouseName: initialData?.spouse_name ?? '',
+      hasFriendsAttendingWeekend:
+        initialData?.has_friends_attending_weekend ?? false,
+      isChristian: initialData?.is_christian ?? false,
+      church: initialData?.church ?? '',
+      memberOfClergy: initialData?.member_of_clergy ?? false,
+      reasonForAttending: initialData?.reason_for_attending ?? '',
+      emergencyContactName: initialData?.emergency_contact_name ?? '',
+      emergencyContactPhone: initialData?.emergency_contact_phone ?? '',
+      medicalConditions: initialData?.medical_conditions ?? '',
       medicalPermission: false,
       emergencyContactPermission: false,
     },
@@ -240,10 +251,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Shirt Size</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select shirt size" />
@@ -270,10 +278,7 @@ export function CandidateForms({ candidateId }: CandidateFormsProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Marital Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select marital status" />

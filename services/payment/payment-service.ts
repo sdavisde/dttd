@@ -7,6 +7,20 @@ import * as PaymentRepository from './repository'
 import { RawTeamPayment } from './repository'
 import type Stripe from 'stripe'
 import { isNil } from 'lodash'
+import { PriceInfo } from './types'
+
+/**
+ * Converts a Stripe Price object to a plain PriceInfo object.
+ * This is necessary because Stripe objects have methods and cannot
+ * be serialized when passed from server to client components.
+ */
+function toPriceInfo(price: Stripe.Price): PriceInfo {
+  return {
+    id: price.id,
+    unitAmount: price.unit_amount,
+    currency: price.currency,
+  }
+}
 
 /**
  * Normalizes a raw team payment record into a PaymentRecord DTO.
@@ -86,14 +100,14 @@ export async function getAllPayments(): Promise<
 /**
  * Retrieves a Stripe price and wraps it in a Result type.
  * @param priceId - The Stripe price ID to retrieve
- * @returns Result containing the Stripe price or an error message
+ * @returns Result containing a plain PriceInfo object or an error message
  */
 export async function getPrice(
   priceId: string
-): Promise<Result<string, Stripe.Price>> {
+): Promise<Result<string, PriceInfo>> {
   try {
     const price = await retrievePrice(priceId)
-    return ok(price)
+    return ok(toPriceInfo(price))
   } catch {
     return err('Failed to retrieve price information')
   }
@@ -102,9 +116,9 @@ export async function getPrice(
 /**
  * Retrieves the team fee price from Stripe.
  * Uses the TEAM_FEE_PRICE_ID environment variable.
- * @returns Result containing the Stripe price or an error message
+ * @returns Result containing a plain PriceInfo object or an error message
  */
-export async function getTeamFee(): Promise<Result<string, Stripe.Price>> {
+export async function getTeamFee(): Promise<Result<string, PriceInfo>> {
   const priceId = process.env.TEAM_FEE_PRICE_ID
   if (isNil(priceId)) {
     return err('Team fee price ID is not configured')
@@ -115,9 +129,9 @@ export async function getTeamFee(): Promise<Result<string, Stripe.Price>> {
 /**
  * Retrieves the candidate fee price from Stripe.
  * Uses the CANDIDATE_FEE_PRICE_ID environment variable.
- * @returns Result containing the Stripe price or an error message
+ * @returns Result containing a plain PriceInfo object or an error message
  */
-export async function getCandidateFee(): Promise<Result<string, Stripe.Price>> {
+export async function getCandidateFee(): Promise<Result<string, PriceInfo>> {
   const priceId = process.env.CANDIDATE_FEE_PRICE_ID
   if (isNil(priceId)) {
     return err('Candidate fee price ID is not configured')

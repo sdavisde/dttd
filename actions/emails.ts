@@ -2,8 +2,10 @@
 
 import { CreateEmailResponseSuccess, Resend } from 'resend'
 import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotificationEmail'
+import CandidateFormsCompletedEmail from '@/components/email/CandidateFormsCompletedEmail'
 import { createClient } from '@/lib/supabase/server'
 import { Result, err, ok, isErr } from '@/lib/results'
+import { getPreWeekendCoupleEmail } from '@/services/notifications'
 import { logger } from '@/lib/logger'
 import { Tables } from '@/database.types'
 import CandidateFormsEmail from '@/components/email/CandidateFormsEmail'
@@ -18,8 +20,6 @@ export async function sendSponsorshipNotificationEmail(
   candidateId: string
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
-    const supabase = await createClient()
-
     // Fetch sponsorship request data
     const candidateResult = await getHydratedCandidate(candidateId)
 
@@ -33,22 +33,16 @@ export async function sendSponsorshipNotificationEmail(
       return err('Candidate not found')
     }
 
-    const { data: preweekendCouple, error: preweekendCoupleError } =
-      await supabase
-        .from('contact_information')
-        .select('*')
-        .eq('id', 'preweekend-couple')
-        .single()
-    if (preweekendCoupleError) {
-      return err(
-        `Failed to fetch preweekend couple: ${preweekendCoupleError.message}`
-      )
+    // Get pre-weekend couple email
+    const preWeekendEmailResult = await getPreWeekendCoupleEmail()
+    if (isErr(preWeekendEmailResult)) {
+      return err(preWeekendEmailResult.error)
     }
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-      to: [preweekendCouple.email_address ?? 'admin@dustytrailstresdias.org'],
+      to: [preWeekendEmailResult.data],
       subject: `New Sponsorship Request - ${candidate.candidate_sponsorship_info?.candidate_name}`,
       react: SponsorshipNotificationEmail(candidate),
     })
@@ -313,6 +307,65 @@ export async function notifyAssistantHeadForTeamPayment(
   } catch (error) {
     return err(
       `Error while sending team payment notification email: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
+}
+
+/**
+ * Notify pre-weekend couple when a candidate completes their forms
+ */
+export async function sendCandidateFormsCompletedEmail(
+  candidateId: string
+): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
+  try {
+    // Fetch candidate data
+    const candidateResult = await getHydratedCandidate(candidateId)
+
+    if (isErr(candidateResult)) {
+      return err(`Failed to fetch candidate: ${candidateResult.error}`)
+    }
+
+    const candidate = candidateResult.data
+
+    if (!candidate) {
+      return err('Candidate not found')
+    }
+
+    // Get pre-weekend couple email
+    const preWeekendEmailResult = await getPreWeekendCoupleEmail()
+    if (isErr(preWeekendEmailResult)) {
+      return err(preWeekendEmailResult.error)
+    }
+
+    const candidateName =
+      candidate.candidate_info?.first_name &&
+      candidate.candidate_info?.last_name
+        ? `${candidate.candidate_info.first_name} ${candidate.candidate_info.last_name}`
+        : (candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate')
+
+    // Send email using Resend
+    const { data, error } = await resend.emails.send({
+      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+      to: [preWeekendEmailResult.data],
+      subject: `Candidate Forms Completed - ${candidateName}`,
+      react: CandidateFormsCompletedEmail(candidate),
+    })
+
+    if (error) {
+      logger.error(
+        error,
+        `Failed to send candidate forms completed email for ${candidateName}`
+      )
+      return err(`Failed to send email: ${error.message}`)
+    }
+
+    logger.info(
+      `Candidate forms completed email sent successfully for ${candidateName}`
+    )
+    return ok({ data })
+  } catch (error) {
+    return err(
+      `Error while sending candidate forms completed email: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 }

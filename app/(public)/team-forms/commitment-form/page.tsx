@@ -32,7 +32,7 @@ export default async function CommitmentFormPage() {
   const userName = `${user.firstName} ${user.lastName}`.trim()
   const userRole = user.teamMemberInfo.cha_role ?? 'Team Member'
   const teamFee = await getTeamFee()
-  const teamFeeAmount = Results.unwrapOr(teamFee, null)?.unit_amount ?? null
+  const teamFeeAmount = Results.unwrapOr(teamFee, null)?.unitAmount ?? null
   const teamFeeDollars = isNil(teamFeeAmount) ? null : teamFeeAmount / 100
 
   return (

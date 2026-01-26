@@ -36,7 +36,10 @@ export default async function CandidateFormsPage({
         Please fill out the this form to complete your registration.
       </Typography>
 
-      <CandidateForms candidateId={candidateId} />
+      <CandidateForms
+        candidateId={candidateId}
+        initialData={candidate.candidate_info}
+      />
     </div>
   )
 }

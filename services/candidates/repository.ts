@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { fromSupabase, Result, err, ok } from '@/lib/results'
 import { Tables } from '@/database.types'
 import { isSupabaseError } from '@/lib/supabase/utils'
@@ -14,6 +14,20 @@ export const CandidateQuery = `
 
 export const getCandidateById = async (candidateId: string) => {
   const supabase = await createClient()
+  const response = await supabase
+    .from('candidates')
+    .select(CandidateQuery)
+    .eq('id', candidateId)
+    .single()
+  return fromSupabase(response)
+}
+
+/**
+ * Gets a candidate by ID using admin client.
+ * For use in webhook contexts where there is no user session.
+ */
+export const getCandidateByIdAdmin = async (candidateId: string) => {
+  const supabase = createAdminClient()
   const response = await supabase
     .from('candidates')
     .select(CandidateQuery)

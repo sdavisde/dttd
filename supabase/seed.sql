@@ -1668,6 +1668,14 @@ INSERT INTO public.candidate_info (
     'Mark Cooper', '555-500-0102', 'Postpartum anxiety (in treatment)', 'M', '2025-08-04');
 
 -- =============================================================================
+-- SECTION: Contact Information
+-- =============================================================================
+-- Contact information for key community roles (used for email notifications)
+
+INSERT INTO "public"."contact_information" ("id", "created_at", "label", "email_address") VALUES
+  ('preweekend-couple', '2025-06-21 02:48:07.983876+00', 'Pre-Weekend Couple', 'sdavisde@gmail.com');
+
+-- =============================================================================
 -- SECTION: Summary Documentation
 -- =============================================================================
 --

@@ -41,19 +41,6 @@ export default async function CandidateFeePaymentSuccessPage({
     return redirect('/')
   }
 
-  // If this is a candidate payment, update the candidate status
-  const supabase = await createClient()
-
-  // Update candidate status to confirmed
-  const { error: updateError } = await supabase
-    .from('candidates')
-    .update({ status: 'confirmed' })
-    .eq('id', metadata.candidateId)
-
-  if (updateError) {
-    logger.error(`Failed to update candidate status: ${updateError.message}`)
-  }
-
   return (
     <div className="container max-w-2xl mx-auto py-8">
       <Card>

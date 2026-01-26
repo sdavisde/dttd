@@ -49,7 +49,7 @@ export function CashCheckPaymentModal({
     queryFn: async () => {
       const result = await getTeamFee()
       const price = Results.toNullable(result)
-      return price?.unit_amount ? price.unit_amount / 100 : null
+      return price?.unitAmount ? price.unitAmount / 100 : null
     },
     staleTime: Infinity,
   })

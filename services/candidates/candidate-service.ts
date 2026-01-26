@@ -2,6 +2,7 @@ import 'server-only'
 
 import { isNil, sumBy } from 'lodash'
 import { err, isErr, ok, Result, unwrapOr } from '@/lib/results'
+import { notifyCandidatePaymentReceived } from '@/services/notifications'
 import * as CandidateRepository from './repository'
 import {
   Candidate,
@@ -176,6 +177,18 @@ export async function recordManualCandidatePayment(
   logger.info(
     `Manual candidate payment recorded: ${paymentMethod} payment of $${paymentAmount} for candidate ID ${candidateId}`
   )
+
+  // Notify pre-weekend couple of payment (don't fail if email fails)
+  const emailResult = await notifyCandidatePaymentReceived(
+    candidateId,
+    paymentAmount,
+    paymentMethod
+  )
+  if (isErr(emailResult)) {
+    logger.error(
+      `Failed to send payment notification email for candidate ${candidateId}: ${emailResult.error}`
+    )
+  }
 
   return ok(result.data)
 }

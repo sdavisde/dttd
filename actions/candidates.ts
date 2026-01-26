@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok } from '@/lib/results'
+import { Result, err, ok, isErr } from '@/lib/results'
 import { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
 import {
   CandidateStatus,
@@ -11,6 +11,8 @@ import {
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import { Database } from '@/database.types'
+import { sendCandidateFormsCompletedEmail } from './emails'
+import { logger } from '@/lib/logger'
 
 type CandidateSponsorshipInfoUpdate =
   Database['public']['Tables']['candidate_sponsorship_info']['Update']
@@ -274,6 +276,14 @@ export async function addCandidateInfo(
 
     if (statusError) {
       return err(`Failed to update candidate status: ${statusError.message}`)
+    }
+
+    // Send email notification to pre-weekend couple (don't fail if email fails)
+    const emailResult = await sendCandidateFormsCompletedEmail(candidateId)
+    if (isErr(emailResult)) {
+      logger.error(
+        `Failed to send forms completed email for candidate ${candidateId}: ${emailResult.error}`
+      )
     }
 
     return ok(true)
