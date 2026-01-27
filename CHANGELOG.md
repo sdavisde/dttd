@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/sdavisde/dttd/compare/v1.8.0...v1.9.0) (2026-01-27)
+
+### Features
+
+- add prayer wheel links to the admin settings page ([863776f](https://github.com/sdavisde/dttd/commit/863776fc50ee25fab4ecd288961bc7d074528ded))
+
 ## [1.8.0](https://github.com/sdavisde/dttd/compare/v1.7.3...v1.8.0) (2026-01-26)
 
 ### Features
