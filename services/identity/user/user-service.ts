@@ -44,7 +44,7 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
     id: rawUser.id,
     firstName: rawUser.first_name,
     lastName: rawUser.last_name,
-    gender: rawUser.gender,
+    gender: rawUser.gender?.toLowerCase() ?? null,
     email: rawUser.email,
     phoneNumber: rawUser.phone_number,
     address,

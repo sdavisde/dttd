@@ -89,4 +89,7 @@ export enum Permission {
 
   // Community
   WRITE_COMMUNITY_ENCOURAGEMENT = 'WRITE_COMMUNITY_ENCOURAGEMENT',
+
+  // Settings
+  WRITE_SETTINGS = 'WRITE_SETTINGS',
 }

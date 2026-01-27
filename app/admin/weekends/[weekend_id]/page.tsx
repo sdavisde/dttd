@@ -4,7 +4,6 @@ import {
   getAllUsers,
 } from '@/services/weekend'
 import { isErr } from '@/lib/results'
-import { genderMatchesWeekend } from '@/lib/weekend'
 import { WeekendStatus } from '@/lib/weekend/types'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'

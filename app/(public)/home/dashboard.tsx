@@ -10,9 +10,10 @@ import { CommunityEncouragement } from '@/components/community-encouragement/Com
 
 interface DashboardProps {
   user: User
+  prayerWheelUrl: string | null
 }
 
-export function Dashboard({ user }: DashboardProps) {
+export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
   return (
     <div className="my-4">
       <div className="flex flex-col gap-2">
@@ -72,18 +73,16 @@ export function Dashboard({ user }: DashboardProps) {
             <UserPlus className="w-10 h-10" />
             <span className="text-lg font-semibold">Sponsor a Candidate</span>
           </Button>
-          <Button
-            variant="outline"
-            className="w-full h-52 flex flex-col items-center justify-center gap-2"
-            href={
-              user.gender === 'male'
-                ? 'https://www.signupgenius.com/go/10C0E4FACAF22A5FDC34-57382252-womens#/'
-                : 'https://www.signupgenius.com/go/10C084FA4AC2CA2FEC43-57390609-mens'
-            }
-          >
-            <File className="w-10 h-10" />
-            <span className="text-lg font-semibold">Prayer Wheel Signup</span>
-          </Button>
+          {prayerWheelUrl && (
+            <Button
+              variant="outline"
+              className="w-full h-52 flex flex-col items-center justify-center gap-2"
+              href={prayerWheelUrl}
+            >
+              <File className="w-10 h-10" />
+              <span className="text-lg font-semibold">Prayer Wheel Signup</span>
+            </Button>
+          )}
           <Button
             href="/job-description"
             variant="outline"
