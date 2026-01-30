@@ -30,17 +30,13 @@ export {
 export type { WeekendRosterMember, WeekendSidebarPayload } from './types'
 
 // Re-export commonly used types from lib/weekend/types
-export {
-  WeekendType,
-  WeekendStatus,
-} from '@/lib/weekend/types'
+export { WeekendType, WeekendStatus } from '@/lib/weekend/types'
 
 export type {
   Weekend,
   WeekendGroup,
   WeekendGroupWithId,
   WeekendStatusValue,
-  WeekendWithGroup,
   WeekendWriteInput,
   WeekendUpdateInput,
   CreateWeekendGroupInput,
