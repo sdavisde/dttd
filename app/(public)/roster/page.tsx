@@ -20,8 +20,8 @@ import {
   ExperienceDistribution,
 } from '@/services/master-roster'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CHARole, Weekend, WeekendType } from '@/lib/weekend/types'
-import { Permission, userHasCHARole, userHasPermission } from '@/lib/security'
+import { CHARole, Weekend } from '@/lib/weekend/types'
+import { Permission, userHasPermission } from '@/lib/security'
 import { formatDateOnly } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -33,46 +33,19 @@ export default async function RosterPage() {
     redirect('/login')
   }
   const user = userResult.data
-  const canViewPaymentInfo =
-    // userHasPermission(user, [Permission.READ_PAYMENTS]) ||
-    userHasCHARole(user, [
-      CHARole.RECTOR,
-      CHARole.BACKUP_RECTOR,
-      CHARole.HEAD,
-      CHARole.ASSISTANT_HEAD,
-      CHARole.ROSTER,
-      CHARole.TECH,
-    ])
+  const canViewPaymentInfo = userHasPermission(user, [
+    Permission.READ_TEAM_PAYMENTS,
+  ])
 
-  const canEditRoster =
-    userHasPermission(user, [Permission.WRITE_TEAM_ROSTER]) ||
-    userHasCHARole(user, [
-      CHARole.RECTOR,
-      CHARole.BACKUP_RECTOR,
-      CHARole.HEAD,
-      CHARole.ASSISTANT_HEAD,
-      CHARole.ROSTER,
-    ])
+  const canEditRoster = userHasPermission(user, [Permission.WRITE_TEAM_ROSTER])
 
-  const canViewDroppedMembers =
-    userHasPermission(user, [Permission.WRITE_TEAM_ROSTER]) ||
-    userHasCHARole(user, [
-      CHARole.RECTOR,
-      CHARole.BACKUP_RECTOR,
-      CHARole.HEAD,
-      CHARole.ASSISTANT_HEAD,
-      CHARole.ROSTER,
-    ])
+  const canViewDroppedMembers = userHasPermission(user, [
+    Permission.READ_DROPPED_ROSTER,
+  ])
 
-  const canViewExperienceDistribution =
-    userHasPermission(user, [Permission.READ_USER_EXPERIENCE]) ||
-    userHasCHARole(user, [
-      CHARole.RECTOR,
-      CHARole.BACKUP_RECTOR,
-      CHARole.HEAD,
-      CHARole.ASSISTANT_HEAD,
-      CHARole.ROSTER,
-    ])
+  const canViewExperienceDistribution = userHasPermission(user, [
+    Permission.READ_USER_EXPERIENCE,
+  ])
 
   // Get active weekends
   const activeWeekendsResult = await getActiveWeekends()

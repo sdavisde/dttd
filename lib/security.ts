@@ -35,13 +35,6 @@ export function userHasPermission(
   return requiredPermissions.intersection(user.permissions).size > 0
 }
 
-export function userHasCHARole(user: User, chaRoles: Array<CHARole>): boolean {
-  if (isNil(user.teamMemberInfo?.cha_role)) {
-    return false
-  }
-  return chaRoles.includes(user.teamMemberInfo.cha_role as CHARole)
-}
-
 export function canImpersonate(user: User | null): boolean {
   if (isNil(user)) return false
   return (
@@ -69,6 +62,9 @@ export enum Permission {
   READ_DROPPED_ROSTER = 'READ_DROPPED_ROSTER',
   // READ_TEAM_ROSTER = 'READ_TEAM_ROSTER', everyone should be able to read team rosters
   WRITE_TEAM_ROSTER = 'WRITE_TEAM_ROSTER',
+  READ_TEAM_PAYMENTS = 'READ_TEAM_PAYMENTS',
+  WRITE_TEAM_PAYMENTS = 'WRITE_TEAM_PAYMENTS',
+
   READ_WEEKENDS = 'READ_WEEKENDS',
   WRITE_WEEKENDS = 'WRITE_WEEKENDS',
 
@@ -92,4 +88,85 @@ export enum Permission {
 
   // Settings
   WRITE_SETTINGS = 'WRITE_SETTINGS',
+}
+
+/**
+ * Maps CHA roles to the permissions they implicitly grant during an active weekend.
+ * Leadership roles (Rector, Head, etc.) get broad roster management permissions,
+ * while support roles (Tech) get limited permissions relevant to their function.
+ */
+const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
+  [CHARole.RECTOR]: [
+    Permission.READ_TEAM_PAYMENTS,
+    Permission.WRITE_TEAM_ROSTER,
+    Permission.READ_DROPPED_ROSTER,
+    Permission.READ_USER_EXPERIENCE,
+  ],
+  [CHARole.BACKUP_RECTOR]: [
+    Permission.READ_TEAM_PAYMENTS,
+    Permission.WRITE_TEAM_ROSTER,
+    Permission.READ_DROPPED_ROSTER,
+    Permission.READ_USER_EXPERIENCE,
+  ],
+  [CHARole.HEAD]: [
+    Permission.READ_TEAM_PAYMENTS,
+    Permission.WRITE_TEAM_ROSTER,
+    Permission.READ_DROPPED_ROSTER,
+    Permission.READ_USER_EXPERIENCE,
+  ],
+  [CHARole.ASSISTANT_HEAD]: [
+    Permission.READ_TEAM_PAYMENTS,
+    Permission.WRITE_TEAM_ROSTER,
+    Permission.READ_DROPPED_ROSTER,
+    Permission.READ_USER_EXPERIENCE,
+  ],
+  [CHARole.ROSTER]: [
+    Permission.READ_TEAM_PAYMENTS,
+    Permission.WRITE_TEAM_ROSTER,
+    Permission.READ_DROPPED_ROSTER,
+    Permission.READ_USER_EXPERIENCE,
+  ],
+  [CHARole.TECH]: [],
+  [CHARole.HEAD_ROLLISTA]: [],
+  [CHARole.TABLE_LEADER]: [],
+  [CHARole.HEAD_TECH]: [],
+  [CHARole.HEAD_CHAPEL_TECH]: [],
+  [CHARole.HEAD_SPIRITUAL_DIRECTOR]: [],
+  [CHARole.SPIRITUAL_DIRECTOR]: [],
+  [CHARole.SPIRITUAL_DIRECTOR_TRAINEE]: [],
+  [CHARole.HEAD_PRAYER]: [],
+  [CHARole.PRAYER]: [],
+  [CHARole.HEAD_CHAPEL]: [],
+  [CHARole.CHAPEL]: [],
+  [CHARole.HEAD_MUSIC]: [],
+  [CHARole.MUSIC]: [],
+  [CHARole.HEAD_PALANCA]: [],
+  [CHARole.PALANCA]: [],
+  [CHARole.HEAD_TABLE]: [],
+  [CHARole.TABLE]: [],
+  [CHARole.HEAD_DORM]: [],
+  [CHARole.DORM]: [],
+  [CHARole.HEAD_DINING]: [],
+  [CHARole.DINING]: [],
+  [CHARole.HEAD_MOBILE]: [],
+  [CHARole.MOBILE]: [],
+  [CHARole.ESCORT]: [],
+  [CHARole.FLOATER]: [],
+  [CHARole.MEAT]: [],
+  [CHARole.GOPHER]: [],
+  [CHARole.MEDIC]: [],
+  [CHARole.SMOKER]: [],
+  [CHARole.ROVER]: [],
+} as const
+
+/**
+ * Returns the permissions granted by a CHA role.
+ */
+export function getPermissionsForCHARole(
+  chaRole: CHARole | null | undefined
+): readonly Permission[] {
+  if (isNil(chaRole)) {
+    return []
+  }
+  return CHA_ROLE_PERMISSIONS[chaRole] ?? []
 }

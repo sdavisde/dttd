@@ -1,14 +1,15 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import { isNil } from 'lodash'
+import { isNil, union } from 'lodash'
 import { err, isErr, ok, Result, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
 import { User, UserRoleInfo } from '@/lib/users/types'
-import { WeekendStatus } from '@/lib/weekend/types'
+import { CHARole, WeekendStatus } from '@/lib/weekend/types'
 import { Address, addressSchema } from '@/lib/users/validation'
 import { BasicInfo } from '@/components/team-forms/schemas'
 import { RawUser } from './types'
+import { getPermissionsForCHARole } from '@/lib/security'
 
 function normalizeUser(rawUser: RawUser): Result<string, User> {
   if (isNil(rawUser)) {
@@ -26,9 +27,6 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       permissions: roles.permissions ?? [],
     })) ?? []
 
-  const allPermissions = roles.flatMap((role) => role.permissions)
-  const permissions = new Set(allPermissions)
-
   const teamMemberInfo =
     rawUser.weekend_roster?.find((member: any) => {
       if (isNil(member.weekends)) {
@@ -36,6 +34,13 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       }
       return member.weekends.status === WeekendStatus.ACTIVE
     }) ?? null
+
+  const rolePermissions = roles.flatMap((role) => role.permissions)
+  const chaRolePermissions = getPermissionsForCHARole(
+    teamMemberInfo?.cha_role as CHARole | null
+  )
+  const allPermissions = union(rolePermissions, chaRolePermissions)
+  const permissions = new Set(allPermissions)
 
   const address =
     unwrapOr(addressSchema.safeParse(rawUser.address), null) ?? null
