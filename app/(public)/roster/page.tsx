@@ -20,9 +20,12 @@ import {
   ExperienceDistribution,
 } from '@/services/master-roster'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CHARole, Weekend } from '@/lib/weekend/types'
+import { CHARole, Weekend, WeekendType } from '@/lib/weekend/types'
 import { Permission, userHasCHARole, userHasPermission } from '@/lib/security'
 import { formatDateOnly } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { Users } from 'lucide-react'
 
 export default async function RosterPage() {
   const userResult = await getLoggedInUser()
@@ -173,6 +176,16 @@ export default async function RosterPage() {
                 <span>-</span>
                 <Datetime dateTime={endDate} />
               </Typography>
+              {weekend.groupId && (
+                <Button asChild variant="outline" size="sm" className="mt-3">
+                  <Link
+                    href={`/candidate-list?weekend=${weekend.groupId}&weekendType=${weekend.type}`}
+                  >
+                    <Users className="h-4 w-4" />
+                    Candidates
+                  </Link>
+                </Button>
+              )}
             </div>
 
             {/* Right side: Experience chart */}
@@ -246,6 +259,21 @@ export default async function RosterPage() {
                       <span>-</span>
                       <Datetime dateTime={endDate} />
                     </Typography>
+                    {weekend.groupId && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="mt-3"
+                      >
+                        <Link
+                          href={`/candidate-list?weekend=${weekend.groupId}&weekendType=${weekend.type}`}
+                        >
+                          <Users className="h-4 w-4" />
+                          Candidates
+                        </Link>
+                      </Button>
+                    )}
                   </div>
 
                   {/* Right side: Experience chart */}
