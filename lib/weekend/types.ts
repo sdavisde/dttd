@@ -1,3 +1,5 @@
+import { Tables } from '@/database.types'
+
 export type TeamMemberInfo = {
   id: string
   cha_role: string | null
@@ -13,6 +15,7 @@ export type Weekend = {
   status: WeekendStatusValue | null
   title: string | null
   type: WeekendType
+  groupId: string | null
 }
 
 export const WeekendType = {
@@ -30,13 +33,9 @@ export enum WeekendStatus {
 
 export type WeekendStatusValue = `${WeekendStatus}`
 
-export type WeekendWithGroup = Weekend & { group_id: string | null }
+export type RawWeekendRecord = Tables<'weekends'>
 
-export type RawWeekendRecord = Weekend & {
-  group_id?: string | null
-}
-
-export type WeekendGroup = Record<WeekendType, Weekend | null>
+export type WeekendGroup = Record<WeekendType, Weekend>
 
 export type WeekendGroupWithId = {
   groupId: string

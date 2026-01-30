@@ -2,7 +2,7 @@ import 'server-only'
 
 import { randomUUID } from 'crypto'
 import { isEmpty, isNil, sumBy } from 'lodash'
-import { Result, err, ok, isErr } from '@/lib/results'
+import { Result, err, ok, isErr, map, unwrap } from '@/lib/results'
 import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
 import { logger } from '@/lib/logger'
 import { Tables } from '@/database.types'
@@ -11,7 +11,6 @@ import {
   WeekendType,
   WeekendStatus,
   WeekendStatusValue,
-  WeekendWithGroup,
   RawWeekendRecord,
   WeekendGroup,
   WeekendGroupWithId,
@@ -34,22 +33,43 @@ import * as WeekendRepository from './repository'
 /**
  * Transforms an array of weekends into a grouped object by type.
  */
-function toWeekendGroup(weekends: WeekendWithGroup[]): WeekendGroup {
-  return {
-    MENS: weekends.find((weekend) => weekend.type === WeekendType.MENS) ?? null,
-    WOMENS:
-      weekends.find((weekend) => weekend.type === WeekendType.WOMENS) ?? null,
+function toWeekendGroup(weekends: Weekend[]): Result<string, WeekendGroup> {
+  const mensWeekend = weekends.find(
+    (weekend) => weekend.type === WeekendType.MENS
+  )
+  const womensWeekend = weekends.find(
+    (weekend) => weekend.type === WeekendType.WOMENS
+  )
+
+  if (isNil(mensWeekend) || isNil(womensWeekend)) {
+    return err('No active weekends found')
   }
+
+  return ok({
+    MENS: mensWeekend,
+    WOMENS: womensWeekend,
+  })
 }
 
 /**
- * Maps a raw weekend record to a typed weekend with group.
+ * Maps a raw weekend record to a typed weekend.
  */
-function toWeekendWithGroup(weekend: RawWeekendRecord): WeekendWithGroup {
+function normalizeWeekend(weekend: RawWeekendRecord): Weekend {
   return {
     ...weekend,
-    group_id: weekend.group_id ?? null,
+    status: (weekend.status as WeekendStatus) ?? null,
+    groupId: weekend.group_id ?? null,
   }
+}
+
+function normalizeWeekendGroupWithId(
+  weekends: Array<Weekend>,
+  groupId: string
+): Result<string, WeekendGroupWithId> {
+  return map(toWeekendGroup(weekends), (weekendGroup) => ({
+    groupId,
+    weekends: weekendGroup,
+  }))
 }
 
 /**
@@ -169,7 +189,7 @@ function filterMedicalConditions(
  * Fetches active weekends grouped by type.
  */
 export async function getActiveWeekends(): Promise<
-  Result<string, Record<WeekendType, Weekend | null>>
+  Result<string, Record<WeekendType, Weekend>>
 > {
   const result = await WeekendRepository.findActiveWeekends()
 
@@ -179,21 +199,11 @@ export async function getActiveWeekends(): Promise<
 
   const data = result.data
   if (isEmpty(data)) {
-    return ok({
-      MENS: null,
-      WOMENS: null,
-    })
+    return err('No active weekends found')
   }
 
-  return ok({
-    MENS:
-      (data.find((weekend) => weekend.type === WeekendType.MENS) as Weekend) ??
-      null,
-    WOMENS:
-      (data.find(
-        (weekend) => weekend.type === WeekendType.WOMENS
-      ) as Weekend) ?? null,
-  })
+  const normalizedGroups = data.map(normalizeWeekend)
+  return toWeekendGroup(normalizedGroups)
 }
 
 /**
@@ -217,8 +227,8 @@ export async function getWeekendGroup(
     return err(`Weekend group ${groupId} not found`)
   }
 
-  const typedWeekends = data.map(toWeekendWithGroup)
-  return ok({ groupId, weekends: toWeekendGroup(typedWeekends) })
+  const typedWeekends = data.map(normalizeWeekend)
+  return normalizeWeekendGroupWithId(typedWeekends, groupId)
 }
 
 /**
@@ -239,39 +249,43 @@ export async function getWeekendGroupsByStatus(
   }
 
   // Group weekends by group_id
-  const groups = new Map<string, WeekendWithGroup[]>()
+  const groups = new Map<string, Weekend[]>()
 
   for (const rawWeekend of data) {
-    const weekend = toWeekendWithGroup(rawWeekend)
+    const weekend = normalizeWeekend(rawWeekend)
 
-    if (isNil(weekend.group_id)) {
+    if (isNil(weekend.groupId)) {
       continue
     }
 
-    const existing = groups.get(weekend.group_id) ?? []
+    const existing = groups.get(weekend.groupId) ?? []
     existing.push(weekend)
-    groups.set(weekend.group_id, existing)
+    groups.set(weekend.groupId, existing)
   }
 
   // Transform and sort by weekend number
-  const grouped: WeekendGroupWithId[] = Array.from(groups.entries())
-    .map(([groupId, weekends]) => ({
-      groupId,
-      weekends: toWeekendGroup(weekends),
-    }))
-    .sort((a, b) => {
-      const aNumber =
-        a.weekends.MENS?.number ??
-        a.weekends.WOMENS?.number ??
-        Number.MAX_SAFE_INTEGER
-      const bNumber =
-        b.weekends.MENS?.number ??
-        b.weekends.WOMENS?.number ??
-        Number.MAX_SAFE_INTEGER
-      return aNumber - bNumber
-    })
+  const groupedWeekendResults = Array.from(groups.entries()).map(
+    ([groupId, weekends]) => normalizeWeekendGroupWithId(weekends, groupId)
+  )
 
-  return ok(grouped)
+  if (groupedWeekendResults.some(isErr)) {
+    return err('Failed to transform weekend groups')
+  }
+
+  const groupedWeekends = groupedWeekendResults.map(unwrap)
+  const sortedAndGroupedWeekends = groupedWeekends.sort((a, b) => {
+    const aNumber =
+      a.weekends.MENS?.number ??
+      a.weekends.WOMENS?.number ??
+      Number.MAX_SAFE_INTEGER
+    const bNumber =
+      b.weekends.MENS?.number ??
+      b.weekends.WOMENS?.number ??
+      Number.MAX_SAFE_INTEGER
+    return aNumber - bNumber
+  })
+
+  return ok(sortedAndGroupedWeekends)
 }
 
 /**
@@ -349,10 +363,7 @@ export async function createWeekendGroup(
     return err('Failed to create weekend group')
   }
 
-  return ok({
-    groupId: input.groupId,
-    weekends: toWeekendGroup(data.map(toWeekendWithGroup)),
-  })
+  return normalizeWeekendGroupWithId(data.map(normalizeWeekend), input.groupId)
 }
 
 /**
@@ -374,7 +385,7 @@ export async function updateWeekendGroup(
   const applyUpdate = async (
     type: WeekendType,
     payload?: WeekendUpdateInput
-  ): Promise<Result<string, WeekendWithGroup | null>> => {
+  ): Promise<Result<string, Weekend | null>> => {
     if (isNil(payload)) {
       return ok(null)
     }
@@ -397,7 +408,7 @@ export async function updateWeekendGroup(
       return err(`Failed to update ${type} weekend`)
     }
 
-    return ok(toWeekendWithGroup(result.data))
+    return ok(normalizeWeekend(result.data))
   }
 
   const mensResult = await applyUpdate(WeekendType.MENS, updates.mens)

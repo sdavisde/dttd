@@ -63,7 +63,7 @@ export async function findActiveWeekends(): Promise<
     return err(error.message)
   }
 
-  return ok((data ?? []) as RawWeekendRecord[])
+  return ok(data ?? [])
 }
 
 /**
