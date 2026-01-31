@@ -68,7 +68,93 @@ export function ExperienceDistributionChart({
   ]
 
   if (isNil(distribution.total) || distribution.total === 0) {
-    return null
+    // Empty state data - single gray segment for placeholder donut
+    const emptyData = [{ level: 'empty', count: 1, fill: 'var(--muted)' }]
+
+    return (
+      <>
+        {/* Mobile: Compact empty state */}
+        <div className="md:hidden">
+          <span className="text-sm text-muted-foreground">
+            No team members yet
+          </span>
+        </div>
+
+        {/* Desktop: Empty state chart */}
+        <Card className="hidden md:block">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Experience Distribution</CardTitle>
+            <CardDescription>No team members yet</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-row items-center gap-4">
+              {/* Empty Pie Chart */}
+              <ChartContainer
+                config={chartConfig}
+                className="h-[200px] w-[200px]"
+              >
+                <PieChart>
+                  <Pie
+                    data={emptyData}
+                    dataKey="count"
+                    nameKey="level"
+                    innerRadius={50}
+                    outerRadius={80}
+                    strokeWidth={0}
+                  >
+                    <Cell fill="var(--border)" />
+                    <Label
+                      content={({ viewBox }) => {
+                        if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                          return (
+                            <text
+                              x={viewBox.cx}
+                              y={viewBox.cy}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                            >
+                              <tspan
+                                x={viewBox.cx}
+                                y={viewBox.cy}
+                                className="fill-muted-foreground text-2xl font-bold"
+                              >
+                                0
+                              </tspan>
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy ?? 0) + 20}
+                                className="fill-muted-foreground text-xs"
+                              >
+                                members
+                              </tspan>
+                            </text>
+                          )
+                        }
+                      }}
+                    />
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+
+              {/* Muted Legend */}
+              <div className="flex flex-col gap-2">
+                {['Level 1', 'Level 2', 'Level 3'].map((label, index) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <div className="h-3 w-3 rounded-sm shrink-0 bg-muted" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium w-14 text-muted-foreground">
+                        {label}
+                      </span>
+                      <span className="text-sm text-muted-foreground">—</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </>
+    )
   }
 
   return (
