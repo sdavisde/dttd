@@ -20,7 +20,7 @@ import {
   ExperienceDistribution,
 } from '@/services/master-roster'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CHARole, Weekend } from '@/lib/weekend/types'
+import { Weekend } from '@/lib/weekend/types'
 import { Permission, userHasPermission } from '@/lib/security'
 import { formatDateOnly } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -34,7 +34,7 @@ export default async function RosterPage() {
   }
   const user = userResult.data
   const canViewPaymentInfo = userHasPermission(user, [
-    Permission.READ_TEAM_PAYMENTS,
+    Permission.READ_WRITE_TEAM_PAYMENTS,
   ])
 
   const canEditRoster = userHasPermission(user, [Permission.WRITE_TEAM_ROSTER])

@@ -62,8 +62,7 @@ export enum Permission {
   READ_DROPPED_ROSTER = 'READ_DROPPED_ROSTER',
   // READ_TEAM_ROSTER = 'READ_TEAM_ROSTER', everyone should be able to read team rosters
   WRITE_TEAM_ROSTER = 'WRITE_TEAM_ROSTER',
-  READ_TEAM_PAYMENTS = 'READ_TEAM_PAYMENTS',
-  WRITE_TEAM_PAYMENTS = 'WRITE_TEAM_PAYMENTS',
+  READ_WRITE_TEAM_PAYMENTS = 'READ_WRITE_TEAM_PAYMENTS',
 
   READ_WEEKENDS = 'READ_WEEKENDS',
   WRITE_WEEKENDS = 'WRITE_WEEKENDS',
@@ -97,31 +96,31 @@ export enum Permission {
  */
 const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
   [CHARole.RECTOR]: [
-    Permission.READ_TEAM_PAYMENTS,
+    Permission.READ_WRITE_TEAM_PAYMENTS,
     Permission.WRITE_TEAM_ROSTER,
     Permission.READ_DROPPED_ROSTER,
     Permission.READ_USER_EXPERIENCE,
   ],
   [CHARole.BACKUP_RECTOR]: [
-    Permission.READ_TEAM_PAYMENTS,
+    Permission.READ_WRITE_TEAM_PAYMENTS,
     Permission.WRITE_TEAM_ROSTER,
     Permission.READ_DROPPED_ROSTER,
     Permission.READ_USER_EXPERIENCE,
   ],
   [CHARole.HEAD]: [
-    Permission.READ_TEAM_PAYMENTS,
+    Permission.READ_WRITE_TEAM_PAYMENTS,
     Permission.WRITE_TEAM_ROSTER,
     Permission.READ_DROPPED_ROSTER,
     Permission.READ_USER_EXPERIENCE,
   ],
   [CHARole.ASSISTANT_HEAD]: [
-    Permission.READ_TEAM_PAYMENTS,
+    Permission.READ_WRITE_TEAM_PAYMENTS,
     Permission.WRITE_TEAM_ROSTER,
     Permission.READ_DROPPED_ROSTER,
     Permission.READ_USER_EXPERIENCE,
   ],
   [CHARole.ROSTER]: [
-    Permission.READ_TEAM_PAYMENTS,
+    Permission.READ_WRITE_TEAM_PAYMENTS,
     Permission.WRITE_TEAM_ROSTER,
     Permission.READ_DROPPED_ROSTER,
     Permission.READ_USER_EXPERIENCE,
