@@ -16,6 +16,7 @@ export {
   getWeekendRosterRecord,
   recordManualPayment,
   getWeekendOptions,
+  getWeekendRosterViewData,
   // Protected actions (auth required)
   getWeekendGroupsByStatus,
   setActiveWeekendGroup,
@@ -28,6 +29,7 @@ export {
 
 // Service types
 export type { WeekendRosterMember, WeekendSidebarPayload } from './types'
+export type { WeekendRosterViewData } from './actions'
 
 // Re-export commonly used types from lib/weekend/types
 export { WeekendType, WeekendStatus } from '@/lib/weekend/types'

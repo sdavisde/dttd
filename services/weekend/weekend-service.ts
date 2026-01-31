@@ -2,7 +2,11 @@ import 'server-only'
 
 import { randomUUID } from 'crypto'
 import { isEmpty, isNil, sumBy } from 'lodash'
-import { Result, err, ok, isErr, map, unwrap } from '@/lib/results'
+import { Result, err, ok, isErr, map, unwrap, unwrapOr } from '@/lib/results'
+import { Permission, userHasPermission } from '@/lib/security'
+import { User } from '@/lib/users/types'
+import { getWeekendRosterExperienceDistribution } from '@/services/master-roster/master-roster-service'
+import { ExperienceDistribution } from '@/services/master-roster/types'
 import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
 import { logger } from '@/lib/logger'
 import { Tables } from '@/database.types'
@@ -661,4 +665,69 @@ export async function getWeekendOptions(): Promise<
 
   // Return reversed (newest first)
   return ok(options.reverse())
+}
+
+// ============================================================================
+// Composite Data Functions (for Server Components)
+// ============================================================================
+
+export type WeekendRosterViewData = {
+  weekend: Weekend
+  roster: WeekendRosterMember[]
+  experienceDistribution: ExperienceDistribution | null
+  availableUsers: Tables<'users'>[]
+}
+
+/**
+ * Fetches all data required for the WeekendRosterView component.
+ * Performs permission-based conditional fetching to minimize unnecessary queries.
+ *
+ * @param weekendId - The ID of the weekend to load data for
+ * @param user - The logged-in user (for permission checks)
+ * @returns All data needed to render the weekend roster view
+ */
+export async function getWeekendRosterViewData(
+  weekendId: string,
+  user: User
+): Promise<Result<string, WeekendRosterViewData>> {
+  const canEditRoster = userHasPermission(user, [Permission.WRITE_TEAM_ROSTER])
+  const canViewExperienceDistribution = userHasPermission(user, [
+    Permission.READ_USER_EXPERIENCE,
+  ])
+
+  const [weekendResult, rosterResult, usersResult, experienceResult] =
+    await Promise.all([
+      getWeekendById(weekendId),
+      getWeekendRoster(weekendId),
+      canEditRoster ? getAllUsers() : Promise.resolve(ok([])),
+      canViewExperienceDistribution
+        ? getWeekendRosterExperienceDistribution(weekendId)
+        : Promise.resolve(ok(null)),
+    ])
+
+  if (isErr(weekendResult)) {
+    return weekendResult
+  }
+
+  if (isErr(rosterResult)) {
+    return rosterResult
+  }
+
+  const weekend = weekendResult.data
+  const roster = rosterResult.data
+  const users = unwrapOr(usersResult, [])
+  const experienceDistribution = unwrapOr(experienceResult, null)
+
+  // Filter users to only those not already on the roster
+  const rosterUserIds = new Set(
+    roster.map((r) => r.user_id).filter((id) => !isNil(id))
+  )
+  const availableUsers = users.filter((u) => !rosterUserIds.has(u.id))
+
+  return ok({
+    weekend,
+    roster,
+    experienceDistribution,
+    availableUsers,
+  })
 }

@@ -2,6 +2,7 @@
 
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
+import { User } from '@/lib/users/types'
 import {
   WeekendStatusValue,
   WeekendGroupWithId,
@@ -10,6 +11,9 @@ import {
 } from '@/lib/weekend/types'
 import { WeekendSidebarPayload } from './types'
 import * as WeekendService from './weekend-service'
+
+// Re-export types for convenience
+export type { WeekendRosterViewData } from './weekend-service'
 
 // ============================================================================
 // Public Actions (No Authorization)
@@ -196,3 +200,11 @@ export const addUserToWeekendRoster = authorizedAction<
 >(Permission.WRITE_TEAM_ROSTER, async ({ weekendId, userId, role, rollo }) => {
   return WeekendService.addUserToWeekendRoster(weekendId, userId, role, rollo)
 })
+
+/**
+ * Fetches all data required for the WeekendRosterView component.
+ * Public - performs permission-based conditional fetching internally.
+ */
+export async function getWeekendRosterViewData(weekendId: string, user: User) {
+  return WeekendService.getWeekendRosterViewData(weekendId, user)
+}

@@ -1,3 +1,5 @@
 export { ActiveRosterHeader } from './active-roster-header'
 export { DroppedRosterSection } from './dropped-roster-section'
 export { WeekendStatusBadge } from './WeekendStatusBadge'
+export { WeekendRosterView } from './weekend-roster-view'
+export type { WeekendRosterViewProps } from './weekend-roster-view'
