@@ -25,6 +25,7 @@ interface TablePaginationProps {
   pageSizeOptions?: number[]
   showPageSize?: boolean
   showInfo?: boolean
+  alwaysShow?: boolean
 }
 
 export function TablePagination({
@@ -34,6 +35,7 @@ export function TablePagination({
   pageSizeOptions = [5, 10, 20, 50, 100],
   showPageSize = true,
   showInfo = true,
+  alwaysShow = false,
 }: TablePaginationProps) {
   const {
     currentPage,
@@ -84,7 +86,7 @@ export function TablePagination({
     return pages
   }
 
-  if (totalPages <= 1) {
+  if (totalPages <= 1 && !alwaysShow) {
     return null
   }
 

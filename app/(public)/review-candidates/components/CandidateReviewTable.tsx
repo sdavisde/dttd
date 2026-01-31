@@ -199,6 +199,7 @@ export function CandidateReviewTable({
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           pageSizeOptions={[10, 25, 50, 100]}
+          alwaysShow={true}
         />
       </div>
 
