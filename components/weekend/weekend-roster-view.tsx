@@ -1,5 +1,5 @@
-import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-roster-table'
-import { AddTeamMemberButton } from '@/app/admin/weekends/[weekend_id]/add-team-member-button'
+import { WeekendRosterTable } from '@/components/weekend/roster-view/weekend-roster-table'
+import { AddTeamMemberButton } from '@/components/weekend/roster-view/add-team-member-button'
 import {
   DroppedRosterSection,
   ActiveRosterHeader,
