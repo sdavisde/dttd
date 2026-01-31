@@ -1,3 +1,11 @@
+## [1.10.1](https://github.com/sdavisde/dttd/compare/v1.10.0...v1.10.1) (2026-01-31)
+
+### Bug Fixes
+
+- always show pagination components ([bddb66c](https://github.com/sdavisde/dttd/commit/bddb66cb573e510d0e14466f9a79d03df292f0c9))
+- make the admin header clearly link back to site ([9b1443c](https://github.com/sdavisde/dttd/commit/9b1443ca35128ed6f5115ff5be5c76576c172a4f))
+- small UI tweaks to weekends in admin ([2f1b612](https://github.com/sdavisde/dttd/commit/2f1b612e1e4b6d0c8ccebb830a2b1db4d5dcf652))
+
 ## [1.10.0](https://github.com/sdavisde/dttd/compare/v1.9.0...v1.10.0) (2026-01-31)
 
 ### Features
