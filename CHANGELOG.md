@@ -1,3 +1,20 @@
+## [1.10.0](https://github.com/sdavisde/dttd/compare/v1.9.0...v1.10.0) (2026-01-31)
+
+### Features
+
+- add candidate link to roster page ([0e1aa4b](https://github.com/sdavisde/dttd/commit/0e1aa4b2676abb4bed45df27f7c21b5477ef6657))
+- add candidate-list page ([93d82aa](https://github.com/sdavisde/dttd/commit/93d82aad38b55d9517e02d3b21103b50ff919a33))
+- add share button to candidate page ([3b7a34a](https://github.com/sdavisde/dttd/commit/3b7a34a7e9aaddb0d94613623fc165fc1cf42762))
+- dynamically add permissions to users based on their CHA_Role ([f0a9bac](https://github.com/sdavisde/dttd/commit/f0a9bac6c7f4483b6114ebc8c24b90fc11e59a14))
+- restrict columns to specific cha roles ([464bd4a](https://github.com/sdavisde/dttd/commit/464bd4ad5d7a06f03cd8dca5c966600ad9af0579))
+
+### Bug Fixes
+
+- align public roster page with admin capabilities ([9299984](https://github.com/sdavisde/dttd/commit/929998473261b18a992b7b327404934caa0c0c5b))
+- fix build error ([b053202](https://github.com/sdavisde/dttd/commit/b0532021c6e4037054aa2c2d618d573d5313d365))
+- render placeholder graph for team experience ([f00329e](https://github.com/sdavisde/dttd/commit/f00329e0f5ebed4084766615be73dc52b7ea8edf))
+- update team payments permission ([e5faf1d](https://github.com/sdavisde/dttd/commit/e5faf1d25a0fd4a618382165c34a8b7e401bbc4e))
+
 ## [1.9.0](https://github.com/sdavisde/dttd/compare/v1.8.0...v1.9.0) (2026-01-27)
 
 ### Features
