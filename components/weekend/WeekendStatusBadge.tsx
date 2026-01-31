@@ -21,14 +21,20 @@ export function WeekendStatusBadge({ status }: WeekendStatusBadgeProps) {
       )
     case WeekendStatus.FINISHED:
       return (
-        <Badge variant="secondary" className="gap-1">
+        <Badge
+          variant="outline"
+          className="gap-1 text-muted-foreground bg-muted"
+        >
           <CircleCheck className="w-3 h-3" />
           Finished
         </Badge>
       )
     case WeekendStatus.PLANNING:
       return (
-        <Badge variant="outline" className="gap-1">
+        <Badge
+          variant="outline"
+          className="gap-1 bg-transparent border-primary text-primary"
+        >
           <Clock className="w-3 h-3" />
           Planning
         </Badge>

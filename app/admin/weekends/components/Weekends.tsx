@@ -9,6 +9,7 @@ import { WeekendGroupGrid } from './WeekendGroupGrid'
 import { WeekendSidebar } from './WeekendSidebar'
 import { SetActiveWeekendButton } from './SetActiveWeekendButton'
 import { toLocalDateFromISO } from '@/lib/utils'
+import { isNil } from 'lodash'
 
 interface WeekendsProps {
   weekendGroups: WeekendGroupWithId[]
@@ -35,10 +36,8 @@ const splitWeekendGroups = (
       const mensStart = toLocalDateFromISO(group.weekends.MENS?.start_date)
       const womensEnd = toLocalDateFromISO(group.weekends.WOMENS?.end_date)
 
-      const isPast =
-        Boolean(womensEnd) && womensEnd !== null && womensEnd < today
-      const isUpcoming =
-        Boolean(mensStart) && mensStart !== null && mensStart > today
+      const isPast = !isNil(womensEnd) && womensEnd < today
+      const isUpcoming = !isNil(mensStart) && mensStart > today
 
       if (isPast) {
         acc.past.push(group)
