@@ -1,8 +1,6 @@
 import { getLoggedInUser } from '@/services/identity/user'
 import { AdminSidebar } from '@/components/admin/sidebar'
-import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { Typography } from '@/components/ui/typography'
 import { Errors } from '@/lib/error'
 import * as Results from '@/lib/results'
 import { permissionLock, Permission } from '@/lib/security'
@@ -11,6 +9,8 @@ import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
 import { getActiveWeekends } from '@/services/weekend'
 import { formatWeekendTitle } from '@/lib/weekend'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 type AdminLayoutProps = {
   children: React.ReactNode
@@ -32,18 +32,8 @@ async function getSidebarData() {
       {
         title: 'Weekends',
         url: '/admin/weekends',
-        icon: 'SquareTerminal',
+        icon: 'TentTree',
         isActive: true,
-        items: [
-          ...upcomingWeekends.map((it) => ({
-            title: formatWeekendTitle(it) ?? '-',
-            url: `/admin/weekends/${it.id}`,
-          })),
-          // {
-          //   title: 'Create Weekend',
-          //   url: '/admin/weekends/create',
-          // },
-        ],
       },
       {
         title: 'Events',
@@ -63,7 +53,7 @@ async function getSidebarData() {
       {
         title: 'Files',
         url: '/admin/files',
-        icon: 'BookOpen',
+        icon: 'Folder',
         items: fileFolders,
       },
     ],
@@ -87,25 +77,14 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     <SidebarProvider>
       <AdminSidebar data={sidebarData} />
       <SidebarInset>
-        <div className="w-full min-h-12 bg-primary flex md:grid grid-cols-6 p-2">
-          <span className="col-span-1 " />
-          <span className="col-span-4 flex items-center justify-center">
-            <Typography
-              variant="h4"
-              className="text-white text-base md:text-center"
-            >
-              You are editing the Dusty Trails Tres Dias site.
-            </Typography>
-          </span>
-          <span className="col-span-1 flex items-center justify-end">
-            <Button
-              variant="link"
-              href="/home"
-              className="text-white underline hover:text-white/80 cursor-pointer"
-            >
-              Go to Site
-            </Button>
-          </span>
+        <div className="w-full">
+          <Link
+            href="/home"
+            className="w-full min-h-12 bg-primary flex justify-center items-center gap-2 px-4 py-2 text-white hover:bg-primary/90 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="font-medium">Back to Site</span>
+          </Link>
         </div>
         <main className="w-full min-h-[80vh]">{children}</main>
         <Footer />

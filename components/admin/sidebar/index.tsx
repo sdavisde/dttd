@@ -8,6 +8,8 @@ import {
   Users,
   Calendar,
   DollarSign,
+  TentTree,
+  Folder,
 } from 'lucide-react'
 import { NavMain } from '@/components/admin/sidebar/nav-main'
 import { SystemLinks } from '@/components/admin/sidebar/system-links'
@@ -25,9 +27,10 @@ import {
 const iconMap: Record<string, LucideIcon> = {
   SquareTerminal,
   Users,
-  BookOpen,
+  Folder,
   Calendar,
   DollarSign,
+  TentTree,
 }
 
 type AdminSidebarProps = React.ComponentProps<typeof Sidebar> & {
