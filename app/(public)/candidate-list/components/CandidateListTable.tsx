@@ -8,6 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { TablePagination } from '@/components/ui/table-pagination'
@@ -17,6 +22,9 @@ import { HydratedCandidate } from '@/lib/candidates/types'
 import { User } from '@/lib/users/types'
 import { useCandidateList } from '../hooks/use-candidate-list'
 import { CandidateColumnConfig } from '../config/columns'
+
+/** Threshold for showing tooltip (characters) */
+const TRUNCATE_THRESHOLD = 30
 
 type CandidateListTableProps = {
   candidates: HydratedCandidate[]
@@ -67,18 +75,28 @@ export function CandidateListTable({
   ) => {
     const value = getCellValue(candidate, column)
 
-    // Handle medical conditions specially - truncate long text
-    if (column.id === 'medicalConditions' && value) {
-      const truncated =
-        value.length > 50 ? `${value.substring(0, 50)}...` : value
+    if (!value) return '-'
+
+    // Show tooltip for long values
+    if (value.length > TRUNCATE_THRESHOLD) {
       return (
-        <span title={value} className="cursor-help">
-          {truncated}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="block max-w-[200px] truncate cursor-help">
+              {value}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            className="max-w-[300px] whitespace-pre-wrap"
+          >
+            {value}
+          </TooltipContent>
+        </Tooltip>
       )
     }
 
-    return value ?? '-'
+    return value
   }
 
   return (

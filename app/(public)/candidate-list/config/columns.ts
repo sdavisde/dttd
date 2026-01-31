@@ -104,6 +104,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_info?.shirt_size ?? null,
     showOnMobile: false,
     minWidth: '100px',
+    requiredPermission: Permission.READ_CANDIDATE_SHIRT_SIZE,
   },
   {
     id: 'emergencyContact',
@@ -111,6 +112,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: formatEmergencyContact,
     showOnMobile: true,
     minWidth: '200px',
+    requiredPermission: Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
   },
   {
     id: 'sponsor',
@@ -118,6 +120,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_sponsorship_info?.sponsor_name ?? null,
     showOnMobile: true,
     minWidth: '150px',
+    requiredPermission: Permission.READ_CANDIDATE_SPONSOR_INFO,
   },
   {
     id: 'sponsorPhone',
@@ -125,6 +128,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_sponsorship_info?.sponsor_phone ?? null,
     showOnMobile: false,
     minWidth: '130px',
+    requiredPermission: Permission.READ_CANDIDATE_SPONSOR_INFO,
   },
   {
     id: 'sponsorEmail',
@@ -132,6 +136,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_sponsorship_info?.sponsor_email ?? null,
     showOnMobile: false,
     minWidth: '180px',
+    requiredPermission: Permission.READ_CANDIDATE_SPONSOR_INFO,
   },
   {
     id: 'sponsorChurch',
@@ -139,14 +144,15 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_sponsorship_info?.sponsor_church ?? null,
     showOnMobile: false,
     minWidth: '150px',
+    requiredPermission: Permission.READ_CANDIDATE_SPONSOR_INFO,
   },
-  {
-    id: 'birthday',
-    header: 'Birthday',
-    accessor: (c) => formatBirthday(c.candidate_info?.date_of_birth),
-    showOnMobile: false,
-    minWidth: '120px',
-  },
+  // {
+  //   id: 'birthday',
+  //   header: 'Birthday',
+  //   accessor: (c) => formatBirthday(c.candidate_info?.date_of_birth),
+  //   showOnMobile: false,
+  //   minWidth: '120px',
+  // },
   {
     id: 'age',
     header: 'Age',
@@ -163,6 +169,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_info?.marital_status ?? null,
     showOnMobile: false,
     minWidth: '120px',
+    requiredPermission: Permission.READ_CANDIDATE_MARITAL_STATUS,
   },
   {
     id: 'medicalConditions',
@@ -170,6 +177,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_info?.medical_conditions ?? null,
     showOnMobile: false,
     minWidth: '200px',
+    requiredPermission: Permission.READ_CANDIDATE_MEDICAL_INFO,
   },
   {
     id: 'church',
