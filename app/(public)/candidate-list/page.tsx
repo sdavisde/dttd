@@ -6,6 +6,7 @@ import { getCandidateListPageData } from '@/actions/candidate-list'
 import { WeekendType } from '@/lib/weekend/types'
 import { WeekendFilterSelector } from '../review-candidates/components/WeekendFilterSelector'
 import { CandidateListTable } from './components/CandidateListTable'
+import { ShareButton } from './components/ShareButton'
 
 interface PageProps {
   searchParams: Promise<{
@@ -21,11 +22,19 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
   return (
     <div className="container mx-auto p-4 min-h-[80vh]">
       <div className="my-4">
-        <Typography variant="h1">Candidate Information</Typography>
-        <Typography variant="p" className="mb-4">
-          View candidate contact and personal information for the selected
-          weekend.
-        </Typography>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <Typography variant="h1">Candidate Information</Typography>
+            <Typography variant="p" className="mb-4">
+              View candidate contact and personal information for the selected
+              weekend.
+            </Typography>
+          </div>
+          <ShareButton
+            title="Candidate List"
+            text="View candidate information for the weekend"
+          />
+        </div>
 
         <WeekendFilterSelector weekendOptions={weekendOptions} />
 
