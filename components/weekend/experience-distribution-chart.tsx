@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/chart'
 import { Badge } from '@/components/ui/badge'
 import { ExperienceDistribution } from '@/services/master-roster/types'
+import { isNil } from 'lodash'
 
 type ExperienceDistributionChartProps = {
   distribution: ExperienceDistribution
@@ -66,15 +67,8 @@ export function ExperienceDistributionChart({
     },
   ]
 
-  if (distribution.total === 0) {
-    return (
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Experience Distribution</CardTitle>
-          <CardDescription>No active team members</CardDescription>
-        </CardHeader>
-      </Card>
-    )
+  if (isNil(distribution.total) || distribution.total === 0) {
+    return null
   }
 
   return (
@@ -111,7 +105,10 @@ export function ExperienceDistributionChart({
         <CardContent>
           <div className="flex flex-row items-center gap-4">
             {/* Pie Chart */}
-            <ChartContainer config={chartConfig} className="h-[200px] w-[200px]">
+            <ChartContainer
+              config={chartConfig}
+              className="h-[200px] w-[200px]"
+            >
               <PieChart>
                 <ChartTooltip
                   cursor={false}

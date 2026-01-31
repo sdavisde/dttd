@@ -1,10 +1,12 @@
 import {
   getActiveWeekends,
   getWeekendRoster,
+  getAllUsers,
   WeekendRosterMember,
 } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { WeekendRosterTable } from '@/app/admin/weekends/[weekend_id]/weekend-roster-table'
+import { AddTeamMemberButton } from '@/app/admin/weekends/[weekend_id]/add-team-member-button'
 import {
   DroppedRosterSection,
   ActiveRosterHeader,
@@ -20,12 +22,14 @@ import {
   ExperienceDistribution,
 } from '@/services/master-roster'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Weekend } from '@/lib/weekend/types'
+import { Weekend, WeekendStatus } from '@/lib/weekend/types'
 import { Permission, userHasPermission } from '@/lib/security'
 import { formatDateOnly } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Users } from 'lucide-react'
+import { Tables } from '@/database.types'
+import { isNil } from 'lodash'
 
 export default async function RosterPage() {
   const userResult = await getLoggedInUser()
@@ -54,6 +58,22 @@ export default async function RosterPage() {
       `Failed to fetch active weekends: ${activeWeekendsResult.error}`
     )
   }
+
+  // Fetch all users for Add Team Member modal (only if user can edit roster)
+  const usersResult = canEditRoster ? await getAllUsers() : null
+  const users: Tables<'users'>[] =
+    usersResult && !isErr(usersResult) ? usersResult.data : []
+
+  // Helper function to get available users for a specific roster
+  const getAvailableUsers = (roster: WeekendRosterMember[]) => {
+    const rosterUserIds = new Set(roster.map((r) => r.user_id).filter(Boolean))
+    return users.filter((user) => !rosterUserIds.has(user.id))
+  }
+
+  // Helper function to check if a weekend is editable
+  const isWeekendEditable = (weekend: Weekend) =>
+    weekend.status === WeekendStatus.ACTIVE ||
+    weekend.status === WeekendStatus.PLANNING
 
   const mensRosterResult = activeWeekendsResult.data.MENS
     ? await getWeekendRoster(activeWeekendsResult.data.MENS.id)
@@ -162,7 +182,7 @@ export default async function RosterPage() {
             </div>
 
             {/* Right side: Experience chart */}
-            {experienceDistribution && (
+            {!isNil(experienceDistribution) && (
               <div className="lg:w-auto">
                 <ExperienceDistributionChart
                   distribution={experienceDistribution}
@@ -175,13 +195,24 @@ export default async function RosterPage() {
         {/* Team Roster Section */}
         <div>
           <div className="mb-4">
-            <ActiveRosterHeader roster={roster} title="Team Roster" />
+            <ActiveRosterHeader roster={roster} title="Team Roster">
+              {canEditRoster && isWeekendEditable(weekend) && (
+                <AddTeamMemberButton
+                  weekendId={weekend.id}
+                  weekendTitle={
+                    weekend.title ??
+                    `${weekend.type} Weekend #${weekend.number}`
+                  }
+                  users={getAvailableUsers(roster)}
+                />
+              )}
+            </ActiveRosterHeader>
           </div>
 
           <WeekendRosterTable
             roster={roster}
-            isEditable={false}
-            includePaymentInformation={false}
+            isEditable={canEditRoster && isWeekendEditable(weekend)}
+            includePaymentInformation={canViewPaymentInfo}
           />
         </div>
 
@@ -263,12 +294,23 @@ export default async function RosterPage() {
               {/* Team Roster Section */}
               <div>
                 <div className="mb-4">
-                  <ActiveRosterHeader roster={roster} title="Team Roster" />
+                  <ActiveRosterHeader roster={roster} title="Team Roster">
+                    {canEditRoster && isWeekendEditable(weekend) && (
+                      <AddTeamMemberButton
+                        weekendId={weekend.id}
+                        weekendTitle={
+                          weekend.title ??
+                          `${weekend.type} Weekend #${weekend.number}`
+                        }
+                        users={getAvailableUsers(roster)}
+                      />
+                    )}
+                  </ActiveRosterHeader>
                 </div>
 
                 <WeekendRosterTable
                   roster={roster}
-                  isEditable={canEditRoster}
+                  isEditable={canEditRoster && isWeekendEditable(weekend)}
                   includePaymentInformation={canViewPaymentInfo}
                 />
               </div>
