@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu } from 'lucide-react'
+import { ChevronDown, Menu, MonitorCog } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -19,19 +19,32 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Permission, permissionLock, canImpersonate } from '@/lib/security'
+import {
+  Permission,
+  permissionLock,
+  canImpersonate,
+  userHasPermission,
+} from '@/lib/security'
 import { useToastListener } from '@/components/toastbox'
 import { ImpersonationDialog } from '@/components/admin/sidebar/impersonation-dialog'
-
-type NavElement = {
-  name: string
-  slug: string
-  permissions_needed: Array<Permission>
-  children?: NavElement[]
-}
+import { NavElement } from './navbar-server'
+import { isNil } from 'lodash'
 
 type NavbarClientProps = {
   navElements: NavElement[]
@@ -44,18 +57,38 @@ export function Navbar({ navElements }: NavbarClientProps) {
   const { isAuthenticated, user } = useSession()
   const router = useRouter()
   const showImpersonation = canImpersonate(user)
-  const filteredNavElements = navElements.filter((item) => {
-    try {
-      if (item.permissions_needed.length === 0) {
-        return true
+
+  // Filter nav elements based on user permissions
+  const filterNavElement = (item: NavElement): NavElement | null => {
+    // Check if user has permission for this item
+    if (item.permissions_needed.length > 0) {
+      try {
+        permissionLock(item.permissions_needed)(user)
+      } catch {
+        return null
+      }
+    }
+
+    // Filter children if they exist
+    if (item.children) {
+      const filteredChildren = item.children
+        .map(filterNavElement)
+        .filter((child): child is NavElement => child !== null)
+
+      // If all children are filtered out, don't show the parent
+      if (filteredChildren.length === 0) {
+        return null
       }
 
-      permissionLock(item.permissions_needed)(user)
-      return true
-    } catch (e) {
-      return false
+      return { ...item, children: filteredChildren }
     }
-  })
+
+    return item
+  }
+
+  const filteredNavElements = navElements
+    .map(filterNavElement)
+    .filter((item) => !isNil(item))
 
   return (
     <nav className="bg-primary text-white px-4 py-3">
@@ -73,17 +106,25 @@ export function Navbar({ navElements }: NavbarClientProps) {
               <SheetHeader>
                 <SheetTitle>DTTD</SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col space-y-4 px-4">
-                {filteredNavElements.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={`/${item.slug}`}
-                    className="text-lg font-medium hover:underline transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+              <div className="flex flex-col space-y-2 px-4">
+                {filteredNavElements.map((item) =>
+                  item.children ? (
+                    <MobileNavItem
+                      key={item.name}
+                      item={item}
+                      onNavigate={() => setIsOpen(false)}
+                    />
+                  ) : (
+                    <Link
+                      key={item.name}
+                      href={`/${item.slug}`}
+                      className="text-lg font-medium py-2 hover:underline transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  )
+                )}
               </div>
             </SheetContent>
           </Sheet>
@@ -99,22 +140,66 @@ export function Navbar({ navElements }: NavbarClientProps) {
 
         {/* Desktop Navigation */}
         {isAuthenticated && (
-          <div className="hidden md:flex items-center space-x-8 flex-1 justify-end me-8">
-            {filteredNavElements.map((item) => (
-              <Link
-                key={item.name}
-                href={`/${item.slug}`}
-                className="text-white hover:text-amber-200 transition-colors font-medium"
-              >
-                {item.name}
-              </Link>
-            ))}
+          <div className="hidden md:flex items-center flex-1 justify-end me-8">
+            <NavigationMenu viewport={false}>
+              <NavigationMenuList className="gap-2">
+                {filteredNavElements.map((item) =>
+                  item.children ? (
+                    <NavigationMenuItem key={item.name}>
+                      <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10 focus:bg-white/10 focus:text-white">
+                        {item.name}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-48 gap-1 p-2">
+                          {item.children.map((child) => (
+                            <li key={child.name}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href={`/${child.slug}`}
+                                  className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                >
+                                  <div className="text-sm font-medium leading-none">
+                                    {child.name}
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  ) : (
+                    <NavigationMenuItem key={item.name}>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href={`/${item.slug}`}
+                          className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus:outline-none"
+                        >
+                          {item.name}
+                        </Link>
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  )
+                )}
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
         )}
 
-        {/* Avatar */}
+        {/* Admin Icon & Avatar */}
         {isAuthenticated ? (
-          <>
+          <div className="flex items-center gap-6">
+            {!isNil(user) &&
+              userHasPermission(user, [Permission.READ_ADMIN_PORTAL]) && (
+                <Link
+                  href="/admin"
+                  className="text-white hover:text-amber-200 transition-colors"
+                  title="Admin"
+                >
+                  <MonitorCog className="h-6 w-6" />
+                  <span className="sr-only">Admin</span>
+                </Link>
+              )}
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <div className="flex-shrink-0">
@@ -152,7 +237,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
                 onOpenChange={setImpersonationOpen}
               />
             )}
-          </>
+          </div>
         ) : (
           <Button variant="outline" href="/login">
             Login
@@ -160,5 +245,39 @@ export function Navbar({ navElements }: NavbarClientProps) {
         )}
       </div>
     </nav>
+  )
+}
+
+// Mobile collapsible nav item component
+function MobileNavItem({
+  item,
+  onNavigate,
+}: {
+  item: NavElement
+  onNavigate: () => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className="flex w-full items-center justify-between text-lg font-medium py-2 hover:underline transition-colors">
+        {item.name}
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pl-4 space-y-2">
+        {item.children?.map((child) => (
+          <Link
+            key={child.name}
+            href={`/${child.slug}`}
+            className="block text-base py-1 hover:underline transition-colors"
+            onClick={onNavigate}
+          >
+            {child.name}
+          </Link>
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

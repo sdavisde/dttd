@@ -3,49 +3,60 @@ import { Navbar } from './navbar-client'
 import { logger } from '@/lib/logger'
 import { Permission } from '@/lib/security'
 
-async function getNavElements() {
+export type NavElement = {
+  name: string
+  slug: string
+  permissions_needed: Array<Permission>
+  children?: NavElement[]
+}
+
+async function getNavElements(): Promise<NavElement[]> {
   const supabase = await createClient()
-  const { data: buckets, error: bucketsError } =
-    await supabase.storage.listBuckets()
+  const { error: bucketsError } = await supabase.storage.listBuckets()
 
   if (bucketsError) {
     logger.error(`Error fetching buckets: ${bucketsError.message}`)
     return []
   }
 
-  // Add static navigation elements
-  const staticNavElements = [
+  const navElements: NavElement[] = [
     {
       name: 'Home',
       slug: 'home',
       permissions_needed: [],
     },
     {
-      name: 'Files',
-      slug: 'files',
+      name: 'Community',
+      slug: 'community',
       permissions_needed: [],
+      children: [
+        {
+          name: 'Files',
+          slug: 'files',
+          permissions_needed: [],
+        },
+      ],
     },
     {
-      name: 'Candidates',
-      slug: 'review-candidates',
-      permissions_needed: [Permission.READ_CANDIDATES],
-    },
-    {
-      name: 'Roster',
-      slug: 'roster',
+      name: 'Current Weekend',
+      slug: 'current-weekend',
       permissions_needed: [],
-    },
-    {
-      name: 'Admin',
-      slug: 'admin',
-      permissions_needed: [Permission.READ_ADMIN_PORTAL],
+      children: [
+        {
+          name: 'Review Candidates',
+          slug: 'review-candidates',
+          permissions_needed: [Permission.READ_CANDIDATES],
+        },
+        {
+          name: 'Roster',
+          slug: 'roster',
+          permissions_needed: [],
+        },
+      ],
     },
   ]
 
-  return [
-    // ...bucketStructure,
-    ...staticNavElements,
-  ]
+  return navElements
 }
 
 export async function NavbarServer() {
