@@ -3,7 +3,7 @@ import { AdminSidebar } from '@/components/admin/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Errors } from '@/lib/error'
 import * as Results from '@/lib/results'
-import { permissionLock, Permission } from '@/lib/security'
+import { permissionLock, Permission, userHasPermission } from '@/lib/security'
 import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
@@ -11,12 +11,39 @@ import { getActiveWeekends } from '@/services/weekend'
 import { formatWeekendTitle } from '@/lib/weekend'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { User } from '@/lib/users/types'
 
 type AdminLayoutProps = {
   children: React.ReactNode
 }
 
-async function getSidebarData() {
+type AdminNavElement = {
+  title: string
+  url: string
+  icon?: string
+  isActive?: boolean
+  permissions_needed: Permission[]
+  items?: Array<{ title: string; url: string }>
+}
+
+type SystemLinkElement = {
+  title: string
+  url: string
+  icon: string
+  permissions_needed: Permission[]
+}
+
+function filterNavByPermission<T extends { permissions_needed: Permission[] }>(
+  items: T[],
+  user: User
+): T[] {
+  return items.filter((item) => {
+    if (item.permissions_needed.length === 0) return true
+    return userHasPermission(user, item.permissions_needed)
+  })
+}
+
+async function getSidebarData(user: User) {
   // Fetch dynamic file folders for navigation
   const fileFolders = await getFileFolders(true)
   const activeWeekendsResult = await getActiveWeekends()
@@ -27,36 +54,59 @@ async function getSidebarData() {
     )
   )
 
+  const navMain: AdminNavElement[] = [
+    {
+      title: 'Weekends',
+      url: '/admin/weekends',
+      icon: 'TentTree',
+      isActive: true,
+      permissions_needed: [Permission.READ_WEEKENDS],
+    },
+    {
+      title: 'Events',
+      url: '/admin/meetings',
+      icon: 'Calendar',
+      permissions_needed: [Permission.READ_EVENTS],
+    },
+    {
+      title: 'Payments',
+      url: '/admin/payments',
+      icon: 'DollarSign',
+      permissions_needed: [Permission.READ_PAYMENTS],
+    },
+    {
+      title: 'Master Roster',
+      url: '/admin/users',
+      icon: 'Users',
+      permissions_needed: [],
+    },
+    {
+      title: 'Files',
+      url: '/admin/files',
+      icon: 'Folder',
+      items: fileFolders,
+      permissions_needed: [],
+    },
+  ]
+
+  const systemLinks: SystemLinkElement[] = [
+    {
+      title: 'Settings',
+      url: '/admin/settings',
+      icon: 'Settings2',
+      permissions_needed: [],
+    },
+    {
+      title: 'Security',
+      url: '/admin/roles',
+      icon: 'ShieldCheck',
+      permissions_needed: [Permission.READ_USER_ROLES],
+    },
+  ]
+
   return {
-    navMain: [
-      {
-        title: 'Weekends',
-        url: '/admin/weekends',
-        icon: 'TentTree',
-        isActive: true,
-      },
-      {
-        title: 'Events',
-        url: '/admin/meetings',
-        icon: 'Calendar',
-      },
-      {
-        title: 'Payments',
-        url: '/admin/payments',
-        icon: 'DollarSign',
-      },
-      {
-        title: 'Master Roster',
-        url: '/admin/users',
-        icon: 'Users',
-      },
-      {
-        title: 'Files',
-        url: '/admin/files',
-        icon: 'Folder',
-        items: fileFolders,
-      },
-    ],
+    navMain: filterNavByPermission(navMain, user),
+    systemLinks: filterNavByPermission(systemLinks, user),
   }
 }
 export default async function AdminLayout({ children }: AdminLayoutProps) {
@@ -71,11 +121,11 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     redirect(`/?error=${(error as Error).message}`)
   }
 
-  const sidebarData = await getSidebarData()
+  const sidebarData = await getSidebarData(user)
 
   return (
     <SidebarProvider>
-      <AdminSidebar data={sidebarData} />
+      <AdminSidebar data={sidebarData} systemLinks={sidebarData.systemLinks} />
       <SidebarInset>
         <div className="w-full">
           <Link
