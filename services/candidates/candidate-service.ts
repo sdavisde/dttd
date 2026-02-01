@@ -192,3 +192,12 @@ export async function recordManualCandidatePayment(
 
   return ok(result.data)
 }
+
+/**
+ * Gets the count of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateCountByWeekend(
+  weekendId: string
+): Promise<Result<string, number>> {
+  return CandidateRepository.getCandidateCountByWeekend(weekendId)
+}

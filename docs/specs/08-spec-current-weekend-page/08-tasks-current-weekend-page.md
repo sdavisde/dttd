@@ -24,7 +24,7 @@ Extend the `events` table to support multi-day events, weekend associations, and
 
 ---
 
-### [~] 2.0 Event Service Layer Updates
+### [x] 2.0 Event Service Layer Updates
 
 Update the events system to support the new fields and provide queries needed for the current weekend page, following the repository → service → actions pattern.
 
@@ -44,13 +44,13 @@ Update the events system to support the new fields and provide queries needed fo
 
 ---
 
-### [ ] 3.0 Current Weekend Page - Header and Candidate Progress
+### [x] 3.0 Current Weekend Page - Header and Candidate Progress
 
 Create the authenticated page at `/current-weekend` showing weekend information, candidate sponsorship progress bars, and prayer wheel links.
 
 #### 3.0 Proof Artifact(s)
 
-- URL: `/current-weekend` redirects to `/login` when not authenticated
+- New card exists on the dashboard that redirects users to the current weekend page when clicked
 - URL: `/current-weekend` displays weekend header with title (e.g., "DTTD #11") and dates when authenticated
 - Screenshot: Progress bars showing candidate counts (e.g., "28/42") with green color when under capacity
 - Screenshot: Progress bars showing red color when count reaches or exceeds 42 (e.g., "52/42")
@@ -59,7 +59,14 @@ Create the authenticated page at `/current-weekend` showing weekend information,
 
 #### 3.0 Tasks
 
-TBD
+- [x] 3.1 Add `getCandidateCountByWeekend(weekendId)` function to candidates service to count non-rejected candidates per weekend
+- [x] 3.2 Create `/current-weekend` page with authentication check and redirect to login if not authenticated
+- [x] 3.3 Create `CurrentWeekendHeader` component displaying weekend title (e.g., "DTTD #11") and date ranges for both men's and women's weekends
+- [x] 3.4 Create `CandidateProgressBar` component showing count/capacity (e.g., "28/42") with green color under 42 and red at/over 42
+- [x] 3.5 Create `PrayerWheelButtons` component displaying prayer wheel signup buttons for both weekends using URLs from site settings
+- [x] 3.6 Create `EmptyWeekendState` component showing friendly message when no active weekends exist
+- [x] 3.7 Integrate all components into the current weekend page with proper data fetching
+- [x] 3.8 Add "Current Weekend" card to dashboard that links to `/current-weekend`
 
 ---
 
