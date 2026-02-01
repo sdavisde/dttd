@@ -116,7 +116,7 @@ Display upcoming events in a scrollable list with consistent styling, color-code
 
 ---
 
-### [ ] 6.0 Mobile Responsive Layout
+### [x] 6.0 Mobile Responsive Layout
 
 Implement mobile-optimized layout using tabs to switch between calendar and event list views while maintaining full functionality.
 
@@ -130,4 +130,8 @@ Implement mobile-optimized layout using tabs to switch between calendar and even
 
 #### 6.0 Tasks
 
-TBD
+- [x] 6.1 Update CalendarEventSection to use shadcn/ui Tabs component for mobile layout with "Calendar" and "Events" tabs
+- [x] 6.2 Implement responsive layout: side-by-side on md+ breakpoint, tabbed on mobile
+- [x] 6.3 Add auto-switch to Events tab when clicking a calendar date on mobile
+- [x] 6.4 Ensure touch targets meet 44px minimum sizing for mobile interactions
+- [x] 6.5 Test and verify all functionality works in both desktop and mobile layouts
