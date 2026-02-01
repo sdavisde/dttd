@@ -83,16 +83,6 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
               <span className="text-lg font-semibold">Prayer Wheel Signup</span>
             </Button>
           )}
-          <Button
-            href="/job-description"
-            variant="outline"
-            className="w-full h-52 flex flex-col items-center justify-center gap-2 pointer-events-none"
-            disabled
-          >
-            <BookOpen className="w-10 h-10" />
-            <span className="text-lg font-semibold">Job Description</span>
-            <span className="text-sm text-gray-500">Coming Soon</span>
-          </Button>
         </div>
       </div>
     </div>
