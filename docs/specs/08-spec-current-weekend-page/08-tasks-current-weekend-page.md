@@ -93,7 +93,7 @@ Create a calendar component that displays events with color-coded indicators and
 
 ---
 
-### [ ] 5.0 Event List Display
+### [x] 5.0 Event List Display
 
 Display upcoming events in a scrollable list with consistent styling, color-coded borders, and scroll targeting support.
 
@@ -108,7 +108,11 @@ Display upcoming events in a scrollable list with consistent styling, color-code
 
 #### 5.0 Tasks
 
-TBD
+- [x] 5.1 Create `WeekendEventCard` component in `components/current-weekend/` with color-coded left border based on event type, displaying title, date/time, and location
+- [x] 5.2 Create `EventList` component that renders events in chronological order with scroll targeting support via element IDs (format: `event-{id}`)
+- [x] 5.3 Create `EmptyEventsState` component showing friendly message when no events exist for active weekends
+- [x] 5.4 Integrate EventList into CurrentWeekendView, connecting EventCalendar's `onDateClick` to scroll to the selected event
+- [x] 5.5 Add smooth scroll behavior using `scrollIntoView({ behavior: 'smooth' })` when clicking calendar date indicators
 
 ---
 

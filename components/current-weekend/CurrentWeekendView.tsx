@@ -2,13 +2,13 @@ import { isErr, isOk, Results } from '@/lib/results'
 import { getActiveWeekends } from '@/services/weekend'
 import { getCandidateCountByWeekend } from '@/services/candidates'
 import { getPrayerWheelUrls } from '@/services/settings'
-import { getEventsForWeekendGroup, type Event } from '@/services/events'
+import { getEventsForWeekendGroup } from '@/services/events'
 import { WeekendType } from '@/lib/weekend/types'
 import { CurrentWeekendHeader } from './CurrentWeekendHeader'
 import { CandidateProgressBar } from './CandidateProgressBar'
 import { PrayerWheelButtons } from './PrayerWheelButtons'
 import { EmptyWeekendState } from './EmptyWeekendState'
-import { EventCalendar } from './EventCalendar'
+import { CalendarEventSection } from './CalendarEventSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
@@ -89,32 +89,7 @@ export async function CurrentWeekendView() {
       <Separator />
 
       {/* Bottom section: Calendar and Events */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardContent>
-            <EventCalendar events={events} />
-          </CardContent>
-        </Card>
-        {/* Event list will be added in Task 5.0 */}
-        <div className="hidden md:block">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>Upcoming Events</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {events.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No events scheduled for this weekend.
-                </p>
-              ) : (
-                <p className="text-muted-foreground text-sm">
-                  Event list coming soon...
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <CalendarEventSection events={events} />
     </div>
   )
 }

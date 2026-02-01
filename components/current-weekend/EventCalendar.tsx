@@ -29,6 +29,7 @@ export function getEventsGroupedByDate(events: Event[]): Map<string, Event[]> {
 
 interface EventCalendarProps {
   events: Event[]
+  selectedDate?: string | null // Format: YYYY-MM-DD
   onDateClick?: (date: Date, events: Event[]) => void
   className?: string
 }
@@ -39,6 +40,7 @@ interface EventCalendarProps {
  */
 export function EventCalendar({
   events,
+  selectedDate,
   onDateClick,
   className,
 }: EventCalendarProps) {
@@ -56,6 +58,11 @@ export function EventCalendar({
     }
   }
 
+  const isSelectedDate = (date: Date): boolean => {
+    if (!selectedDate) return false
+    return format(date, 'yyyy-MM-dd') === selectedDate
+  }
+
   return (
     <Calendar
       mode="single"
@@ -64,7 +71,7 @@ export function EventCalendar({
       className={cn('w-full [--cell-size:theme(spacing.12)]', className)}
       classNames={{
         root: 'w-full',
-        months: 'w-full',
+        months: 'w-full relative',
         month: 'w-full',
         month_caption: 'w-full flex items-center justify-center h-12',
         month_grid: 'w-full',
@@ -85,6 +92,8 @@ export function EventCalendar({
           const dateKey = format(day.date, 'yyyy-MM-dd')
           const dayEvents = eventsByDate.get(dateKey) ?? []
           const isToday = isSameDay(day.date, new Date())
+          const isSelected = isSelectedDate(day.date)
+          const hasEvents = dayEvents.length > 0
 
           return (
             <button
@@ -93,7 +102,9 @@ export function EventCalendar({
               className={cn(
                 'relative flex flex-col items-center justify-center w-full h-full p-1',
                 'hover:bg-accent hover:text-accent-foreground rounded-md transition-colors',
-                isToday && 'bg-accent ring-2 ring-primary ring-offset-1',
+                isToday && 'ring-2 ring-primary ring-offset-1',
+                isSelected && hasEvents && 'bg-primary text-primary-foreground',
+                !isSelected && hasEvents && 'cursor-pointer',
                 modifiers.outside && 'text-muted-foreground opacity-50',
                 modifiers.disabled &&
                   'text-muted-foreground opacity-50 pointer-events-none'
@@ -101,7 +112,9 @@ export function EventCalendar({
               disabled={modifiers.disabled}
             >
               <span className="text-sm">{day.date.getDate()}</span>
-              {dayEvents.length > 0 && <EventDots events={dayEvents} />}
+              {hasEvents && (
+                <EventDots events={dayEvents} selected={isSelected} />
+              )}
             </button>
           )
         },
@@ -113,13 +126,14 @@ export function EventCalendar({
 interface EventDotsProps {
   events: Event[]
   maxDots?: number
+  selected?: boolean
 }
 
 /**
  * Renders horizontally stacked color-coded dots for events on a calendar day.
  * Shows up to maxDots events, with remaining count as a number if exceeded.
  */
-function EventDots({ events, maxDots = 3 }: EventDotsProps) {
+function EventDots({ events, maxDots = 3, selected = false }: EventDotsProps) {
   const displayEvents = events.slice(0, maxDots)
   const remainingCount = events.length - maxDots
 
@@ -130,13 +144,18 @@ function EventDots({ events, maxDots = 3 }: EventDotsProps) {
           key={event.id || index}
           className={cn(
             'w-1.5 h-1.5 rounded-full',
-            getEventDotColor(event.type)
+            selected ? 'bg-primary-foreground' : getEventDotColor(event.type)
           )}
           title={event.title ?? undefined}
         />
       ))}
       {remainingCount > 0 && (
-        <span className="text-[8px] text-muted-foreground ml-0.5">
+        <span
+          className={cn(
+            'text-[8px] ml-0.5',
+            selected ? 'text-primary-foreground' : 'text-muted-foreground'
+          )}
+        >
           +{remainingCount}
         </span>
       )}
