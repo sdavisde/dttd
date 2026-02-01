@@ -10,6 +10,8 @@ import {
   DollarSign,
   TentTree,
   Folder,
+  Settings2,
+  ShieldCheck,
 } from 'lucide-react'
 import { NavMain } from '@/components/admin/sidebar/nav-main'
 import { SystemLinks } from '@/components/admin/sidebar/system-links'
@@ -31,6 +33,14 @@ const iconMap: Record<string, LucideIcon> = {
   Calendar,
   DollarSign,
   TentTree,
+  Settings2,
+  ShieldCheck,
+}
+
+type SystemLinkItem = {
+  title: string
+  url: string
+  icon: string
 }
 
 type AdminSidebarProps = React.ComponentProps<typeof Sidebar> & {
@@ -46,9 +56,14 @@ type AdminSidebarProps = React.ComponentProps<typeof Sidebar> & {
       }>
     }>
   }
+  systemLinks: SystemLinkItem[]
 }
 
-export function AdminSidebar({ data, ...props }: AdminSidebarProps) {
+export function AdminSidebar({
+  data,
+  systemLinks,
+  ...props
+}: AdminSidebarProps) {
   // Transform the data to include actual icon components
   const transformedData = {
     navMain: data.navMain.map((item) => ({
@@ -57,6 +72,12 @@ export function AdminSidebar({ data, ...props }: AdminSidebarProps) {
     })),
   }
 
+  // Transform system links to include actual icon components
+  const transformedSystemLinks = systemLinks.map((item) => ({
+    ...item,
+    icon: iconMap[item.icon],
+  }))
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -64,7 +85,7 @@ export function AdminSidebar({ data, ...props }: AdminSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={transformedData.navMain} />
-        <SystemLinks />
+        <SystemLinks items={transformedSystemLinks} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
