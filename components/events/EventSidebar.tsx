@@ -30,12 +30,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
-import {
-  type Event,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-} from '@/actions/events'
+import { type Event } from '@/services/events'
+import { createEvent, updateEvent, deleteEvent } from '@/services/events'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 

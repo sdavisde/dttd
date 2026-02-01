@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { AdminEvents } from '@/components/events/AdminEvents'
 import { EventSidebar } from '@/components/events/EventSidebar'
-import { type Event } from '@/actions/events'
+import { type Event } from '@/services/events'
 
 interface MeetingsProps {
   canEdit: boolean

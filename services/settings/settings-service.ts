@@ -13,13 +13,13 @@ import * as SettingsRepository from './repository'
 function normalizeSetting(raw: {
   key: string
   value: string
-  updated_at: string
+  updated_at: string | null
   updated_by_user_id: string | null
 }): SiteSetting {
   return {
     key: raw.key,
     value: raw.value,
-    updatedAt: new Date(raw.updated_at),
+    updatedAt: raw.updated_at ? new Date(raw.updated_at) : new Date(),
     updatedBy: raw.updated_by_user_id,
   }
 }

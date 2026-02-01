@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Calendar, Edit } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
-import { type Event } from '@/actions/events'
+import { type Event } from '@/services/events'
 import { cn, formatDateTime } from '@/lib/utils'
 import { Datetime } from '@/components/ui/datetime'
 

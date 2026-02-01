@@ -1,5 +1,5 @@
 import { getLoggedInUser } from '@/services/identity/user'
-import { getUpcomingEvents, getPastEvents } from '@/actions/events'
+import { getUpcomingEvents, getPastEvents } from '@/services/events'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import Meetings from './components/Meetings'
 import { permissionLock, userHasPermission, Permission } from '@/lib/security'
