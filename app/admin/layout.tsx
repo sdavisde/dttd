@@ -51,6 +51,11 @@ async function getSidebarData() {
         icon: 'Users',
       },
       {
+        title: 'Community Board',
+        url: '/admin/community-board',
+        icon: 'ClipboardList',
+      },
+      {
         title: 'Files',
         url: '/admin/files',
         icon: 'Folder',

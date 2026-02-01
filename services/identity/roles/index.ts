@@ -1,2 +1,2 @@
 export * from './actions'
-export type { Role } from './types'
+export type { Role, RoleType } from './types'

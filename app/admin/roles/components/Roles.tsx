@@ -23,7 +23,7 @@ import { isErr } from '@/lib/results'
 import { Permission } from '@/lib/security'
 
 interface RolesProps {
-  roles: Array<{ id: string; label: string; permissions: Permission[] }>
+  roles: Role[]
   readOnly: boolean
 }
 

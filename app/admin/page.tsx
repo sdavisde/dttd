@@ -7,6 +7,7 @@ import {
   Settings,
   CreditCard,
   UserCheck,
+  ClipboardList,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -194,6 +195,23 @@ export default function Page() {
                   Open Settings
                 </Button>*/}
                 </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/community-board" className="flex w-full">
+            <Card className="hover:bg-muted/50 transition-colors w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5" />
+                  Community Board
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Typography variant="small" className="text-muted-foreground">
+                  Track board positions, leaders committee assignments, and
+                  meeting minutes.
+                </Typography>
               </CardContent>
             </Card>
           </Link>

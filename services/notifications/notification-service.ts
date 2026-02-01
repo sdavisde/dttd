@@ -7,6 +7,7 @@ import * as NotificationRepository from './repository'
 import * as CandidateRepository from '@/services/candidates/repository'
 import { ContactInfo, NotificationRecipient } from './types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
+import { Tables } from '@/database.types'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -183,4 +184,17 @@ async function sendCandidatePaymentEmail(
     `Candidate payment notification email sent successfully for ${candidateName}`
   )
   return ok(true)
+}
+
+/**
+ * Updates contact information email address.
+ */
+export async function updateContactInformation(
+  contactId: string,
+  emailAddress: string
+): Promise<Result<string, Tables<'contact_information'>>> {
+  return await NotificationRepository.updateContactInformation(
+    contactId,
+    emailAddress
+  )
 }
