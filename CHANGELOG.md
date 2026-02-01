@@ -1,3 +1,18 @@
+## [1.11.0](https://github.com/sdavisde/dttd/compare/v1.10.1...v1.11.0) (2026-02-01)
+
+### Features
+
+- add event list display with URL hash-based date selection ([59eba96](https://github.com/sdavisde/dttd/commit/59eba9658c89975dcf170df1419585692034c4e9)), closes [current-weekend#2024-02-15](https://github.com/sdavisde/current-weekend/issues/2024-02-15)
+- add mobile responsive layout with tabbed interface ([253f41b](https://github.com/sdavisde/dttd/commit/253f41b9ac6a3b811553aa892e139d21b72887aa))
+- add new "end_datetime", "weekend_id", and "type" fields to events ([81fde23](https://github.com/sdavisde/dttd/commit/81fde23b7e971f26540b0663a89da2b9459c49ce))
+- add the bones of the current weekend page ([52f9554](https://github.com/sdavisde/dttd/commit/52f955403bb07e8c5c6eb60313d23ec3d57fe614))
+- add weekend calendar view ([13a7b1b](https://github.com/sdavisde/dttd/commit/13a7b1b7075d13b6cf5e86a28eaa335d40d2c409))
+- improve navigation UI ([febfe1c](https://github.com/sdavisde/dttd/commit/febfe1cb6d5a974c6ce5306a651b8fc7f52573ec))
+
+### Bug Fixes
+
+- remove job description ([f676768](https://github.com/sdavisde/dttd/commit/f6767688f4b9dead58d329706014309288daa36d))
+
 ## [1.10.1](https://github.com/sdavisde/dttd/compare/v1.10.0...v1.10.1) (2026-01-31)
 
 ### Bug Fixes
