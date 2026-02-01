@@ -1007,6 +1007,47 @@ INSERT INTO public.weekends (id, group_id, type, number, title, start_date, end_
   ('c0000010-0000-0000-0000-000000000005', 'd0000005-0000-0000-0000-000000000005', 'WOMENS', 46, 'DTTD Womens #46', '2026-03-12', '2026-03-15', 'PLANNING');
 
 -- =============================================================================
+-- SECTION: Events for DTTD #45
+-- =============================================================================
+-- Events associated with the active weekend (DTTD #45) for calendar testing
+-- Includes various event types and some days with multiple events
+
+INSERT INTO public.events (title, datetime, location, end_datetime, weekend_id, type) VALUES
+  -- February 2026 events (current month for testing)
+  ('Team Meeting', '2026-02-05 19:00:00', 'First Baptist Church', '2026-02-05 21:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+  ('Prayer Team Gathering', '2026-02-10 18:30:00', 'Community Chapel', '2026-02-10 20:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+  ('Sponsor Training', '2026-02-15 09:00:00', 'Grace Fellowship Hall', '2026-02-15 12:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+  ('Women''s Team Meeting', '2026-02-15 14:00:00', 'Grace Fellowship Hall', '2026-02-15 16:00:00', 'c0000008-0000-0000-0000-000000000004', 'meeting'),
+  ('Palanca Workshop', '2026-02-20 19:00:00', 'St. Mark''s Parish Hall', '2026-02-20 21:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+
+  -- March 2026 events
+  ('Combined Team Meeting', '2026-03-07 10:00:00', 'First Baptist Church', '2026-03-07 12:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+  ('Music Team Practice', '2026-03-14 14:00:00', 'Community Chapel', '2026-03-14 16:00:00', 'c0000007-0000-0000-0000-000000000004', 'other'),
+  ('Table Leader Training', '2026-03-14 18:00:00', 'Grace Fellowship Hall', '2026-03-14 20:00:00', 'c0000008-0000-0000-0000-000000000004', 'meeting'),
+  ('Serenade Practice', '2026-03-21 15:00:00', 'Community Chapel', '2026-03-21 17:00:00', 'c0000007-0000-0000-0000-000000000004', 'serenade'),
+
+  -- April 2026 events
+  ('Rector''s Meeting', '2026-04-04 09:00:00', 'Rector''s Home', '2026-04-04 11:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+  ('Team Building Day', '2026-04-18 08:00:00', 'Camp Tejas', '2026-04-18 17:00:00', 'c0000007-0000-0000-0000-000000000004', 'other'),
+  ('Women''s Team Building', '2026-04-18 08:00:00', 'Camp Tejas', '2026-04-18 17:00:00', 'c0000008-0000-0000-0000-000000000004', 'other'),
+
+  -- May 2026 events (multiple on same days to test stacking)
+  ('Men''s Sendoff Planning', '2026-05-09 10:00:00', 'First Baptist Church', '2026-05-09 12:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+  ('Women''s Sendoff Planning', '2026-05-09 14:00:00', 'First Baptist Church', '2026-05-09 16:00:00', 'c0000008-0000-0000-0000-000000000004', 'meeting'),
+  ('Community Prayer Night', '2026-05-09 19:00:00', 'Community Chapel', '2026-05-09 21:00:00', 'c0000007-0000-0000-0000-000000000004', 'other'),
+  ('Final Team Meeting', '2026-05-23 09:00:00', 'Grace Fellowship Hall', '2026-05-23 12:00:00', 'c0000007-0000-0000-0000-000000000004', 'meeting'),
+
+  -- Weekend events (September 2026 - the actual weekend)
+  ('Men''s Sendoff', '2026-09-17 17:00:00', 'First Baptist Church', '2026-09-17 19:00:00', 'c0000007-0000-0000-0000-000000000004', 'sendoff'),
+  ('Women''s Sendoff', '2026-09-17 17:00:00', 'Community Chapel', '2026-09-17 19:00:00', 'c0000008-0000-0000-0000-000000000004', 'sendoff'),
+  ('Men''s Weekend', '2026-09-17 19:00:00', 'Camp Tejas', '2026-09-20 15:00:00', 'c0000007-0000-0000-0000-000000000004', 'weekend'),
+  ('Women''s Weekend', '2026-09-17 19:00:00', 'Camp Tejas', '2026-09-20 15:00:00', 'c0000008-0000-0000-0000-000000000004', 'weekend'),
+  ('Men''s Serenade', '2026-09-19 20:00:00', 'Camp Tejas', '2026-09-19 21:30:00', 'c0000007-0000-0000-0000-000000000004', 'serenade'),
+  ('Women''s Serenade', '2026-09-19 20:00:00', 'Camp Tejas', '2026-09-19 21:30:00', 'c0000008-0000-0000-0000-000000000004', 'serenade'),
+  ('Men''s Closing', '2026-09-20 14:00:00', 'Camp Tejas', '2026-09-20 16:00:00', 'c0000007-0000-0000-0000-000000000004', 'closing'),
+  ('Women''s Closing', '2026-09-20 14:00:00', 'Camp Tejas', '2026-09-20 16:00:00', 'c0000008-0000-0000-0000-000000000004', 'closing');
+
+-- =============================================================================
 -- SECTION: Candidates
 -- =============================================================================
 -- Create candidate records across different weekends with various statuses

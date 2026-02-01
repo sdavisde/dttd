@@ -70,9 +70,9 @@ Create the authenticated page at `/current-weekend` showing weekend information,
 
 ---
 
-### [ ] 4.0 Interactive Event Calendar Component
+### [x] 4.0 Interactive Event Calendar Component
 
-Create a calendar component that displays events with color-coded indicators and supports month navigation with click-to-scroll functionality.
+Create a calendar component that displays events with color-coded indicators and supports month navigation with click-to-scroll functionality. Should use shadcn-ui standards
 
 #### 4.0 Proof Artifact(s)
 
@@ -84,7 +84,12 @@ Create a calendar component that displays events with color-coded indicators and
 
 #### 4.0 Tasks
 
-TBD
+- [x] 4.1 Create `EventCalendar` component wrapper that extends shadcn/ui Calendar with event indicator support and month navigation
+- [x] 4.2 Create `EventDayCell` component that renders horizontally stacked color-coded dots for events on each calendar day
+- [x] 4.3 Create `getEventsGroupedByDate` utility function to group events by date string for efficient calendar lookup
+- [x] 4.4 Add current date highlighting with distinct visual styling (ring or background accent)
+- [x] 4.5 Implement click handler on day cells with events to trigger `onDateClick` callback for scroll-to-event functionality
+- [x] 4.6 Integrate EventCalendar into CurrentWeekendView with events data fetching from `getEventsForWeekendGroup`
 
 ---
 
