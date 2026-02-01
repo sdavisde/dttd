@@ -20,14 +20,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu'
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -44,7 +36,7 @@ import {
 import { useToastListener } from '@/components/toastbox'
 import { ImpersonationDialog } from '@/components/admin/sidebar/impersonation-dialog'
 import { NavElement } from './navbar-server'
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 
 type NavbarClientProps = {
   navElements: NavElement[]
@@ -140,49 +132,34 @@ export function Navbar({ navElements }: NavbarClientProps) {
 
         {/* Desktop Navigation */}
         {isAuthenticated && (
-          <div className="hidden md:flex items-center flex-1 justify-end me-8">
-            <NavigationMenu viewport={false}>
-              <NavigationMenuList className="gap-2">
-                {filteredNavElements.map((item) =>
-                  item.children ? (
-                    <NavigationMenuItem key={item.name}>
-                      <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 hover:text-white data-[state=open]:bg-white/10 focus:bg-white/10 focus:text-white">
-                        {item.name}
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="grid w-48 gap-1 p-2">
-                          {item.children.map((child) => (
-                            <li key={child.name}>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  href={`/${child.slug}`}
-                                  className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                >
-                                  <div className="text-sm font-medium leading-none">
-                                    {child.name}
-                                  </div>
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                          ))}
-                        </ul>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-                  ) : (
-                    <NavigationMenuItem key={item.name}>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href={`/${item.slug}`}
-                          className="inline-flex h-9 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus:outline-none"
-                        >
-                          {item.name}
-                        </Link>
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  )
-                )}
-              </NavigationMenuList>
-            </NavigationMenu>
+          <div className="hidden md:flex items-center flex-1 justify-end me-6 gap-1">
+            {filteredNavElements.map((item) =>
+              !isNil(item.children) && !isEmpty(item.children) ? (
+                <DropdownMenu key={item.name}>
+                  <DropdownMenuTrigger asChild>
+                    <button className="inline-flex items-center gap-1 px-3 py-2 text-md font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors">
+                      {item.name}
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {item.children.map((child) => (
+                      <DropdownMenuItem key={child.name} asChild>
+                        <Link href={`/${child.slug}`}>{child.name}</Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link
+                  key={item.name}
+                  href={`/${item.slug}`}
+                  className="px-3 py-2 text-md font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                >
+                  {item.name}
+                </Link>
+              )
+            )}
           </div>
         )}
 
