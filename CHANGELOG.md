@@ -1,3 +1,12 @@
+## [1.11.1](https://github.com/sdavisde/dttd/compare/v1.11.0...v1.11.1) (2026-02-01)
+
+### Bug Fixes
+
+- allow users to be redirected to their target url after necessary ([d8ffb03](https://github.com/sdavisde/dttd/commit/d8ffb033a95c59af07ffba5de7169ba9de70005e))
+- apply same permission checks to the admin dashboard links as the ([99f4f25](https://github.com/sdavisde/dttd/commit/99f4f250bbf4958f0b5715e7eeb712255edc9568))
+- hide admin navigation whenever the user doesn't have access to a ([057c8c0](https://github.com/sdavisde/dttd/commit/057c8c0bb1df62104607f39ce33265ec25add5da))
+- improve nav ui again.. still not hppy w it ([e36ec24](https://github.com/sdavisde/dttd/commit/e36ec24443b9e9f6e5b0842a4710be3f8a59bb3e))
+
 ## [1.11.0](https://github.com/sdavisde/dttd/compare/v1.10.1...v1.11.0) (2026-02-01)
 
 ### Features
