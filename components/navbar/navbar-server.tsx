@@ -122,6 +122,13 @@ async function getNavElements(): Promise<NavElement[]> {
           icon: 'users',
         },
         {
+          name: 'Candidate List',
+          slug: 'candidate-list',
+          permissions_needed: [],
+          description: 'View basic candidate information',
+          icon: 'user-check',
+        },
+        {
           name: 'Review Candidates',
           slug: 'review-candidates',
           permissions_needed: [Permission.READ_CANDIDATES],
