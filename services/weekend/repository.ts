@@ -39,7 +39,8 @@ export const WeekendRosterQuery = `
     first_name,
     last_name,
     email,
-    phone_number
+    phone_number,
+    gender
   ),
   weekend_roster_payments (
     id, weekend_roster_id, payment_amount, payment_intent_id, payment_method, created_at, notes

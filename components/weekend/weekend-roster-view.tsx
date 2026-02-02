@@ -4,6 +4,7 @@ import {
   DroppedRosterSection,
   ActiveRosterHeader,
   WeekendStatusBadge,
+  LeadershipTeamPreview,
 } from '@/components/weekend'
 import { ExperienceDistributionChart } from '@/components/weekend/experience-distribution-chart'
 import { Typography } from '@/components/ui/typography'
@@ -111,6 +112,11 @@ export async function WeekendRosterView({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Leadership Team Preview Section */}
+      <div className="mb-8">
+        <LeadershipTeamPreview roster={roster} />
       </div>
 
       {/* Team Roster Section */}

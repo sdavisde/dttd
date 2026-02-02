@@ -31,6 +31,7 @@ export type RawWeekendRoster = {
     last_name: string | null
     email: string | null
     phone_number: string | null
+    gender: string | null
   } | null
   weekend_roster_payments: Array<{
     id: string
@@ -61,6 +62,7 @@ export type WeekendRosterMember = {
     last_name: string | null
     email: string | null
     phone_number: string | null
+    gender: string | null
   } | null
   payment_info: {
     id: string
