@@ -5,14 +5,12 @@ import { getPrayerWheelUrls } from '@/services/settings'
 import { getEventsForWeekendGroup } from '@/services/events'
 import { WeekendType } from '@/lib/weekend/types'
 import { CurrentWeekendHeader } from './CurrentWeekendHeader'
-import { CandidateProgressBar } from './CandidateProgressBar'
 import { PrayerWheelButtons } from './PrayerWheelButtons'
 import { EmptyWeekendState } from './EmptyWeekendState'
 import { CalendarEventSection } from './CalendarEventSection'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SponsoredCandidatesCard } from './SponsoredCandidatesCard'
+import { TeamRosterCard } from './TeamRosterCard'
 import { Separator } from '@/components/ui/separator'
-
-const CANDIDATE_CAPACITY = 42
 
 export async function CurrentWeekendView() {
   const weekendsResult = await getActiveWeekends()
@@ -64,25 +62,13 @@ export async function CurrentWeekendView() {
           />
         </div>
 
-        {/* Right column: Progress bars stacked */}
-        <div className="space-y-4 h-full">
-          <Card className="h-full gap-2">
-            <CardHeader>
-              <CardTitle>Sponsored Candidates</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <CandidateProgressBar
-                label="Men's Weekend"
-                count={mensCandidateCount}
-                capacity={CANDIDATE_CAPACITY}
-              />
-              <CandidateProgressBar
-                label="Women's Weekend"
-                count={womensCandidateCount}
-                capacity={CANDIDATE_CAPACITY}
-              />
-            </CardContent>
-          </Card>
+        {/* Right column: Cards stacked */}
+        <div className="space-y-4">
+          <SponsoredCandidatesCard
+            mensCandidateCount={mensCandidateCount}
+            womensCandidateCount={womensCandidateCount}
+          />
+          <TeamRosterCard />
         </div>
       </div>
 

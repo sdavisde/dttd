@@ -36,7 +36,7 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
               candidates={candidates}
               user={user}
               weekendName={
-                weekendOptions.find((w) => w.value === currentWeekendId)?.label
+                weekendOptions.find((w) => w.id === currentWeekendId)?.label
               }
             />
             <ShareButton

@@ -21,9 +21,9 @@ export function PrayerWheelButtons({
   return (
     <div>
       <Typography>Prayer Wheel Signup</Typography>
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 mt-2">
         {hasMensUrl && (
-          <Button asChild variant="outline" className="flex-1" size="sm">
+          <Button asChild variant="outline" className="flex-1">
             <a
               href={mensUrl}
               target="_blank"
@@ -36,7 +36,7 @@ export function PrayerWheelButtons({
           </Button>
         )}
         {hasWomensUrl && (
-          <Button asChild variant="outline" className="flex-1" size="sm">
+          <Button asChild variant="outline" className="flex-1">
             <a
               href={womensUrl}
               target="_blank"
