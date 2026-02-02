@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Navbar } from './navbar-client'
 import { logger } from '@/lib/logger'
 import { Permission } from '@/lib/security'
+import { getActiveWeekends } from '@/services/weekend'
+import { isOk } from '@/lib/results'
+import { WeekendType } from '@/lib/weekend/types'
 
 // Icon names that map to lucide-react icons in the client component
 export type NavIconName =
@@ -15,6 +18,16 @@ export type NavIconName =
   | 'folder-open'
   | 'heart'
   | 'star'
+  | 'lock'
+  | 'shield'
+
+// Featured content to display in a dropdown panel
+export type NavFeaturedContent = {
+  title: string
+  description: string
+  linkText: string
+  linkHref: string
+}
 
 export type NavElement = {
   name: string
@@ -23,6 +36,9 @@ export type NavElement = {
   description?: string
   icon?: NavIconName
   children?: NavElement[]
+  featured?: NavFeaturedContent
+  // Visual indicator for restricted/special items
+  badge?: 'restricted' | 'new'
 }
 
 async function getNavElements(): Promise<NavElement[]> {
@@ -32,6 +48,38 @@ async function getNavElements(): Promise<NavElement[]> {
   if (bucketsError) {
     logger.error(`Error fetching buckets: ${bucketsError.message}`)
     return []
+  }
+
+  // Fetch active weekends for the featured content
+  const weekendsResult = await getActiveWeekends()
+  let featuredContent: NavFeaturedContent | undefined
+
+  if (isOk(weekendsResult)) {
+    const weekends = weekendsResult.data
+    const mensWeekend = weekends[WeekendType.MENS]
+    const womensWeekend = weekends[WeekendType.WOMENS]
+
+    // Format dates for display
+    const formatDate = (date: Date) =>
+      date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+    const mensDateStr = mensWeekend
+      ? `Men's: ${formatDate(new Date(mensWeekend.start_date))}`
+      : null
+    const womensDateStr = womensWeekend
+      ? `Women's: ${formatDate(new Date(womensWeekend.start_date))}`
+      : null
+
+    const dateDescription = [mensDateStr, womensDateStr]
+      .filter(Boolean)
+      .join(' • ')
+
+    featuredContent = {
+      title: `DTTD #${mensWeekend.number}`,
+      description: dateDescription || 'View details and sign up',
+      linkText: 'View weekend details',
+      linkHref: '/current-weekend',
+    }
   }
 
   const navElements: NavElement[] = [
@@ -64,20 +112,22 @@ async function getNavElements(): Promise<NavElement[]> {
       permissions_needed: [],
       description: 'Information about the active weekend',
       icon: 'calendar',
+      featured: featuredContent,
       children: [
+        {
+          name: 'Team Roster',
+          slug: 'roster',
+          permissions_needed: [],
+          description: 'View team assignments and participant lists',
+          icon: 'users',
+        },
         {
           name: 'Review Candidates',
           slug: 'review-candidates',
           permissions_needed: [Permission.READ_CANDIDATES],
           description: 'Review and approve candidate applications',
           icon: 'clipboard-list',
-        },
-        {
-          name: 'Roster',
-          slug: 'roster',
-          permissions_needed: [],
-          description: 'View team assignments and participant lists',
-          icon: 'users',
+          badge: 'restricted',
         },
       ],
     },
