@@ -1,3 +1,9 @@
+## [1.12.0](https://github.com/sdavisde/dttd/compare/v1.11.1...v1.12.0) (2026-02-02)
+
+### Features
+
+- another navbar redesign ([fa10b70](https://github.com/sdavisde/dttd/commit/fa10b70a0ffcfa0cf101aaf72e149a07cf7f795c))
+
 ## [1.11.1](https://github.com/sdavisde/dttd/compare/v1.11.0...v1.11.1) (2026-02-01)
 
 ### Bug Fixes
