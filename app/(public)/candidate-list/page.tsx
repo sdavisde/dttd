@@ -7,6 +7,7 @@ import { WeekendType } from '@/lib/weekend/types'
 import { WeekendFilterSelector } from '../review-candidates/components/WeekendFilterSelector'
 import { CandidateListTable } from './components/CandidateListTable'
 import { ShareButton } from './components/ShareButton'
+import { ExportButton } from './components/ExportButton'
 
 interface PageProps {
   searchParams: Promise<{
@@ -30,10 +31,19 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
               weekend.
             </Typography>
           </div>
-          <ShareButton
-            title="Candidate List"
-            text="View candidate information for the weekend"
-          />
+          <div className="flex gap-2">
+            <ExportButton
+              candidates={candidates}
+              user={user}
+              weekendName={
+                weekendOptions.find((w) => w.value === currentWeekendId)?.label
+              }
+            />
+            <ShareButton
+              title="Candidate List"
+              text="View candidate information for the weekend"
+            />
+          </div>
         </div>
 
         <WeekendFilterSelector weekendOptions={weekendOptions} />
