@@ -1,3 +1,9 @@
+## [1.12.1](https://github.com/sdavisde/dttd/compare/v1.12.0...v1.12.1) (2026-02-02)
+
+### Bug Fixes
+
+- add new event fields to the create/edit event form ([a5b9fd6](https://github.com/sdavisde/dttd/commit/a5b9fd652ff1cf6769bd2c5fa7fca575b77d2bb8))
+
 ## [1.12.0](https://github.com/sdavisde/dttd/compare/v1.11.1...v1.12.0) (2026-02-02)
 
 ### Features
