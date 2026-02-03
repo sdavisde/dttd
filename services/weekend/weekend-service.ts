@@ -27,7 +27,10 @@ import {
   RawWeekendRoster,
   WeekendRosterMember,
   WeekendSidebarPayload,
+  LeadershipTeamMember,
+  LeadershipTeamData,
 } from './types'
+import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
 
 // ============================================================================
@@ -729,5 +732,87 @@ export async function getWeekendRosterViewData(
     roster,
     experienceDistribution,
     availableUsers,
+  })
+}
+
+// ============================================================================
+// Leadership Team Functions
+// ============================================================================
+
+/**
+ * Leadership roles that should appear in the leadership preview.
+ * Order determines display priority (Rector first, then Head, etc.)
+ */
+const LEADERSHIP_ROLES = [
+  CHARole.RECTOR,
+  CHARole.HEAD,
+  CHARole.ASSISTANT_HEAD,
+  CHARole.BACKUP_RECTOR,
+]
+
+/**
+ * Sorts leadership members by their role position in LEADERSHIP_ROLES.
+ */
+function sortByLeadershipRole(
+  members: LeadershipTeamMember[]
+): LeadershipTeamMember[] {
+  return [...members].sort((a, b) => {
+    const aIndex = LEADERSHIP_ROLES.indexOf(a.chaRole as CHARole)
+    const bIndex = LEADERSHIP_ROLES.indexOf(b.chaRole as CHARole)
+    // Roles not in the list go to the end
+    const aPos = aIndex === -1 ? LEADERSHIP_ROLES.length : aIndex
+    const bPos = bIndex === -1 ? LEADERSHIP_ROLES.length : bIndex
+    return aPos - bPos
+  })
+}
+
+/**
+ * Transforms a raw leadership roster member into a LeadershipTeamMember.
+ */
+function normalizeLeadershipMember(
+  member: WeekendRepository.RawLeadershipRosterMember
+): LeadershipTeamMember | null {
+  if (!member.users || !member.cha_role) {
+    return null
+  }
+
+  const fullName =
+    `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim() ??
+    'Unknown'
+
+  return {
+    id: member.id,
+    fullName,
+    chaRole: member.cha_role,
+  }
+}
+
+/**
+ * Fetches leadership team members from active weekends.
+ * Men leaders come from the active MENS weekend, women leaders from WOMENS weekend.
+ */
+export async function getActiveWeekendLeadershipTeam(): Promise<
+  Result<string, LeadershipTeamData>
+> {
+  const result =
+    await WeekendRepository.findActiveWeekendLeadershipRoster(LEADERSHIP_ROLES)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const { mensLeadership, womensLeadership } = result.data
+
+  const menLeaders = sortByLeadershipRole(
+    mensLeadership.map(normalizeLeadershipMember).filter((m) => !isNil(m))
+  )
+
+  const womenLeaders = sortByLeadershipRole(
+    womensLeadership.map(normalizeLeadershipMember).filter((m) => !isNil(m))
+  )
+
+  return ok({
+    menLeaders,
+    womenLeaders,
   })
 }

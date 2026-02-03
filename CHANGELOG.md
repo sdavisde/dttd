@@ -1,3 +1,58 @@
+## [1.13.1](https://github.com/sdavisde/dttd/compare/v1.13.0...v1.13.1) (2026-02-03)
+
+### Bug Fixes
+
+- order leader positions by importance ([1c591bb](https://github.com/sdavisde/dttd/commit/1c591bb614ebc06583ed4c6ed379250bf71ddf30))
+
+## [1.13.0](https://github.com/sdavisde/dttd/compare/v1.12.1...v1.13.0) (2026-02-03)
+
+### Features
+
+- add CSV export for candidate list (Roster CHA role) ([2eb86f4](https://github.com/sdavisde/dttd/commit/2eb86f4fd0d7573b6443d9a4054efb98be780769))
+- add leadership team preview to current weekend page ([63b25a8](https://github.com/sdavisde/dttd/commit/63b25a8c813eab4b8a946426632de06991279c44))
+- add link to candidate list and team roster to current weekend page ([9caaab0](https://github.com/sdavisde/dttd/commit/9caaab05789085729c2334b15fce6540b388ba95))
+
+### Bug Fixes
+
+- add candidate list to the navigation ([637900d](https://github.com/sdavisde/dttd/commit/637900de6802713a3086908626318638111adc78))
+- remove leadership preivew from roster page ([910d826](https://github.com/sdavisde/dttd/commit/910d826580c32cb55322a37eb8924b7143ae2793))
+
+## [1.12.1](https://github.com/sdavisde/dttd/compare/v1.12.0...v1.12.1) (2026-02-02)
+
+### Bug Fixes
+
+- add new event fields to the create/edit event form ([a5b9fd6](https://github.com/sdavisde/dttd/commit/a5b9fd652ff1cf6769bd2c5fa7fca575b77d2bb8))
+
+## [1.12.0](https://github.com/sdavisde/dttd/compare/v1.11.1...v1.12.0) (2026-02-02)
+
+### Features
+
+- another navbar redesign ([fa10b70](https://github.com/sdavisde/dttd/commit/fa10b70a0ffcfa0cf101aaf72e149a07cf7f795c))
+
+## [1.11.1](https://github.com/sdavisde/dttd/compare/v1.11.0...v1.11.1) (2026-02-01)
+
+### Bug Fixes
+
+- allow users to be redirected to their target url after necessary ([d8ffb03](https://github.com/sdavisde/dttd/commit/d8ffb033a95c59af07ffba5de7169ba9de70005e))
+- apply same permission checks to the admin dashboard links as the ([99f4f25](https://github.com/sdavisde/dttd/commit/99f4f250bbf4958f0b5715e7eeb712255edc9568))
+- hide admin navigation whenever the user doesn't have access to a ([057c8c0](https://github.com/sdavisde/dttd/commit/057c8c0bb1df62104607f39ce33265ec25add5da))
+- improve nav ui again.. still not hppy w it ([e36ec24](https://github.com/sdavisde/dttd/commit/e36ec24443b9e9f6e5b0842a4710be3f8a59bb3e))
+
+## [1.11.0](https://github.com/sdavisde/dttd/compare/v1.10.1...v1.11.0) (2026-02-01)
+
+### Features
+
+- add event list display with URL hash-based date selection ([59eba96](https://github.com/sdavisde/dttd/commit/59eba9658c89975dcf170df1419585692034c4e9)), closes [current-weekend#2024-02-15](https://github.com/sdavisde/current-weekend/issues/2024-02-15)
+- add mobile responsive layout with tabbed interface ([253f41b](https://github.com/sdavisde/dttd/commit/253f41b9ac6a3b811553aa892e139d21b72887aa))
+- add new "end_datetime", "weekend_id", and "type" fields to events ([81fde23](https://github.com/sdavisde/dttd/commit/81fde23b7e971f26540b0663a89da2b9459c49ce))
+- add the bones of the current weekend page ([52f9554](https://github.com/sdavisde/dttd/commit/52f955403bb07e8c5c6eb60313d23ec3d57fe614))
+- add weekend calendar view ([13a7b1b](https://github.com/sdavisde/dttd/commit/13a7b1b7075d13b6cf5e86a28eaa335d40d2c409))
+- improve navigation UI ([febfe1c](https://github.com/sdavisde/dttd/commit/febfe1cb6d5a974c6ce5306a651b8fc7f52573ec))
+
+### Bug Fixes
+
+- remove job description ([f676768](https://github.com/sdavisde/dttd/commit/f6767688f4b9dead58d329706014309288daa36d))
+
 ## [1.10.1](https://github.com/sdavisde/dttd/compare/v1.10.0...v1.10.1) (2026-01-31)
 
 ### Bug Fixes

@@ -2,13 +2,9 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { Result, ok, err } from '@/lib/results'
+import { Tables } from '@/database.types'
 
-type RawSiteSetting = {
-  key: string
-  value: string
-  updated_at: string | null
-  updated_by_user_id: string | null
-}
+type RawSiteSetting = Tables<'site_settings'>
 
 export async function getSettingByKey(
   key: string

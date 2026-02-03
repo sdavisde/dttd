@@ -1,5 +1,6 @@
 import { getLoggedInUser } from '@/services/identity/user'
-import { getUpcomingEvents, getPastEvents } from '@/actions/events'
+import { getUpcomingEvents, getPastEvents } from '@/services/events'
+import { getWeekendOptions } from '@/services/weekend'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import Meetings from './components/Meetings'
 import { permissionLock, userHasPermission, Permission } from '@/lib/security'
@@ -25,15 +26,20 @@ export default async function MeetingsPage() {
   const canEdit = userHasPermission(user, [Permission.WRITE_EVENTS])
 
   // Fetch events data server-side
-  const [upcomingEventsResult, pastEventsResult] = await Promise.all([
-    getUpcomingEvents(),
-    getPastEvents(),
-  ])
+  const [upcomingEventsResult, pastEventsResult, weekendOptionsResult] =
+    await Promise.all([
+      getUpcomingEvents(),
+      getPastEvents(),
+      getWeekendOptions(),
+    ])
 
   const upcomingEvents = isErr(upcomingEventsResult)
     ? []
     : upcomingEventsResult.data
   const pastEvents = isErr(pastEventsResult) ? [] : pastEventsResult.data
+  const weekendOptions = isErr(weekendOptionsResult)
+    ? []
+    : weekendOptionsResult.data
 
   return (
     <>
@@ -46,6 +52,7 @@ export default async function MeetingsPage() {
           canEdit={canEdit}
           upcomingEvents={upcomingEvents}
           pastEvents={pastEvents}
+          weekendOptions={weekendOptions}
         />
       </div>
     </>
