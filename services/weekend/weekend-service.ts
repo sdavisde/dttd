@@ -27,7 +27,10 @@ import {
   RawWeekendRoster,
   WeekendRosterMember,
   WeekendSidebarPayload,
+  LeadershipTeamMember,
+  LeadershipTeamData,
 } from './types'
+import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
 
 // ============================================================================
@@ -729,5 +732,70 @@ export async function getWeekendRosterViewData(
     roster,
     experienceDistribution,
     availableUsers,
+  })
+}
+
+// ============================================================================
+// Leadership Team Functions
+// ============================================================================
+
+/**
+ * Leadership roles that should appear in the leadership preview.
+ */
+const LEADERSHIP_ROLES = [
+  CHARole.RECTOR,
+  CHARole.HEAD,
+  CHARole.ASSISTANT_HEAD,
+  CHARole.BACKUP_RECTOR,
+]
+
+/**
+ * Transforms a raw leadership roster member into a LeadershipTeamMember.
+ */
+function normalizeLeadershipMember(
+  member: WeekendRepository.RawLeadershipRosterMember
+): LeadershipTeamMember | null {
+  if (!member.users || !member.cha_role) {
+    return null
+  }
+
+  const fullName =
+    `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim() ??
+    'Unknown'
+
+  return {
+    id: member.id,
+    fullName,
+    chaRole: member.cha_role,
+  }
+}
+
+/**
+ * Fetches leadership team members from active weekends.
+ * Men leaders come from the active MENS weekend, women leaders from WOMENS weekend.
+ */
+export async function getActiveWeekendLeadershipTeam(): Promise<
+  Result<string, LeadershipTeamData>
+> {
+  const result =
+    await WeekendRepository.findActiveWeekendLeadershipRoster(LEADERSHIP_ROLES)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const { mensLeadership, womensLeadership } = result.data
+
+  const menLeaders = mensLeadership
+    .map(normalizeLeadershipMember)
+    .filter((m) => !isNil(m))
+
+  const womenLeaders = womensLeadership
+    .map(normalizeLeadershipMember)
+    .filter((m) => !isNil(m))
+
+  return ok({
+    menLeaders,
+    womenLeaders,
   })
 }

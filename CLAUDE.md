@@ -59,6 +59,8 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
 1. **Server Actions Pattern**: Database operations are handled via server actions in the `actions/` directory, not API routes
 2. **Type Safety**: All database operations use generated types from `database.types.ts`
 3. **Result Pattern**: Server actions return `Result<Error, T>` types for consistent error handling
+   - Use `Results.unwrapOr(result, defaultValue)` for fallback values instead of `isOk(result) ? result.data : defaultValue`
+   - Other useful Result utilities: `Results.map()`, `Results.match()`, `Results.andThen()`
 4. **Authentication Middleware**: Supabase auth handled in `middleware.ts` with route protection
 5. **Component Co-location**: Feature-specific components are organized under their respective domain folders
 6. **Separation of Concerns**: Clear separation between public and admin functionality through route grouping
