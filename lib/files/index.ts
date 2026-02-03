@@ -110,6 +110,20 @@ export async function fetchFolderContents(
   return getFileSystemItems('files', currentPath)
 }
 
+import { MEETING_MINUTES_FOLDER } from './constants'
+
+// Re-export constants for server-side usage
+export { MEETING_MINUTES_FOLDER } from './constants'
+
+/**
+ * Fetches meeting minutes files from the Meeting Minutes folder
+ */
+export async function getMeetingMinutesFiles(): Promise<
+  Result<string, FileObject[]>
+> {
+  return getFileSystemItems('files', MEETING_MINUTES_FOLDER)
+}
+
 /**
  * Get navigation items for file folders (useful for sidebar/menu generation)
  */

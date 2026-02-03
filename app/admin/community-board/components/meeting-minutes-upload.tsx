@@ -5,21 +5,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/auth/session-provider'
 import { Permission, permissionLock } from '@/lib/security'
+import { MEETING_MINUTES_FOLDER } from '@/lib/files/constants'
 import { Button } from '@/components/ui/button'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-
-type FileUploadProps = {
-  folder: string
-  buttonText?: string
-  buttonVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost'
-    | 'link'
-}
 
 const ALLOWED_FILE_TYPES = [
   'application/pdf',
@@ -29,11 +18,7 @@ const ALLOWED_FILE_TYPES = [
   'image/webp',
 ]
 
-export function FileUpload({
-  folder,
-  buttonText = 'Upload File',
-  buttonVariant = 'ghost',
-}: FileUploadProps) {
+export function MeetingMinutesUpload() {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -48,24 +33,17 @@ export function FileUpload({
 
       const file = files[0]
 
-      // Validate file type
       if (!ALLOWED_FILE_TYPES.includes(file.type)) {
         toast.error('Only PDF and image files are allowed')
         return
       }
-
-      // Validate file size (10MB limit) REMOVED THIS LIMIT B/C OF ROSTER PDFS
-      // if (file.size > 10 * 1024 * 1024) {
-      //   toast.error('File size must be less than 10MB')
-      //   return
-      // }
 
       setUploading(true)
 
       const supabase = createClient()
       const { error: uploadError } = await supabase.storage
         .from('files')
-        .upload(`${folder}/${file.name}`, file, {
+        .upload(`${MEETING_MINUTES_FOLDER}/${file.name}`, file, {
           cacheControl: '3600',
           upsert: false,
         })
@@ -75,8 +53,6 @@ export function FileUpload({
       }
 
       toast.success(`File "${file.name}" uploaded successfully`)
-
-      // Refresh the page to show the new file
       router.refresh()
     } catch (err) {
       toast.error(
@@ -84,7 +60,6 @@ export function FileUpload({
       )
     } finally {
       setUploading(false)
-      // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -104,7 +79,7 @@ export function FileUpload({
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
         size="sm"
-        variant={buttonVariant}
+        variant="outline"
         className="flex items-center gap-2"
       >
         {uploading ? (
@@ -112,7 +87,7 @@ export function FileUpload({
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        {buttonText}
+        Add Minutes
       </Button>
     </>
   )
