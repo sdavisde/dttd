@@ -1,7 +1,11 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Tables, TablesInsert, TablesUpdate } from '@/database.types'
+import {
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from '@/lib/supabase/database.types'
 import { Result, err, ok } from '@/lib/results'
 
 export type Event = Tables<'events'>

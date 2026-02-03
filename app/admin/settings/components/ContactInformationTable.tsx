@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Edit, Trash2 } from 'lucide-react'
-import { Tables } from '@/database.types'
+import { Tables } from '@/lib/supabase/database.types'
 import { createClient } from '@/lib/supabase/client'
 import {
   Table,

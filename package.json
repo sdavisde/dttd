@@ -13,7 +13,7 @@
     "db:stop": "supabase stop --project-id dttd",
     "db:status": "supabase status",
     "db:reset": "supabase db reset",
-    "db:generate": "supabase gen types typescript --local > lib/supabase/database.types.ts"
+    "db:generate": "supabase gen types typescript --local > database.types.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css,md}": [

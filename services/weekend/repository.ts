@@ -3,7 +3,7 @@ import 'server-only'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { fromSupabase, Result, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
-import { Tables } from '@/database.types'
+import { Tables } from '@/lib/supabase/database.types'
 import {
   Weekend,
   WeekendStatus,

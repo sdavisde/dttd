@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '12.2.3 (519615d)'
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -117,24 +137,30 @@ export type Database = {
           candidate_id: string | null
           created_at: string
           id: number
+          notes: string | null
           payment_amount: number | null
           payment_intent_id: string
+          payment_method: string | null
           payment_owner: string
         }
         Insert: {
           candidate_id?: string | null
           created_at?: string
           id?: number
+          notes?: string | null
           payment_amount?: number | null
           payment_intent_id: string
+          payment_method?: string | null
           payment_owner: string
         }
         Update: {
           candidate_id?: string | null
           created_at?: string
           id?: number
+          notes?: string | null
           payment_amount?: number | null
           payment_intent_id?: string
+          payment_method?: string | null
           payment_owner?: string
         }
         Relationships: [
@@ -342,42 +368,48 @@ export type Database = {
         }
         Relationships: []
       }
+      roles: {
+        Row: {
+          description: string | null
+          id: string
+          label: string
+          permissions: string[]
+          type: Database['public']['Enums']['role_type']
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          label: string
+          permissions: string[]
+          type?: Database['public']['Enums']['role_type']
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          label?: string
+          permissions?: string[]
+          type?: Database['public']['Enums']['role_type']
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           key: string
-          updated_at: string
+          updated_at: string | null
           updated_by_user_id: string | null
           value: string
         }
         Insert: {
           key: string
-          updated_at?: string
+          updated_at?: string | null
           updated_by_user_id?: string | null
           value: string
         }
         Update: {
           key?: string
-          updated_at?: string
+          updated_at?: string | null
           updated_by_user_id?: string | null
           value?: string
-        }
-        Relationships: []
-      }
-      roles: {
-        Row: {
-          id: string
-          label: string
-          permissions: string[]
-        }
-        Insert: {
-          id?: string
-          label: string
-          permissions: string[]
-        }
-        Update: {
-          id?: string
-          label?: string
-          permissions?: string[]
         }
         Relationships: []
       }
@@ -672,6 +704,7 @@ export type Database = {
         | 'confirmed'
         | 'rejected'
       permissions: 'READ_MEDICAL_HISTORY'
+      role_type: 'INDIVIDUAL' | 'COMMITTEE'
       weekend_type: 'MENS' | 'WOMENS'
     }
     CompositeTypes: {
@@ -798,6 +831,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       candidate_status: [
@@ -809,6 +845,7 @@ export const Constants = {
         'rejected',
       ],
       permissions: ['READ_MEDICAL_HISTORY'],
+      role_type: ['INDIVIDUAL', 'COMMITTEE'],
       weekend_type: ['MENS', 'WOMENS'],
     },
   },

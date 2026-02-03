@@ -1,4 +1,4 @@
-import { Tables } from '@/database.types'
+import { Tables } from '@/lib/supabase/database.types'
 
 /**
  * Shape of user data returned from the repository queries.

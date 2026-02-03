@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { AddTeamMemberModal } from './add-team-member-modal'
-import { Tables } from '@/database.types'
+import { Tables } from '@/lib/supabase/database.types'
 
 type AddTeamMemberButtonProps = {
   weekendId: string

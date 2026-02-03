@@ -10,9 +10,10 @@ import {
 } from '@/lib/candidates/types'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
-import { Database } from '@/database.types'
 import { sendCandidateFormsCompletedEmail } from './emails'
 import { logger } from '@/lib/logger'
+import { WeekendType } from '@/lib/weekend/types'
+import { Database } from '@/lib/supabase/database.types'
 
 type CandidateSponsorshipInfoUpdate =
   Database['public']['Tables']['candidate_sponsorship_info']['Update']
@@ -158,8 +159,6 @@ export async function getHydratedCandidate(
 /**
  * Gets all candidates with their related information
  */
-import { WeekendType } from '@/lib/weekend/types'
-
 export type CandidateFilterOptions = {
   weekendGroupId?: string
   weekendType?: WeekendType

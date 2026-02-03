@@ -7,7 +7,7 @@ import { EditableField } from '@/components/ui/editable-field'
 import { updateCandidateSponsorshipField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
-import { Database } from '@/database.types'
+import { Database } from '@/lib/supabase/database.types'
 import { useCallback } from 'react'
 
 type SponsorshipInfoUpdate =

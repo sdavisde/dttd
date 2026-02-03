@@ -1,4 +1,4 @@
-import { Tables } from '@/database.types'
+import { Tables } from '@/lib/supabase/database.types'
 import { Permission } from '@/lib/security'
 
 export type RoleType = 'INDIVIDUAL' | 'COMMITTEE'

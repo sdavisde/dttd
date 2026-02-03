@@ -2,7 +2,7 @@ import 'server-only'
 
 import { isErr, ok, Result } from '@/lib/results'
 import * as RoleRepository from './repository'
-import { Tables } from '@/database.types'
+import { Tables } from '@/lib/supabase/database.types'
 import { Permission } from '@/lib/security'
 import { Role } from './types'
 

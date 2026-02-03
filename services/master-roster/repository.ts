@@ -19,6 +19,7 @@ const GetMasterRosterQuery = `
     roles (
       id,
       label,
+      description,
       permissions
     )
   ),

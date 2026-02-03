@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/popover'
 import { ChaRoleField } from '@/components/weekend/cha-role-field'
 import { RolloField } from '@/components/weekend/rollo-field'
-import { Tables } from '@/database.types'
+import { Tables } from '@/lib/supabase/database.types'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'

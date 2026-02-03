@@ -6,7 +6,7 @@ import { Result, ok, err } from '@/lib/results'
 type RawSiteSetting = {
   key: string
   value: string
-  updated_at: string
+  updated_at: string | null
   updated_by_user_id: string | null
 }
 

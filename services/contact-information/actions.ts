@@ -1,8 +1,7 @@
 'use server'
 
 import { authorizedAction } from '@/lib/actions/authorized-action'
-import * as NotificationService from './notification-service'
-import * as NotificationRepository from './repository'
+import * as ContactInformationService from './contact-information-service'
 import { Permission } from '@/lib/security'
 import { Tables } from '@/lib/supabase/database.types'
 
@@ -14,7 +13,7 @@ export const getContactInformation = authorizedAction<
   string,
   Tables<'contact_information'>
 >(Permission.READ_ADMIN_PORTAL, async (contactId) => {
-  return await NotificationRepository.getContactInformation(contactId)
+  return await ContactInformationService.getContactInformation(contactId)
 })
 
 type UpdateContactInformationRequest = {
@@ -30,7 +29,7 @@ export const updateContactInformation = authorizedAction<
   UpdateContactInformationRequest,
   Tables<'contact_information'>
 >(Permission.WRITE_USER_ROLES, async ({ contactId, emailAddress }) => {
-  return await NotificationService.updateContactInformation(
+  return await ContactInformationService.updateContactInformation(
     contactId,
     emailAddress
   )
