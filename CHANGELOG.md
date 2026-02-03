@@ -1,3 +1,16 @@
+## [1.13.0](https://github.com/sdavisde/dttd/compare/v1.12.1...v1.13.0) (2026-02-03)
+
+### Features
+
+- add CSV export for candidate list (Roster CHA role) ([2eb86f4](https://github.com/sdavisde/dttd/commit/2eb86f4fd0d7573b6443d9a4054efb98be780769))
+- add leadership team preview to current weekend page ([63b25a8](https://github.com/sdavisde/dttd/commit/63b25a8c813eab4b8a946426632de06991279c44))
+- add link to candidate list and team roster to current weekend page ([9caaab0](https://github.com/sdavisde/dttd/commit/9caaab05789085729c2334b15fce6540b388ba95))
+
+### Bug Fixes
+
+- add candidate list to the navigation ([637900d](https://github.com/sdavisde/dttd/commit/637900de6802713a3086908626318638111adc78))
+- remove leadership preivew from roster page ([910d826](https://github.com/sdavisde/dttd/commit/910d826580c32cb55322a37eb8924b7143ae2793))
+
 ## [1.12.1](https://github.com/sdavisde/dttd/compare/v1.12.0...v1.12.1) (2026-02-02)
 
 ### Bug Fixes
