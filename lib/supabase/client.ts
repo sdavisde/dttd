@@ -2,7 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import { logger } from '@/lib/logger'
-import { Database } from '@/lib/supabase/database.types'
+import { Database } from '@/database.types'
 
 export function createClient() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {

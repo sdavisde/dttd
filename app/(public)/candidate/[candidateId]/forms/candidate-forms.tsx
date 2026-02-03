@@ -33,7 +33,7 @@ import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
 import { calculateAge } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
-import { Database } from '@/lib/supabase/database.types'
+import { Database } from '@/database.types'
 
 type CandidateInfo = Database['public']['Tables']['candidate_info']['Row']
 

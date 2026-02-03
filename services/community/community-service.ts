@@ -6,7 +6,7 @@ import { isErr } from '@/lib/results'
 import { CommunityEncouragement } from './types'
 import * as CommunityRepository from './repository'
 import { isEmpty, isNil } from 'lodash'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 
 function normalizeCommunityEncouragement(
   rawEncouragement: Tables<'community_encouragements'>

@@ -4,7 +4,7 @@ import { authorizedAction } from '@/lib/actions/authorized-action'
 import * as NotificationService from './notification-service'
 import * as NotificationRepository from './repository'
 import { Permission } from '@/lib/security'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 
 /**
  * Get contact information by ID.

@@ -9,7 +9,7 @@ import {
   calculateRectorReadyStatus,
   countDistinctWeekends,
 } from '@/lib/users/experience/calculations'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 import {
   MasterRoster,
   MasterRosterMember,

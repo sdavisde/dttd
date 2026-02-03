@@ -11,7 +11,7 @@ import {
   EmergencyContact,
 } from './types'
 import { addressSchema } from '@/lib/users/validation'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 import { logger } from '@/lib/logger'
 
 function normalizeCandidate(

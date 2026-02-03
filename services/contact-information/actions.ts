@@ -3,7 +3,7 @@
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import * as ContactInformationService from './contact-information-service'
 import { Permission } from '@/lib/security'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 
 /**
  * Get contact information by ID.

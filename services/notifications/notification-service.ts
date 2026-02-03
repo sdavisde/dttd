@@ -7,7 +7,7 @@ import * as NotificationRepository from './repository'
 import * as CandidateRepository from '@/services/candidates/repository'
 import { ContactInfo, NotificationRecipient } from './types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 

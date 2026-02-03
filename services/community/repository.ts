@@ -2,7 +2,7 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { fromSupabase, Result } from '@/lib/results'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 import { isEmpty } from 'lodash'
 
 /**

@@ -25,6 +25,7 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       id: userRole.roles.id,
       label: userRole.roles.label,
       permissions: userRole.roles.permissions ?? [],
+      type: userRole.roles.type,
     })) ?? []
 
   const teamMemberInfo =

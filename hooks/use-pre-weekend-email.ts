@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { updateContactInformation } from '@/services/notifications'
 import { isErr } from '@/lib/results'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 
 type UsePreWeekendEmailProps = {
   contact: Tables<'contact_information'>

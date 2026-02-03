@@ -13,7 +13,7 @@ import { Permission } from '@/lib/security'
 import { sendCandidateFormsCompletedEmail } from './emails'
 import { logger } from '@/lib/logger'
 import { WeekendType } from '@/lib/weekend/types'
-import { Database } from '@/lib/supabase/database.types'
+import { Database } from '@/database.types'
 
 type CandidateSponsorshipInfoUpdate =
   Database['public']['Tables']['candidate_sponsorship_info']['Update']

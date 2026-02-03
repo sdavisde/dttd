@@ -1,4 +1,4 @@
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 
 export type TeamMemberInfo = {
   id: string

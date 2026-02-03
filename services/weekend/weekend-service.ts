@@ -9,7 +9,7 @@ import { getWeekendRosterExperienceDistribution } from '@/services/master-roster
 import { ExperienceDistribution } from '@/services/master-roster/types'
 import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
 import { logger } from '@/lib/logger'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 import {
   Weekend,
   WeekendType,

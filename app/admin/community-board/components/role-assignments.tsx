@@ -3,7 +3,7 @@
 import { ClipboardList } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { Tables } from '@/lib/supabase/database.types'
+import { Tables } from '@/database.types'
 import { usePreWeekendEmail } from '@/hooks/use-pre-weekend-email'
 import {
   useRoleAssignment,

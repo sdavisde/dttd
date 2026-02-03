@@ -26,7 +26,8 @@ export const JoinUserRolesOnUserId = `
       id,
       label,
       description,
-      permissions
+      permissions,
+      type
     )
   )
 `
