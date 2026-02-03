@@ -114,11 +114,6 @@ export async function WeekendRosterView({
         </div>
       </div>
 
-      {/* Leadership Team Preview Section */}
-      <div className="mb-8">
-        <LeadershipTeamPreview />
-      </div>
-
       {/* Team Roster Section */}
       <div>
         <div className="mb-4">
