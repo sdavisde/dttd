@@ -1,7 +1,7 @@
 'use client'
 
 import { Calendar } from 'lucide-react'
-import { type Event } from '@/actions/events'
+import { type Event } from '@/services/events'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { EventCard } from './EventCard'

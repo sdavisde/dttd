@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { logger } from '@/lib/logger'
+import { validateRedirectUrl } from '@/lib/redirect'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -45,21 +46,35 @@ export async function updateSession(request: NextRequest) {
   const redirectToHomeUrls = /^\/(login|join)?$/
 
   if (user && redirectToHomeUrls.test(request.nextUrl.pathname)) {
+    // Check for redirectTo parameter and validate it
+    const redirectTo = request.nextUrl.searchParams.get('redirectTo')
+    const targetPath = validateRedirectUrl(redirectTo, '/home')
     logger.info(
-      `user logged in, redirecting to home from ${request.nextUrl.pathname}`
+      `user logged in, redirecting to ${targetPath} from ${request.nextUrl.pathname}`
     )
     const url = request.nextUrl.clone()
-    url.pathname = '/home'
+    url.pathname = targetPath.split('?')[0]
+    // Preserve query string from redirectTo if present
+    const queryIndex = targetPath.indexOf('?')
+    if (queryIndex !== -1) {
+      const params = new URLSearchParams(targetPath.slice(queryIndex + 1))
+      params.forEach((value, key) => url.searchParams.set(key, value))
+    }
+    // Clear the redirectTo param from the final URL
+    url.searchParams.delete('redirectTo')
     return NextResponse.redirect(url)
   }
 
   if (!user && !publicUrls.test(request.nextUrl.pathname)) {
+    // Capture the original URL to redirect back after login
+    const originalUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`
     logger.info(
-      `no user, redirecting to login from ${request.nextUrl.pathname}`
+      `no user, redirecting to login from ${request.nextUrl.pathname} (will return to ${originalUrl})`
     )
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('redirectTo', originalUrl)
     return NextResponse.redirect(url)
   }
 

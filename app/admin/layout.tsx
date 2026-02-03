@@ -7,62 +7,18 @@ import { permissionLock, Permission } from '@/lib/security'
 import { getFileFolders } from '@/lib/files'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
-import { getActiveWeekends } from '@/services/weekend'
-import { formatWeekendTitle } from '@/lib/weekend'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { User } from '@/lib/users/types'
+import { getFilteredNavData } from '@/lib/admin/navigation'
 
 type AdminLayoutProps = {
   children: React.ReactNode
 }
 
-async function getSidebarData() {
-  // Fetch dynamic file folders for navigation
+async function getSidebarData(user: User) {
   const fileFolders = await getFileFolders(true)
-  const activeWeekendsResult = await getActiveWeekends()
-
-  const upcomingWeekends = Results.unwrap(
-    Results.map(activeWeekendsResult, (activeWeekends) =>
-      [activeWeekends.MENS, activeWeekends.WOMENS].filter((it) => it !== null)
-    )
-  )
-
-  return {
-    navMain: [
-      {
-        title: 'Weekends',
-        url: '/admin/weekends',
-        icon: 'TentTree',
-        isActive: true,
-      },
-      {
-        title: 'Events',
-        url: '/admin/meetings',
-        icon: 'Calendar',
-      },
-      {
-        title: 'Payments',
-        url: '/admin/payments',
-        icon: 'DollarSign',
-      },
-      {
-        title: 'Master Roster',
-        url: '/admin/users',
-        icon: 'Users',
-      },
-      {
-        title: 'Community Board',
-        url: '/admin/community-board',
-        icon: 'ClipboardList',
-      },
-      {
-        title: 'Files',
-        url: '/admin/files',
-        icon: 'Folder',
-        items: fileFolders,
-      },
-    ],
-  }
+  return getFilteredNavData(user, fileFolders)
 }
 export default async function AdminLayout({ children }: AdminLayoutProps) {
   const userResult = await getLoggedInUser()
@@ -76,11 +32,11 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     redirect(`/?error=${(error as Error).message}`)
   }
 
-  const sidebarData = await getSidebarData()
+  const sidebarData = await getSidebarData(user)
 
   return (
     <SidebarProvider>
-      <AdminSidebar data={sidebarData} />
+      <AdminSidebar data={sidebarData} systemLinks={sidebarData.systemLinks} />
       <SidebarInset>
         <div className="w-full">
           <Link

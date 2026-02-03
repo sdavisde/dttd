@@ -8,15 +8,17 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { buildUrlWithRedirect } from '@/lib/url'
 import AuthModeToggle from './AuthModeToggle'
 import PasswordInput from './PasswordInput'
 import RegistrationFields from './RegistrationFields'
 
 interface AuthFormProps {
   onSuccess?: () => void
+  redirectTo?: string
 }
 
-export default function AuthForm({ onSuccess }: AuthFormProps) {
+export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -204,14 +206,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           <>
             Don&apos;t have an account?{' '}
             <Button variant="link" asChild className="p-0 h-auto text-sm">
-              <a href="/join">Create one</a>
+              <a href={buildUrlWithRedirect('/join', redirectTo)}>Create one</a>
             </Button>
           </>
         ) : (
           <>
             Already have an account?{' '}
             <Button variant="link" asChild className="p-0 h-auto text-sm">
-              <a href="/login">Sign in</a>
+              <a href={buildUrlWithRedirect('/login', redirectTo)}>Sign in</a>
             </Button>
           </>
         )}

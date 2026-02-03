@@ -1,5 +1,5 @@
 import { Calendar } from 'lucide-react'
-import { getUpcomingEvents } from '@/actions/events'
+import { getUpcomingEvents } from '@/services/events'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { EventCard } from './EventCard'

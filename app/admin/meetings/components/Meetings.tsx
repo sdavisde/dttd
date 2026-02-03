@@ -5,19 +5,24 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { AdminEvents } from '@/components/events/AdminEvents'
-import { EventSidebar } from '@/components/events/EventSidebar'
-import { type Event } from '@/actions/events'
+import {
+  EventSidebar,
+  type WeekendOption,
+} from '@/components/events/EventSidebar'
+import { type Event } from '@/services/events'
 
 interface MeetingsProps {
   canEdit: boolean
   upcomingEvents: Event[]
   pastEvents: Event[]
+  weekendOptions: WeekendOption[]
 }
 
 export default function Meetings({
   canEdit,
   upcomingEvents,
   pastEvents,
+  weekendOptions,
 }: MeetingsProps) {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -86,6 +91,7 @@ export default function Meetings({
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
         event={selectedEvent}
+        weekendOptions={weekendOptions}
       />
     </div>
   )

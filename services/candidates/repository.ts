@@ -96,3 +96,24 @@ export async function insertManualCandidatePayment(data: {
 
   return ok(paymentRecord)
 }
+
+/**
+ * Gets the count of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateCountByWeekend(
+  weekendId: string
+): Promise<Result<string, number>> {
+  const supabase = await createClient()
+
+  const { count, error } = await supabase
+    .from('candidates')
+    .select('*', { count: 'exact', head: true })
+    .eq('weekend_id', weekendId)
+    .neq('status', 'rejected')
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(count ?? 0)
+}

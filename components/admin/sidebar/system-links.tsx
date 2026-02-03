@@ -1,6 +1,6 @@
 'use client'
 
-import { LogOut, Settings2, ShieldCheck } from 'lucide-react'
+import { type LucideIcon } from 'lucide-react'
 
 import {
   SidebarGroup,
@@ -10,27 +10,35 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-export function SystemLinks() {
+type SystemLinkItem = {
+  title: string
+  url: string
+  icon: LucideIcon
+}
+
+type SystemLinksProps = {
+  items: SystemLinkItem[]
+}
+
+export function SystemLinks({ items }: SystemLinksProps) {
+  if (items.length === 0) {
+    return null
+  }
+
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>System</SidebarGroupLabel>
       <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <a href="/admin/settings">
-              <Settings2 />
-              <span>Settings</span>
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <a href="/admin/roles">
-              <ShieldCheck />
-              <span>Security</span>
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        {items.map((item) => (
+          <SidebarMenuItem key={item.url}>
+            <SidebarMenuButton asChild>
+              <a href={item.url}>
+                <item.icon />
+                <span>{item.title}</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
       </SidebarMenu>
     </SidebarGroup>
   )

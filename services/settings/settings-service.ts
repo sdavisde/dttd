@@ -19,7 +19,7 @@ function normalizeSetting(raw: {
   return {
     key: raw.key,
     value: raw.value,
-    updatedAt: raw.updated_at ? new Date(raw.updated_at) : null,
+    updatedAt: raw.updated_at ? new Date(raw.updated_at) : new Date(),
     updatedBy: raw.updated_by_user_id,
   }
 }

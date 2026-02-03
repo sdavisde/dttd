@@ -14,6 +14,7 @@ import * as WeekendService from './weekend-service'
 
 // Re-export types for convenience
 export type { WeekendRosterViewData } from './weekend-service'
+export type { LeadershipTeamData, LeadershipTeamMember } from './types'
 
 // ============================================================================
 // Public Actions (No Authorization)
@@ -94,6 +95,15 @@ export async function recordManualPayment(
  */
 export async function getWeekendOptions() {
   return WeekendService.getWeekendOptions()
+}
+
+/**
+ * Fetches leadership team members from active weekends.
+ * Men leaders come from the active MENS weekend, women leaders from WOMENS weekend.
+ * Public - displayed on current weekend page.
+ */
+export async function getActiveWeekendLeadershipTeam() {
+  return WeekendService.getActiveWeekendLeadershipTeam()
 }
 
 // ============================================================================

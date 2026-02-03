@@ -1,5 +1,12 @@
 import { Suspense } from 'react'
-import { BookOpen, DollarSign, File, UserPlus, CheckCircle } from 'lucide-react'
+import {
+  BookOpen,
+  DollarSign,
+  File,
+  UserPlus,
+  CheckCircle,
+  CalendarDays,
+} from 'lucide-react'
 import { User } from '@/lib/users/types'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
@@ -66,6 +73,15 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
           <Button
             variant="outline"
             className="w-full h-52 flex flex-col items-center justify-center gap-2"
+            href="/current-weekend"
+          >
+            <CalendarDays className="w-10 h-10" />
+            <span className="text-lg font-semibold">Current Weekend</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full h-52 flex flex-col items-center justify-center gap-2"
             // todo: eventually this should link back to the /sponsor page. We put this here because the sponsorship flow is not ready yet.
             // more info in the README.
             href="/sponsor"
@@ -83,16 +99,6 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
               <span className="text-lg font-semibold">Prayer Wheel Signup</span>
             </Button>
           )}
-          <Button
-            href="/job-description"
-            variant="outline"
-            className="w-full h-52 flex flex-col items-center justify-center gap-2 pointer-events-none"
-            disabled
-          >
-            <BookOpen className="w-10 h-10" />
-            <span className="text-lg font-semibold">Job Description</span>
-            <span className="text-sm text-gray-500">Coming Soon</span>
-          </Button>
         </div>
       </div>
     </div>

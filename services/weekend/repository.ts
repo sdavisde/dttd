@@ -14,6 +14,7 @@ import {
 } from '@/lib/weekend/types'
 import { RawWeekendRoster } from './types'
 import { logger } from '@/lib/logger'
+import { isEmpty, isNil } from 'lodash'
 
 /**
  * Query constant for weekend roster with all related data.
@@ -389,4 +390,107 @@ export async function findAllUsers(): Promise<
   }
 
   return ok(data ?? [])
+}
+
+/**
+ * Query constant for leadership team preview (minimal fields needed).
+ */
+const LeadershipRosterQuery = `
+  id,
+  cha_role,
+  status,
+  weekend_id,
+  user_id,
+  users (
+    id,
+    first_name,
+    last_name
+  )
+`
+
+/**
+ * Raw leadership roster member shape from Supabase query.
+ */
+export type RawLeadershipRosterMember = {
+  id: string
+  cha_role: string | null
+  status: string | null
+  weekend_id: string | null
+  user_id: string | null
+  users: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+  } | null
+}
+
+/**
+ * Result of fetching leadership roster members, grouped by weekend type.
+ */
+export type ActiveWeekendLeadershipResult = {
+  mensLeadership: RawLeadershipRosterMember[]
+  womensLeadership: RawLeadershipRosterMember[]
+}
+
+/**
+ * Fetches leadership roster members from active weekends.
+ * Returns roster members grouped by weekend type (MENS/WOMENS).
+ */
+export async function findActiveWeekendLeadershipRoster(
+  leadershipRoles: string[]
+): Promise<Result<string, ActiveWeekendLeadershipResult>> {
+  const supabase = await createClient()
+
+  // First, get the active weekends
+  const { data: activeWeekends, error: weekendError } = await supabase
+    .from('weekends')
+    .select('id, type')
+    .eq('status', WeekendStatus.ACTIVE)
+
+  if (isSupabaseError(weekendError)) {
+    return err(weekendError.message)
+  }
+
+  if (isNil(activeWeekends) || isEmpty(activeWeekends)) {
+    return ok({ mensLeadership: [], womensLeadership: [] })
+  }
+
+  // Create a map of weekend ID to type
+  const weekendTypeMap = new Map<string, string>()
+  for (const weekend of activeWeekends) {
+    weekendTypeMap.set(weekend.id, weekend.type)
+  }
+
+  const weekendIds = activeWeekends.map((w) => w.id)
+
+  // Fetch leadership roster members from active weekends
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select(LeadershipRosterQuery)
+    .in('weekend_id', weekendIds)
+    .in('cha_role', leadershipRoles)
+    .neq('status', 'drop')
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  const roster = data ?? []
+
+  // Group by weekend type
+  const mensLeadership: RawLeadershipRosterMember[] = []
+  const womensLeadership: RawLeadershipRosterMember[] = []
+
+  for (const member of roster) {
+    if (!member.weekend_id) continue
+
+    const weekendType = weekendTypeMap.get(member.weekend_id)
+    if (weekendType === WeekendType.MENS) {
+      mensLeadership.push(member)
+    } else if (weekendType === WeekendType.WOMENS) {
+      womensLeadership.push(member)
+    }
+  }
+
+  return ok({ mensLeadership, womensLeadership })
 }

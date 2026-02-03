@@ -1,37 +1,15 @@
 'use client'
 
-import { Menu } from 'lucide-react'
-import Link from 'next/link'
 import { useState } from 'react'
-
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useSession } from '@/components/auth/session-provider'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { Permission, permissionLock, canImpersonate } from '@/lib/security'
 import { useToastListener } from '@/components/toastbox'
-import { ImpersonationDialog } from '@/components/admin/sidebar/impersonation-dialog'
-
-type NavElement = {
-  name: string
-  slug: string
-  permissions_needed: Array<Permission>
-  children?: NavElement[]
-}
+import { permissionLock } from '@/lib/security'
+import { NavElement } from './navbar-server'
+import { NavLogo } from './nav-logo'
+import { DesktopNavItem } from './desktop-nav-item'
+import { UserMenu } from './user-menu'
+import { MobileNav } from './mobile-nav'
+import { isNil } from 'lodash'
 
 type NavbarClientProps = {
   navElements: NavElement[]
@@ -39,126 +17,96 @@ type NavbarClientProps = {
 
 export function Navbar({ navElements }: NavbarClientProps) {
   useToastListener()
-  const [isOpen, setIsOpen] = useState(false)
-  const [impersonationOpen, setImpersonationOpen] = useState(false)
+  const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const { isAuthenticated, user } = useSession()
-  const router = useRouter()
-  const showImpersonation = canImpersonate(user)
-  const filteredNavElements = navElements.filter((item) => {
-    try {
-      if (item.permissions_needed.length === 0) {
-        return true
+
+  // Filter nav elements based on user permissions
+  const filterNavElement = (item: NavElement): NavElement | null => {
+    // Check if user has permission for this item
+    if (item.permissions_needed.length > 0) {
+      try {
+        permissionLock(item.permissions_needed)(user)
+      } catch {
+        return null
+      }
+    }
+
+    // Filter children if they exist
+    if (item.children) {
+      const filteredChildren = item.children
+        .map(filterNavElement)
+        .filter((child) => !isNil(child))
+
+      // If all children are filtered out, don't show the parent
+      if (filteredChildren.length === 0) {
+        return null
       }
 
-      permissionLock(item.permissions_needed)(user)
-      return true
-    } catch (e) {
-      return false
+      return { ...item, children: filteredChildren }
     }
-  })
+
+    return item
+  }
+
+  const filteredNavElements = navElements
+    .map(filterNavElement)
+    .filter((item) => !isNil(item))
+
+  // Split nav elements for centered logo layout
+  const midpoint = Math.ceil(filteredNavElements.length / 2)
+  const leftNavElements = filteredNavElements.slice(0, midpoint)
+  const rightNavElements = filteredNavElements.slice(midpoint)
 
   return (
-    <nav className="bg-primary text-white px-4 py-3">
-      <div className="flex items-center justify-between">
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-              <SheetHeader>
-                <SheetTitle>DTTD</SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-col space-y-4 px-4">
-                {filteredNavElements.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={`/${item.slug}`}
-                    className="text-lg font-medium hover:underline transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
+    <>
+      {/* Accent bar */}
+      <div className="h-1.5 bg-gradient-to-r from-primary to-primary" />
 
-        {/* Logo/Title */}
-        <div className="flex-1 md:flex-none flex items-center justify-start ms-2">
-          <Link href="/" className="font-bold text-xl md:text-2xl">
-            <span className="hidden md:inline">Dusty Trails Tres Dias</span>
-            <span className="md:hidden">DTTD</span>
-          </Link>
-        </div>
+      <nav className="bg-white shadow-sm px-4 py-4 relative">
+        <div className="flex items-center">
+          {/* Mobile Menu Button */}
+          <MobileNav navElements={filteredNavElements} />
 
-        {/* Desktop Navigation */}
-        {isAuthenticated && (
-          <div className="hidden md:flex items-center space-x-8 flex-1 justify-end me-8">
-            {filteredNavElements.map((item) => (
-              <Link
-                key={item.name}
-                href={`/${item.slug}`}
-                className="text-white hover:text-amber-200 transition-colors font-medium"
-              >
-                {item.name}
-              </Link>
-            ))}
+          {/* Left section - nav items (Desktop) */}
+          <div className="hidden md:flex items-center gap-1 flex-1">
+            {isAuthenticated &&
+              leftNavElements.map((item) => (
+                <DesktopNavItem
+                  key={item.name}
+                  item={item}
+                  align="left"
+                  isActive={activeMenu === item.name}
+                  onMouseEnter={() => item.children && setActiveMenu(item.name)}
+                  onMouseLeave={() => setActiveMenu(null)}
+                />
+              ))}
           </div>
-        )}
 
-        {/* Avatar */}
-        {isAuthenticated ? (
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <div className="flex-shrink-0">
-                  <Avatar className="h-10 w-10 bg-white">
-                    <AvatarFallback className="bg-white text-amber-900 font-bold text-lg">
-                      {user?.email?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                {showImpersonation && (
-                  <DropdownMenuItem onClick={() => setImpersonationOpen(true)}>
-                    Impersonate User
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  className="text-destructive hover:text-destructive"
-                  onClick={async () => {
-                    const supabase = createClient()
-                    await supabase.auth.signOut()
-                    router.refresh()
-                  }}
-                >
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {showImpersonation && (
-              <ImpersonationDialog
-                open={impersonationOpen}
-                onOpenChange={setImpersonationOpen}
-              />
-            )}
-          </>
-        ) : (
-          <Button variant="outline" href="/login">
-            Login
-          </Button>
-        )}
-      </div>
-    </nav>
+          {/* Centered Logo */}
+          <NavLogo />
+
+          {/* Right section - nav items + user controls (Desktop) */}
+          <div className="hidden md:flex items-center gap-1 flex-1 justify-end">
+            {isAuthenticated &&
+              rightNavElements.map((item) => (
+                <DesktopNavItem
+                  key={item.name}
+                  item={item}
+                  align="right"
+                  isActive={activeMenu === item.name}
+                  onMouseEnter={() => item.children && setActiveMenu(item.name)}
+                  onMouseLeave={() => setActiveMenu(null)}
+                />
+              ))}
+          </div>
+
+          {/* Spacer for mobile to push avatar right */}
+          <div className="flex-1 md:hidden" />
+
+          {/* User Menu */}
+          <UserMenu isAuthenticated={isAuthenticated} user={user} />
+        </div>
+      </nav>
+    </>
   )
 }
