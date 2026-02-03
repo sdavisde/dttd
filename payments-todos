@@ -1,0 +1,48 @@
+# Payments
+
+Just cash/checks before website
+- mailed in, generally
+- kept a receipt book so they can give receipts to people who are paying manually
+- Detail each check (for example, if we get one for $600, we need to be able to refund if candidate can't come)
+- There's some dynamic stuff at play, since sometimes people don't want money back (pay it forward)
+- spreadsheets used to be the source of truth for candidates/team payments
+
+## The Need / Requirements
+
+- Need to be able to be able to list:
+
+Team Fees
+Men: ...
+Women: ...
+
+Candidate Fees
+Men: ...
+Women: ...
+
+### Being good financial stewards
+
+Need to avoid the instance where we end up short after paying camp fees and being in a defecit
+
+- Child care
+- Supplies
+- Camp fee
+
+Would like to show the <delta> we gain of profit from paying online (the ~$3.17 we get in profit on the $210)
+
+## Background
+
+- Discuss how Stripe works
+
+TODOs
+
+- Build a team payment report page
+[ ] Name, If they've paid, Payment Amount
+- Report how much the team has paid on the roster page and team payment page 
+
+Payments Page
+[ ] Payments page needs to show candidate fees
+[ ] Payments page needs to show earned amount, not total
+[ ] Add sort and date filters to the payment page
+
+Candidate Page
+[ ] try and fix emails going to spam

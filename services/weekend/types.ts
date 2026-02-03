@@ -100,3 +100,20 @@ export type WeekendSidebarPayload = {
   womensStart: string
   womensEnd: string
 }
+
+/**
+ * Leadership team member for the leadership preview component.
+ */
+export type LeadershipTeamMember = {
+  id: string
+  fullName: string
+  chaRole: string
+}
+
+/**
+ * Leadership team data grouped by gender.
+ */
+export type LeadershipTeamData = {
+  menLeaders: LeadershipTeamMember[]
+  womenLeaders: LeadershipTeamMember[]
+}

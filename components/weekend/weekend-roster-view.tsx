@@ -4,6 +4,7 @@ import {
   DroppedRosterSection,
   ActiveRosterHeader,
   WeekendStatusBadge,
+  LeadershipTeamPreview,
 } from '@/components/weekend'
 import { ExperienceDistributionChart } from '@/components/weekend/experience-distribution-chart'
 import { Typography } from '@/components/ui/typography'
