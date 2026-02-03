@@ -741,6 +741,7 @@ export async function getWeekendRosterViewData(
 
 /**
  * Leadership roles that should appear in the leadership preview.
+ * Order determines display priority (Rector first, then Head, etc.)
  */
 const LEADERSHIP_ROLES = [
   CHARole.RECTOR,
@@ -748,6 +749,22 @@ const LEADERSHIP_ROLES = [
   CHARole.ASSISTANT_HEAD,
   CHARole.BACKUP_RECTOR,
 ]
+
+/**
+ * Sorts leadership members by their role position in LEADERSHIP_ROLES.
+ */
+function sortByLeadershipRole(
+  members: LeadershipTeamMember[]
+): LeadershipTeamMember[] {
+  return [...members].sort((a, b) => {
+    const aIndex = LEADERSHIP_ROLES.indexOf(a.chaRole as CHARole)
+    const bIndex = LEADERSHIP_ROLES.indexOf(b.chaRole as CHARole)
+    // Roles not in the list go to the end
+    const aPos = aIndex === -1 ? LEADERSHIP_ROLES.length : aIndex
+    const bPos = bIndex === -1 ? LEADERSHIP_ROLES.length : bIndex
+    return aPos - bPos
+  })
+}
 
 /**
  * Transforms a raw leadership roster member into a LeadershipTeamMember.
@@ -786,13 +803,13 @@ export async function getActiveWeekendLeadershipTeam(): Promise<
 
   const { mensLeadership, womensLeadership } = result.data
 
-  const menLeaders = mensLeadership
-    .map(normalizeLeadershipMember)
-    .filter((m) => !isNil(m))
+  const menLeaders = sortByLeadershipRole(
+    mensLeadership.map(normalizeLeadershipMember).filter((m) => !isNil(m))
+  )
 
-  const womenLeaders = womensLeadership
-    .map(normalizeLeadershipMember)
-    .filter((m) => !isNil(m))
+  const womenLeaders = sortByLeadershipRole(
+    womensLeadership.map(normalizeLeadershipMember).filter((m) => !isNil(m))
+  )
 
   return ok({
     menLeaders,
