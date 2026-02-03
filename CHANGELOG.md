@@ -1,3 +1,9 @@
+## [1.13.1](https://github.com/sdavisde/dttd/compare/v1.13.0...v1.13.1) (2026-02-03)
+
+### Bug Fixes
+
+- order leader positions by importance ([1c591bb](https://github.com/sdavisde/dttd/commit/1c591bb614ebc06583ed4c6ed379250bf71ddf30))
+
 ## [1.13.0](https://github.com/sdavisde/dttd/compare/v1.12.1...v1.13.0) (2026-02-03)
 
 ### Features
