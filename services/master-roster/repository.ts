@@ -19,7 +19,9 @@ const GetMasterRosterQuery = `
     roles (
       id,
       label,
-      permissions
+      description,
+      permissions,
+      type
     )
   ),
   users_experience (

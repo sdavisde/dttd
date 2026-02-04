@@ -3,7 +3,6 @@
 import * as React from 'react'
 import {
   SquareTerminal,
-  BookOpen,
   type LucideIcon,
   Users,
   Calendar,

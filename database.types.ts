@@ -370,19 +370,25 @@ export type Database = {
       }
       roles: {
         Row: {
+          description: string | null
           id: string
           label: string
           permissions: string[]
+          type: Database['public']['Enums']['role_type']
         }
         Insert: {
+          description?: string | null
           id?: string
           label: string
           permissions: string[]
+          type?: Database['public']['Enums']['role_type']
         }
         Update: {
+          description?: string | null
           id?: string
           label?: string
           permissions?: string[]
+          type?: Database['public']['Enums']['role_type']
         }
         Relationships: []
       }
@@ -698,6 +704,7 @@ export type Database = {
         | 'confirmed'
         | 'rejected'
       permissions: 'READ_MEDICAL_HISTORY'
+      role_type: 'INDIVIDUAL' | 'COMMITTEE'
       weekend_type: 'MENS' | 'WOMENS'
     }
     CompositeTypes: {
@@ -838,6 +845,7 @@ export const Constants = {
         'rejected',
       ],
       permissions: ['READ_MEDICAL_HISTORY'],
+      role_type: ['INDIVIDUAL', 'COMMITTEE'],
       weekend_type: ['MENS', 'WOMENS'],
     },
   },

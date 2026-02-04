@@ -1,7 +1,7 @@
 export type SiteSetting = {
   key: string
   value: string
-  updatedAt: Date
+  updatedAt: Date | null
   updatedBy: string | null
 }
 

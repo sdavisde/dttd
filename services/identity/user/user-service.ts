@@ -21,10 +21,11 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
   }
 
   const roles: Array<UserRoleInfo> =
-    rawUser.user_roles?.map(({ roles }) => ({
-      id: roles.id,
-      label: roles.label,
-      permissions: roles.permissions ?? [],
+    rawUser.user_roles?.map((userRole: RawUser['user_roles'][number]) => ({
+      id: userRole.roles.id,
+      label: userRole.roles.label,
+      permissions: userRole.roles.permissions ?? [],
+      type: userRole.roles.type,
     })) ?? []
 
   const teamMemberInfo =

@@ -11,6 +11,8 @@ function normalizeRole(rawRole: Tables<'roles'>): Role {
     id: rawRole.id,
     label: rawRole.label,
     permissions: rawRole.permissions as Array<Permission>,
+    type: (rawRole as any).type ?? 'INDIVIDUAL',
+    description: (rawRole as any).description ?? null,
   }
 }
 
@@ -62,4 +64,19 @@ export async function removeAllUserRoles(
   userId: string
 ): Promise<Result<string, null>> {
   return await RoleRepository.removeAllUserRoles(userId)
+}
+
+/**
+ * Sets the complete list of users assigned to a role.
+ * For COMMITTEE roles, this replaces all current members with the new list.
+ */
+export async function setRoleMembers(
+  roleId: string,
+  userIds: string[]
+): Promise<Result<string, Array<Tables<'user_roles'>>>> {
+  const result = await RoleRepository.setRoleMembers(roleId, userIds)
+  if (isErr(result)) {
+    return result
+  }
+  return ok(result.data ?? [])
 }

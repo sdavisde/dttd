@@ -2,7 +2,7 @@ import 'server-only'
 
 import { isNil, sumBy } from 'lodash'
 import { err, isErr, ok, Result, unwrapOr } from '@/lib/results'
-import { notifyCandidatePaymentReceived } from '@/services/notifications'
+import { notifyCandidatePaymentReceived } from '@/services/notifications/notification-service'
 import * as CandidateRepository from './repository'
 import {
   Candidate,

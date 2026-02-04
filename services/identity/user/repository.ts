@@ -25,7 +25,9 @@ export const JoinUserRolesOnUserId = `
     roles (
       id,
       label,
-      permissions
+      description,
+      permissions,
+      type
     )
   )
 `
@@ -109,13 +111,19 @@ export const deleteUser = async (userId: string) => {
   }
 
   // 3. The User
-  const deleteUserResponse = await supabase.from('users').delete().eq('id', userId)
+  const deleteUserResponse = await supabase
+    .from('users')
+    .delete()
+    .eq('id', userId)
   return fromSupabase(deleteUserResponse)
 }
 
 export const removeUserRole = async (userId: string) => {
   const supabase = await createClient()
-  const response = await supabase.from('user_roles').delete().eq('user_id', userId)
+  const response = await supabase
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId)
   return fromSupabase(response)
 }
 

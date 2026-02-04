@@ -1,6 +1,7 @@
 import { CommunityInformation } from '@/lib/users/types'
 import { Address } from '@/lib/users/validation'
 import { UserExperience } from '@/lib/users/experience/validation'
+import { RoleType } from '@/services/identity/roles'
 
 export type MasterRosterMember = {
   id: string
@@ -11,7 +12,7 @@ export type MasterRosterMember = {
   phoneNumber: string | null
   address: Address | null
   communityInformation: CommunityInformation
-  roles: Array<{ id: string; label: string }>
+  roles: Array<{ id: string; label: string; type: RoleType }>
   permissions: Array<string>
   level: ExperienceLevel
   rectorReady: RectorReadyStatus

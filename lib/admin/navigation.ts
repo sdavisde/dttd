@@ -48,6 +48,14 @@ export const adminNavItems: AdminNavElement[] = [
     permissions_needed: [Permission.READ_PAYMENTS],
   },
   {
+    title: 'Community Board',
+    url: '/admin/community-board',
+    icon: 'ClipboardList',
+    description:
+      'Track board positions, leaders committee assignments, and meeting minutes.',
+    permissions_needed: [],
+  },
+  {
     title: 'Master Roster',
     url: '/admin/users',
     icon: 'Users',

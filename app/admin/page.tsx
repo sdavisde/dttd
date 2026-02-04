@@ -10,6 +10,7 @@ import {
   TentTree,
   Users,
   type LucideIcon,
+  ClipboardList,
 } from 'lucide-react'
 import Link from 'next/link'
 import { getLoggedInUser } from '@/services/identity/user'
