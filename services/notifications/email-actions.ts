@@ -5,17 +5,19 @@ import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotifica
 import CandidateFormsCompletedEmail from '@/components/email/CandidateFormsCompletedEmail'
 import { createClient } from '@/lib/supabase/server'
 import { Result, err, ok, isErr } from '@/lib/results'
-import { getPreWeekendCoupleEmail } from '@/services/notifications/notification-service'
 import { logger } from '@/lib/logger'
 import { Tables } from '@/database.types'
 import CandidateFormsEmail from '@/components/email/CandidateFormsEmail'
-import { getHydratedCandidate } from './candidates'
+import { getHydratedCandidate } from '@/actions/candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'
 import TeamPaymentNotificationEmail from '@/components/email/TeamPaymentNotificationEmail'
+import * as NotificationService from './notification-service'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Send sponsorship notification email to preweekend couple
+/**
+ * Send sponsorship notification email to preweekend couple
+ */
 export async function sendSponsorshipNotificationEmail(
   candidateId: string
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
@@ -34,7 +36,8 @@ export async function sendSponsorshipNotificationEmail(
     }
 
     // Get pre-weekend couple email
-    const preWeekendEmailResult = await getPreWeekendCoupleEmail()
+    const preWeekendEmailResult =
+      await NotificationService.getPreWeekendCoupleEmail()
     if (isErr(preWeekendEmailResult)) {
       return err(preWeekendEmailResult.error)
     }
@@ -94,7 +97,9 @@ export async function sendCandidateForms(
   }
 }
 
-// sends a payment request for candidate fees tied to `candidateId`
+/**
+ * Sends a payment request for candidate fees tied to `candidateId`
+ */
 export async function sendPaymentRequestEmail(
   candidateId: string
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
@@ -212,7 +217,7 @@ export async function notifyAssistantHeadForTeamPayment(
   paymentAmount: number
 ): Promise<Result<string, true>> {
   if (!teamUserId || !weekendId) {
-    return err('💢 Team user ID or weekend ID is null')
+    return err('Team user ID or weekend ID is null')
   }
 
   try {
@@ -259,24 +264,24 @@ export async function notifyAssistantHeadForTeamPayment(
 
     if (teamMemberError || !teamMember) {
       return err(
-        `💢 Failed to fetch team member details: ${teamMemberError?.message || 'Team member not found'}`
+        `Failed to fetch team member details: ${teamMemberError?.message || 'Team member not found'}`
       )
     }
 
     if (weekendError || !weekend) {
       return err(
-        `💢 Failed to fetch weekend details: ${weekendError?.message || 'Weekend not found'}`
+        `Failed to fetch weekend details: ${weekendError?.message || 'Weekend not found'}`
       )
     }
 
     if (assistantHeadError || !assistantHead) {
       return err(
-        `💢 Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message || 'Assistant Head not found'}`
+        `Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message || 'Assistant Head not found'}`
       )
     }
 
     if (!assistantHead.users.email) {
-      return err(`💢 Assistant head email not found for weekend ${weekendId}`)
+      return err(`Assistant head email not found for weekend ${weekendId}`)
     }
 
     // Send email to assistant head
@@ -332,7 +337,8 @@ export async function sendCandidateFormsCompletedEmail(
     }
 
     // Get pre-weekend couple email
-    const preWeekendEmailResult = await getPreWeekendCoupleEmail()
+    const preWeekendEmailResult =
+      await NotificationService.getPreWeekendCoupleEmail()
     if (isErr(preWeekendEmailResult)) {
       return err(preWeekendEmailResult.error)
     }

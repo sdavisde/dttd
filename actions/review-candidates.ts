@@ -5,7 +5,7 @@ import { isNil } from 'lodash'
 import { getActiveWeekends, getWeekendOptions } from '@/services/weekend'
 import { getAllCandidatesWithDetails } from '@/actions/candidates'
 import { WeekendType } from '@/lib/weekend/types'
-import { Result, isErr, isOk } from '@/lib/results'
+import { Result, Results, isErr, isOk } from '@/lib/results'
 import { HydratedCandidate } from '@/lib/candidates/types'
 
 export interface ReviewPageData {
@@ -33,19 +33,7 @@ export async function getReviewPageData(
     ? weekendOptionsResult.data
     : []
 
-  let activeWeekendGroupId: string | null = null
-  if (isOk(activeWeekendsResult)) {
-    const active =
-      activeWeekendsResult.data[WeekendType.MENS] ??
-      activeWeekendsResult.data[WeekendType.WOMENS]
-
-    // Check if active weekend has a group_id
-    // The type definition for Weekend implies it might not, but in practice for this app it seems it should if it's "active" in this context
-    const activeWithGroup = active as typeof active & { group_id?: string }
-    if (!isNil(activeWithGroup) && !isNil(activeWithGroup.group_id)) {
-      activeWeekendGroupId = activeWithGroup.group_id
-    }
-  }
+  let activeWeekendGroupId = Results.unwrap(activeWeekendsResult).MENS.groupId
 
   // Handle defaults and redirection
   // 1. If no weekend selected, and we have an active one -> redirect to active

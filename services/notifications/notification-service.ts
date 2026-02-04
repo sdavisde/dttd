@@ -4,12 +4,33 @@ import { Resend } from 'resend'
 import { err, isErr, ok, Result } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import * as NotificationRepository from './repository'
+// TODO: This should use the candidates service public API instead of direct repository access
 import * as CandidateRepository from '@/services/candidates/repository'
 import { ContactInfo, NotificationRecipient } from './types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
-import { Tables } from '@/database.types'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+/**
+ * Gets contact information by ID and transforms to DTO.
+ */
+export async function getContactInformation(
+  contactId: string
+): Promise<Result<string, ContactInfo>> {
+  const result = await NotificationRepository.getContactInformation(contactId)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+
+  return ok({
+    id: data.id,
+    label: data.label ?? contactId,
+    emailAddress: data.email_address ?? '',
+  })
+}
 
 /**
  * Gets contact information for a notification recipient.
@@ -192,9 +213,21 @@ async function sendCandidatePaymentEmail(
 export async function updateContactInformation(
   contactId: string,
   emailAddress: string
-): Promise<Result<string, Tables<'contact_information'>>> {
-  return await NotificationRepository.updateContactInformation(
+): Promise<Result<string, ContactInfo>> {
+  const result = await NotificationRepository.updateContactInformation(
     contactId,
     emailAddress
   )
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+
+  return ok({
+    id: data.id,
+    label: data.label ?? contactId,
+    emailAddress: data.email_address ?? '',
+  })
 }

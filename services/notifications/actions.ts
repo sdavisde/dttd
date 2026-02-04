@@ -2,20 +2,23 @@
 
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import * as NotificationService from './notification-service'
-import * as NotificationRepository from './repository'
 import { Permission } from '@/lib/security'
-import { Tables } from '@/database.types'
+import { ContactInfo } from './types'
+
+// ============================================================================
+// Authorized Actions (Require User Session)
+// ============================================================================
 
 /**
  * Get contact information by ID.
  * Requires READ_ADMIN_PORTAL permission.
  */
-export const getContactInformation = authorizedAction<
-  string,
-  Tables<'contact_information'>
->(Permission.READ_ADMIN_PORTAL, async (contactId) => {
-  return await NotificationRepository.getContactInformation(contactId)
-})
+export const getContactInformation = authorizedAction<string, ContactInfo>(
+  Permission.READ_ADMIN_PORTAL,
+  async (contactId) => {
+    return await NotificationService.getContactInformation(contactId)
+  }
+)
 
 type UpdateContactInformationRequest = {
   contactId: string
@@ -28,10 +31,40 @@ type UpdateContactInformationRequest = {
  */
 export const updateContactInformation = authorizedAction<
   UpdateContactInformationRequest,
-  Tables<'contact_information'>
+  ContactInfo
 >(Permission.WRITE_USER_ROLES, async ({ contactId, emailAddress }) => {
   return await NotificationService.updateContactInformation(
     contactId,
     emailAddress
   )
 })
+
+// ============================================================================
+// Admin Actions (For Server-to-Server Use, e.g., Webhooks)
+// These functions bypass auth because they're called from contexts
+// with their own authentication (e.g., Stripe webhook signature verification)
+// ============================================================================
+
+/**
+ * Notifies the pre-weekend couple when a candidate payment is received.
+ * Uses admin client - for use in webhook contexts where there is no user session.
+ */
+export async function notifyCandidatePaymentReceivedAdmin(
+  candidateId: string,
+  paymentAmount: number,
+  paymentMethod: 'card' | 'cash' | 'check'
+) {
+  return NotificationService.notifyCandidatePaymentReceivedAdmin(
+    candidateId,
+    paymentAmount,
+    paymentMethod
+  )
+}
+
+/**
+ * Gets the pre-weekend couple's email address.
+ * Uses regular client (requires user session).
+ */
+export async function getPreWeekendCoupleEmail() {
+  return NotificationService.getPreWeekendCoupleEmail()
+}

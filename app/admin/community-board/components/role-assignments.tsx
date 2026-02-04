@@ -3,7 +3,6 @@
 import { ClipboardList } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { Tables } from '@/database.types'
 import { usePreWeekendEmail } from '@/hooks/use-pre-weekend-email'
 import {
   useRoleAssignment,
@@ -15,6 +14,7 @@ import { PreWeekendRoleCard } from './pre-weekend-role-card'
 import { LeadersCommitteeSection } from './leaders-committee-section'
 import { RoleAssignmentDialog } from './role-assignment-dialog'
 import { AssignmentConfirmationDialog } from './assignment-confirmation-dialog'
+import type { ContactInfo } from '@/services/notifications'
 
 // Re-export types for external use
 export type { CommunityBoardRole, AssignableMember }
@@ -23,7 +23,7 @@ type RoleAssignmentsProps = {
   boardRoles: CommunityBoardRole[]
   leadersCommitteeRole: CommunityBoardRole | null
   members: AssignableMember[]
-  preWeekendCoupleContact: Tables<'contact_information'>
+  preWeekendCoupleContact: ContactInfo
 }
 
 export function RoleAssignments({

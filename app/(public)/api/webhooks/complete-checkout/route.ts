@@ -6,8 +6,10 @@ import { Result, ok, err, isErr } from '@/lib/results'
 import Stripe from 'stripe'
 import { Tables } from '@/database.types'
 import { getWeekendRosterRecord } from '@/services/weekend'
-import { notifyAssistantHeadForTeamPayment } from '@/actions/emails'
-import { notifyCandidatePaymentReceivedAdmin } from '@/services/notifications/notification-service'
+import {
+  notifyAssistantHeadForTeamPayment,
+  notifyCandidatePaymentReceivedAdmin,
+} from '@/services/notifications'
 import { isNil } from 'lodash'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!

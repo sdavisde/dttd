@@ -9,8 +9,10 @@ import { CandidateTableControls } from './CandidateTableControls'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { useCandidateReviewTable } from '@/hooks/use-candidate-review-table'
 import * as Results from '@/lib/results'
-import { sendCandidateForms } from '@/actions/emails'
-import { sendPaymentRequestEmail } from '@/actions/emails'
+import {
+  sendCandidateForms,
+  sendPaymentRequestEmail,
+} from '@/services/notifications'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { SendFormsConfirmationModal } from './SendFormsConfirmationModal'

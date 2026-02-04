@@ -10,7 +10,7 @@ import {
 } from '@/lib/candidates/types'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
-import { sendCandidateFormsCompletedEmail } from './emails'
+import { sendCandidateFormsCompletedEmail } from '@/services/notifications'
 import { logger } from '@/lib/logger'
 import { WeekendType } from '@/lib/weekend/types'
 import { Database } from '@/database.types'

@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { updateContactInformation } from '@/services/notifications'
+import {
+  updateContactInformation,
+  type ContactInfo,
+} from '@/services/notifications'
 import { isErr } from '@/lib/results'
-import { Tables } from '@/database.types'
 
 type UsePreWeekendEmailProps = {
-  contact: Tables<'contact_information'>
+  contact: ContactInfo
 }
 
 type UsePreWeekendEmailReturn = {
@@ -25,7 +27,7 @@ export function usePreWeekendEmail({
   contact,
 }: UsePreWeekendEmailProps): UsePreWeekendEmailReturn {
   const router = useRouter()
-  const [email, setEmail] = useState(contact.email_address ?? '')
+  const [email, setEmail] = useState(contact.emailAddress ?? '')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -34,7 +36,7 @@ export function usePreWeekendEmail({
   }
 
   const cancel = () => {
-    setEmail(contact.email_address ?? '')
+    setEmail(contact.emailAddress ?? '')
     setIsEditing(false)
   }
 

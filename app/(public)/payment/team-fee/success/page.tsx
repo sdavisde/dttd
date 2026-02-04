@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 import { stripe } from '@/lib/stripe'
-import { notifyAssistantHeadForTeamPayment } from '@/actions/emails'
+import { notifyAssistantHeadForTeamPayment } from '@/services/notifications'
 
 type SearchParams = Promise<{
   session_id: string
