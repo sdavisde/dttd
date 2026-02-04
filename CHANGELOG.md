@@ -1,3 +1,14 @@
+## [1.14.0](https://github.com/sdavisde/dttd/compare/v1.13.1...v1.14.0) (2026-02-04)
+
+### Features
+
+- small board page UI update and refactor to use services pattern ([773b1db](https://github.com/sdavisde/dttd/commit/773b1dbde8938b2eeba9048d0e50ab27ec65c65a))
+
+### Bug Fixes
+
+- apply migrations correctly ([f70811a](https://github.com/sdavisde/dttd/commit/f70811affb9ffb2bb392ea5ca1b2723b30bc224d))
+- remove nested database.types ([e91a0ef](https://github.com/sdavisde/dttd/commit/e91a0efe41b849130f7d3fbd727be5df32e1c01c))
+
 ## [1.13.1](https://github.com/sdavisde/dttd/compare/v1.13.0...v1.13.1) (2026-02-03)
 
 ### Bug Fixes
