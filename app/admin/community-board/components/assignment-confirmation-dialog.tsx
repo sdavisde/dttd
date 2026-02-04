@@ -10,12 +10,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { formatMemberName } from '@/lib/formatting/member-utils'
-import type { AssignableMember } from '@/hooks/use-role-assignment'
+import type { BoardMember } from '@/services/community/board'
 
 type AssignmentConfirmationDialogProps = {
   open: boolean
-  pendingMember: AssignableMember | null
-  currentHolders: AssignableMember[]
+  pendingMember: BoardMember | null
+  currentHolders: BoardMember[]
   isSaving: boolean
   onCancel: () => void
   onConfirm: () => void

@@ -15,12 +15,12 @@ type UsePreWeekendEmailProps = {
 
 type UsePreWeekendEmailReturn = {
   email: string
-  isEditing: boolean
-  isSaving: boolean
+  isEditingEmail: boolean
+  isSavingEmail: boolean
   setEmail: (email: string) => void
-  startEdit: () => void
-  save: () => Promise<void>
-  cancel: () => void
+  startEditEmail: () => void
+  saveEmail: () => Promise<void>
+  cancelEditEmail: () => void
 }
 
 export function usePreWeekendEmail({
@@ -31,16 +31,16 @@ export function usePreWeekendEmail({
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  const startEdit = () => {
+  const startEditEmail = () => {
     setIsEditing(true)
   }
 
-  const cancel = () => {
+  const cancelEditEmail = () => {
     setEmail(contact.emailAddress ?? '')
     setIsEditing(false)
   }
 
-  const save = async () => {
+  const saveEmail = async () => {
     if (!email.trim()) {
       toast.error('Email address cannot be empty')
       return
@@ -72,11 +72,11 @@ export function usePreWeekendEmail({
 
   return {
     email,
-    isEditing,
-    isSaving,
+    isEditingEmail: isEditing,
+    isSavingEmail: isSaving,
     setEmail,
-    startEdit,
-    save,
-    cancel,
+    startEditEmail,
+    saveEmail,
+    cancelEditEmail,
   }
 }

@@ -13,22 +13,19 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { formatMemberName } from '@/lib/formatting/member-utils'
-import type {
-  CommunityBoardRole,
-  AssignableMember,
-} from '@/hooks/use-role-assignment'
+import type { BoardRole, BoardMember } from '@/services/community/board'
 
 type RoleAssignmentDialogProps = {
   open: boolean
-  role: CommunityBoardRole | null
-  members: AssignableMember[]
-  filteredMembers: AssignableMember[]
+  role: BoardRole | null
+  members: BoardMember[]
+  filteredMembers: BoardMember[]
   search: string
   onSearchChange: (value: string) => void
   isSaving: boolean
   onClose: () => void
   // For INDIVIDUAL roles
-  onAssign: (member: AssignableMember) => void
+  onAssign: (member: BoardMember) => void
   // For COMMITTEE roles
   selectedMembers: string[]
   onToggleMember: (memberId: string) => void
@@ -112,7 +109,7 @@ export function RoleAssignmentDialog({
 }
 
 type CommitteeMemberListProps = {
-  members: AssignableMember[]
+  members: BoardMember[]
   selectedMembers: string[]
   onToggleMember: (memberId: string) => void
   isSaving: boolean
@@ -150,9 +147,9 @@ function CommitteeMemberList({
 }
 
 type IndividualMemberListProps = {
-  members: AssignableMember[]
+  members: BoardMember[]
   activeRoleId: string
-  onAssign: (member: AssignableMember) => void
+  onAssign: (member: BoardMember) => void
   isSaving: boolean
 }
 

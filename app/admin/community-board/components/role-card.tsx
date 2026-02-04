@@ -1,18 +1,14 @@
 'use client'
 
-import { AlertTriangle } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import type {
-  CommunityBoardRole,
-  AssignableMember,
-} from '@/hooks/use-role-assignment'
+import type { BoardRole, BoardMember } from '@/services/community/board'
 
 type RoleCardProps = {
-  role: CommunityBoardRole
-  assignedMembers: AssignableMember[]
+  role: BoardRole
+  assignedMembers: BoardMember[]
   onAssignClick: () => void
 }
 
@@ -26,31 +22,43 @@ export function RoleCard({
 
   return (
     <Card className="border-muted">
-      <CardContent className="space-y-3 pt-6">
+      <CardContent>
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="space-y-1 flex-1">
             <Typography variant="h5">{role.label}</Typography>
             <Typography variant="muted">{description}</Typography>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            {hasAssignments ? (
-              <div className="flex flex-wrap gap-2 justify-end">
+            {hasAssignments && (
+              <div className="flex flex-wrap gap-2 pt-2">
                 {assignedMembers.map((member) => (
-                  <Badge key={member.id} variant="secondary">
+                  <span
+                    key={member.id}
+                    className="inline-flex items-center text-sm text-foreground"
+                  >
+                    <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary mr-1.5">
+                      {member.firstName?.[0]}
+                      {member.lastName?.[0]}
+                    </span>
                     {member.firstName} {member.lastName}
-                  </Badge>
+                  </span>
                 ))}
               </div>
-            ) : (
-              <Badge color="warning" className="flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" />
-                Unassigned
-              </Badge>
             )}
-            <Button variant="outline" size="sm" onClick={onAssignClick}>
-              Assign
-            </Button>
           </div>
+          <Button
+            variant={hasAssignments ? 'ghost' : 'outline'}
+            size="sm"
+            onClick={onAssignClick}
+            className="shrink-0"
+          >
+            {hasAssignments ? (
+              'Edit'
+            ) : (
+              <>
+                <UserPlus className="h-4 w-4 mr-1.5" />
+                Assign
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>

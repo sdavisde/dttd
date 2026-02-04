@@ -2,33 +2,25 @@
 
 import { ClipboardList } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Typography } from '@/components/ui/typography'
 import { usePreWeekendEmail } from '@/hooks/use-pre-weekend-email'
-import {
-  useRoleAssignment,
-  type CommunityBoardRole,
-  type AssignableMember,
-} from '@/hooks/use-role-assignment'
+import { useRoleAssignment } from '@/hooks/use-role-assignment'
 import { RoleCard } from './role-card'
 import { PreWeekendRoleCard } from './pre-weekend-role-card'
-import { LeadersCommitteeSection } from './leaders-committee-section'
 import { RoleAssignmentDialog } from './role-assignment-dialog'
 import { AssignmentConfirmationDialog } from './assignment-confirmation-dialog'
+import type { BoardRole, BoardMember } from '@/services/community/board'
 import type { ContactInfo } from '@/services/notifications'
 
-// Re-export types for external use
-export type { CommunityBoardRole, AssignableMember }
-
 type RoleAssignmentsProps = {
-  boardRoles: CommunityBoardRole[]
-  leadersCommitteeRole: CommunityBoardRole | null
-  members: AssignableMember[]
+  boardRoles: BoardRole[]
+  committeeRoles: BoardRole[]
+  members: BoardMember[]
   preWeekendCoupleContact: ContactInfo
 }
 
 export function RoleAssignments({
   boardRoles,
-  leadersCommitteeRole,
+  committeeRoles,
   members,
   preWeekendCoupleContact,
 }: RoleAssignmentsProps) {
@@ -46,10 +38,6 @@ export function RoleAssignments({
               <ClipboardList className="h-5 w-5" />
               Board Positions
             </CardTitle>
-            <Typography variant="muted">
-              Read-only view for all admins. Assignment actions appear when
-              WRITE_BOARD_POSITIONS is enabled.
-            </Typography>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -58,6 +46,10 @@ export function RoleAssignments({
                   <PreWeekendRoleCard
                     key={role.id}
                     role={role}
+                    assignedMembers={
+                      roleAssignment.membersByRoleId[role.id] ?? []
+                    }
+                    onAssignClick={() => roleAssignment.openDialog(role)}
                     {...preWeekendEmail}
                   />
                 ) : (
@@ -76,17 +68,14 @@ export function RoleAssignments({
         </Card>
 
         <div className="space-y-6">
-          <LeadersCommitteeSection
-            role={leadersCommitteeRole}
-            members={
-              roleAssignment.membersByRoleId[leadersCommitteeRole?.id ?? ''] ??
-              []
-            }
-            onEditClick={() =>
-              leadersCommitteeRole &&
-              roleAssignment.openDialog(leadersCommitteeRole)
-            }
-          />
+          {committeeRoles.map((role) => (
+            <RoleCard
+              key={role.id}
+              role={role}
+              assignedMembers={roleAssignment.membersByRoleId[role.id] ?? []}
+              onAssignClick={() => roleAssignment.openDialog(role)}
+            />
+          ))}
 
           <Card>
             <CardHeader>

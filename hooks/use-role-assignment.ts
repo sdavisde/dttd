@@ -3,31 +3,13 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import {
-  updateUserRoles,
-  setRoleMembers,
-  type RoleType,
-} from '@/services/identity/roles'
+import { updateUserRoles, setRoleMembers } from '@/services/identity/roles'
 import { isErr } from '@/lib/results'
 import { formatMemberName } from '@/lib/formatting/member-utils'
-
-export type CommunityBoardRole = {
-  id: string
-  label: string
-  type: RoleType
-  description: string | null
-}
-
-export type AssignableMember = {
-  id: string
-  firstName: string | null
-  lastName: string | null
-  email: string | null
-  roles: Array<{ id: string; label: string }>
-}
+import type { BoardRole, BoardMember } from '@/services/community/board'
 
 type UseRoleAssignmentProps = {
-  members: AssignableMember[]
+  members: BoardMember[]
 }
 
 export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
@@ -35,7 +17,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [activeRole, setActiveRole] = useState<CommunityBoardRole | null>(null)
+  const [activeRole, setActiveRole] = useState<BoardRole | null>(null)
   const [search, setSearch] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
@@ -46,14 +28,12 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Confirmation dialog state
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [pendingMember, setPendingMember] = useState<AssignableMember | null>(
-    null
-  )
-  const [pendingHolders, setPendingHolders] = useState<AssignableMember[]>([])
+  const [pendingMember, setPendingMember] = useState<BoardMember | null>(null)
+  const [pendingHolders, setPendingHolders] = useState<BoardMember[]>([])
 
   // Computed: members grouped by role ID
   const membersByRoleId = useMemo(() => {
-    return members.reduce<Record<string, AssignableMember[]>>((acc, member) => {
+    return members.reduce<Record<string, BoardMember[]>>((acc, member) => {
       member.roles.forEach((role) => {
         if (!acc[role.id]) {
           acc[role.id] = []
@@ -77,7 +57,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Open dialog for a role
   const openDialog = useCallback(
-    (role: CommunityBoardRole) => {
+    (role: BoardRole) => {
       setActiveRole(role)
       setSearch('')
       // For committee roles, initialize with current members
@@ -140,7 +120,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Confirmation dialog handlers
   const openConfirmation = useCallback(
-    (member: AssignableMember, holders: AssignableMember[]) => {
+    (member: BoardMember, holders: BoardMember[]) => {
       setPendingMember(member)
       setPendingHolders(holders)
       setConfirmOpen(true)
@@ -157,7 +137,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Core assignment logic
   const assignRole = useCallback(
-    async (member: AssignableMember, otherHolders: AssignableMember[]) => {
+    async (member: BoardMember, otherHolders: BoardMember[]) => {
       if (!activeRole) return
 
       const alreadyAssigned = member.roles.some(
@@ -219,7 +199,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Handle assignment (with confirmation check for INDIVIDUAL roles)
   const handleAssign = useCallback(
-    async (member: AssignableMember) => {
+    async (member: BoardMember) => {
       if (!activeRole) return
 
       const alreadyAssigned = member.roles.some(
