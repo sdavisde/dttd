@@ -90,6 +90,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
       null,
     showOnMobile: true,
     minWidth: '200px',
+    requiredPermission: Permission.READ_CANDIDATE_CONTACT_INFO,
   },
   {
     id: 'phone',
@@ -97,6 +98,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_info?.phone ?? null,
     showOnMobile: true,
     minWidth: '130px',
+    requiredPermission: Permission.READ_CANDIDATE_CONTACT_INFO,
   },
   {
     id: 'shirtSize',
@@ -162,6 +164,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     },
     showOnMobile: false,
     minWidth: '60px',
+    requiredPermission: Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
   },
   {
     id: 'maritalStatus',
@@ -185,6 +188,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => c.candidate_info?.church ?? null,
     showOnMobile: true,
     minWidth: '150px',
+    requiredPermission: Permission.READ_CANDIDATE_CHURCH,
   },
 ]
 
