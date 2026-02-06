@@ -21,7 +21,8 @@ INSERT INTO public.roles (id, label, permissions, description, type) VALUES
   ('a0000008-0000-0000-0000-000000000008', 'Treasurer', ARRAY['READ_PAYMENTS', 'READ_ADMIN_PORTAL'], 'Oversees financial reporting, budgeting, and stewardship guidance.', 'INDIVIDUAL'),
   ('a0000009-0000-0000-0000-000000000009', 'Recording Secretary', ARRAY[]::text[], 'Maintains records, meeting notes, and official documentation for board sessions.', 'INDIVIDUAL'),
   ('a0000010-0000-0000-0000-000000000010', 'Community Spiritual Director', ARRAY['WRITE_COMMUNITY_ENCOURAGEMENT'], 'Leads spiritual formation and provides guidance for the broader community.', 'INDIVIDUAL'),
-  ('a0000011-0000-0000-0000-000000000011', 'At-Large Members', ARRAY[]::text[], 'General board members who participate in community decisions and initiatives.', 'COMMITTEE');
+  ('a0000011-0000-0000-0000-000000000011', 'At-Large Members', ARRAY[]::text[], 'General board members who participate in community decisions and initiatives.', 'COMMITTEE')
+ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
 -- SECTION: Auth Users (auth.users table)
