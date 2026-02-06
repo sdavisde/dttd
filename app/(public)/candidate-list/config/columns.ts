@@ -1,4 +1,5 @@
 import { HydratedCandidate } from '@/lib/candidates/types'
+import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { Permission, userHasPermission } from '@/lib/security'
 import { User } from '@/lib/users/types'
 import { format } from 'date-fns'
@@ -189,6 +190,25 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     showOnMobile: true,
     minWidth: '150px',
     requiredPermission: Permission.READ_CANDIDATE_CHURCH,
+  },
+  {
+    id: 'payment',
+    header: 'Payment',
+    accessor: (c) => {
+      const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
+      const paid =
+        c.candidate_payments?.reduce(
+          (sum, p) => sum + (p.payment_amount ?? 0),
+          0
+        ) ?? 0
+      const balance = totalFee - paid
+      if (balance <= 0) return 'Paid'
+      if (paid > 0) return `$${paid} / $${totalFee}`
+      return 'Unpaid'
+    },
+    showOnMobile: true,
+    minWidth: '120px',
+    requiredPermission: Permission.READ_CANDIDATE_PAYMENTS,
   },
 ]
 
