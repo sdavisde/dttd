@@ -1,3 +1,11 @@
+## [1.14.1](https://github.com/sdavisde/dttd/compare/v1.14.0...v1.14.1) (2026-02-06)
+
+### Bug Fixes
+
+- add icon for community borad ([1ed4a05](https://github.com/sdavisde/dttd/commit/1ed4a0596527c3b15c768a1f4405f2c532c80536))
+- fix seed file ([0543d70](https://github.com/sdavisde/dttd/commit/0543d70ba02fd4f98a3128c6c798a5c3929c6363))
+- further restrict columns ([48bba41](https://github.com/sdavisde/dttd/commit/48bba41221b4b255eb105366112124c3b1a0e921))
+
 ## [1.14.0](https://github.com/sdavisde/dttd/compare/v1.13.1...v1.14.0) (2026-02-04)
 
 ### Features
