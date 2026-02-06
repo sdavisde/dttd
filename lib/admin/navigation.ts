@@ -50,7 +50,7 @@ export const adminNavItems: AdminNavElement[] = [
   {
     title: 'Community Board',
     url: '/admin/community-board',
-    icon: 'ClipboardList',
+    icon: 'Landmark',
     description:
       'Track board positions, leaders committee assignments, and meeting minutes.',
     permissions_needed: [],
