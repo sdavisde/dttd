@@ -1,3 +1,15 @@
+## [1.15.0](https://github.com/sdavisde/dttd/compare/v1.14.1...v1.15.0) (2026-02-07)
+
+### Features
+
+- add balance_transaction_id, charge_id, net_amount, deposited_at, ([272aeb6](https://github.com/sdavisde/dttd/commit/272aeb676032ac97da900511040ddd028c72bac0))
+- add payout.paid event handling ([64a422d](https://github.com/sdavisde/dttd/commit/64a422d38bc78010fd9991c3a58921068b665a98))
+
+### Bug Fixes
+
+- add candidate payments to candidate list locked under ([495fb1d](https://github.com/sdavisde/dttd/commit/495fb1d9c2d7006e7ebae403caed517f6a4eab31))
+- show candidate payments on the payments page ([66081d6](https://github.com/sdavisde/dttd/commit/66081d6aa55fd2b8fc64c26a55d5df380e576bc8))
+
 ## [1.14.1](https://github.com/sdavisde/dttd/compare/v1.14.0...v1.14.1) (2026-02-06)
 
 ### Bug Fixes
