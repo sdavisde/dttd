@@ -134,34 +134,52 @@ export type Database = {
       }
       candidate_payments: {
         Row: {
+          balance_transaction_id: string | null
           candidate_id: string | null
+          charge_id: string | null
           created_at: string
+          deposited_at: string | null
           id: number
+          net_amount: number | null
           notes: string | null
           payment_amount: number | null
           payment_intent_id: string
           payment_method: string | null
           payment_owner: string
+          payout_id: string | null
+          stripe_fee: number | null
         }
         Insert: {
+          balance_transaction_id?: string | null
           candidate_id?: string | null
+          charge_id?: string | null
           created_at?: string
+          deposited_at?: string | null
           id?: number
+          net_amount?: number | null
           notes?: string | null
           payment_amount?: number | null
           payment_intent_id: string
           payment_method?: string | null
           payment_owner: string
+          payout_id?: string | null
+          stripe_fee?: number | null
         }
         Update: {
+          balance_transaction_id?: string | null
           candidate_id?: string | null
+          charge_id?: string | null
           created_at?: string
+          deposited_at?: string | null
           id?: number
+          net_amount?: number | null
           notes?: string | null
           payment_amount?: number | null
           payment_intent_id?: string
           payment_method?: string | null
           payment_owner?: string
+          payout_id?: string | null
+          stripe_fee?: number | null
         }
         Relationships: [
           {
@@ -348,25 +366,42 @@ export type Database = {
         Row: {
           created_at: string
           datetime: string | null
+          end_datetime: string | null
           id: number
           location: string | null
           title: string | null
+          type: Database['public']['Enums']['event_type'] | null
+          weekend_id: string | null
         }
         Insert: {
           created_at?: string
           datetime?: string | null
+          end_datetime?: string | null
           id?: number
           location?: string | null
           title?: string | null
+          type?: Database['public']['Enums']['event_type'] | null
+          weekend_id?: string | null
         }
         Update: {
           created_at?: string
           datetime?: string | null
+          end_datetime?: string | null
           id?: number
           location?: string | null
           title?: string | null
+          type?: Database['public']['Enums']['event_type'] | null
+          weekend_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'events_weekend_id_fkey'
+            columns: ['weekend_id']
+            isOneToOne: false
+            referencedRelation: 'weekends'
+            referencedColumns: ['id']
+          },
+        ]
       }
       roles: {
         Row: {
@@ -616,30 +651,48 @@ export type Database = {
       }
       weekend_roster_payments: {
         Row: {
+          balance_transaction_id: string | null
+          charge_id: string | null
           created_at: string
+          deposited_at: string | null
           id: string
+          net_amount: number | null
           notes: string | null
           payment_amount: number | null
           payment_intent_id: string
           payment_method: string | null
+          payout_id: string | null
+          stripe_fee: number | null
           weekend_roster_id: string | null
         }
         Insert: {
+          balance_transaction_id?: string | null
+          charge_id?: string | null
           created_at?: string
+          deposited_at?: string | null
           id?: string
+          net_amount?: number | null
           notes?: string | null
           payment_amount?: number | null
           payment_intent_id: string
           payment_method?: string | null
+          payout_id?: string | null
+          stripe_fee?: number | null
           weekend_roster_id?: string | null
         }
         Update: {
+          balance_transaction_id?: string | null
+          charge_id?: string | null
           created_at?: string
+          deposited_at?: string | null
           id?: string
+          net_amount?: number | null
           notes?: string | null
           payment_amount?: number | null
           payment_intent_id?: string
           payment_method?: string | null
+          payout_id?: string | null
+          stripe_fee?: number | null
           weekend_roster_id?: string | null
         }
         Relationships: [
@@ -703,6 +756,13 @@ export type Database = {
         | 'awaiting_payment'
         | 'confirmed'
         | 'rejected'
+      event_type:
+        | 'meeting'
+        | 'weekend'
+        | 'serenade'
+        | 'sendoff'
+        | 'closing'
+        | 'other'
       permissions: 'READ_MEDICAL_HISTORY'
       role_type: 'INDIVIDUAL' | 'COMMITTEE'
       weekend_type: 'MENS' | 'WOMENS'
@@ -843,6 +903,14 @@ export const Constants = {
         'awaiting_payment',
         'confirmed',
         'rejected',
+      ],
+      event_type: [
+        'meeting',
+        'weekend',
+        'serenade',
+        'sendoff',
+        'closing',
+        'other',
       ],
       permissions: ['READ_MEDICAL_HISTORY'],
       role_type: ['INDIVIDUAL', 'COMMITTEE'],
