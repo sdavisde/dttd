@@ -1,5 +1,6 @@
 import { PostgrestSingleResponse } from '@supabase/supabase-js'
 import { isNil } from 'lodash'
+import { NextResponse } from 'next/server'
 import z from 'zod'
 import { logger } from './logger'
 
@@ -308,6 +309,56 @@ export const logFailures = (...results: Array<Result<unknown, unknown>>) => {
   logger.error(results)
 }
 
+type JsonResponseOptions<E, D> = {
+  /** HTTP status code for error responses (default: 400) */
+  errorStatus?: number
+  /** HTTP status code for success responses (default: 200) */
+  successStatus?: number
+  /** Transform the error before sending (default: wraps in { error }) */
+  formatError?: (error: E) => unknown
+  /** Transform the data before sending (default: sends as-is) */
+  formatData?: (data: D) => unknown
+}
+
+/**
+ * Converts a Result to a NextResponse.json() response.
+ * On error, returns { error } with status 400 (configurable).
+ * On success, returns the data with status 200 (configurable).
+ * @example
+ * // Simple usage - returns { error: "message" } or data
+ * return Results.toJsonResponse(result)
+ *
+ * @example
+ * // Custom status codes
+ * return Results.toJsonResponse(result, {
+ *   errorStatus: 404,
+ *   successStatus: 201
+ * })
+ *
+ * @example
+ * // Custom response formatting
+ * return Results.toJsonResponse(result, {
+ *   formatError: (err) => ({ received: true, warning: err }),
+ *   formatData: (data) => ({ received: true, data })
+ * })
+ */
+export const toJsonResponse = <E, D>(
+  result: Result<E, D>,
+  options?: JsonResponseOptions<E, D>
+): NextResponse => {
+  const {
+    errorStatus = 400,
+    successStatus = 200,
+    formatError = (e: E) => ({ error: e }),
+    formatData = (d: D) => d,
+  } = options ?? {}
+
+  if (isErr(result)) {
+    return NextResponse.json(formatError(result.error), { status: errorStatus })
+  }
+  return NextResponse.json(formatData(result.data), { status: successStatus })
+}
+
 /**
  * Result utilities for functional error handling.
  *
@@ -344,4 +395,5 @@ export const Results = {
   fromSupabase,
   safeParse,
   logFailures,
+  toJsonResponse,
 } as const

@@ -11,6 +11,10 @@ export const TeamPaymentQuery = `
   created_at,
   notes,
   weekend_roster_id,
+  stripe_fee,
+  net_amount,
+  deposited_at,
+  payout_id,
   weekend_roster!inner(
     users!inner(
       first_name,
@@ -28,6 +32,10 @@ export type RawTeamPayment = {
   created_at: string
   notes: string | null
   weekend_roster_id: string
+  stripe_fee: number | null
+  net_amount: number | null
+  deposited_at: string | null
+  payout_id: string | null
   weekend_roster: {
     users: {
       first_name: string

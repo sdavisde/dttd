@@ -12,6 +12,12 @@ export type PaymentRecord = {
   notes?: string
   payer_name: string | null
   payer_email: string | null
+  // Fee tracking fields
+  stripe_fee: number | null
+  net_amount: number | null
+  // Deposit tracking fields
+  deposited_at: string | null
+  payout_id: string | null
 }
 
 export type TeamFeePayment = {
@@ -29,6 +35,12 @@ export type TeamFeePayment = {
       email: string
     }
   }
+  // Fee tracking fields
+  stripe_fee: number | null
+  net_amount: number | null
+  // Deposit tracking fields
+  deposited_at: string | null
+  payout_id: string | null
 }
 
 export type CandidatePayment = {
@@ -43,4 +55,10 @@ export type CandidatePayment = {
     last_name: string
     email: string
   }
+  // Fee tracking fields
+  stripe_fee: number | null
+  net_amount: number | null
+  // Deposit tracking fields
+  deposited_at: string | null
+  payout_id: string | null
 }

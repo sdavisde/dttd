@@ -36,6 +36,10 @@ function normalizeTeamPayment(raw: RawTeamPayment): PaymentRecord {
     notes: raw.notes ?? undefined,
     payer_name: `${raw.weekend_roster.users.first_name} ${raw.weekend_roster.users.last_name}`,
     payer_email: raw.weekend_roster.users.email,
+    stripe_fee: raw.stripe_fee,
+    net_amount: raw.net_amount,
+    deposited_at: raw.deposited_at,
+    payout_id: raw.payout_id,
   }
 }
 

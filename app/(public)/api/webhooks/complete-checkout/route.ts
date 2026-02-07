@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { Result, ok, err, isErr } from '@/lib/results'
+import { Result, ok, err, isErr, isOk, Results } from '@/lib/results'
 import Stripe from 'stripe'
 import { Tables } from '@/database.types'
 import { getWeekendRosterRecord } from '@/services/weekend'
@@ -11,6 +11,7 @@ import {
   notifyCandidatePaymentReceivedAdmin,
 } from '@/services/notifications'
 import { isNil } from 'lodash'
+import { getTransactionData } from '@/services/stripe'
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -289,13 +290,32 @@ async function recordCandidatePayment(
   candidateId: string,
   session: Stripe.Checkout.Session
 ): Promise<Result<string, Tables<'candidate_payments'>>> {
+  const paymentIntentId = session.payment_intent as string
+
+  // Fetch fee data from Stripe
+  const transactionResult = await getTransactionData(paymentIntentId)
+  if (isErr(transactionResult)) {
+    logger.warn(
+      { candidateId, error: transactionResult.error },
+      'Transaction data not available at checkout time - will be backfilled at payout'
+    )
+  }
+  const transaction = Results.unwrapOr(transactionResult, null)
+
+  // insert candidate payment record, including fee information if it exists
   const { data: paymentRecord, error: paymentRecordError } = await adminClient
     .from('candidate_payments')
     .insert({
       candidate_id: candidateId,
       payment_amount: session.amount_total ? session.amount_total / 100 : null, // Convert from cents
       payment_owner: session.metadata?.payment_owner ?? 'unknown',
-      payment_intent_id: session.payment_intent as string, // This type assertion is safe because we check payment_intent in the webhook route
+      payment_intent_id: paymentIntentId,
+      payment_method: 'card',
+      // Fee tracking fields
+      stripe_fee: transaction?.stripeFee ?? null,
+      net_amount: transaction?.netAmount ?? null,
+      charge_id: transaction?.chargeId ?? null,
+      balance_transaction_id: transaction?.balanceTransactionId ?? null,
     })
     .select()
     .single()
@@ -336,15 +356,33 @@ async function recordWeekendRosterPayment(
   weekendRosterRecordId: string,
   session: Stripe.Checkout.Session
 ): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
+  const paymentIntentId = session.payment_intent as string
+
+  // Fetch fee data from Stripe
+  const transactionResult = await getTransactionData(paymentIntentId)
+  if (isErr(transactionResult)) {
+    logger.warn(
+      { weekendRosterRecordId, error: transactionResult.error },
+      'Transaction data not available at checkout time - will be backfilled at payout'
+    )
+  }
+  const transaction = Results.unwrapOr(transactionResult, null)
+
   const { data: weekendRosterPaymentRecord, error: paymentRecordError } =
     await adminClient
       .from('weekend_roster_payments')
       .insert({
         weekend_roster_id: weekendRosterRecordId,
+        payment_intent_id: paymentIntentId,
         payment_amount: session.amount_total
           ? session.amount_total / 100
           : null,
-        payment_intent_id: session.payment_intent as string,
+        payment_method: 'card',
+        // Fee tracking fields
+        stripe_fee: transaction?.stripeFee ?? null,
+        net_amount: transaction?.netAmount ?? null,
+        charge_id: transaction?.chargeId ?? null,
+        balance_transaction_id: transaction?.balanceTransactionId ?? null,
       })
       .select()
       .single()

@@ -403,6 +403,106 @@ export type Database = {
           },
         ]
       }
+      online_payment_payout_transactions: {
+        Row: {
+          balance_transaction_id: string | null
+          candidate_payment_id: number | null
+          charge_id: string | null
+          created_at: string | null
+          gross_amount: number | null
+          id: string
+          net_amount: number | null
+          online_payment_payout_id: string
+          payment_intent_id: string | null
+          stripe_fee: number | null
+          weekend_roster_payment_id: string | null
+        }
+        Insert: {
+          balance_transaction_id?: string | null
+          candidate_payment_id?: number | null
+          charge_id?: string | null
+          created_at?: string | null
+          gross_amount?: number | null
+          id?: string
+          net_amount?: number | null
+          online_payment_payout_id: string
+          payment_intent_id?: string | null
+          stripe_fee?: number | null
+          weekend_roster_payment_id?: string | null
+        }
+        Update: {
+          balance_transaction_id?: string | null
+          candidate_payment_id?: number | null
+          charge_id?: string | null
+          created_at?: string | null
+          gross_amount?: number | null
+          id?: string
+          net_amount?: number | null
+          online_payment_payout_id?: string
+          payment_intent_id?: string | null
+          stripe_fee?: number | null
+          weekend_roster_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'online_payment_payout_transactio_weekend_roster_payment_id_fkey'
+            columns: ['weekend_roster_payment_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_roster_payments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'online_payment_payout_transaction_online_payment_payout_id_fkey'
+            columns: ['online_payment_payout_id']
+            isOneToOne: false
+            referencedRelation: 'online_payment_payouts'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'online_payment_payout_transactions_candidate_payment_id_fkey'
+            columns: ['candidate_payment_id']
+            isOneToOne: false
+            referencedRelation: 'candidate_payments'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      online_payment_payouts: {
+        Row: {
+          amount: number
+          arrival_date: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          payout_id: string
+          status: string
+          transaction_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          arrival_date?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          payout_id: string
+          status: string
+          transaction_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          arrival_date?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          payout_id?: string
+          status?: string
+          transaction_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           description: string | null

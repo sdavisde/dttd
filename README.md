@@ -82,7 +82,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) e
 
 ## TODOs
 
-- [ ] Implement approval logic for candidates
-- [ ] Implement rejection logic for candidates
+- [ ] Test payout webhook, make sure that online payments are marked as deposited when we receive a payout
+- [ ] Next, need to show some indicator on the payments page that a payment was deposited
 - [ ] Create delete user action
 - [ ] Add user account actions dropdown menu
