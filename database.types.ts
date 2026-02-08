@@ -362,6 +362,78 @@ export type Database = {
         }
         Relationships: []
       }
+      deposit_payments: {
+        Row: {
+          created_at: string | null
+          deposit_id: string
+          id: string
+          payment_transaction_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deposit_id: string
+          id?: string
+          payment_transaction_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deposit_id?: string
+          id?: string
+          payment_transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'deposit_payments_deposit_id_fkey'
+            columns: ['deposit_id']
+            isOneToOne: false
+            referencedRelation: 'deposits'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'deposit_payments_payment_transaction_id_fkey'
+            columns: ['payment_transaction_id']
+            isOneToOne: false
+            referencedRelation: 'payment_transaction'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      deposits: {
+        Row: {
+          amount: number
+          arrival_date: string | null
+          created_at: string | null
+          deposit_type: string
+          id: string
+          notes: string | null
+          payout_id: string | null
+          status: string
+          transaction_count: number
+        }
+        Insert: {
+          amount: number
+          arrival_date?: string | null
+          created_at?: string | null
+          deposit_type: string
+          id?: string
+          notes?: string | null
+          payout_id?: string | null
+          status: string
+          transaction_count?: number
+        }
+        Update: {
+          amount?: number
+          arrival_date?: string | null
+          created_at?: string | null
+          deposit_type?: string
+          id?: string
+          notes?: string | null
+          payout_id?: string | null
+          status?: string
+          transaction_count?: number
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
@@ -502,6 +574,68 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      payment_transaction: {
+        Row: {
+          balance_transaction_id: string | null
+          charge_id: string | null
+          created_at: string | null
+          gross_amount: number
+          id: string
+          net_amount: number | null
+          notes: string | null
+          payment_intent_id: string | null
+          payment_method: string
+          payment_owner: string | null
+          stripe_fee: number | null
+          target_id: string | null
+          target_type: string | null
+          type: string
+          weekend_id: string | null
+        }
+        Insert: {
+          balance_transaction_id?: string | null
+          charge_id?: string | null
+          created_at?: string | null
+          gross_amount: number
+          id?: string
+          net_amount?: number | null
+          notes?: string | null
+          payment_intent_id?: string | null
+          payment_method: string
+          payment_owner?: string | null
+          stripe_fee?: number | null
+          target_id?: string | null
+          target_type?: string | null
+          type: string
+          weekend_id?: string | null
+        }
+        Update: {
+          balance_transaction_id?: string | null
+          charge_id?: string | null
+          created_at?: string | null
+          gross_amount?: number
+          id?: string
+          net_amount?: number | null
+          notes?: string | null
+          payment_intent_id?: string | null
+          payment_method?: string
+          payment_owner?: string | null
+          stripe_fee?: number | null
+          target_id?: string | null
+          target_type?: string | null
+          type?: string
+          weekend_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'payment_transaction_weekend_id_fkey'
+            columns: ['weekend_id']
+            isOneToOne: false
+            referencedRelation: 'weekends'
+            referencedColumns: ['id']
+          },
+        ]
       }
       roles: {
         Row: {
