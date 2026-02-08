@@ -4,6 +4,7 @@ import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import { PaymentRecord } from '@/lib/payments/types'
 import * as PaymentService from './payment-service'
+import { PaymentTransactionDTO } from './types'
 
 /**
  * Retrieves a Stripe price by its ID.
@@ -22,10 +23,10 @@ export async function hasTeamPayment(weekendRosterId: string) {
 }
 
 /**
- * Retrieves all payment records (team fees and candidate fees).
+ * Retrieves all payment records from the new payment_transaction table.
  * Requires READ_PAYMENTS permission.
  */
-export const getAllPayments = authorizedAction<void, PaymentRecord[]>(
+export const getAllPayments = authorizedAction<void, PaymentTransactionDTO[]>(
   Permission.READ_PAYMENTS,
   async () => {
     return await PaymentService.getAllPayments()

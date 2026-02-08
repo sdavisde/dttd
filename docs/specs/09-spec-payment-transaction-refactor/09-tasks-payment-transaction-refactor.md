@@ -119,7 +119,7 @@ Migrate existing payment data from `candidate_payments` and `weekend_roster_paym
 
 ---
 
-### [ ] 4.0 Create Payment Repository with RLS Bypass
+### [x] 4.0 Create Payment Repository with RLS Bypass
 
 Create a repository layer for `payment_transaction` with a `dangerouslyBypassRLS` option for webhook usage, following the established service layer patterns.
 
@@ -133,11 +133,19 @@ Create a repository layer for `payment_transaction` with a `dangerouslyBypassRLS
 
 #### 4.0 Tasks
 
-TBD
+- [x] 4.1 Create ServiceOptions type with dangerouslyBypassRLS option in types.ts
+- [x] 4.2 Create helper function to select appropriate Supabase client based on options
+- [x] 4.3 Create createPayment(data, options) repository function
+- [x] 4.4 Create getPaymentById(id, options) repository function
+- [x] 4.5 Create getPaymentByPaymentIntentId(paymentIntentId, options) repository function
+- [x] 4.6 Create getPaymentsByTargetId(targetType, targetId, options) repository function
+- [x] 4.7 Create getAllPayments(options) repository function with joins for payer info
+- [x] 4.8 Create updatePayment(id, data, options) repository function
+- [x] 4.9 Verify all functions compile without TypeScript errors
 
 ---
 
-### [ ] 5.0 Create Payment Service Layer
+### [x] 5.0 Create Payment Service Layer
 
 Create the payment service that handles ALL business logic and validation, serving as the single source of truth for payment operations.
 
@@ -151,7 +159,15 @@ Create the payment service that handles ALL business logic and validation, servi
 
 #### 5.0 Tasks
 
-TBD
+- [x] 5.1 Create Zod validation schemas for payment input data in types.ts
+- [x] 5.2 Create PaymentTransaction DTO types in types.ts
+- [x] 5.3 Create recordPayment(data, options) service function with validation
+- [x] 5.4 Create getPaymentForTarget(targetType, targetId, options) service function
+- [x] 5.5 Create hasPaymentForTarget(targetType, targetId, options) service function
+- [x] 5.6 Create getAllPayments(options) service function with normalized DTOs
+- [x] 5.7 Create backfillStripeData(paymentIntentId, stripeData, options) service function
+- [x] 5.8 Update index.ts with proper re-exports
+- [x] 5.9 Run yarn build and verify compilation succeeds
 
 ---
 

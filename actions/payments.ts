@@ -28,7 +28,10 @@ export async function hasTeamPayment(
   return ok(data !== null && data.length > 0)
 }
 
-export async function getAllPayments(): Promise<
+/**
+ * @deprecated Use getAllPayments from @/services/payment after Task 8.0 updates the admin display
+ */
+export async function getAllPaymentsDeprecated(): Promise<
   Result<string, PaymentRecord[]>
 > {
   const supabase = await createClient()
