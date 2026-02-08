@@ -1,69 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
-import { createAdminClient } from '@/lib/supabase/server'
-import { logger } from '@/lib/logger'
-import { isErr, isOk, Results } from '@/lib/results'
+import 'server-only'
+
 import Stripe from 'stripe'
+import { ok, isErr, isOk, Results } from '@/lib/results'
+import { logger } from '@/lib/logger'
+import { isNil } from 'lodash'
 import {
   getPayoutTransactions,
   getTransactionData,
   PayoutTransaction,
-} from '@/services/stripe'
-import { isNil } from 'lodash'
+} from '../stripe-service'
+import {
+  WebhookHandler,
+  WebhookHandlerContext,
+  WebhookErrorCodes,
+} from './types'
+import { webhookErr } from '../webhook-context'
 
-const webhookSecret = process.env.STRIPE_PAYOUT_WEBHOOK_SECRET
-
-if (!webhookSecret) {
-  logger.warn(
-    'STRIPE_PAYOUT_WEBHOOK_SECRET is not configured - payout tracking will not work'
-  )
-}
-
-// Admin client for webhook operations - bypasses RLS since webhooks have no user session
-let adminClient: ReturnType<typeof createAdminClient>
-
-export async function POST(request: NextRequest) {
-  if (!webhookSecret) {
-    logger.error(
-      'Payout webhook called but STRIPE_PAYOUT_WEBHOOK_SECRET is not configured'
-    )
-    return NextResponse.json(
-      { error: 'Payout webhook not configured' },
-      { status: 500 }
-    )
-  }
-
-  // Initialize admin client for this request
-  adminClient = createAdminClient()
-
-  try {
-    const body = await request.text()
-    const signature = request.headers.get('stripe-signature')
-
-    if (!signature) {
-      logger.error('Missing Stripe signature in payout webhook request')
-      return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
-    }
-
-    let event: Stripe.Event
-
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    } catch (err) {
-      logger.error(err, 'Payout webhook signature verification failed')
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-    }
-
-    // This route only handles payout.paid events
-    if (event.type !== 'payout.paid') {
-      logger.info(
-        `Ignoring payout webhook event: ${event.type} - Event type not supported`
-      )
-      return NextResponse.json({ received: true }, { status: 200 })
-    }
-
-    const payoutEvent = event as Stripe.PayoutPaidEvent
-    const payout = payoutEvent.data.object
+/**
+ * Handler for payout.paid events.
+ * Records deposit information and backfills fee data.
+ */
+export const payoutPaidHandler: WebhookHandler<Stripe.PayoutPaidEvent> = {
+  eventType: 'payout.paid',
+  handle: async (event, ctx) => {
+    const payout = event.data.object
 
     logger.info(
       { payoutId: payout.id, amount: payout.amount / 100 },
@@ -77,8 +37,11 @@ export async function POST(request: NextRequest) {
         { error: transactionsResult.error, payoutId: payout.id },
         'Failed to get payout transactions'
       )
-      // Return 200 so Stripe doesn't retry - we'll handle this manually if needed
-      return NextResponse.json({ received: true, warning: 'Failed to process' })
+      // Return success but with warning - we'll handle this manually if needed
+      return ok({
+        processed: false,
+        details: { warning: 'Failed to get payout transactions' },
+      })
     }
 
     const transactions = transactionsResult.data
@@ -91,24 +54,28 @@ export async function POST(request: NextRequest) {
       ? new Date(payout.arrival_date * 1000).toISOString()
       : new Date().toISOString()
 
-    // 1. Create the payout record
-    const payoutRecord = await createPayoutRecord(payout, transactions.length)
+    // Create the payout record
+    const payoutRecord = await createPayoutRecord(
+      payout,
+      transactions.length,
+      ctx.adminClient
+    )
     if (!payoutRecord) {
-      logger.error({ payoutId: payout.id }, 'Failed to create payout record')
-      return NextResponse.json({
-        received: true,
-        warning: 'Failed to create payout record',
-      })
+      return webhookErr(
+        WebhookErrorCodes.PAYOUT_RECORD_FAILED,
+        'Failed to create payout record',
+        'payout_processing',
+        'error',
+        ctx.paymentContext
+      )
     }
 
-    // 2. Process each transaction
+    // Process each transaction
     let candidatePaymentsUpdated = 0
     let teamPaymentsUpdated = 0
     let transactionsRecorded = 0
 
     for (const transaction of transactions) {
-      // Find matching payment records
-      // Note: candidate_payments.id is INTEGER, weekend_roster_payments.id is UUID
       let candidatePaymentId: number | null = null
       let weekendRosterPaymentId: string | null = null
 
@@ -119,7 +86,8 @@ export async function POST(request: NextRequest) {
           payout.id,
           depositedAt,
           transaction.chargeId,
-          transaction.balanceTransactionId
+          transaction.balanceTransactionId,
+          ctx.adminClient
         )
         if (candidateResult) {
           candidatePaymentId = candidateResult
@@ -131,7 +99,8 @@ export async function POST(request: NextRequest) {
             payout.id,
             depositedAt,
             transaction.chargeId,
-            transaction.balanceTransactionId
+            transaction.balanceTransactionId,
+            ctx.adminClient
           )
           if (teamResult) {
             weekendRosterPaymentId = teamResult
@@ -151,12 +120,13 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // 3. Record the transaction in online_payment_payout_transactions
+      // Record the transaction in online_payment_payout_transactions
       const transactionRecorded = await createPayoutTransactionRecord(
         payoutRecord.id,
         transaction,
         candidatePaymentId,
-        weekendRosterPaymentId
+        weekendRosterPaymentId,
+        ctx.adminClient
       )
       if (transactionRecorded) {
         transactionsRecorded++
@@ -175,31 +145,28 @@ export async function POST(request: NextRequest) {
       'Payout processing complete'
     )
 
-    return NextResponse.json({
-      received: true,
-      processed: {
-        payoutRecordId: payoutRecord.id,
-        candidatePayments: candidatePaymentsUpdated,
-        teamPayments: teamPaymentsUpdated,
+    return ok({
+      processed: true,
+      entityType: 'payout',
+      entityId: payoutRecord.id,
+      details: {
+        payoutId: payout.id,
+        candidatePaymentsUpdated,
+        teamPaymentsUpdated,
         transactionsRecorded,
+        totalTransactions: transactions.length,
       },
     })
-  } catch (error) {
-    logger.error(error, 'Payout webhook processing error')
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    )
-  }
+  },
 }
 
 /**
- * Creates a record in the online_payment_payouts table
- * @returns The created payout record, or null if creation failed
+ * Creates a record in the online_payment_payouts table.
  */
 async function createPayoutRecord(
   payout: Stripe.Payout,
-  transactionCount: number
+  transactionCount: number,
+  adminClient: WebhookHandlerContext['adminClient']
 ): Promise<{ id: string } | null> {
   const arrivalDate = payout.arrival_date
     ? new Date(payout.arrival_date * 1000).toISOString()
@@ -248,14 +215,14 @@ async function createPayoutRecord(
 }
 
 /**
- * Creates a record in the online_payment_payout_transactions table
- * @returns true if record was created, false otherwise
+ * Creates a record in the online_payment_payout_transactions table.
  */
 async function createPayoutTransactionRecord(
   payoutRecordId: string,
   transaction: PayoutTransaction,
   candidatePaymentId: number | null,
-  weekendRosterPaymentId: string | null
+  weekendRosterPaymentId: string | null,
+  adminClient: WebhookHandlerContext['adminClient']
 ): Promise<boolean> {
   const { error } = await adminClient
     .from('online_payment_payout_transactions')
@@ -293,14 +260,14 @@ async function createPayoutTransactionRecord(
 /**
  * Updates a candidate payment record with deposit information.
  * Also backfills fee data if it was missing at checkout time.
- * @returns The payment ID (number) if a record was updated, null otherwise
  */
 async function updateCandidatePaymentDeposit(
   paymentIntentId: string,
   payoutId: string,
   depositedAt: string,
   chargeId: string,
-  balanceTransactionId: string
+  balanceTransactionId: string,
+  adminClient: WebhookHandlerContext['adminClient']
 ): Promise<number | null> {
   // First check if this payment exists and needs updating
   const { data: existingPayment, error: fetchError } = await adminClient
@@ -374,14 +341,14 @@ async function updateCandidatePaymentDeposit(
 /**
  * Updates a weekend roster payment record with deposit information.
  * Also backfills fee data if it was missing at checkout time.
- * @returns The payment ID if a record was updated, null otherwise
  */
 async function updateTeamPaymentDeposit(
   paymentIntentId: string,
   payoutId: string,
   depositedAt: string,
   chargeId: string,
-  balanceTransactionId: string
+  balanceTransactionId: string,
+  adminClient: WebhookHandlerContext['adminClient']
 ): Promise<string | null> {
   // First check if this payment exists and needs updating
   const { data: existingPayment, error: fetchError } = await adminClient
