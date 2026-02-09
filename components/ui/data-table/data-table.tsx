@@ -28,6 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+import type { DataTableUrlState } from '@/hooks/use-data-table-url-state'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableSearch } from './data-table-search'
 import '@/components/ui/data-table/types'
@@ -42,6 +43,8 @@ interface DataTableProps<TData, TValue> {
     noResults: ReactNode
   }
   globalFilterFn?: FilterFn<TData>
+  urlState?: DataTableUrlState
+  searchPlaceholder?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -51,11 +54,29 @@ export function DataTable<TData, TValue>({
   initialSort,
   emptyState,
   globalFilterFn,
+  urlState,
+  searchPlaceholder,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>(initialSort ?? [])
+  // Internal state (used when urlState is not provided)
+  const [internalSorting, setInternalSorting] = useState<SortingState>(
+    initialSort ?? []
+  )
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 })
+  const [internalGlobalFilter, setInternalGlobalFilter] = useState('')
+  const [internalPagination, setInternalPagination] = useState({
+    pageIndex: 0,
+    pageSize: 25,
+  })
+
+  // Use URL state if provided, otherwise internal state
+  const sorting = urlState?.sorting ?? internalSorting
+  const onSortingChange = urlState?.onSortingChange ?? setInternalSorting
+  const globalFilter = urlState?.globalFilter ?? internalGlobalFilter
+  const onGlobalFilterChange =
+    urlState?.onGlobalFilterChange ?? setInternalGlobalFilter
+  const pagination = urlState?.pagination ?? internalPagination
+  const onPaginationChange =
+    urlState?.onPaginationChange ?? setInternalPagination
 
   const columnVisibility = useMemo<VisibilityState>(() => {
     const visibility: VisibilityState = {}
@@ -96,10 +117,10 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       pagination,
     },
-    onSortingChange: setSorting,
+    onSortingChange,
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
+    onGlobalFilterChange,
+    onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -111,7 +132,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableSearch table={table} />
+      <DataTableSearch table={table} placeholder={searchPlaceholder} />
 
       <div className="rounded-md border">
         <Table>

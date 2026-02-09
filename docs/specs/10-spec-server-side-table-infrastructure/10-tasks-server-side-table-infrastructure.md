@@ -2,7 +2,7 @@
 
 ## Tasks
 
-### [~] 1.0 TanStack Table Core Infrastructure and Shared Components
+### [x] 1.0 TanStack Table Core Infrastructure and Shared Components
 
 **Purpose:** Install TanStack Table, build the foundational `DataTable<TData, TValue>` component with the permission-aware column visibility model, and create all shared sub-components (sortable column headers, pagination, global search). This is the infrastructure everything else builds on.
 
@@ -42,7 +42,7 @@
 - [x] 1.7 Create `components/ui/data-table/index.ts` as a barrel export file. Re-export `DataTable` from `./data-table`, `DataTableColumnHeader` from `./data-table-column-header`, `DataTablePagination` from `./data-table-pagination`, `DataTableSearch` from `./data-table-search`, and all types from `./types`.
 - [x] 1.8 Run `yarn build` and verify the project compiles successfully with no TypeScript errors. Fix any type issues that arise from the module augmentation or component generics.
 
-### [ ] 2.0 URL State Persistence Hook
+### [x] 2.0 URL State Persistence Hook
 
 **Purpose:** Build the `useDataTableUrlState` hook that syncs TanStack Table state (sorting, column filters, global filter, pagination) to URL query params, enabling bookmarkable and shareable table views.
 
@@ -55,9 +55,18 @@
 - Demo: Changing sort/filter/search resets pagination to page 1
 - CLI: `yarn build` compiles successfully
 
+#### 2.0 Relevant Files
+
+- `hooks/use-data-table-url-state.ts` — **New.** `useDataTableUrlState` hook. Reads URL search params on mount to initialize TanStack Table state (sorting, globalFilter, pagination). Writes state changes back to URL params. Uses `router.replace()` for search (no history pollution), `router.push()` for discrete actions (sort, page). Resets pagination to page 1 when sort/filter/search change.
+- `components/ui/data-table/data-table.tsx` — **Modified.** Updated to accept optional `urlState` prop from `useDataTableUrlState` to use URL-synced state instead of local state. When `urlState` is provided, the DataTable delegates state management to the hook.
+- `components/ui/data-table/index.ts` — **Modified.** Re-export `useDataTableUrlState` from the barrel file.
+
 #### 2.0 Tasks
 
-TBD
+- [x] 2.1 Create `hooks/use-data-table-url-state.ts`. This is a `'use client'` hook. Import `useSearchParams`, `useRouter`, `usePathname` from `next/navigation` and TanStack Table types (`SortingState`, `ColumnFiltersState`, `PaginationState`). The hook accepts a config object: `{ defaultSort?: SortingState, defaultPageSize?: number, paramPrefix?: string }`. On mount, read URL search params to initialize state: `sort` → sorting column ID, `dir` → sort direction (`asc`/`desc`), `search` → global filter string, `page` → page index (1-based in URL, convert to 0-based for TanStack), `pageSize` → page size. Return an object with: `sorting`, `onSortingChange`, `globalFilter`, `onGlobalFilterChange`, `pagination`, `onPaginationChange` — all compatible with TanStack Table's controlled state API. When sorting changes, serialize to `?sort=columnId&dir=asc` and call `router.push()`. When globalFilter changes, serialize to `?search=value` and call `router.replace()` (debounced URL update to avoid excessive history). When pagination changes, serialize to `?page=N&pageSize=N` and call `router.push()`. When sort or globalFilter changes, reset pagination to page 1. Preserve existing non-table URL params (e.g., `weekend`, `weekendType`) when updating.
+- [x] 2.2 Update `components/ui/data-table/data-table.tsx` to support URL state integration. Add an optional `urlState` prop that accepts the return value of `useDataTableUrlState`. When `urlState` is provided, use its state and handlers (`sorting`/`onSortingChange`, `globalFilter`/`onGlobalFilterChange`, `pagination`/`onPaginationChange`) instead of internal `useState`. When `urlState` is not provided, fall back to the existing internal state (backward compatible). This ensures existing usages of `DataTable` without URL state continue to work.
+- [x] 2.3 Update `components/ui/data-table/index.ts` to re-export `useDataTableUrlState` from `@/hooks/use-data-table-url-state`.
+- [x] 2.4 Run `yarn build` and verify the project compiles successfully with no TypeScript errors. Confirm that the existing DataTable usage (if any) still works without the `urlState` prop.
 
 ### [ ] 3.0 Candidate List Migration to TanStack Table
 
@@ -75,9 +84,20 @@ TBD
 - Code: `useCandidateList` hook, `CandidateColumnConfig` type, and old `CandidateListTable` component are removed
 - CLI: `yarn build` compiles successfully
 
+#### 3.0 Relevant Files
+
+- `app/(public)/candidate-list/config/columns.tsx` — **New.** (Replaces `columns.ts`.) Defines TanStack Table `ColumnDef<HydratedCandidate>[]` array. Each column maps the existing `accessor` functions to `accessorFn`, uses `DataTableColumnHeader` for sortable headers, and sets `meta` with `requiredPermission`, `showOnMobile`, `mobileLabel`, `mobilePriority`. Includes the `candidateGlobalFilterFn` that searches across name, email, phone, sponsor, and church fields.
+- `app/(public)/candidate-list/components/CandidateListTable.tsx` — **Rewritten.** Replaces the custom implementation with the shared `DataTable` component. Calls `useDataTableUrlState` for URL persistence. Pre-filters candidates (excludes `rejected`/`sponsored`). Passes `columns`, `data`, `user`, `initialSort`, `emptyState`, `globalFilterFn`, and `urlState` to `DataTable`. Desktop uses `DataTable` (`hidden md:block`), mobile renders flat cards (`md:hidden`) using the same TanStack Table row model.
+- `app/(public)/candidate-list/hooks/use-candidate-list.ts` — **Deleted.** Replaced by TanStack Table + `useDataTableUrlState`.
+- `app/(public)/candidate-list/config/columns.ts` — **Deleted.** Replaced by `columns.tsx`.
+- `app/(public)/candidate-list/page.tsx` — **Existing.** No changes needed — still passes `candidates` and `user` to `CandidateListTable`.
+
 #### 3.0 Tasks
 
-TBD
+- [ ] 3.1 Create `app/(public)/candidate-list/config/columns.tsx` (new file, replaces `columns.ts`). Define and export `candidateColumns: ColumnDef<HydratedCandidate>[]` array. Port each column from `CANDIDATE_COLUMNS` in the old `columns.ts`: map `id` → column `id`, `header` → use `DataTableColumnHeader` component, `accessor` → `accessorFn`, `requiredPermission` → `meta.requiredPermission`, `showOnMobile`/`mobileLabel` → `meta.showOnMobile`/`meta.mobileLabel`, add `meta.mobilePriority` (name=`primary`, church/payment=`secondary`, all others=`detail`). For the name column, render the cell with `font-medium`. For the payment column, apply conditional styling (green text for "Paid", red for "Unpaid"). Port the helper functions `calculateAge`, `formatEmergencyContact`, `formatBirthday` from the old `columns.ts`. Also define and export `candidateGlobalFilterFn: FilterFn<HydratedCandidate>` that searches across candidate name (first+last and sponsorship name), email, phone, sponsor name, church, and sponsor church — matching the existing `useCandidateList` search behavior.
+- [ ] 3.2 Rewrite `app/(public)/candidate-list/components/CandidateListTable.tsx`. This is a `'use client'` component. Import `DataTable` from `@/components/ui/data-table`, `useDataTableUrlState` from `@/hooks/use-data-table-url-state`, and `candidateColumns`/`candidateGlobalFilterFn` from the columns config. Pre-filter candidates to exclude `rejected` and `sponsored` statuses (matching existing behavior). Call `useDataTableUrlState({ defaultSort: [{ id: 'name', desc: false }], defaultPageSize: 25 })`. Render the desktop layout (`hidden md:block`) with `DataTable` passing: `columns={candidateColumns}`, `data={filteredCandidates}`, `user`, `initialSort`, `emptyState`, `globalFilterFn={candidateGlobalFilterFn}`, and `urlState`. For the mobile layout (`md:hidden`), render flat cards using the TanStack Table row model from the DataTable (same data flow, card-based display). Configure empty states: no data → "No candidates for this weekend.", no results → "No candidates found matching your search." with a "Clear filters" button that resets global filter.
+- [ ] 3.3 Delete the old files: `app/(public)/candidate-list/hooks/use-candidate-list.ts` and `app/(public)/candidate-list/config/columns.ts`. Verify no other files import from these paths.
+- [ ] 3.4 Run `yarn build` and verify the project compiles successfully with no TypeScript errors. Confirm the candidate list page renders correctly.
 
 ### [ ] 4.0 Per-Column Filters and Desktop Toolbar
 
