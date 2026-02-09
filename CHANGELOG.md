@@ -1,3 +1,22 @@
+## [1.16.0](https://github.com/sdavisde/dttd/compare/v1.15.0...v1.16.0) (2026-02-09)
+
+### ⚠ BREAKING CHANGES
+
+- update stripe webhook route in order to make a single route more
+
+### Features
+
+- add deposit service ([3a2ffb6](https://github.com/sdavisde/dttd/commit/3a2ffb648a6fef0e75f528bb9a7304a4ad185bcb))
+- add new payment transaction tables and migrate old data to them ([b5c3522](https://github.com/sdavisde/dttd/commit/b5c35226b00a6ff1d1acae5d24d9de040cd7bba8))
+- update payment page to pull new attributes ([7479d4c](https://github.com/sdavisde/dttd/commit/7479d4cba1c14578c4130cab726f24801bef2860))
+- update payment service to use the new generic payment tables ([8927cd1](https://github.com/sdavisde/dttd/commit/8927cd19ec8c991301dbfc294807aad057011ae4))
+- update stripe webhook route in order to make a single route more ([afb5531](https://github.com/sdavisde/dttd/commit/afb5531d7eeac3ba003bafd43b1d0ea0c5ca85b8))
+
+### Bug Fixes
+
+- make logs easier to read ([30bbb18](https://github.com/sdavisde/dttd/commit/30bbb18fe4f21b106df7da229a774de0f25c5f77))
+- tie payment owner to manual payments and fix payment owner not ([f734347](https://github.com/sdavisde/dttd/commit/f7343475564bfcbdb79057ea856eb29bc32e4a3d))
+
 ## [1.15.0](https://github.com/sdavisde/dttd/compare/v1.14.1...v1.15.0) (2026-02-07)
 
 ### Features
