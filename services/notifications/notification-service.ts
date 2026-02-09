@@ -7,6 +7,7 @@ import * as NotificationRepository from './repository'
 // TODO: This should use the candidates service public API instead of direct repository access
 import * as CandidateRepository from '@/services/candidates/repository'
 import { ContactInfo, NotificationRecipient } from './types'
+import { HydratedCandidate } from '@/lib/candidates/types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -175,11 +176,13 @@ async function sendCandidatePaymentEmail(
     | 'sponsor'
 
   // Build hydrated candidate shape for email template
+  // Exclude candidate_payments since the email template doesn't use it
+  const { candidate_payments, ...candidateWithoutPayments } = rawCandidate
   const candidate = {
-    ...rawCandidate,
+    ...candidateWithoutPayments,
     candidate_info: candidateInfo,
     candidate_sponsorship_info: sponsorshipInfo,
-  }
+  } as HydratedCandidate
 
   const { error } = await resend.emails.send({
     from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',

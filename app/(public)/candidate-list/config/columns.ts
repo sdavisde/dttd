@@ -197,10 +197,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     accessor: (c) => {
       const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
       const paid =
-        c.candidate_payments?.reduce(
-          (sum, p) => sum + (p.payment_amount ?? 0),
-          0
-        ) ?? 0
+        c.candidate_payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
       const balance = totalFee - paid
       if (balance <= 0) return 'Paid'
       if (paid > 0) return `$${paid} / $${totalFee}`

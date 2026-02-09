@@ -25,11 +25,14 @@ import {
 } from '@/lib/weekend/types'
 import {
   RawWeekendRoster,
+  PaymentRecord,
   WeekendRosterMember,
   WeekendSidebarPayload,
   LeadershipTeamMember,
   LeadershipTeamData,
 } from './types'
+import * as PaymentService from '@/services/payment/payment-service'
+import type { PaymentTransactionRow } from '@/services/payment/types'
 import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
 
@@ -145,8 +148,8 @@ function getWeekendLabel(weekend: Weekend | null): string {
  * Normalizes a raw weekend roster record into a WeekendRosterMember.
  */
 function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
-  const all_payments = raw.weekend_roster_payments ?? []
-  const total_paid = sumBy(all_payments, (p) => p.payment_amount ?? 0)
+  const all_payments = raw.payments ?? []
+  const total_paid = sumBy(all_payments, (p) => p.gross_amount)
 
   // Check if all 5 team forms have been completed
   const forms_complete =
@@ -165,7 +168,7 @@ function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
     created_at: raw.created_at,
     rollo: raw.rollo,
     users: raw.users,
-    payment_info: raw.weekend_roster_payments?.[0] ?? null,
+    payment_info: all_payments[0] ?? null,
     total_paid,
     all_payments,
     forms_complete,
@@ -521,6 +524,7 @@ export async function getWeekendById(
 
 /**
  * Fetches the roster for a weekend with normalized data.
+ * Payments are fetched from the payment_transaction table.
  */
 export async function getWeekendRoster(
   weekendId: string
@@ -535,7 +539,37 @@ export async function getWeekendRoster(
     return err('No roster found for weekend')
   }
 
-  const normalizedRoster = result.data.map(normalizeRosterMember)
+  const rosterRecords = result.data
+
+  // Fetch payments for all roster members in parallel
+  const paymentPromises = rosterRecords.map(async (record) => {
+    const paymentsResult = await PaymentService.getPaymentForTarget(
+      'weekend_roster',
+      record.id
+    )
+    return {
+      rosterId: record.id,
+      payments: isErr(paymentsResult) ? [] : paymentsResult.data,
+    }
+  })
+
+  const paymentsByRoster = await Promise.all(paymentPromises)
+
+  // Create a map of roster ID to payments
+  const paymentsMap = new Map<string, PaymentRecord[]>()
+  for (const { rosterId, payments } of paymentsByRoster) {
+    paymentsMap.set(rosterId, payments)
+  }
+
+  // Combine roster records with their payments
+  const rawRosterWithPayments: RawWeekendRoster[] = rosterRecords.map(
+    (record) => ({
+      ...record,
+      payments: paymentsMap.get(record.id) ?? [],
+    })
+  )
+
+  const normalizedRoster = rawRosterWithPayments.map(normalizeRosterMember)
   return ok(normalizedRoster)
 }
 
@@ -610,14 +644,15 @@ export async function getWeekendRosterRecord(
 
 /**
  * Records a manual (cash/check) payment for a weekend roster member.
+ * Creates a record in the payment_transaction table.
  */
 export async function recordManualPayment(
   weekendRosterId: string,
   paymentAmount: number,
   paymentMethod: 'cash' | 'check',
   notes?: string
-): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
-  // Verify the weekend roster record exists
+): Promise<Result<string, PaymentTransactionRow>> {
+  // Verify the weekend roster record exists and get weekend_id
   const rosterResult =
     await WeekendRepository.findRosterRecordById(weekendRosterId)
 
@@ -629,12 +664,18 @@ export async function recordManualPayment(
     return err('Weekend roster record not found')
   }
 
-  // Insert the payment record
-  const result = await WeekendRepository.insertManualPayment({
-    weekend_roster_id: weekendRosterId,
-    payment_amount: paymentAmount,
+  // Generate a manual payment intent ID
+  const paymentIntentId = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
+
+  // Record payment in the payment_transaction table
+  const result = await PaymentService.recordPayment({
+    type: 'fee',
+    target_type: 'weekend_roster',
+    target_id: weekendRosterId,
+    weekend_id: null, // Could be fetched from roster record if needed
+    payment_intent_id: paymentIntentId,
+    gross_amount: paymentAmount,
     payment_method: paymentMethod,
-    payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
     notes: notes ?? null,
   })
 

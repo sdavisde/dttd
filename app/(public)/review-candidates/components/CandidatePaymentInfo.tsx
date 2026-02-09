@@ -102,10 +102,8 @@ export const CandidatePaymentInfo = ({
 function formatPaymentSummary(candidate: HydratedCandidate) {
   const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
   const paid =
-    candidate.candidate_payments?.reduce(
-      (sum, p) => sum + (p.payment_amount ?? 0),
-      0
-    ) ?? 0
+    candidate.candidate_payments?.reduce((sum, p) => sum + p.gross_amount, 0) ??
+    0
   const balance = totalFee - paid
 
   return {

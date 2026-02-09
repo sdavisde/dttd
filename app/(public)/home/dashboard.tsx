@@ -53,23 +53,6 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
         </div>
 
         <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4">
-          {isUserOnActiveTeam(user) &&
-            user.teamMemberInfo.status === 'paid' && (
-              <div className="w-full h-full">
-                <Button
-                  variant="outline"
-                  className="w-full h-52 flex flex-col items-center justify-center gap-2 bg-green-50 border-green-200 cursor-default"
-                  disabled
-                >
-                  <CheckCircle className="w-10 h-10 text-green-600" />
-                  <span className="text-lg font-semibold text-green-700">
-                    Team Fees Paid
-                  </span>
-                  <span className="text-sm text-green-600">Thank you!</span>
-                </Button>
-              </div>
-            )}
-
           <Button
             variant="outline"
             className="w-full h-52 flex flex-col items-center justify-center gap-2"

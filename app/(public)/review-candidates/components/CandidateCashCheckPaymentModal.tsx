@@ -69,10 +69,8 @@ export function CandidateCashCheckPaymentModal({
       ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
       : null
   const currentPaid =
-    candidate.candidate_payments?.reduce(
-      (sum, p) => sum + (p.payment_amount ?? 0),
-      0
-    ) ?? 0
+    candidate.candidate_payments?.reduce((sum, p) => sum + p.gross_amount, 0) ??
+    0
   const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
 
   const handleSubmit = async (e: React.FormEvent) => {

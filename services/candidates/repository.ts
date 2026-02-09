@@ -68,36 +68,6 @@ export async function findCandidateById(
 }
 
 /**
- * Inserts a manual payment record for a candidate.
- */
-export async function insertManualCandidatePayment(data: {
-  candidate_id: string
-  payment_amount: number
-  payment_method: 'cash' | 'check'
-  payment_intent_id: string
-  payment_owner: string
-  notes: string | null
-}): Promise<Result<string, Tables<'candidate_payments'>>> {
-  const supabase = await createClient()
-
-  const { data: paymentRecord, error } = await supabase
-    .from('candidate_payments')
-    .insert(data)
-    .select()
-    .single()
-
-  if (isSupabaseError(error)) {
-    return err(error.message)
-  }
-
-  if (!paymentRecord) {
-    return err('Failed to insert payment record')
-  }
-
-  return ok(paymentRecord)
-}
-
-/**
  * Gets the count of non-rejected candidates for a specific weekend.
  */
 export async function getCandidateCountByWeekend(

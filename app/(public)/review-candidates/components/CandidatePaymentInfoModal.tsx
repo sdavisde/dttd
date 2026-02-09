@@ -58,7 +58,7 @@ export function CandidatePaymentInfoModal({
   }
 
   const totalPaid = payments.reduce(
-    (sum, payment) => sum + (payment.payment_amount ?? 0),
+    (sum, payment) => sum + payment.gross_amount,
     0
   )
 
@@ -73,7 +73,8 @@ export function CandidatePaymentInfoModal({
     : null
   const remainingBalance = totalFee !== null ? totalFee - totalPaid : null
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Unknown date'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -84,7 +85,7 @@ export function CandidatePaymentInfoModal({
   const getPaymentTypeDisplay = (payment: (typeof payments)[0]) => {
     // Check if it's a manual payment
     if (payment.payment_intent_id?.startsWith('manual_')) {
-      const method = (payment as { payment_method?: string }).payment_method
+      const method = payment.payment_method
       if (method) {
         return method.charAt(0).toUpperCase() + method.slice(1)
       }
@@ -160,10 +161,6 @@ export function CandidatePaymentInfoModal({
                 const stripeUrl = getStripeDashboardUrl(
                   payment.payment_intent_id
                 )
-                const paymentWithMethod = payment as typeof payment & {
-                  payment_method?: string
-                  notes?: string
-                }
                 return (
                   <div
                     key={payment.id}
@@ -175,7 +172,7 @@ export function CandidatePaymentInfoModal({
                           {getPaymentTypeDisplay(payment)}
                         </Badge>
                         <span className="font-medium">
-                          {formatAmount(payment.payment_amount)}
+                          {formatAmount(payment.gross_amount)}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground">
@@ -210,10 +207,10 @@ export function CandidatePaymentInfoModal({
                         </div>
                       )}
 
-                    {paymentWithMethod.notes && (
+                    {payment.notes && (
                       <div className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1">
                         <span className="font-medium">Notes:</span>{' '}
-                        {paymentWithMethod.notes}
+                        {payment.notes}
                       </div>
                     )}
                   </div>

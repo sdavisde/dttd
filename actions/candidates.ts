@@ -5,6 +5,7 @@ import { Result, err, ok, isErr } from '@/lib/results'
 import { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
 import {
   CandidateStatus,
+  PaymentRecord,
   HydratedCandidate,
   CandidateFormData,
 } from '@/lib/candidates/types'
@@ -14,6 +15,7 @@ import { sendCandidateFormsCompletedEmail } from '@/services/notifications'
 import { logger } from '@/lib/logger'
 import { WeekendType } from '@/lib/weekend/types'
 import { Database } from '@/database.types'
+import { getPaymentForTarget } from '@/services/payment/payment-service'
 
 type CandidateSponsorshipInfoUpdate =
   Database['public']['Tables']['candidate_sponsorship_info']['Update']
@@ -165,7 +167,8 @@ export type CandidateFilterOptions = {
 }
 
 /**
- * Gets all candidates with their related information
+ * Gets all candidates with their related information.
+ * Payments are fetched from the payment_transaction table.
  */
 export async function getAllCandidatesWithDetails(
   options: CandidateFilterOptions = {}
@@ -177,11 +180,11 @@ export async function getAllCandidatesWithDetails(
     const needsWeekendFilter = !!options.weekendGroupId || !!options.weekendType
     const weekendJoinType = needsWeekendFilter ? '!inner' : ''
 
+    // Query candidates without candidate_payments (we'll fetch from payment_transaction)
     let query = supabase.from('candidates').select(`
         *,
         candidate_sponsorship_info(*),
         candidate_info(*),
-        candidate_payments(*),
         weekends${weekendJoinType} (
           id,
           title,
@@ -206,12 +209,32 @@ export async function getAllCandidatesWithDetails(
       )
     }
 
+    // Fetch payments for all candidates in parallel from payment_transaction table
+    const paymentPromises = candidates.map(async (candidate) => {
+      const paymentsResult = await getPaymentForTarget(
+        'candidate',
+        candidate.id
+      )
+      return {
+        candidateId: candidate.id,
+        payments: isErr(paymentsResult) ? [] : paymentsResult.data,
+      }
+    })
+
+    const paymentsByCandidate = await Promise.all(paymentPromises)
+
+    // Create a map of candidate ID to payments
+    const paymentsMap = new Map<string, PaymentRecord[]>()
+    for (const { candidateId, payments } of paymentsByCandidate) {
+      paymentsMap.set(candidateId, payments)
+    }
+
     return ok(
       candidates.map((candidate) => ({
         ...candidate,
         candidate_sponsorship_info: candidate.candidate_sponsorship_info.at(0),
         candidate_info: candidate.candidate_info.at(0),
-        candidate_payments: candidate.candidate_payments ?? [],
+        candidate_payments: paymentsMap.get(candidate.id) ?? [],
       })) as HydratedCandidate[]
     )
   } catch (error) {

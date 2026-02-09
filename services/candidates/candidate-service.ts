@@ -11,8 +11,9 @@ import {
   EmergencyContact,
 } from './types'
 import { addressSchema } from '@/lib/users/validation'
-import { Tables } from '@/database.types'
 import { logger } from '@/lib/logger'
+import * as PaymentService from '@/services/payment/payment-service'
+import type { PaymentTransactionRow } from '@/services/payment/types'
 
 function normalizeCandidate(
   rawCandidate: RawCandidate
@@ -140,6 +141,7 @@ export async function getAllCandidates(): Promise<
 
 /**
  * Records a manual (cash/check) payment for a candidate.
+ * Creates a record in the payment_transaction table.
  */
 export async function recordManualCandidatePayment(
   candidateId: string,
@@ -147,7 +149,7 @@ export async function recordManualCandidatePayment(
   paymentMethod: 'cash' | 'check',
   paymentOwner: string,
   notes?: string
-): Promise<Result<string, Tables<'candidate_payments'>>> {
+): Promise<Result<string, PaymentTransactionRow>> {
   // Verify the candidate record exists
   const candidateResult =
     await CandidateRepository.findCandidateById(candidateId)
@@ -160,12 +162,18 @@ export async function recordManualCandidatePayment(
     return err('Candidate not found')
   }
 
-  // Insert the payment record
-  const result = await CandidateRepository.insertManualCandidatePayment({
-    candidate_id: candidateId,
-    payment_amount: paymentAmount,
+  // Generate a manual payment intent ID
+  const paymentIntentId = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
+
+  // Record payment in the payment_transaction table
+  const result = await PaymentService.recordPayment({
+    type: 'fee',
+    target_type: 'candidate',
+    target_id: candidateId,
+    weekend_id: null, // Could be fetched from candidate if needed
+    payment_intent_id: paymentIntentId,
+    gross_amount: paymentAmount,
     payment_method: paymentMethod,
-    payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
     payment_owner: paymentOwner,
     notes: notes ?? null,
   })

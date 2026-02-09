@@ -3,7 +3,6 @@ import 'server-only'
 import { stripe } from '@/lib/stripe'
 import { err, isErr, ok, Result, Results } from '@/lib/results'
 import * as PaymentRepository from './repository'
-import { RawTeamPayment } from './repository'
 import type Stripe from 'stripe'
 import { isNil } from 'lodash'
 import {
@@ -19,34 +18,6 @@ import {
   PaymentType,
   PaymentMethod,
 } from './types'
-
-// ============================================================================
-// Deprecated Types (for backward compatibility during migration)
-// ============================================================================
-
-/**
- * @deprecated This type is deprecated. Use PaymentTransactionDTO instead.
- */
-type DeprecatedPaymentType = 'team_fee' | 'candidate_fee' | 'refund'
-
-/**
- * @deprecated This type is deprecated. Use PaymentTransactionDTO instead.
- */
-type DeprecatedPaymentRecord = {
-  id: string
-  type: DeprecatedPaymentType
-  payment_amount: number
-  payment_method: string
-  payment_intent_id: string
-  created_at: string
-  notes?: string
-  payer_name: string | null
-  payer_email: string | null
-  stripe_fee: number | null
-  net_amount: number | null
-  deposited_at: string | null
-  payout_id: string | null
-}
 
 // ============================================================================
 // Stripe Price Functions

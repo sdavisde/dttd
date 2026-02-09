@@ -61,7 +61,7 @@ export function PaymentInfoModal({
   }
 
   const totalPaid = all_payments.reduce(
-    (sum, payment) => sum + (payment.payment_amount ?? 0),
+    (sum, payment) => sum + payment.gross_amount,
     0
   )
 
@@ -76,7 +76,8 @@ export function PaymentInfoModal({
     : null
   const remainingBalance = totalFee !== null ? totalFee - totalPaid : null
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Unknown date'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -173,7 +174,7 @@ export function PaymentInfoModal({
                           )}
                         </Badge>
                         <span className="font-medium">
-                          {formatAmount(payment.payment_amount)}
+                          {formatAmount(payment.gross_amount)}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground">

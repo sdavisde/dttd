@@ -309,3 +309,54 @@ Update the admin payments page to work with the new unified payment schema.
   - Verify mobile card layout displays correctly
   - Verify search/filtering works with new schema
   - Verify pagination works on both layouts
+
+---
+
+### [x] 9.0 Update Weekend Roster and Review Candidates Pages
+
+Update the weekend roster page and review candidates page to read payment data from the new `payment_transaction` table instead of the legacy tables.
+
+#### 9.0 Proof Artifact(s)
+
+- File: `services/weekend/repository.ts` queries `payment_transaction` instead of `weekend_roster_payments`
+- File: `services/weekend/types.ts` updated with new payment types
+- File: Weekend roster page displays payment info from new table
+- File: Review candidates page displays payment info from new table
+- CLI: `yarn build` compiles without errors
+- CLI: `grep -r "weekend_roster_payments\|candidate_payments" --include="*.ts" --include="*.tsx"` returns only migration files, database.types.ts, and spec docs
+- Manual test: Weekend roster page shows correct payment status and amounts
+- Manual test: Review candidates page shows correct payment status
+
+#### 9.0 Tasks
+
+- [x] 9.1 Update weekend service types for new payment schema
+  - Update `RawWeekendRosterMember` to reference `payment_transaction` instead of `weekend_roster_payments`
+  - Update `WeekendRosterMemberDTO` payment_info to use new field names (gross_amount, payment_method)
+  - Update all_payments array type to match new schema
+- [x] 9.2 Update weekend repository to query payment_transaction
+  - Update `WeekendRosterMemberQuery` to join `payment_transaction` via target_type='weekend_roster' and target_id
+  - Remove reference to `weekend_roster_payments` table in query
+  - Handle the polymorphic join (no FK constraint)
+- [x] 9.3 Update weekend service normalization
+  - Update `normalizeWeekendRosterMember()` to use new payment field names
+  - Ensure total_paid calculation uses gross_amount
+  - Update payment_info mapping
+- [x] 9.4 Update review candidates page payment display
+  - Identify how candidate payments are displayed
+  - Update to query `payment_transaction` with target_type='candidate'
+  - Update display to use new field names
+- [x] 9.5 Update manual payment recording to use new table
+  - Update `recordManualPayment()` in weekend-service.ts to use PaymentService.recordPayment()
+  - Remove direct inserts to `weekend_roster_payments`
+- [x] 9.6 Run yarn build and verify compilation succeeds
+- [x] 9.7 Remove all references to legacy payment tables
+  - Search codebase for `weekend_roster_payments` and remove/update all references
+  - Search codebase for `candidate_payments` and remove/update all references
+  - Remove deprecated functions that query legacy tables (e.g., getAllTeamPayments, getTeamPaymentByRosterId)
+  - Update hasTeamPayment to use PaymentService.hasPaymentForTarget()
+- [x] 9.8 Run yarn build and verify compilation succeeds
+- [ ] 9.9 Manual verification
+  - Verify weekend roster page shows payment status correctly
+  - Verify review candidates page shows payment status correctly
+  - Verify manual payment recording works
+  - Verify `grep -r "weekend_roster_payments\|candidate_payments" --include="*.ts" --include="*.tsx"` returns only migration files and type definitions

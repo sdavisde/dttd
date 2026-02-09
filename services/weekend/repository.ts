@@ -12,12 +12,13 @@ import {
   WeekendUpdateInput,
   RawWeekendRecord,
 } from '@/lib/weekend/types'
-import { RawWeekendRoster } from './types'
 import { logger } from '@/lib/logger'
 import { isEmpty, isNil } from 'lodash'
 
 /**
- * Query constant for weekend roster with all related data.
+ * Query constant for weekend roster with user data.
+ * Note: Payments are fetched separately since payment_transaction uses
+ * polymorphic target_id without FK constraints (no Supabase joins possible).
  */
 export const WeekendRosterQuery = `
   id,
@@ -41,11 +42,37 @@ export const WeekendRosterQuery = `
     last_name,
     email,
     phone_number
-  ),
-  weekend_roster_payments (
-    id, weekend_roster_id, payment_amount, payment_intent_id, payment_method, created_at, notes
   )
 `
+
+/**
+ * Raw weekend roster record from DB (without payments).
+ * Payments are fetched separately via payment_transaction table.
+ */
+export type RawWeekendRosterDB = {
+  id: string
+  cha_role: string | null
+  status: string | null
+  weekend_id: string | null
+  user_id: string | null
+  created_at: string
+  rollo: string | null
+  completed_statement_of_belief_at: string | null
+  completed_commitment_form_at: string | null
+  completed_release_of_claim_at: string | null
+  completed_camp_waiver_at: string | null
+  completed_info_sheet_at: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  medical_conditions: string | null
+  users: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    email: string | null
+    phone_number: string | null
+  } | null
+}
 
 /**
  * Fetches all weekends with ACTIVE status.
@@ -250,11 +277,12 @@ export async function deleteWeekendsByGroupId(
 }
 
 /**
- * Fetches the roster for a specific weekend with all related data.
+ * Fetches the roster for a specific weekend with user data.
+ * Note: Payments are fetched separately in the service layer.
  */
 export async function findWeekendRoster(
   weekendId: string
-): Promise<Result<string, RawWeekendRoster[]>> {
+): Promise<Result<string, RawWeekendRosterDB[]>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -267,7 +295,7 @@ export async function findWeekendRoster(
     return err(error.message)
   }
 
-  return ok((data ?? []) as RawWeekendRoster[])
+  return ok((data ?? []) as RawWeekendRosterDB[])
 }
 
 /**
@@ -341,35 +369,6 @@ export async function findRosterRecordById(
   }
 
   return ok(data)
-}
-
-/**
- * Inserts a manual payment record.
- */
-export async function insertManualPayment(data: {
-  weekend_roster_id: string
-  payment_amount: number
-  payment_method: 'cash' | 'check'
-  payment_intent_id: string
-  notes: string | null
-}): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
-  const supabase = await createClient()
-
-  const { data: paymentRecord, error } = await supabase
-    .from('weekend_roster_payments')
-    .insert(data)
-    .select()
-    .single()
-
-  if (isSupabaseError(error)) {
-    return err(error.message)
-  }
-
-  if (!paymentRecord) {
-    return err('Failed to record payment')
-  }
-
-  return ok(paymentRecord)
 }
 
 /**

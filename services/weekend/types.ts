@@ -5,9 +5,19 @@
  * Most weekend types are defined in lib/weekend/types.ts and re-exported from index.ts.
  */
 
+import { Tables } from '@/database.types'
+
+/**
+ * Payment record from the payment_transaction table.
+ */
+export type PaymentRecord = Tables<'payment_transaction'>
+
 /**
  * Raw weekend roster record shape from Supabase query with joins.
  * Used internally by the repository layer.
+ *
+ * Note: Payments are fetched separately via PaymentService since payment_transaction
+ * uses a polymorphic target_id without FK constraints.
  */
 export type RawWeekendRoster = {
   id: string
@@ -32,15 +42,8 @@ export type RawWeekendRoster = {
     email: string | null
     phone_number: string | null
   } | null
-  weekend_roster_payments: Array<{
-    id: string
-    weekend_roster_id: string
-    payment_amount: number | null
-    payment_intent_id: string | null
-    payment_method: string | null
-    created_at: string
-    notes: string | null
-  }>
+  /** Payments fetched from payment_transaction table */
+  payments: PaymentRecord[]
 }
 
 /**
@@ -62,23 +65,12 @@ export type WeekendRosterMember = {
     email: string | null
     phone_number: string | null
   } | null
-  payment_info: {
-    id: string
-    payment_amount: number | null
-    payment_intent_id: string | null
-    payment_method: string | null
-  } | null
+  /** First payment record (for backward compatibility) */
+  payment_info: PaymentRecord | null
   /** Total amount paid from all payment records */
   total_paid: number
   /** Array of all payment records for this member */
-  all_payments: Array<{
-    id: string
-    payment_amount: number | null
-    payment_intent_id: string | null
-    payment_method: string | null
-    created_at: string
-    notes: string | null
-  }>
+  all_payments: PaymentRecord[]
   /** Whether all 5 team forms have been completed */
   forms_complete: boolean
   /** Emergency contact name */
