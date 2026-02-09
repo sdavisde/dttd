@@ -121,6 +121,7 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange,
     onPaginationChange,
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

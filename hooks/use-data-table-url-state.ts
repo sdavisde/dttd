@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { debounce } from 'lodash'
 import type {
   SortingState,
   PaginationState,
@@ -12,6 +13,8 @@ import type {
 interface UseDataTableUrlStateConfig {
   defaultSort?: SortingState
   defaultPageSize?: number
+  /** Debounce delay in ms for search URL updates (default: 300) */
+  searchDebounceMs?: number
 }
 
 export interface DataTableUrlState {
@@ -32,7 +35,11 @@ function resolveUpdater<T>(updaterOrValue: Updater<T>, prev: T): T {
 export function useDataTableUrlState(
   config: UseDataTableUrlStateConfig = {}
 ): DataTableUrlState {
-  const { defaultSort = [], defaultPageSize = 25 } = config
+  const {
+    defaultSort = [],
+    defaultPageSize = 25,
+    searchDebounceMs = 300,
+  } = config
 
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -48,7 +55,7 @@ export function useDataTableUrlState(
     return defaultSort
   }, [searchParams, defaultSort])
 
-  const globalFilter = useMemo<string>(() => {
+  const urlGlobalFilter = useMemo<string>(() => {
     return searchParams.get('search') ?? ''
   }, [searchParams])
 
@@ -61,6 +68,14 @@ export function useDataTableUrlState(
     }
   }, [searchParams, defaultPageSize])
 
+  // Local state for immediate input responsiveness
+  const [localGlobalFilter, setLocalGlobalFilter] = useState(urlGlobalFilter)
+
+  // Sync local state when URL changes externally (e.g., back/forward navigation)
+  useEffect(() => {
+    setLocalGlobalFilter(urlGlobalFilter)
+  }, [urlGlobalFilter])
+
   const buildUrl = useCallback(
     (updater: (params: URLSearchParams) => void) => {
       const params = new URLSearchParams(searchParams.toString())
@@ -69,6 +84,24 @@ export function useDataTableUrlState(
     },
     [pathname, searchParams]
   )
+
+  // Debounced URL update for search
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedReplaceUrl = useCallback(
+    debounce((url: string) => {
+      router.replace(url)
+    }, searchDebounceMs),
+    [router, searchDebounceMs]
+  )
+
+  // Clean up debounce on unmount
+  const debouncedRef = useRef(debouncedReplaceUrl)
+  debouncedRef.current = debouncedReplaceUrl
+  useEffect(() => {
+    return () => {
+      debouncedRef.current.cancel()
+    }
+  }, [])
 
   const onSortingChange: OnChangeFn<SortingState> = useCallback(
     (updaterOrValue) => {
@@ -91,7 +124,10 @@ export function useDataTableUrlState(
 
   const onGlobalFilterChange: OnChangeFn<string> = useCallback(
     (updaterOrValue) => {
-      const newFilter = resolveUpdater(updaterOrValue, globalFilter)
+      const newFilter = resolveUpdater(updaterOrValue, localGlobalFilter)
+      // Update local state immediately for responsive input
+      setLocalGlobalFilter(newFilter)
+      // Debounce the URL update
       const url = buildUrl((params) => {
         if (newFilter) {
           params.set('search', newFilter)
@@ -101,9 +137,9 @@ export function useDataTableUrlState(
         // Reset pagination when search changes
         params.delete('page')
       })
-      router.replace(url)
+      debouncedReplaceUrl(url)
     },
-    [globalFilter, buildUrl, router]
+    [localGlobalFilter, buildUrl, debouncedReplaceUrl]
   )
 
   const onPaginationChange: OnChangeFn<PaginationState> = useCallback(
@@ -129,7 +165,7 @@ export function useDataTableUrlState(
   return {
     sorting,
     onSortingChange,
-    globalFilter,
+    globalFilter: localGlobalFilter,
     onGlobalFilterChange,
     pagination,
     onPaginationChange,
