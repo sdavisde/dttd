@@ -152,10 +152,43 @@ All changes compile successfully with TypeScript strict mode enabled.
 - Data source changed from legacy tables to `payment_transaction`
 - UI components updated to use new field names (`gross_amount` vs `payment_amount`)
 
+## Bug Fix: Missing Payer Info on New Payments
+
+After initial implementation, testing revealed that new `payment_transaction` records were missing `payment_owner` information. The following fixes were applied:
+
+### Root Cause
+
+1. **Manual team payments**: `recordManualPayment()` didn't accept or pass `payment_owner`
+2. **Stripe team payments**: Checkout metadata didn't include `payment_owner`
+3. **Stripe candidate payments**: `payment_owner` metadata contained category ("candidate"/"sponsor") instead of actual name
+
+### Files Fixed
+
+- **`services/weekend/weekend-service.ts`**
+  - Added `paymentOwner` parameter to `recordManualPayment()`
+  - Passes `payment_owner` to `PaymentService.recordPayment()`
+
+- **`services/weekend/actions.ts`**
+  - Updated action signature to include `paymentOwner` parameter
+
+- **`components/weekend/roster-view/cash-check-payment-modal.tsx`**
+  - Now passes `memberName` to `recordManualPayment()`
+
+- **`app/(public)/payment/team-fee/page.tsx`**
+  - Added `payment_owner` to checkout metadata with user's full name
+
+- **`app/(public)/payment/candidate-fee/page.tsx`**
+  - Changed `payment_owner` from category to actual payer name
+  - Uses sponsor name if sponsor is paying, otherwise candidate name
+
+- **`services/stripe/handlers/checkout-session-completed.ts`**
+  - Team payment now uses `session.metadata?.payment_owner` instead of `null`
+
 ## Manual Verification Checklist
 
 - [ ] Weekend roster page shows payment status correctly
 - [ ] Review candidates page shows payment status correctly
-- [ ] Manual payment recording works for team members
-- [ ] Manual payment recording works for candidates
+- [ ] Manual payment recording works for team members (with payer name)
+- [ ] Manual payment recording works for candidates (with payer name)
+- [ ] Stripe payments capture payer name correctly
 - [ ] Payment info modals display correct data

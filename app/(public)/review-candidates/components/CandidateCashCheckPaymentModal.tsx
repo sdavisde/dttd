@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { DollarSign, CreditCard, FileText, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { DollarSign, CreditCard, FileText, Loader2, User } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,7 @@ export function CandidateCashCheckPaymentModal({
 }: CandidateCashCheckPaymentModalProps) {
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentType, setPaymentType] = useState<'cash' | 'check' | null>(null)
+  const [paidBy, setPaidBy] = useState('')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
@@ -55,14 +56,26 @@ export function CandidateCashCheckPaymentModal({
     staleTime: Infinity,
   })
 
+  const candidateName =
+    candidate?.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
+  const sponsorName = candidate?.candidate_sponsorship_info?.sponsor_name ?? ''
+  const paymentOwnerType =
+    candidate?.candidate_sponsorship_info?.payment_owner ?? 'candidate'
+
+  // Determine the default payer name based on who is supposed to pay
+  const defaultPayerName =
+    paymentOwnerType === 'sponsor' ? sponsorName : candidateName
+
+  // Initialize paidBy with appropriate name when modal opens
+  useEffect(() => {
+    if (open && candidate) {
+      setPaidBy(defaultPayerName)
+    }
+  }, [open, candidate, defaultPayerName])
+
   if (!candidate) {
     return null
   }
-
-  const candidateName =
-    candidate.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
-  const paymentOwner =
-    candidate.candidate_sponsorship_info?.payment_owner ?? 'candidate'
 
   const totalFee =
     paymentType && stripePriceDollars
@@ -83,7 +96,7 @@ export function CandidateCashCheckPaymentModal({
         candidate.id,
         parseFloat(paymentAmount),
         paymentType,
-        paymentOwner,
+        paidBy.trim() || defaultPayerName,
         notes
       )
 
@@ -95,6 +108,7 @@ export function CandidateCashCheckPaymentModal({
         // Reset form and close modal
         setPaymentAmount('')
         setPaymentType(null)
+        setPaidBy('')
         setNotes('')
         onClose()
 
@@ -115,6 +129,7 @@ export function CandidateCashCheckPaymentModal({
     // Reset form when closing
     setPaymentAmount('')
     setPaymentType(null)
+    setPaidBy('')
     setNotes('')
     onClose()
   }
@@ -163,6 +178,27 @@ export function CandidateCashCheckPaymentModal({
                 </SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Paid By */}
+          <div className="space-y-2">
+            <Label htmlFor="paid-by">Paid By</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="paid-by"
+                type="text"
+                value={paidBy}
+                onChange={(e) => setPaidBy(e.target.value)}
+                placeholder="Name of person paying"
+                className="pl-10"
+                disabled={!paymentType}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pre-filled based on payment responsibility. Change if someone else
+              is paying.
+            </p>
           </div>
 
           {/* Payment Summary - conditional display */}

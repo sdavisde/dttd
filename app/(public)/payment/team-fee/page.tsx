@@ -67,11 +67,17 @@ export default async function TeamFeesPaymentPage({
     )
   }
 
+  // Build payer name for payment tracking
+  const payerName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : (user.email ?? 'Unknown')
+
   return (
     <div className="payment-page">
       <Checkout
         priceId={teamFeePriceId}
-        metadata={{ weekend_id }}
+        metadata={{ weekend_id, payment_owner: payerName }}
         returnUrl={getUrl(
           '/payment/team-fee/success?session_id={CHECKOUT_SESSION_ID}'
         )}

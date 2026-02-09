@@ -79,12 +79,14 @@ export async function recordManualPayment(
   weekendRosterId: string,
   paymentAmount: number,
   paymentMethod: 'cash' | 'check',
+  paymentOwner: string,
   notes?: string
 ) {
   return WeekendService.recordManualPayment(
     weekendRosterId,
     paymentAmount,
     paymentMethod,
+    paymentOwner,
     notes
   )
 }

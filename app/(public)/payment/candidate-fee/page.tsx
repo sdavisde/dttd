@@ -92,13 +92,19 @@ export default async function CandidateFeesPaymentPage({
     redirect(`/home?error=${Errors.INVALID_PAYMENT_OWNER}`)
   }
 
+  // Determine the actual payer name based on who is paying
+  const payerName =
+    candidate.paymentOwner === 'sponsor' && candidate.sponsorInfo
+      ? candidate.sponsorInfo.name
+      : `${candidate.firstName} ${candidate.lastName}`
+
   return (
     <div className="payment-page">
       <PublicCheckout
         priceId={candidateFeePriceId}
         metadata={{
           candidateId: candidate.id,
-          payment_owner: candidate.paymentOwner,
+          payment_owner: payerName,
         }}
         returnUrl={getUrl(
           '/payment/candidate-fee/success?session_id={CHECKOUT_SESSION_ID}'

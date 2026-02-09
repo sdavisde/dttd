@@ -650,6 +650,7 @@ export async function recordManualPayment(
   weekendRosterId: string,
   paymentAmount: number,
   paymentMethod: 'cash' | 'check',
+  paymentOwner: string,
   notes?: string
 ): Promise<Result<string, PaymentTransactionRow>> {
   // Verify the weekend roster record exists and get weekend_id
@@ -676,6 +677,7 @@ export async function recordManualPayment(
     payment_intent_id: paymentIntentId,
     gross_amount: paymentAmount,
     payment_method: paymentMethod,
+    payment_owner: paymentOwner,
     notes: notes ?? null,
   })
 

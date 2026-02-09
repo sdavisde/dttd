@@ -284,7 +284,7 @@ async function handleTeamPayment(
       net_amount: transaction?.netAmount ?? null,
       stripe_fee: transaction?.stripeFee ?? null,
       payment_method: 'stripe',
-      payment_owner: null,
+      payment_owner: session.metadata?.payment_owner ?? null,
       charge_id: transaction?.chargeId ?? null,
       balance_transaction_id: transaction?.balanceTransactionId ?? null,
     },

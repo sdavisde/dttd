@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { DollarSign, CreditCard, FileText, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { DollarSign, CreditCard, FileText, Loader2, User } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,7 @@ export function CashCheckPaymentModal({
 }: CashCheckPaymentModalProps) {
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentType, setPaymentType] = useState<'cash' | 'check' | null>(null)
+  const [paidBy, setPaidBy] = useState('')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
@@ -54,15 +55,22 @@ export function CashCheckPaymentModal({
     staleTime: Infinity,
   })
 
-  if (!rosterMember?.users) {
-    return null
-  }
-
-  const { users } = rosterMember
+  const users = rosterMember?.users
   const memberName =
     users?.first_name && users?.last_name
       ? `${users.first_name} ${users.last_name}`
       : 'Unknown User'
+
+  // Initialize paidBy with member name when modal opens
+  useEffect(() => {
+    if (open && rosterMember?.users) {
+      setPaidBy(memberName)
+    }
+  }, [open, rosterMember?.users, memberName])
+
+  if (!rosterMember?.users) {
+    return null
+  }
 
   const totalFee =
     paymentType && stripePriceDollars
@@ -81,6 +89,7 @@ export function CashCheckPaymentModal({
         rosterMember.id,
         parseFloat(paymentAmount),
         paymentType,
+        paidBy.trim() || memberName,
         notes
       )
 
@@ -92,6 +101,7 @@ export function CashCheckPaymentModal({
         // Reset form and close modal
         setPaymentAmount('')
         setPaymentType(null)
+        setPaidBy('')
         setNotes('')
         onClose()
 
@@ -112,6 +122,7 @@ export function CashCheckPaymentModal({
     // Reset form when closing
     setPaymentAmount('')
     setPaymentType(null)
+    setPaidBy('')
     setNotes('')
     onClose()
   }
@@ -158,6 +169,27 @@ export function CashCheckPaymentModal({
                 </SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Paid By */}
+          <div className="space-y-2">
+            <Label htmlFor="paid-by">Paid By</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="paid-by"
+                type="text"
+                value={paidBy}
+                onChange={(e) => setPaidBy(e.target.value)}
+                placeholder="Name of person paying"
+                className="pl-10"
+                disabled={!paymentType}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pre-filled with team member name. Change if someone else is
+              paying.
+            </p>
           </div>
 
           {/* Payment Summary - conditional display */}
