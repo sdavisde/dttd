@@ -1,16 +1,11 @@
 import 'server-only'
 
 import Stripe from 'stripe'
-import { ok, isErr, isOk, Results } from '@/lib/results'
+import { ok, isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
-import { isNil } from 'lodash'
 import { getTransactionData } from '../stripe-service'
-import {
-  WebhookHandler,
-  WebhookHandlerContext,
-  WebhookErrorCodes,
-} from './types'
-import { webhookErr } from '../webhook-context'
+import { WebhookHandler } from './types'
+import * as PaymentService from '@/services/payment/payment-service'
 
 /**
  * Handler for charge.updated events.
@@ -60,209 +55,52 @@ export const chargeUpdatedHandler: WebhookHandler<Stripe.ChargeUpdatedEvent> = {
       'Processing charge.updated for fee backfill'
     )
 
-    // Try to backfill candidate payment
-    const candidateResult = await backfillCandidatePaymentFees(
-      paymentIntentId,
-      ctx.adminClient
-    )
-
-    if (candidateResult.updated) {
-      logger.info(
-        { paymentIntentId, paymentId: candidateResult.paymentId },
-        'Backfilled fee data for candidate payment'
+    // Fetch fee data from Stripe
+    const transactionResult = await getTransactionData(paymentIntentId)
+    if (isErr(transactionResult)) {
+      logger.warn(
+        { paymentIntentId, error: transactionResult.error },
+        'Failed to fetch fee data for payment backfill'
       )
-      return ok({
-        processed: true,
-        entityType: 'fee_backfill',
-        entityId: candidateResult.paymentId,
-        details: {
-          paymentType: 'candidate',
-          paymentIntentId,
-        },
-      })
+      return ok({ processed: false })
     }
 
-    // Try to backfill team payment
-    const teamResult = await backfillTeamPaymentFees(
+    const feeData = transactionResult.data
+
+    // Use PaymentService to backfill the payment transaction data
+    const backfillResult = await PaymentService.backfillStripeData(
       paymentIntentId,
-      ctx.adminClient
+      {
+        net_amount: feeData.netAmount,
+        stripe_fee: feeData.stripeFee,
+        charge_id: feeData.chargeId,
+        balance_transaction_id: feeData.balanceTransactionId,
+      },
+      { dangerouslyBypassRLS: true }
     )
 
-    if (teamResult.updated) {
-      logger.info(
-        { paymentIntentId, paymentId: teamResult.paymentId },
-        'Backfilled fee data for team payment'
+    if (isErr(backfillResult)) {
+      // Payment not found in payment_transaction table - might be legacy or from another system
+      logger.debug(
+        { paymentIntentId, chargeId: charge.id, error: backfillResult.error },
+        'charge.updated: No matching payment_transaction record found'
       )
-      return ok({
-        processed: true,
-        entityType: 'fee_backfill',
-        entityId: teamResult.paymentId,
-        details: {
-          paymentType: 'team',
-          paymentIntentId,
-        },
-      })
+      return ok({ processed: false })
     }
 
-    // No payment found for this charge - might be from another system
-    logger.debug(
-      { paymentIntentId, chargeId: charge.id },
-      'charge.updated: No matching payment record found'
+    logger.info(
+      { paymentIntentId, paymentId: backfillResult.data.id },
+      'Backfilled fee data for payment transaction'
     )
 
-    return ok({ processed: false })
+    return ok({
+      processed: true,
+      entityType: 'fee_backfill',
+      entityId: backfillResult.data.id,
+      details: {
+        paymentType: backfillResult.data.target_type,
+        paymentIntentId,
+      },
+    })
   },
-}
-
-type BackfillResult = {
-  updated: boolean
-  paymentId?: number | string
-}
-
-/**
- * Backfills fee data for a candidate payment if it's missing.
- */
-async function backfillCandidatePaymentFees(
-  paymentIntentId: string,
-  adminClient: WebhookHandlerContext['adminClient']
-): Promise<BackfillResult> {
-  // Check if payment exists and needs fee data
-  const { data: existingPayment, error: fetchError } = await adminClient
-    .from('candidate_payments')
-    .select('id, stripe_fee, net_amount, charge_id, balance_transaction_id')
-    .eq('payment_intent_id', paymentIntentId)
-    .maybeSingle()
-
-  if (fetchError) {
-    logger.error(
-      { error: fetchError.message, paymentIntentId },
-      'Error fetching candidate payment for fee backfill'
-    )
-    return { updated: false }
-  }
-
-  if (!existingPayment) {
-    return { updated: false }
-  }
-
-  // Check if fee data is already populated
-  if (
-    !isNil(existingPayment.stripe_fee) &&
-    !isNil(existingPayment.net_amount) &&
-    !isNil(existingPayment.charge_id) &&
-    !isNil(existingPayment.balance_transaction_id)
-  ) {
-    logger.debug(
-      { paymentId: existingPayment.id },
-      'Candidate payment already has fee data'
-    )
-    return { updated: false }
-  }
-
-  // Fetch fee data from Stripe
-  const transactionResult = await getTransactionData(paymentIntentId)
-  if (isErr(transactionResult)) {
-    logger.warn(
-      { paymentIntentId, error: transactionResult.error },
-      'Failed to fetch fee data for candidate payment backfill'
-    )
-    return { updated: false }
-  }
-
-  const feeData = transactionResult.data
-
-  // Update the payment record
-  const { error: updateError } = await adminClient
-    .from('candidate_payments')
-    .update({
-      stripe_fee: feeData.stripeFee,
-      net_amount: feeData.netAmount,
-      charge_id: feeData.chargeId,
-      balance_transaction_id: feeData.balanceTransactionId,
-    })
-    .eq('id', existingPayment.id)
-
-  if (updateError) {
-    logger.error(
-      { error: updateError.message, paymentId: existingPayment.id },
-      'Error updating candidate payment with fee data'
-    )
-    return { updated: false }
-  }
-
-  return { updated: true, paymentId: existingPayment.id }
-}
-
-/**
- * Backfills fee data for a team payment if it's missing.
- */
-async function backfillTeamPaymentFees(
-  paymentIntentId: string,
-  adminClient: WebhookHandlerContext['adminClient']
-): Promise<BackfillResult> {
-  // Check if payment exists and needs fee data
-  const { data: existingPayment, error: fetchError } = await adminClient
-    .from('weekend_roster_payments')
-    .select('id, stripe_fee, net_amount, charge_id, balance_transaction_id')
-    .eq('payment_intent_id', paymentIntentId)
-    .maybeSingle()
-
-  if (fetchError) {
-    logger.error(
-      { error: fetchError.message, paymentIntentId },
-      'Error fetching team payment for fee backfill'
-    )
-    return { updated: false }
-  }
-
-  if (!existingPayment) {
-    return { updated: false }
-  }
-
-  // Check if fee data is already populated
-  if (
-    !isNil(existingPayment.stripe_fee) &&
-    !isNil(existingPayment.net_amount) &&
-    !isNil(existingPayment.charge_id) &&
-    !isNil(existingPayment.balance_transaction_id)
-  ) {
-    logger.debug(
-      { paymentId: existingPayment.id },
-      'Team payment already has fee data'
-    )
-    return { updated: false }
-  }
-
-  // Fetch fee data from Stripe
-  const transactionResult = await getTransactionData(paymentIntentId)
-  if (isErr(transactionResult)) {
-    logger.warn(
-      { paymentIntentId, error: transactionResult.error },
-      'Failed to fetch fee data for team payment backfill'
-    )
-    return { updated: false }
-  }
-
-  const feeData = transactionResult.data
-
-  // Update the payment record
-  const { error: updateError } = await adminClient
-    .from('weekend_roster_payments')
-    .update({
-      stripe_fee: feeData.stripeFee,
-      net_amount: feeData.netAmount,
-      charge_id: feeData.chargeId,
-      balance_transaction_id: feeData.balanceTransactionId,
-    })
-    .eq('id', existingPayment.id)
-
-  if (updateError) {
-    logger.error(
-      { error: updateError.message, paymentId: existingPayment.id },
-      'Error updating team payment with fee data'
-    )
-    return { updated: false }
-  }
-
-  return { updated: true, paymentId: existingPayment.id }
 }

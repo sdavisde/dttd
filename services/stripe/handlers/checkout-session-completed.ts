@@ -3,7 +3,6 @@ import 'server-only'
 import Stripe from 'stripe'
 import { ok, isErr, Results } from '@/lib/results'
 import { logger } from '@/lib/logger'
-import { Tables } from '@/database.types'
 import { getWeekendRosterRecord } from '@/services/weekend'
 import {
   notifyAssistantHeadForTeamPayment,
@@ -15,10 +14,9 @@ import {
   WebhookHandler,
   WebhookHandlerContext,
   WebhookErrorCodes,
-  HandlerSuccess,
-  WebhookError,
 } from './types'
 import { webhookErr } from '../webhook-context'
+import * as PaymentService from '@/services/payment/payment-service'
 
 /**
  * Handler for checkout.session.completed events.
@@ -96,7 +94,7 @@ async function handleCandidatePayment(
   ctx.updateContext({ candidateId })
   logger.info({ candidateId }, 'Processing candidate payment')
 
-  // Verify candidate is awaiting payment
+  // Verify candidate is awaiting payment and get weekend_id
   const awaitingResult = await candidateIsAwaitingPayment(
     candidateId,
     ctx.adminClient
@@ -111,14 +109,44 @@ async function handleCandidatePayment(
     )
   }
 
-  logger.info({ candidateId }, 'Candidate found and is awaiting payment')
-
-  // Record the payment
-  const paymentResult = await recordCandidatePayment(
-    candidateId,
-    session,
-    ctx.adminClient
+  const candidateInfo = awaitingResult.data
+  logger.info(
+    { candidateId, weekendId: candidateInfo.weekend_id },
+    'Candidate found and is awaiting payment'
   )
+
+  // Record the payment using PaymentService
+  const paymentIntentId = session.payment_intent as string
+  const grossAmount = session.amount_total ? session.amount_total / 100 : 0
+
+  // Try to fetch Stripe fee data (may not be available at checkout time)
+  const transactionResult = await getTransactionData(paymentIntentId)
+  if (isErr(transactionResult)) {
+    logger.warn(
+      { candidateId, error: transactionResult.error },
+      'Transaction data not available at checkout time - will be backfilled at charge.updated or payout'
+    )
+  }
+  const transaction = Results.unwrapOr(transactionResult, null)
+
+  const paymentResult = await PaymentService.recordPayment(
+    {
+      type: 'fee',
+      target_type: 'candidate',
+      target_id: candidateId,
+      weekend_id: candidateInfo.weekend_id,
+      payment_intent_id: paymentIntentId,
+      gross_amount: grossAmount,
+      net_amount: transaction?.netAmount ?? null,
+      stripe_fee: transaction?.stripeFee ?? null,
+      payment_method: 'stripe',
+      payment_owner: session.metadata?.payment_owner ?? 'unknown',
+      charge_id: transaction?.chargeId ?? null,
+      balance_transaction_id: transaction?.balanceTransactionId ?? null,
+    },
+    { dangerouslyBypassRLS: true }
+  )
+
   if (isErr(paymentResult)) {
     return webhookErr(
       WebhookErrorCodes.PAYMENT_RECORD_FAILED,
@@ -149,7 +177,7 @@ async function handleCandidatePayment(
   logger.info({ candidateId }, 'Successfully confirmed candidate')
 
   // Notify pre-weekend couple (don't fail webhook if email fails)
-  const paymentAmount = session.amount_total ? session.amount_total / 100 : 0
+  const paymentAmount = grossAmount
   const notifyResult = await notifyCandidatePaymentReceivedAdmin(
     candidateId,
     paymentAmount,
@@ -231,12 +259,38 @@ async function handleTeamPayment(
 
   logger.info({ teamUserId, weekendRosterId }, 'Found weekend roster record')
 
-  // Record the payment
-  const paymentResult = await recordWeekendRosterPayment(
-    weekendRosterId,
-    session,
-    ctx.adminClient
+  // Record the payment using PaymentService
+  const paymentIntentId = session.payment_intent as string
+  const grossAmount = session.amount_total ? session.amount_total / 100 : 0
+
+  // Try to fetch Stripe fee data (may not be available at checkout time)
+  const transactionResult = await getTransactionData(paymentIntentId)
+  if (isErr(transactionResult)) {
+    logger.warn(
+      { weekendRosterId, error: transactionResult.error },
+      'Transaction data not available at checkout time - will be backfilled at charge.updated or payout'
+    )
+  }
+  const transaction = Results.unwrapOr(transactionResult, null)
+
+  const paymentResult = await PaymentService.recordPayment(
+    {
+      type: 'fee',
+      target_type: 'weekend_roster',
+      target_id: weekendRosterId,
+      weekend_id: weekendId,
+      payment_intent_id: paymentIntentId,
+      gross_amount: grossAmount,
+      net_amount: transaction?.netAmount ?? null,
+      stripe_fee: transaction?.stripeFee ?? null,
+      payment_method: 'stripe',
+      payment_owner: null,
+      charge_id: transaction?.chargeId ?? null,
+      balance_transaction_id: transaction?.balanceTransactionId ?? null,
+    },
+    { dangerouslyBypassRLS: true }
   )
+
   if (isErr(paymentResult)) {
     return webhookErr(
       WebhookErrorCodes.PAYMENT_RECORD_FAILED,
@@ -270,7 +324,7 @@ async function handleTeamPayment(
   logger.info({ weekendRosterId }, 'Successfully marked team member as paid')
 
   // Notify assistant head (don't fail webhook if email fails)
-  const paymentAmount = session.amount_total ? session.amount_total / 100 : 0
+  const paymentAmount = grossAmount
   const notifyResult = await notifyAssistantHeadForTeamPayment(
     teamUserId,
     weekendId,
@@ -302,17 +356,27 @@ async function handleTeamPayment(
 }
 
 /**
+ * Candidate data returned from validation check.
+ */
+type CandidatePaymentInfo = {
+  id: string
+  weekend_id: string | null
+}
+
+/**
  * Checks if a candidate is in the awaiting_payment status.
+ * Returns the candidate's ID and weekend_id for payment recording.
  */
 async function candidateIsAwaitingPayment(
   candidateId: string,
   adminClient: WebhookHandlerContext['adminClient']
 ): Promise<
-  ReturnType<typeof ok<true>> | ReturnType<typeof Results.err<string>>
+  | ReturnType<typeof ok<CandidatePaymentInfo>>
+  | ReturnType<typeof Results.err<string>>
 > {
   const { data: candidate, error: fetchError } = await adminClient
     .from('candidates')
-    .select('*')
+    .select('id, status, weekend_id')
     .eq('id', candidateId)
     .single()
 
@@ -330,57 +394,10 @@ async function candidateIsAwaitingPayment(
     )
   }
 
-  return ok(true)
-}
-
-/**
- * Records a candidate payment in the candidate_payments table.
- */
-async function recordCandidatePayment(
-  candidateId: string,
-  session: Stripe.Checkout.Session,
-  adminClient: WebhookHandlerContext['adminClient']
-): Promise<
-  | ReturnType<typeof ok<Tables<'candidate_payments'>>>
-  | ReturnType<typeof Results.err<string>>
-> {
-  const paymentIntentId = session.payment_intent as string
-
-  // Fetch fee data from Stripe
-  const transactionResult = await getTransactionData(paymentIntentId)
-  if (isErr(transactionResult)) {
-    logger.warn(
-      { candidateId, error: transactionResult.error },
-      'Transaction data not available at checkout time - will be backfilled at charge.updated or payout'
-    )
-  }
-  const transaction = Results.unwrapOr(transactionResult, null)
-
-  const { data: paymentRecord, error: paymentRecordError } = await adminClient
-    .from('candidate_payments')
-    .insert({
-      candidate_id: candidateId,
-      payment_amount: session.amount_total ? session.amount_total / 100 : null,
-      payment_owner: session.metadata?.payment_owner ?? 'unknown',
-      payment_intent_id: paymentIntentId,
-      payment_method: 'card',
-      stripe_fee: transaction?.stripeFee ?? null,
-      net_amount: transaction?.netAmount ?? null,
-      charge_id: transaction?.chargeId ?? null,
-      balance_transaction_id: transaction?.balanceTransactionId ?? null,
-    })
-    .select()
-    .single()
-
-  if (paymentRecordError) {
-    return Results.err(paymentRecordError.message)
-  }
-
-  if (!paymentRecord) {
-    return Results.err('Failed to record payment')
-  }
-
-  return ok(paymentRecord)
+  return ok({
+    id: candidate.id,
+    weekend_id: candidate.weekend_id,
+  })
 }
 
 /**
@@ -404,54 +421,6 @@ async function confirmCandidate(
   }
 
   return ok(true)
-}
-
-/**
- * Records a weekend roster payment in the weekend_roster_payments table.
- */
-async function recordWeekendRosterPayment(
-  weekendRosterRecordId: string,
-  session: Stripe.Checkout.Session,
-  adminClient: WebhookHandlerContext['adminClient']
-): Promise<
-  | ReturnType<typeof ok<Tables<'weekend_roster_payments'>>>
-  | ReturnType<typeof Results.err<string>>
-> {
-  const paymentIntentId = session.payment_intent as string
-
-  // Fetch fee data from Stripe
-  const transactionResult = await getTransactionData(paymentIntentId)
-  if (isErr(transactionResult)) {
-    logger.warn(
-      { weekendRosterRecordId, error: transactionResult.error },
-      'Transaction data not available at checkout time - will be backfilled at charge.updated or payout'
-    )
-  }
-  const transaction = Results.unwrapOr(transactionResult, null)
-
-  const { data: weekendRosterPaymentRecord, error: paymentRecordError } =
-    await adminClient
-      .from('weekend_roster_payments')
-      .insert({
-        weekend_roster_id: weekendRosterRecordId,
-        payment_intent_id: paymentIntentId,
-        payment_amount: session.amount_total
-          ? session.amount_total / 100
-          : null,
-        payment_method: 'card',
-        stripe_fee: transaction?.stripeFee ?? null,
-        net_amount: transaction?.netAmount ?? null,
-        charge_id: transaction?.chargeId ?? null,
-        balance_transaction_id: transaction?.balanceTransactionId ?? null,
-      })
-      .select()
-      .single()
-
-  if (paymentRecordError) {
-    return Results.err(paymentRecordError.message)
-  }
-
-  return ok(weekendRosterPaymentRecord)
 }
 
 /**

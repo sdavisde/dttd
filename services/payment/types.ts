@@ -44,6 +44,19 @@ export type PaymentTransactionUpdate =
 // ============================================================================
 
 /**
+ * UUID format validator that accepts any UUID-formatted string.
+ * Unlike z.string().uuid() which enforces RFC 4122 version/variant bits,
+ * this accepts any 8-4-4-4-12 hex string (e.g. seed data UUIDs).
+ * The database's uuid type provides canonical validation.
+ */
+const uuidFormat = z
+  .string()
+  .regex(
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
+    'Invalid UUID'
+  )
+
+/**
  * Payment type values: fee, donation, or other
  */
 export const PaymentTypeSchema = z.enum(['fee', 'donation', 'other'])
@@ -71,8 +84,8 @@ export const CreatePaymentSchema = z
   .object({
     type: PaymentTypeSchema,
     target_type: TargetTypeSchema,
-    target_id: z.string().uuid().nullable(),
-    weekend_id: z.string().uuid().nullable(),
+    target_id: uuidFormat.nullable(),
+    weekend_id: uuidFormat.nullable(),
     payment_intent_id: z.string().nullable().optional(),
     gross_amount: z.number().positive('Gross amount must be positive'),
     net_amount: z.number().nullable().optional(),

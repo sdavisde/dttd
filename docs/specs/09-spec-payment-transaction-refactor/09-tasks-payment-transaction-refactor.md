@@ -224,7 +224,7 @@ Create repository and service layers for the deposits system with CRUD operation
 
 ---
 
-### [ ] 7.0 Update Webhook Handlers
+### [x] 7.0 Update Webhook Handlers
 
 Update Stripe webhook handlers to use the new payment and deposit services instead of direct database writes.
 
@@ -238,7 +238,29 @@ Update Stripe webhook handlers to use the new payment and deposit services inste
 
 #### 7.0 Tasks
 
-TBD
+- [x] 7.1 Update checkout-session-completed.ts to use PaymentService.recordPayment()
+  - Replace direct inserts to candidate_payments with PaymentService.recordPayment()
+  - Replace direct inserts to weekend_roster_payments with PaymentService.recordPayment()
+  - Pass { dangerouslyBypassRLS: true } to all service calls
+  - Map session metadata to payment_transaction fields (type='fee', target_type, target_id, weekend_id)
+  - Derive weekend_id for candidate payments from candidate's weekend association
+- [x] 7.2 Update charge-updated.ts to use PaymentService.backfillStripeData()
+  - Replace direct updates to candidate_payments with PaymentService.backfillStripeData()
+  - Replace direct updates to weekend_roster_payments with PaymentService.backfillStripeData()
+  - Query payment_transaction table by payment_intent_id
+  - Pass { dangerouslyBypassRLS: true } to all service calls
+- [x] 7.3 Update payout-paid.ts to use DepositService.recordStripePayoutDeposit()
+  - Replace direct inserts to online_payment_payouts with DepositService.recordStripePayoutDeposit()
+  - Remove createPayoutRecord() helper function (replaced by deposit service)
+  - Remove createPayoutTransactionRecord() helper function (replaced by deposit service)
+  - Collect payment_intent_ids from payout transactions and pass to service
+  - Pass { dangerouslyBypassRLS: true } to all service calls
+- [x] 7.4 Update payout-paid.ts to use PaymentService.backfillStripeData()
+  - Replace updateCandidatePaymentDeposit() with PaymentService.backfillStripeData()
+  - Replace updateTeamPaymentDeposit() with PaymentService.backfillStripeData()
+  - Remove legacy deposit tracking fields (deposited_at, payout_id) as deposits table handles this
+- [x] 7.5 Verify yarn build compiles without TypeScript errors
+- [x] 7.6 Verify code has no direct database writes to old payment tables
 
 ---
 
