@@ -99,7 +99,7 @@
 - [x] 3.3 Delete the old files: `app/(public)/candidate-list/hooks/use-candidate-list.ts` and `app/(public)/candidate-list/config/columns.ts`. Verify no other files import from these paths.
 - [x] 3.4 Run `yarn build` and verify the project compiles successfully with no TypeScript errors. Confirm the candidate list page renders correctly.
 
-### [ ] 4.0 Per-Column Filters and Desktop Toolbar
+### [x] 4.0 Per-Column Filters and Desktop Toolbar
 
 **Purpose:** Add per-column filter controls (text and select/faceted) to the DataTable column headers, build the toolbar component showing active filter count with "Clear all", and sync all filter state to URL params.
 
@@ -116,9 +116,28 @@
 - Code: `components/ui/data-table/data-table-column-header.tsx` updated with filter popover
 - CLI: `yarn build` compiles successfully
 
+#### 4.0 Relevant Files
+
+- `components/ui/data-table/data-table-column-filter.tsx` — **New.** Generic per-column filter component. Renders inside a `Popover` triggered from the column header. Supports two filter modes driven by `meta.filterType`: `"text"` renders an `Input` that calls `column.setFilterValue()` on change; `"select"` renders a checkbox list of unique values with counts (computed via `column.getFacetedUniqueValues()`) where multiple values are selectable (OR logic within column, stored as `string[]` filter value). Includes a search input within the select popover to filter long option lists.
+- `components/ui/data-table/data-table-column-header.tsx` — **Modified.** Updated to show a `ListFilter` icon button next to the sort button when `column.columnDef.meta?.filterType` is defined. The filter icon opens the `DataTableColumnFilter` popover. When the column has an active filter, the filter icon shows a colored indicator (primary color dot or highlighted icon).
+- `components/ui/data-table/data-table-toolbar.tsx` — **New.** `DataTableToolbar` component. Renders search input (left) and active filter summary (right). Shows a count of active column filters (e.g., "2 filters") with a "Clear all" button that resets both `columnFilters` and `globalFilter`. Hidden when no columns have `meta.filterType` defined.
+- `components/ui/data-table/data-table.tsx` — **Modified.** Replace inline `DataTableSearch` with `DataTableToolbar`. Pass `columnFilters` and `onColumnFiltersChange` through URL state when available. Wire up column filter function for select-type filters (array includes filter).
+- `hooks/use-data-table-url-state.ts` — **Modified.** Add `columnFilters` and `onColumnFiltersChange` to the URL state. Serialize column filters to URL params as `filter.{columnId}={value}` (comma-separated for multi-select). Parse `filter.*` params on mount to initialize column filter state. Reset pagination when column filters change.
+- `app/(public)/candidate-list/config/columns.tsx` — **Modified.** Add `filterType: 'select'` to payment column meta. Add `filterType: 'text'` to name, church, and sponsor columns meta.
+- `components/ui/data-table/types.ts` — **Existing.** Already defines `filterType?: 'text' | 'select'` on `DataTableColumnMeta`. No changes needed.
+- `components/ui/data-table/index.ts` — **Modified.** Re-export `DataTableToolbar` and `DataTableColumnFilter` from barrel file.
+
 #### 4.0 Tasks
 
-TBD
+- [x] 4.1 Create `components/ui/data-table/data-table-column-filter.tsx`. This is a `'use client'` component. It accepts `column: Column<TData, TValue>` from TanStack Table. It reads `column.columnDef.meta?.filterType` to decide the filter mode. For `"text"` mode: render an `Input` inside a `Popover` with a placeholder of `"Filter {column title}..."`. On input change, call `column.setFilterValue(value || undefined)`. For `"select"` mode: render a checkbox list inside a `Popover`. Use `column.getFacetedUniqueValues()` to get unique values with counts. Display each value as a `Checkbox` + label + count (e.g., `"Paid (12)"`). Store selected values as a `string[]` via `column.setFilterValue()`. When no checkboxes are selected, call `column.setFilterValue(undefined)` to clear. Include a "Clear" button at the bottom of the popover. Add a text input at the top of the select popover to search/filter long option lists.
+- [x] 4.2 Update `components/ui/data-table/data-table-column-header.tsx`. Add a `ListFilter` icon button next to the sort button when `column.columnDef.meta?.filterType` is defined. The filter icon opens the `DataTableColumnFilter` popover. When the column has an active filter (`column.getFilterValue() !== undefined`), show a visual indicator: use `text-primary` class on the filter icon. The filter button should be `variant="ghost"` `size="icon"` with `size-4` icon. Position the filter icon to the right of the sort button.
+- [x] 4.3 Define the custom `arrIncludesFilter` function for select-type column filters. Add this to `data-table.tsx` or a separate utility. The filter function receives `row`, `columnId`, and `filterValue` (which is `string[]`). It checks if the row's value for that column is included in the filter array. In `data-table.tsx`, set `filterFn: arrIncludesFilter` on columns that have `meta.filterType === 'select'` by configuring the table's `filterFns` option, or by setting the `filterFn` directly on those columns.
+- [x] 4.4 Create `components/ui/data-table/data-table-toolbar.tsx`. This is a `'use client'` component. It accepts `table: Table<TData>`, optional `placeholder` string, and optional `children` (for extra toolbar items). Render: (a) `DataTableSearch` on the left; (b) on the right, show active filter count and a "Clear all" `Button variant="ghost" size="sm"` that calls `table.resetColumnFilters()` and `table.setGlobalFilter('')`. The active filter count is computed from `table.getState().columnFilters.length`. Only show the filter count + clear button when at least 1 column filter or global filter is active. Use `Badge variant="secondary"` for the count.
+- [x] 4.5 Update `components/ui/data-table/data-table.tsx`. Replace the standalone `DataTableSearch` with `DataTableToolbar`. Pass `searchPlaceholder` to the toolbar. Wire up `columnFilters` state: when `urlState` provides `columnFilters`/`onColumnFiltersChange`, use those; otherwise use internal state. Pass `onColumnFiltersChange` to `useReactTable`. For columns with `meta.filterType === 'select'`, auto-assign the `arrIncludesFilter` function so individual column definitions don't need to specify it.
+- [x] 4.6 Update `hooks/use-data-table-url-state.ts`. Add `columnFilters: ColumnFiltersState` and `onColumnFiltersChange: OnChangeFn<ColumnFiltersState>` to `DataTableUrlState`. On mount, parse URL params matching `filter.{columnId}` pattern — comma-separated values become `string[]` filter value, single text values become `string` filter value. On column filter change, serialize to URL params: for array values use `filter.{columnId}=val1,val2`, for string values use `filter.{columnId}=value`. Delete the param when filter is cleared. Use `router.push()` for column filter changes (adds history entry). Reset pagination when column filters change.
+- [x] 4.7 Update `app/(public)/candidate-list/config/columns.tsx`. Add `filterType: 'select'` to the payment column's `meta`. Add `filterType: 'text'` to the name, church, and sponsor columns' `meta`. No other columns need filters.
+- [x] 4.8 Update `components/ui/data-table/index.ts`. Re-export `DataTableToolbar` from `./data-table-toolbar` and `DataTableColumnFilter` from `./data-table-column-filter`.
+- [x] 4.9 Run `yarn build` and verify the project compiles successfully with no TypeScript errors. Confirm no regressions in existing functionality.
 
 ### [ ] 5.0 Mobile Expandable Cards and Integrated Sort/Filter Controls
 

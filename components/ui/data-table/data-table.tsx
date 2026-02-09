@@ -5,6 +5,7 @@ import {
   ColumnDef,
   ColumnFiltersState,
   FilterFn,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -30,8 +31,21 @@ import {
 
 import type { DataTableUrlState } from '@/hooks/use-data-table-url-state'
 import { DataTablePagination } from './data-table-pagination'
-import { DataTableSearch } from './data-table-search'
+import { DataTableToolbar } from './data-table-toolbar'
 import '@/components/ui/data-table/types'
+import { isEmpty, isNil } from 'lodash'
+
+// Filter function for select-type columns (array includes)
+const arrIncludesFilter: FilterFn<unknown> = (
+  row: Row<unknown>,
+  columnId: string,
+  filterValue: string[]
+) => {
+  const value = String(row.getValue(columnId) ?? '')
+  return filterValue.includes(value)
+}
+
+arrIncludesFilter.autoRemove = (val: unknown) => isNil(val) || isEmpty(val)
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -61,7 +75,8 @@ export function DataTable<TData, TValue>({
   const [internalSorting, setInternalSorting] = useState<SortingState>(
     initialSort ?? []
   )
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [internalColumnFilters, setInternalColumnFilters] =
+    useState<ColumnFiltersState>([])
   const [internalGlobalFilter, setInternalGlobalFilter] = useState('')
   const [internalPagination, setInternalPagination] = useState({
     pageIndex: 0,
@@ -71,6 +86,9 @@ export function DataTable<TData, TValue>({
   // Use URL state if provided, otherwise internal state
   const sorting = urlState?.sorting ?? internalSorting
   const onSortingChange = urlState?.onSortingChange ?? setInternalSorting
+  const columnFilters = urlState?.columnFilters ?? internalColumnFilters
+  const onColumnFiltersChange =
+    urlState?.onColumnFiltersChange ?? setInternalColumnFilters
   const globalFilter = urlState?.globalFilter ?? internalGlobalFilter
   const onGlobalFilterChange =
     urlState?.onGlobalFilterChange ?? setInternalGlobalFilter
@@ -82,34 +100,39 @@ export function DataTable<TData, TValue>({
     const visibility: VisibilityState = {}
     for (const col of columns) {
       const permission = col.meta?.requiredPermission
-      if (permission && user) {
-        const colId =
-          'accessorKey' in col
-            ? String(col.accessorKey)
-            : 'id' in col
-              ? col.id
-              : undefined
-        if (colId && !userHasPermission(user, [permission])) {
-          visibility[colId] = false
-        }
-      } else if (permission && !user) {
-        const colId =
-          'accessorKey' in col
-            ? String(col.accessorKey)
-            : 'id' in col
-              ? col.id
-              : undefined
-        if (colId) {
-          visibility[colId] = false
-        }
+      const colId =
+        'accessorKey' in col
+          ? String(col.accessorKey)
+          : 'id' in col
+            ? col.id
+            : undefined
+      if (isNil(colId) || isNil(permission)) continue
+
+      if (!isNil(user)) {
+        visibility[colId] = userHasPermission(user, [permission])
+      } else {
+        visibility[colId] = false
       }
     }
     return visibility
   }, [columns, user])
 
+  // Auto-assign arrIncludesFilter for select-type columns
+  const processedColumns = useMemo(() => {
+    return columns.map((col) => {
+      if (col.meta?.filterType === 'select' && isNil(col.filterFn)) {
+        return { ...col, filterFn: arrIncludesFilter } as ColumnDef<
+          TData,
+          TValue
+        >
+      }
+      return col
+    })
+  }, [columns])
+
   const table = useReactTable({
     data,
-    columns,
+    columns: processedColumns,
     state: {
       sorting,
       columnFilters,
@@ -118,7 +141,7 @@ export function DataTable<TData, TValue>({
       pagination,
     },
     onSortingChange,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange,
     onGlobalFilterChange,
     onPaginationChange,
     autoResetPageIndex: false,
@@ -133,7 +156,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableSearch table={table} placeholder={searchPlaceholder} />
+      <DataTableToolbar table={table} placeholder={searchPlaceholder} />
 
       <div className="rounded-md border">
         <Table>

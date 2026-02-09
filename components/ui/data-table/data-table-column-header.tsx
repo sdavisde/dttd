@@ -5,6 +5,9 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { DataTableColumnFilter } from './data-table-column-filter'
+import '@/components/ui/data-table/types'
+import { isNil } from 'lodash'
 
 interface DataTableColumnHeaderProps<TData, TValue> {
   column: Column<TData, TValue>
@@ -17,34 +20,43 @@ export function DataTableColumnHeader<TData, TValue>({
   title,
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
-  if (!column.getCanSort()) {
+  const hasFilter = !isNil(column.columnDef.meta?.filterType)
+
+  if (!column.getCanSort() && !hasFilter) {
     return <div className={cn(className)}>{title}</div>
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className={cn('-ml-3', className)}
-      onClick={() => {
-        const currentSort = column.getIsSorted()
-        if (currentSort === false) {
-          column.toggleSorting(false)
-        } else if (currentSort === 'asc') {
-          column.toggleSorting(true)
-        } else {
-          column.clearSorting()
-        }
-      }}
-    >
-      {title}
-      {column.getIsSorted() === 'asc' ? (
-        <ArrowUp className="ml-1 size-4" />
-      ) : column.getIsSorted() === 'desc' ? (
-        <ArrowDown className="ml-1 size-4" />
+    <div className={cn('flex items-center gap-0.5', className)}>
+      {column.getCanSort() ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-3"
+          onClick={() => {
+            const currentSort = column.getIsSorted()
+            if (currentSort === false) {
+              column.toggleSorting(false)
+            } else if (currentSort === 'asc') {
+              column.toggleSorting(true)
+            } else {
+              column.clearSorting()
+            }
+          }}
+        >
+          {title}
+          {column.getIsSorted() === 'asc' ? (
+            <ArrowUp className="ml-1 size-4" />
+          ) : column.getIsSorted() === 'desc' ? (
+            <ArrowDown className="ml-1 size-4" />
+          ) : (
+            <ArrowUpDown className="ml-1 size-4" />
+          )}
+        </Button>
       ) : (
-        <ArrowUpDown className="ml-1 size-4" />
+        <span>{title}</span>
       )}
-    </Button>
+      {hasFilter && <DataTableColumnFilter column={column} />}
+    </div>
   )
 }

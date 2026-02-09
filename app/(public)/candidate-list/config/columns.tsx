@@ -279,6 +279,7 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
     },
     meta: {
       requiredPermission: Permission.READ_CANDIDATE_PAYMENTS,
+      filterType: 'select',
       showOnMobile: true,
       mobileLabel: 'Payment',
       mobilePriority: 'secondary',
