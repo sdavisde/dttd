@@ -8,7 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build for production**: `yarn build`
 - **Start production server**: `yarn start`
 - **Lint code**: `yarn lint`
-- **Generate Supabase types**: `yarn generate` (regenerates `database.types.ts`)
+- **Generate Supabase types**: `yarn db:generate` (regenerates `database.types.ts`)
+- **Database Operations**:
+  - yarn db:start - starts all supabase containers, if they aren't already running
+  - yarn db:stop - stops all supabase containers
+  - yarn db:reset - resets the database to its initial state (runs migrations and seed after wiping the DB. DANGEROUS, ONLY USE WHEN TOLD)
 
 ## Project Overview
 

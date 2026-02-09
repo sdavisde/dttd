@@ -171,7 +171,7 @@ Create the payment service that handles ALL business logic and validation, servi
 
 ---
 
-### [ ] 6.0 Create Deposit Repository and Service
+### [x] 6.0 Create Deposit Repository and Service
 
 Create repository and service layers for the deposits system with CRUD operations for `deposits` and `deposit_payments`.
 
@@ -186,7 +186,41 @@ Create repository and service layers for the deposits system with CRUD operation
 
 #### 6.0 Tasks
 
-TBD
+- [x] 6.1 Create types.ts with database types, Zod schemas, and DTOs
+  - Database types: DepositRow, DepositInsert, DepositUpdate, DepositPaymentRow, DepositPaymentInsert
+  - Zod schemas: DepositTypeSchema ('stripe_payout', 'manual'), DepositStatusSchema ('pending', 'in_transit', 'paid', 'canceled', 'failed', 'completed'), CreateDepositSchema, UpdateDepositSchema, LinkPaymentSchema
+  - Raw types: RawDepositWithPayments (deposit with linked payment transactions)
+  - DTOs: DepositDTO (with computed payment_count), DepositPaymentDTO
+- [x] 6.2 Create repository.ts with CRUD operations for deposits table
+  - getClient(options) helper function for RLS bypass
+  - createDeposit(data, options) - Insert and return single record
+  - getDepositById(id, options) - Fetch by primary key with linked payments
+  - getDepositByPayoutId(payoutId, options) - Fetch by Stripe payout ID
+  - getAllDeposits(options) - Fetch all with linked payment count
+  - updateDeposit(id, data, options) - Update by ID
+  - updateDepositByPayoutId(payoutId, data, options) - Update by Stripe payout ID
+- [x] 6.3 Create repository functions for deposit_payments join table
+  - linkPaymentToDeposit(depositId, paymentTransactionId, options) - Create link
+  - unlinkPaymentFromDeposit(depositId, paymentTransactionId, options) - Remove link
+  - getPaymentsForDeposit(depositId, options) - Get all linked payment transactions
+  - getDepositForPayment(paymentTransactionId, options) - Get deposit for a payment
+- [x] 6.4 Create deposit-service.ts with business logic
+  - normalizeDeposit(raw) - Convert raw deposit to DepositDTO
+  - recordDeposit(data, options) - Create with validation
+  - recordStripePayoutDeposit(payoutData, paymentIntentIds, options) - Create Stripe payout deposit and link payments
+  - getDepositById(id, options) - Get normalized deposit
+  - getAllDeposits(options) - Get all normalized deposits sorted by date
+  - updateDepositStatus(id, status, options) - Update deposit status with validation
+  - linkPaymentToDeposit(depositId, paymentTransactionId, options) - Link with validation
+- [x] 6.5 Create actions.ts with authorized actions
+  - getAllDeposits() - Requires READ_PAYMENTS permission
+  - getDepositById(id) - Requires READ_PAYMENTS permission
+- [x] 6.6 Create index.ts with proper re-exports
+  - Export all types from types.ts
+  - Export Zod schemas from types.ts
+  - Export service functions for webhook usage (recordDeposit, recordStripePayoutDeposit, updateDepositStatus, linkPaymentToDeposit)
+  - Re-export actions
+- [x] 6.7 Run yarn build and verify compilation succeeds
 
 ---
 
