@@ -1,0 +1,177 @@
+'use client'
+
+import { ReactNode, useMemo, useState } from 'react'
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  FilterFn,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+
+import { userHasPermission } from '@/lib/security'
+import { User } from '@/lib/users/types'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+
+import { DataTablePagination } from './data-table-pagination'
+import { DataTableSearch } from './data-table-search'
+import '@/components/ui/data-table/types'
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  user: User | null
+  initialSort?: SortingState
+  emptyState?: {
+    noData: ReactNode
+    noResults: ReactNode
+  }
+  globalFilterFn?: FilterFn<TData>
+}
+
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  user,
+  initialSort,
+  emptyState,
+  globalFilterFn,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>(initialSort ?? [])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 })
+
+  const columnVisibility = useMemo<VisibilityState>(() => {
+    const visibility: VisibilityState = {}
+    for (const col of columns) {
+      const permission = col.meta?.requiredPermission
+      if (permission && user) {
+        const colId =
+          'accessorKey' in col
+            ? String(col.accessorKey)
+            : 'id' in col
+              ? col.id
+              : undefined
+        if (colId && !userHasPermission(user, [permission])) {
+          visibility[colId] = false
+        }
+      } else if (permission && !user) {
+        const colId =
+          'accessorKey' in col
+            ? String(col.accessorKey)
+            : 'id' in col
+              ? col.id
+              : undefined
+        if (colId) {
+          visibility[colId] = false
+        }
+      }
+    }
+    return visibility
+  }, [columns, user])
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+      columnVisibility,
+      pagination,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    ...(globalFilterFn ? { globalFilterFn } : {}),
+  })
+
+  return (
+    <div className="space-y-4">
+      <DataTableSearch table={table} />
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  {emptyState?.noData ?? 'No data.'}
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  {emptyState?.noResults ?? 'No results found.'}
+                </TableCell>
+              </TableRow>
+            ) : (
+              table.getRowModel().rows.map((row, index) => (
+                <TableRow
+                  key={row.id}
+                  className={index % 2 === 1 ? 'bg-muted/25' : undefined}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <DataTablePagination table={table} />
+    </div>
+  )
+}
