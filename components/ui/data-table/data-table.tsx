@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useMemo, useState } from 'react'
+import { ReactNode, useCallback, useMemo, useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/table'
 
 import type { DataTableUrlState } from '@/hooks/use-data-table-url-state'
+import { DataTableMobileCard } from './data-table-mobile-card'
+import { DataTableMobileToolbar } from './data-table-mobile-toolbar'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableToolbar } from './data-table-toolbar'
 import '@/components/ui/data-table/types'
@@ -154,69 +156,106 @@ export function DataTable<TData, TValue>({
     ...(globalFilterFn ? { globalFilterFn } : {}),
   })
 
+  // Mobile expanded card state (single-expand)
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null)
+  const handleCardToggle = useCallback((rowId: string) => {
+    setExpandedRowId((prev) => (prev === rowId ? null : rowId))
+  }, [])
+
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} placeholder={searchPlaceholder} />
+      {/* ── Desktop layout ─────────────────────────────────── */}
+      <div className="hidden md:block space-y-4">
+        <DataTableToolbar table={table} placeholder={searchPlaceholder} />
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {data.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {emptyState?.noData ?? 'No data.'}
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {emptyState?.noResults ?? 'No results found.'}
-                </TableCell>
-              </TableRow>
-            ) : (
-              table.getRowModel().rows.map((row, index) => (
-                <TableRow
-                  key={row.id}
-                  className={index % 2 === 1 ? 'bg-muted/25' : undefined}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {data.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    {emptyState?.noData ?? 'No data.'}
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    {emptyState?.noResults ?? 'No results found.'}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row, index) => (
+                  <TableRow
+                    key={row.id}
+                    className={index % 2 === 1 ? 'bg-muted/25' : undefined}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <DataTablePagination table={table} />
       </div>
 
-      <DataTablePagination table={table} />
+      {/* ── Mobile layout ──────────────────────────────────── */}
+      <div className="md:hidden space-y-3">
+        <DataTableMobileToolbar table={table} placeholder={searchPlaceholder} />
+
+        {data.length === 0 ? (
+          <div className="py-8 text-center">
+            {emptyState?.noData ?? 'No data.'}
+          </div>
+        ) : table.getRowModel().rows.length === 0 ? (
+          <div className="py-8 text-center">
+            {emptyState?.noResults ?? 'No results found.'}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {table.getRowModel().rows.map((row) => (
+              <DataTableMobileCard
+                key={row.id}
+                row={row}
+                expandedRowId={expandedRowId}
+                onToggle={handleCardToggle}
+              />
+            ))}
+          </div>
+        )}
+
+        <DataTablePagination table={table} />
+      </div>
     </div>
   )
 }

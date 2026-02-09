@@ -250,6 +250,7 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
     cell: ({ getValue }) => getValue<string | null>() ?? '-',
     meta: {
       requiredPermission: Permission.READ_CANDIDATE_CHURCH,
+      filterType: 'select',
       showOnMobile: true,
       mobileLabel: 'Church',
       mobilePriority: 'secondary',
