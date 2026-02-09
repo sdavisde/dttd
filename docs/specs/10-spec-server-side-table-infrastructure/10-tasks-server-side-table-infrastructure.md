@@ -139,7 +139,7 @@
 - [x] 4.8 Update `components/ui/data-table/index.ts`. Re-export `DataTableToolbar` from `./data-table-toolbar` and `DataTableColumnFilter` from `./data-table-column-filter`.
 - [x] 4.9 Run `yarn build` and verify the project compiles successfully with no TypeScript errors. Confirm no regressions in existing functionality.
 
-### [~] 5.0 Mobile Expandable Cards and Integrated Sort/Filter Controls
+### [x] 5.0 Mobile Expandable Cards and Integrated Sort/Filter Controls
 
 **Purpose:** Redesign the mobile experience with compact expandable cards (accordion-style) and integrated sort/filter controls directly in the mobile view, replacing the current flat card layout.
 
