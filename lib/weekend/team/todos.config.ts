@@ -1,4 +1,4 @@
-import { hasTeamPayment } from '@/actions/payments'
+import { hasTeamPayment } from '@/services/payment'
 import { hasCompletedAllTeamForms } from '@/actions/team-forms'
 import { isOk } from '@/lib/results'
 import { TodoItemConfig } from './todos.types'

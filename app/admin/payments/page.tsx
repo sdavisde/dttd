@@ -1,7 +1,7 @@
 import { Permission, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getAllPaymentsDeprecated } from '@/actions/payments'
+import { getAllPayments } from '@/services/payment'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Payments } from './components/Payments'
@@ -23,8 +23,8 @@ export default async function PaymentsPage() {
     redirect('/admin')
   }
 
-  // Fetch payments data
-  const paymentsResult = await getAllPaymentsDeprecated()
+  // Fetch payments data from the new payment service
+  const paymentsResult = await getAllPayments()
 
   if (isErr(paymentsResult)) {
     throw new Error(`Failed to fetch payments: ${paymentsResult.error}`)

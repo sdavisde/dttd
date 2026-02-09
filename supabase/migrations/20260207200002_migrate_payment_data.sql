@@ -6,6 +6,7 @@
 
 -- ============================================================================
 -- STEP 1: Migrate candidate_payments to payment_transaction
+-- If payment_owner is null or a category value, fall back to candidate's name
 -- ============================================================================
 INSERT INTO payment_transaction (
     type,
@@ -30,24 +31,40 @@ SELECT
     c.weekend_id,
     cp.payment_intent_id,
     COALESCE(cp.payment_amount, 0),
-    cp.net_amount,
-    cp.stripe_fee,
+    -- For manual payments (cash/check), net = gross since no Stripe fees
+    CASE
+        WHEN cp.payment_method IN ('cash', 'check') THEN COALESCE(cp.payment_amount, 0)
+        ELSE cp.net_amount
+    END,
+    -- For manual payments, stripe_fee is NULL (not applicable)
+    CASE
+        WHEN cp.payment_method IN ('cash', 'check') THEN NULL
+        ELSE cp.stripe_fee
+    END,
     CASE
         WHEN cp.payment_method = 'card' THEN 'stripe'
         WHEN cp.payment_method IN ('cash', 'check') THEN cp.payment_method
         ELSE 'stripe'  -- Default to stripe for any card-like values
     END,
-    cp.payment_owner,
+    -- Use payment_owner if it's an actual name, otherwise fall back to candidate's name
+    CASE
+        WHEN cp.payment_owner IS NULL OR cp.payment_owner = ''
+             OR LOWER(cp.payment_owner) IN ('candidate', 'sponsor', 'unknown')
+        THEN ci.first_name || ' ' || ci.last_name
+        ELSE cp.payment_owner
+    END,
     cp.notes,
     cp.charge_id,
     cp.balance_transaction_id,
     cp.created_at
 FROM candidate_payments cp
 LEFT JOIN candidates c ON c.id = cp.candidate_id
+LEFT JOIN candidate_info ci ON ci.candidate_id = c.id
 WHERE cp.payment_amount > 0 OR cp.payment_amount IS NULL;  -- Handle nullable amounts
 
 -- ============================================================================
 -- STEP 2: Migrate weekend_roster_payments to payment_transaction
+-- Join to users table to get the team member's name for payment_owner
 -- ============================================================================
 INSERT INTO payment_transaction (
     type,
@@ -72,20 +89,29 @@ SELECT
     wr.weekend_id,
     wrp.payment_intent_id,
     COALESCE(wrp.payment_amount, 0),
-    wrp.net_amount,
-    wrp.stripe_fee,
+    -- For manual payments (cash/check), net = gross since no Stripe fees
+    CASE
+        WHEN wrp.payment_method IN ('cash', 'check') THEN COALESCE(wrp.payment_amount, 0)
+        ELSE wrp.net_amount
+    END,
+    -- For manual payments, stripe_fee is NULL (not applicable)
+    CASE
+        WHEN wrp.payment_method IN ('cash', 'check') THEN NULL
+        ELSE wrp.stripe_fee
+    END,
     CASE
         WHEN wrp.payment_method = 'card' THEN 'stripe'
         WHEN wrp.payment_method IN ('cash', 'check') THEN wrp.payment_method
         ELSE 'stripe'  -- Default to stripe for any card-like values
     END,
-    NULL,  -- payment_owner not tracked for team payments
+    u.first_name || ' ' || u.last_name,  -- Get team member's name from users table
     wrp.notes,
     wrp.charge_id,
     wrp.balance_transaction_id,
     wrp.created_at
 FROM weekend_roster_payments wrp
 LEFT JOIN weekend_roster wr ON wr.id = wrp.weekend_roster_id
+LEFT JOIN users u ON u.id = wr.user_id
 WHERE wrp.payment_amount > 0 OR wrp.payment_amount IS NULL;
 
 -- ============================================================================

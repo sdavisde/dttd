@@ -19,7 +19,10 @@ export async function getPrice(priceId: string) {
  * This is a public action used during the payment flow.
  */
 export async function hasTeamPayment(weekendRosterId: string) {
-  return await PaymentService.hasTeamPayment(weekendRosterId)
+  return await PaymentService.hasPaymentForTarget(
+    'weekend_roster',
+    weekendRosterId
+  )
 }
 
 /**

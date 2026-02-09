@@ -264,7 +264,7 @@ Update Stripe webhook handlers to use the new payment and deposit services inste
 
 ---
 
-### [ ] 8.0 Update Admin Payments Display
+### [x] 8.0 Update Admin Payments Display
 
 Update the admin payments page to work with the new unified payment schema.
 
@@ -279,4 +279,33 @@ Update the admin payments page to work with the new unified payment schema.
 
 #### 8.0 Tasks
 
-TBD
+- [x] 8.1 Update `/lib/payments/types.ts` with new PaymentRecord type
+  - Update `PaymentType` to use new values: 'fee', 'donation', 'other'
+  - Update `PaymentRecord` to use `gross_amount` instead of `payment_amount`
+  - Update `payment_method` to match new schema: 'stripe', 'cash', 'check'
+  - Add `target_type` field: 'candidate' | 'weekend_roster' | null
+  - Remove deprecated `TeamFeePayment` and `CandidatePayment` types
+  - Keep `payer_name` and `payer_email` fields for display
+- [x] 8.2 Update admin payments page to use new service action
+  - Update `/app/admin/payments/page.tsx` to import and use `getAllPayments` from `@/services/payment`
+  - Remove import of deprecated `getAllPaymentsDeprecated` from `@/actions/payments`
+  - Update prop type to accept `PaymentTransactionDTO[]`
+- [x] 8.3 Update Payments.tsx component for new schema
+  - Update import to use `PaymentTransactionDTO` from `@/services/payment`
+  - Update `formatPaymentType()` to handle 'fee', 'donation', 'other' types
+  - Update `formatPaymentMethod()` to handle 'stripe', 'cash', 'check' methods
+  - Update `getPaymentTypeBadgeColor()` with appropriate colors for new types
+  - Update amount display to use `gross_amount` instead of `payment_amount`
+  - Update search filtering to work with new field names
+  - Optionally add target_type indicator (e.g., "Team Fee" vs "Candidate Fee")
+- [x] 8.4 Update mobile card layout in Payments.tsx
+  - Ensure mobile cards display new field names correctly
+  - Update amount field to use `gross_amount`
+  - Update method display to use new payment method values
+  - Verify touch targets and spacing are maintained
+- [x] 8.5 Run yarn build and verify compilation succeeds
+- [x] 8.6 Manual verification of admin payments page
+  - Verify desktop table displays correctly with new fields
+  - Verify mobile card layout displays correctly
+  - Verify search/filtering works with new schema
+  - Verify pagination works on both layouts

@@ -32,8 +32,9 @@ async function getClient(options?: ServiceOptions) {
 // ============================================================================
 
 /**
- * Query for fetching payment transactions with payer information.
- * Includes left joins to candidates and weekend_roster for payer name/email.
+ * Query for fetching payment transactions.
+ * Note: target_id is a polymorphic UUID without FK constraints, so we cannot
+ * use Supabase's join syntax. Payer info is resolved in the service layer.
  */
 export const PaymentTransactionQuery = `
   id,
@@ -50,19 +51,7 @@ export const PaymentTransactionQuery = `
   notes,
   charge_id,
   balance_transaction_id,
-  created_at,
-  candidates!payment_transaction_target_id_fkey(
-    first_name,
-    last_name,
-    email
-  ),
-  weekend_roster!payment_transaction_target_id_fkey(
-    users(
-      first_name,
-      last_name,
-      email
-    )
-  )
+  created_at
 `
 
 // ============================================================================
@@ -149,22 +138,21 @@ export async function getPaymentsByTargetId(
 }
 
 /**
- * Gets all payment transactions with payer information.
- * Includes joins to candidates and weekend_roster tables for payer name/email.
+ * Gets all payment transactions.
+ * Note: Payer info (name/email) is resolved in the service layer since
+ * target_id is a polymorphic UUID without FK constraints.
  * @param options - Service options including RLS bypass flag
- * @returns Result containing array of payment transactions with joins or an error
+ * @returns Result containing array of payment transactions or an error
  */
 export async function getAllPayments(
   options?: ServiceOptions
-): Promise<Result<string, RawPaymentTransaction[]>> {
+): Promise<Result<string, PaymentTransactionRow[]>> {
   const supabase = await getClient(options)
   const response = await supabase
     .from('payment_transaction')
     .select(PaymentTransactionQuery)
     .order('created_at', { ascending: false })
-  // This type assertion is necessary because supabase sdk does not recognize the fake FK to candidate or weekend_roster
-  // as foreign keys, so it does not recognize the joins
-  return fromSupabase(response) as Result<string, RawPaymentTransaction[]>
+  return fromSupabase(response)
 }
 
 /**

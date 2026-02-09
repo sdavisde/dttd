@@ -2,7 +2,6 @@ import 'server-only'
 
 import { stripe } from '@/lib/stripe'
 import { err, isErr, ok, Result, Results } from '@/lib/results'
-import { PaymentRecord } from '@/lib/payments/types'
 import * as PaymentRepository from './repository'
 import { RawTeamPayment } from './repository'
 import type Stripe from 'stripe'
@@ -14,13 +13,40 @@ import {
   CreatePaymentSchema,
   BackfillStripeDataInput,
   BackfillStripeDataSchema,
-  RawPaymentTransaction,
   PaymentTransactionDTO,
   PaymentTransactionRow,
   TargetType,
   PaymentType,
   PaymentMethod,
 } from './types'
+
+// ============================================================================
+// Deprecated Types (for backward compatibility during migration)
+// ============================================================================
+
+/**
+ * @deprecated This type is deprecated. Use PaymentTransactionDTO instead.
+ */
+type DeprecatedPaymentType = 'team_fee' | 'candidate_fee' | 'refund'
+
+/**
+ * @deprecated This type is deprecated. Use PaymentTransactionDTO instead.
+ */
+type DeprecatedPaymentRecord = {
+  id: string
+  type: DeprecatedPaymentType
+  payment_amount: number
+  payment_method: string
+  payment_intent_id: string
+  created_at: string
+  notes?: string
+  payer_name: string | null
+  payer_email: string | null
+  stripe_fee: number | null
+  net_amount: number | null
+  deposited_at: string | null
+  payout_id: string | null
+}
 
 // ============================================================================
 // Stripe Price Functions
@@ -97,51 +123,22 @@ export async function getCandidateFee(): Promise<Result<string, PriceInfo>> {
 // ============================================================================
 
 /**
- * Checks if payment_owner contains an actual name vs a category value.
- * Currently, payment_owner stores 'candidate', 'sponsor', or 'unknown' as categories,
- * not actual names. This helper identifies those category values.
- */
-function isPaymentOwnerCategory(paymentOwner: string | null): boolean {
-  if (!paymentOwner) return true
-  const categories = ['candidate', 'sponsor', 'unknown']
-  return categories.includes(paymentOwner.toLowerCase())
-}
-
-/**
- * Normalizes a raw payment transaction into a PaymentTransactionDTO.
+ * Normalizes a payment transaction row into a PaymentTransactionDTO.
  *
  * Payer info logic:
- * - payment_owner currently stores 'candidate', 'sponsor', or 'unknown' as category values
- * - When payment_owner is 'sponsor', the actual payer is the candidate's sponsor (name not stored in payment)
- * - When payment_owner is 'candidate', the payer is the candidate themselves
- * - For team payments, the team member is assumed to have paid for themselves
- * - We derive name/email from the target (candidate or roster member) as a fallback
+ * - payment_owner stores the payer's name directly (e.g., "John Smith")
+ * - This name is set during payment creation from Stripe checkout metadata
+ * - For team payments, this is the team member's name
+ * - For candidate payments, this is typically the sponsor's name or the candidate's name
  *
- * Note: If payment_owner contains an actual name in the future, that will take precedence.
+ * Note: We cannot use FK joins to look up payer info because target_id is a polymorphic
+ * UUID without FK constraints. The payment_owner field serves as the source of truth.
  */
 function normalizePaymentTransaction(
-  raw: RawPaymentTransaction
+  raw: PaymentTransactionRow
 ): PaymentTransactionDTO {
-  let payerName: string | null = null
-  let payerEmail: string | null = null
-
-  // First, check if payment_owner contains an actual name (not a category)
-  if (raw.payment_owner && !isPaymentOwnerCategory(raw.payment_owner)) {
-    payerName = raw.payment_owner
-    // Note: We don't have payer email when payment_owner stores a name
-  }
-
-  // Fall back to deriving payer info from the target
-  // This is an approximation - the actual payer may differ (e.g., sponsor paying for candidate)
-  if (!payerName) {
-    if (raw.target_type === 'candidate' && raw.candidates) {
-      payerName = `${raw.candidates.first_name} ${raw.candidates.last_name}`
-      payerEmail = raw.candidates.email
-    } else if (raw.target_type === 'weekend_roster' && raw.weekend_roster) {
-      payerName = `${raw.weekend_roster.users.first_name} ${raw.weekend_roster.users.last_name}`
-      payerEmail = raw.weekend_roster.users.email
-    }
-  }
+  // payment_owner contains the actual payer name (set during payment creation)
+  const payerName = raw.payment_owner
 
   return {
     id: raw.id,
@@ -160,7 +157,7 @@ function normalizePaymentTransaction(
     balance_transaction_id: raw.balance_transaction_id,
     created_at: raw.created_at ?? new Date().toISOString(),
     payer_name: payerName,
-    payer_email: payerEmail,
+    payer_email: null, // Email not stored in payment_transaction; would require separate lookup
   }
 }
 
@@ -307,79 +304,4 @@ export async function backfillStripeData(
     },
     options
   )
-}
-
-// ============================================================================
-// Legacy Service Functions (for backward compatibility during migration)
-// ============================================================================
-
-/**
- * Normalizes a raw team payment record into a PaymentRecord DTO.
- * @deprecated Will be removed after migration to payment_transaction table
- */
-function normalizeTeamPayment(raw: RawTeamPayment): PaymentRecord {
-  return {
-    id: raw.id,
-    type: 'team_fee',
-    payment_amount: raw.payment_amount ?? 0,
-    payment_method: raw.payment_method ?? 'stripe',
-    payment_intent_id: raw.payment_intent_id,
-    created_at: raw.created_at,
-    notes: raw.notes ?? undefined,
-    payer_name: `${raw.weekend_roster.users.first_name} ${raw.weekend_roster.users.last_name}`,
-    payer_email: raw.weekend_roster.users.email,
-    stripe_fee: raw.stripe_fee,
-    net_amount: raw.net_amount,
-    deposited_at: raw.deposited_at,
-    payout_id: raw.payout_id,
-  }
-}
-
-/**
- * Checks if a team member has made any payment for the given weekend roster.
- * @param weekendRosterId - The weekend roster ID to check
- * @returns True if a payment exists, false otherwise
- * @deprecated Use hasPaymentForTarget('weekend_roster', weekendRosterId) instead
- */
-export async function hasTeamPayment(
-  weekendRosterId: string
-): Promise<Result<string, boolean>> {
-  const result =
-    await PaymentRepository.getTeamPaymentByRosterId(weekendRosterId)
-  if (isErr(result)) {
-    return result
-  }
-  return ok(!isNil(result.data) && result.data.length > 0)
-}
-
-/**
- * Retrieves all payment records (team fees and candidate fees) from legacy tables.
- * @returns Array of payment records sorted by creation date (newest first)
- * @deprecated Use getAllPayments() from the new payment_transaction table instead
- */
-export async function getAllPaymentsDeprecated(): Promise<
-  Result<string, PaymentRecord[]>
-> {
-  const teamPaymentsResult = await PaymentRepository.getAllTeamPayments()
-  if (isErr(teamPaymentsResult)) {
-    return teamPaymentsResult
-  }
-
-  // TODO: Implement candidate payments display in admin payments page
-  // The candidate_payments table exists but candidate payment flow may need:
-  // 1. Review of candidate payment method field (currently missing payment_method column)
-  // 2. Verify candidate relationship join works correctly
-  // 3. Test payment_owner field population vs candidate name fallback
-  // 4. Ensure candidate payment records are being created in the payment flow
-
-  const combinedPayments: PaymentRecord[] =
-    teamPaymentsResult.data.map(normalizeTeamPayment)
-
-  // Sort by creation date (newest first)
-  combinedPayments.sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  )
-
-  return ok(combinedPayments)
 }
