@@ -15,12 +15,14 @@ interface DataTableMobileCardProps<TData> {
   row: Row<TData>
   expandedRowId: string | null
   onToggle: (rowId: string) => void
+  onCardClick?: (row: TData) => void
 }
 
 export function DataTableMobileCard<TData>({
   row,
   expandedRowId,
   onToggle,
+  onCardClick,
 }: DataTableMobileCardProps<TData>) {
   const isExpanded = expandedRowId === row.id
   const visibleCells = row.getVisibleCells()
@@ -43,8 +45,11 @@ export function DataTableMobileCard<TData>({
       onOpenChange={() => onToggle(row.id)}
       className="bg-card rounded-lg border"
     >
-      <CollapsibleTrigger className="flex w-full items-center gap-2 p-4 text-left">
-        <div className="min-w-0 flex-1">
+      <div className="flex w-full items-center gap-2 p-4 text-left">
+        <div
+          className={cn('min-w-0 flex-1', onCardClick && 'cursor-pointer')}
+          onClick={onCardClick ? () => onCardClick(row.original) : undefined}
+        >
           {/* Primary field (name) */}
           {primaryCells.map((cell) => (
             <div key={cell.id} className="text-base font-medium truncate">
@@ -62,13 +67,17 @@ export function DataTableMobileCard<TData>({
             </div>
           )}
         </div>
-        <ChevronDown
-          className={cn(
-            'text-muted-foreground size-5 shrink-0 transition-transform duration-200',
-            isExpanded && 'rotate-180'
-          )}
-        />
-      </CollapsibleTrigger>
+        <CollapsibleTrigger asChild>
+          <button className="p-1 shrink-0" type="button">
+            <ChevronDown
+              className={cn(
+                'text-muted-foreground size-5 transition-transform duration-200',
+                isExpanded && 'rotate-180'
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+      </div>
 
       <CollapsibleContent>
         {detailCells.length > 0 && (

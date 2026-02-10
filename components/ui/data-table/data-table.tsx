@@ -18,6 +18,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 
+import { cn } from '@/lib/utils'
 import { userHasPermission } from '@/lib/security'
 import { User } from '@/lib/users/types'
 import {
@@ -61,6 +62,9 @@ interface DataTableProps<TData, TValue> {
   globalFilterFn?: FilterFn<TData>
   urlState?: DataTableUrlState
   searchPlaceholder?: string
+  onRowClick?: (row: TData) => void
+  columnVisibility?: VisibilityState
+  toolbarChildren?: ReactNode
 }
 
 export function DataTable<TData, TValue>({
@@ -72,6 +76,9 @@ export function DataTable<TData, TValue>({
   globalFilterFn,
   urlState,
   searchPlaceholder,
+  onRowClick,
+  columnVisibility: columnVisibilityProp,
+  toolbarChildren,
 }: DataTableProps<TData, TValue>) {
   // Internal state (used when urlState is not provided)
   const [internalSorting, setInternalSorting] = useState<SortingState>(
@@ -101,23 +108,33 @@ export function DataTable<TData, TValue>({
   const columnVisibility = useMemo<VisibilityState>(() => {
     const visibility: VisibilityState = {}
     for (const col of columns) {
-      const permission = col.meta?.requiredPermission
       const colId =
         'accessorKey' in col
           ? String(col.accessorKey)
           : 'id' in col
             ? col.id
             : undefined
-      if (isNil(colId) || isNil(permission)) continue
+      if (isNil(colId)) continue
 
-      if (!isNil(user)) {
-        visibility[colId] = userHasPermission(user, [permission])
-      } else {
+      const permission = col.meta?.requiredPermission
+      const permissionVisible = isNil(permission)
+        ? true
+        : !isNil(user)
+          ? userHasPermission(user, [permission])
+          : false
+
+      const propVisible = columnVisibilityProp?.[colId] ?? true
+
+      // Only set visibility if either source restricts it
+      if (!permissionVisible || !propVisible) {
         visibility[colId] = false
+      } else if (!isNil(permission)) {
+        // Preserve explicit true for permission-controlled columns
+        visibility[colId] = true
       }
     }
     return visibility
-  }, [columns, user])
+  }, [columns, user, columnVisibilityProp])
 
   // Auto-assign arrIncludesFilter for select-type columns
   const processedColumns = useMemo(() => {
@@ -166,7 +183,9 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       {/* ── Desktop layout ─────────────────────────────────── */}
       <div className="hidden md:block space-y-4">
-        <DataTableToolbar table={table} placeholder={searchPlaceholder} />
+        <DataTableToolbar table={table} placeholder={searchPlaceholder}>
+          {toolbarChildren}
+        </DataTableToolbar>
 
         <div className="rounded-md border">
           <Table>
@@ -209,7 +228,13 @@ export function DataTable<TData, TValue>({
                 table.getRowModel().rows.map((row, index) => (
                   <TableRow
                     key={row.id}
-                    className={index % 2 === 1 ? 'bg-muted/25' : undefined}
+                    className={cn(
+                      index % 2 === 1 ? 'bg-muted/25' : undefined,
+                      onRowClick && 'cursor-pointer'
+                    )}
+                    onClick={
+                      onRowClick ? () => onRowClick(row.original) : undefined
+                    }
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
@@ -249,6 +274,7 @@ export function DataTable<TData, TValue>({
                 row={row}
                 expandedRowId={expandedRowId}
                 onToggle={handleCardToggle}
+                onCardClick={onRowClick}
               />
             ))}
           </div>
