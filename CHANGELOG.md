@@ -1,3 +1,20 @@
+## [1.17.0](https://github.com/sdavisde/dttd/compare/v1.16.0...v1.17.0) (2026-02-10)
+
+### Features
+
+- add filter state to columns ([798aa3f](https://github.com/sdavisde/dttd/commit/798aa3f4a0dda893fcbf27392c77414c40068aa8))
+- add onRowClick, columnVisibility, toolbarChildren to DataTable ([3b9e1ac](https://github.com/sdavisde/dttd/commit/3b9e1acc4e055192287bf555a2ae005f5c13862c))
+- add TanStack Table core infrastructure and shared components ([d34581f](https://github.com/sdavisde/dttd/commit/d34581f127c225dbb427d6126ddaf002a2ebc723))
+- add useDataTableUrlState hook for URL-synced table state ([42deca8](https://github.com/sdavisde/dttd/commit/42deca8006c90ab1411fcf14de2cd71aa0565065))
+- improve mobile data table experience ([1096f31](https://github.com/sdavisde/dttd/commit/1096f317ae95768cc36b291b2a3db5aa5a93559e))
+- migrate candidate list to TanStack Table with URL state ([a263fe6](https://github.com/sdavisde/dttd/commit/a263fe67bda989b0f9c891fcbeeebd9e61cb984c))
+- migrate Candidate Review table to DataTable ([b75e7ea](https://github.com/sdavisde/dttd/commit/b75e7ea9f745fd1bac0da301b3cfefeac7510211))
+- refactor remaining tables ([f1cab12](https://github.com/sdavisde/dttd/commit/f1cab1230019612234496a3c83f65af0de2a6732))
+
+### Bug Fixes
+
+- remove contact info table from settings page ([873fb56](https://github.com/sdavisde/dttd/commit/873fb56998d11f6f9a41cd6ed871a1a9a411d425))
+
 ## [1.16.0](https://github.com/sdavisde/dttd/compare/v1.15.0...v1.16.0) (2026-02-09)
 
 ### ⚠ BREAKING CHANGES
