@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { ContactInformationTable } from './components/ContactInformationTable'
 import { PrayerWheelSettings } from './components/PrayerWheelSettings'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
@@ -41,14 +40,6 @@ export default async function SettingsPage() {
           <Typography variant="muted" className="mb-4">
             Manage system settings and configurations.
           </Typography>
-
-          <div className="mb-4">
-            <Typography variant="h4">DTTD Email Addresses</Typography>
-            <Typography variant="muted" className="mb-4">
-              Manage contact information used throughout the system.
-            </Typography>
-            <ContactInformationTable contactInformation={contactInformation} />
-          </div>
 
           <div className="mb-4">
             <Typography variant="h4">Prayer Wheel Links</Typography>
