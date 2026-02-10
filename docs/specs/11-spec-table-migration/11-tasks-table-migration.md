@@ -55,7 +55,7 @@ Migrate the most complex table — Candidate Review — to DataTable. This inclu
 
 ---
 
-### [ ] 3.0 Weekend Roster + Dropped Roster Table Migration
+### [x] 3.0 Weekend Roster + Dropped Roster Table Migration
 
 Migrate both roster tables together since they share the same data model (`WeekendRosterMember`), the same custom `CHARole` sort function, and live in the same directory. Includes:
 
@@ -75,11 +75,16 @@ Migrate both roster tables together since they share the same data model (`Weeke
 
 #### 3.0 Tasks
 
-TBD
+- [x] 3.1 Create shared roster column helpers — create `components/weekend/roster-view/config/columns.tsx` with: CHARole sort function (`getRoleSortOrder` using `Object.values(CHARole).indexOf`), shared name accessor (`${users.first_name} ${users.last_name}`), and `rosterGlobalFilterFn` searching name, email, phone, role, status, rollo
+- [x] 3.2 Create Weekend Roster column definitions — in the same file, export `getWeekendRosterColumns(callbacks)` returning `ColumnDef<WeekendRosterMember>[]` with columns: Name (`mobilePriority: 'primary'`), Phone, Role (with rollo suffix, custom `sortingFn`), Forms (disabled `Checkbox`), Emergency Contact, Medical (`Stethoscope` button with `stopPropagation`), Payment (`PaymentInfo` with `stopPropagation`), Actions (Edit button with `stopPropagation`). Mark Payment and Actions columns with `id: 'payment'` and `id: 'actions'` for visibility control.
+- [x] 3.3 Create Dropped Roster column definitions — in the same file, export `droppedRosterColumns` as `ColumnDef<WeekendRosterMember>[]` with columns: Name (`mobilePriority: 'primary'`), Email, Phone, Role, Rollo, Status (hardcoded `Badge variant="destructive"` showing "Dropped")
+- [x] 3.4 Rewrite `WeekendRosterTable` to use `DataTable` — replace manual table/pagination/search with `DataTable` using `useDataTableUrlState`, column defs from 3.2, `columnVisibility={{ payment: includePaymentInformation, actions: isEditable }}`, pre-filter `status !== 'drop'` on data array. Keep `EditTeamMemberModal` and `MedicalInfoModal` with same state management. Pass modal callbacks via closure to column factory.
+- [x] 3.5 Rewrite `DroppedRosterTable` to use `DataTable` — replace manual table/pagination/search with `DataTable` using `useDataTableUrlState`, column defs from 3.3, pre-filter `status === 'drop'` on data array. Use `searchPlaceholder="Search dropped members..."`.
+- [x] 3.6 Verify build — run `yarn build` and confirm no new TypeScript errors
 
 ---
 
-### [ ] 4.0 Payments Table Migration
+### [x] 4.0 Payments Table Migration
 
 Migrate the Payments table to DataTable. Includes:
 
@@ -99,11 +104,13 @@ Migrate the Payments table to DataTable. Includes:
 
 #### 4.0 Tasks
 
-TBD
+- [x] 4.1 Create Payments column definitions — create `app/admin/payments/config/columns.tsx` with `ColumnDef<PaymentTransactionDTO>[]`: Type (`filterType: 'select'`, `Badge` with variant from `getTargetTypeBadgeColor`, accessor returns formatted "Team"/"Candidate"/"Other"), Payer (`payment_owner`, `mobilePriority: 'primary'`), Gross (`gross_amount`, `Intl.NumberFormat` currency, green text), Net (`net_amount`, currency), Method (`filterType: 'select'`, formatted "Stripe"/"Cash"/"Check"), Notes (truncated `max-w-[200px]`), Meta (`MetadataPopover` inline component with `stopPropagation`), Date (`created_at`, formatted with `toLocaleDateString`). Export `paymentsGlobalFilterFn` searching payer, type, method, amount, notes, payment intent ID.
+- [x] 4.2 Rewrite `Payments.tsx` to use `DataTable` — replace manual table/pagination/search/mobile layout with `DataTable` using `useDataTableUrlState`, column defs from 4.1, `user={null}`. Move `MetadataPopover` to the columns file. Remove `useTablePagination` and `TablePagination` imports.
+- [x] 4.3 Verify build — run `yarn build` and confirm no new TypeScript errors
 
 ---
 
-### [ ] 5.0 Master Roster Table Migration
+### [x] 5.0 Master Roster Table Migration
 
 Migrate the Master Roster table and add a NEW mobile card layout (currently desktop-only). Includes:
 
@@ -125,11 +132,13 @@ Migrate the Master Roster table and add a NEW mobile card layout (currently desk
 
 #### 5.0 Tasks
 
-TBD
+- [x] 5.1 Create Master Roster column definitions — create `app/admin/users/config/columns.tsx` with `ColumnDef<MasterRosterMember>[]`: Name (`UserIcon` + formatted name, `mobilePriority: 'primary'`), Email, Phone (`formatPhoneNumber`), Role (comma-joined `roles.map(r => r.label)`, `mobilePriority: 'secondary'`), Level (centered `Badge` with CSS variable colors `var(--experience-level-${level})`, `id: 'level'`), Rector Ready (centered check/star/dash icon, `id: 'rectorReady'`). Export `masterRosterGlobalFilterFn` searching name, email, phone, role labels (use `.some(label => label.toLowerCase().includes(query))` instead of `.includes(query)` for proper substring matching).
+- [x] 5.2 Rewrite `master-roster.tsx` to use `DataTable` — replace manual table/pagination/search with `DataTable` using `useDataTableUrlState`, column defs from 5.1, `columnVisibility={{ level: canViewExperience, rectorReady: canViewExperience }}`, `onRowClick` to open `UserRoleSidebar`. Keep `UserRoleSidebar` and delete user `Dialog` with same state management. Remove `useTablePagination`/`TablePagination` imports. Pass `user={null}` (visibility handled via prop, not permission).
+- [x] 5.3 Verify build — run `yarn build` and confirm no new TypeScript errors
 
 ---
 
-### [ ] 6.0 Roles Table Migration
+### [x] 6.0 Roles Table Migration
 
 Migrate the Roles table and add a NEW mobile card layout (currently desktop-only). Includes:
 
@@ -151,11 +160,13 @@ Migrate the Roles table and add a NEW mobile card layout (currently desktop-only
 
 #### 6.0 Tasks
 
-TBD
+- [x] 6.1 Create Roles column definitions — create `app/admin/roles/config/columns.tsx` with `getRolesColumns(callbacks)` returning `ColumnDef<Role>[]`: Role (`Settings` icon + `role.label`, `mobilePriority: 'primary'`), Permissions (first 3 as `Badge variant="outline"` + "+N more" span, `mobilePriority: 'secondary'`), Permission Count (`role.permissions.length` + "permission(s)" text), Actions (Edit + Delete buttons with `stopPropagation`, `enableSorting: false`, disable when `readOnly`). Export `rolesGlobalFilterFn` searching role label and permission names.
+- [x] 6.2 Rewrite `Roles.tsx` to use `DataTable` — replace manual table/search with `DataTable` using `useDataTableUrlState`, column defs from 6.1, `onRowClick` (only when `!readOnly` — pass `undefined` when readOnly), `user={null}`. Keep `RolesSidebar`, `DeleteConfirmationDialog`, and "Add Role" button as `toolbarChildren`. Pass callbacks via closure to column factory. Remove header/description section (keep existing page structure).
+- [x] 6.3 Verify build — run `yarn build` and confirm no new TypeScript errors
 
 ---
 
-### [ ] 7.0 Cleanup Legacy Table Infrastructure
+### [x] 7.0 Cleanup Legacy Table Infrastructure
 
 Remove all legacy table hooks and components that are no longer used after all migrations. Includes:
 
@@ -172,4 +183,6 @@ Remove all legacy table hooks and components that are no longer used after all m
 
 #### 7.0 Tasks
 
-TBD
+- [x] 7.1 Verify no remaining imports — run project-wide grep for `useTablePagination`, `TablePagination`, `FacetedFilter`, `faceted-filter`, `table-pagination`, `use-table-pagination` across all `.ts` and `.tsx` files. Document any remaining references.
+- [x] 7.2 Delete legacy files — remove `hooks/use-table-pagination.ts`, `components/ui/table-pagination.tsx`, `components/ui/faceted-filter.tsx`
+- [x] 7.3 Verify build — run `yarn build` and confirm no missing module errors

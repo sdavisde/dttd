@@ -1,27 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import {
-  Search,
-  User as UserIcon,
-  Users as UsersIcon,
-  Star,
-} from 'lucide-react'
+import { useState } from 'react'
+import { Users as UsersIcon } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import { User } from '@/lib/users/types'
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Typography } from '@/components/ui/typography'
-import { formatPhoneNumber } from '@/lib/utils'
+import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import {
@@ -32,22 +17,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Permission, userHasPermission } from '@/lib/security'
-import { useTablePagination } from '@/hooks/use-table-pagination'
-import { TablePagination } from '@/components/ui/table-pagination'
-import { Card, CardContent } from '@/components/ui/card'
-import { Check, Minus } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { isEmpty, isNil } from 'lodash'
+import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import type {
-  MasterRoster,
+  MasterRoster as MasterRosterType,
   MasterRosterMember,
 } from '@/services/master-roster/types'
-import { useSession } from '@/components/auth/session-provider'
 import { deleteUser } from '@/services/identity/user'
+import {
+  masterRosterColumns,
+  masterRosterGlobalFilterFn,
+} from '../config/columns'
 
 interface MasterRosterProps {
-  masterRoster: MasterRoster
+  masterRoster: MasterRosterType
   roles: Array<{ id: string; label: string; permissions: string[] }>
   canViewExperience: boolean
 }
@@ -57,7 +39,6 @@ export default function MasterRoster({
   roles,
   canViewExperience,
 }: MasterRosterProps) {
-  const [searchTerm, setSearchTerm] = useState('')
   const [selectedMember, setSelectedMember] =
     useState<MasterRosterMember | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -65,38 +46,10 @@ export default function MasterRoster({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const router = useRouter()
 
-  // Enhanced fuzzy search filtering
-  const filteredUsers = useMemo(() => {
-    if (!searchTerm.trim()) return masterRoster.members
+  const urlState = useDataTableUrlState({ defaultPageSize: 25 })
 
-    const query = searchTerm.toLowerCase().trim()
-
-    return masterRoster.members.filter((user) => {
-      const name =
-        `${user.firstName ?? ''} ${user.lastName ?? ''}`.toLowerCase()
-      const email = (user.email ?? '').toLowerCase()
-      const phone = (user.phoneNumber ?? '').toLowerCase()
-      const roles = user.roles.map((it) => it.label)
-
-      // Check if query matches any field (fuzzy search)
-      return (
-        name.includes(query) ||
-        email.includes(query) ||
-        phone.includes(query) ||
-        roles.includes(query)
-      )
-    })
-  }, [searchTerm, masterRoster.members])
-
-  // Pagination setup
-  const { paginatedData, pagination, setPage, setPageSize } =
-    useTablePagination(filteredUsers, {
-      initialPageSize: 10,
-      initialPage: 1,
-    })
-
-  const handleMemberClick = (rosterMember: MasterRosterMember) => {
-    setSelectedMember(rosterMember)
+  const handleMemberClick = (member: MasterRosterMember) => {
+    setSelectedMember(member)
     setIsModalOpen(true)
   }
 
@@ -155,131 +108,25 @@ export default function MasterRoster({
           their role.
         </Typography>
       </div>
-      {/* Search Bar */}
-      <div className="mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search users by name, email, phone, or role"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
 
-        {/* Results Summary */}
-        {searchTerm.trim() && (
-          <div className="text-sm text-muted-foreground mb-4">
-            Showing {filteredUsers.length} of {masterRoster.members.length}{' '}
-            users
-          </div>
-        )}
-      </div>
+      <DataTable
+        columns={masterRosterColumns}
+        data={masterRoster.members}
+        user={null}
+        globalFilterFn={masterRosterGlobalFilterFn}
+        urlState={urlState}
+        searchPlaceholder="Search users by name, email, phone, or role"
+        onRowClick={handleMemberClick}
+        columnVisibility={{
+          level: canViewExperience,
+          rectorReady: canViewExperience,
+        }}
+        emptyState={{
+          noData: 'No users found in the system.',
+          noResults: 'No users found matching your search.',
+        }}
+      />
 
-      {/* Users Table */}
-      <div className="relative">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-bold min-w-[150px]">Name</TableHead>
-                <TableHead className="min-w-[100px]">Email</TableHead>
-                <TableHead className="min-w-[120px]">Phone</TableHead>
-                <TableHead className="min-w-[120px]">Role</TableHead>
-                {canViewExperience && (
-                  <>
-                    <TableHead className="min-w-[80px] text-center">
-                      Level
-                    </TableHead>
-                    <TableHead className="min-w-[100px] text-center">
-                      Rector Ready
-                    </TableHead>
-                  </>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedData.map((member, index) => (
-                <TableRow
-                  key={member.id}
-                  className={`cursor-pointer hover:bg-muted/50 ${index % 2 === 0 ? '' : 'bg-muted/25'}`}
-                  onClick={() => handleMemberClick(member)}
-                >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <UserIcon className="h-4 w-4 text-gray-500" />
-                      {(member.firstName ?? member.lastName)
-                        ? `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
-                        : 'Unknown User'}
-                    </div>
-                  </TableCell>
-                  <TableCell>{member.email ?? '-'}</TableCell>
-                  <TableCell>{formatPhoneNumber(member.phoneNumber)}</TableCell>
-                  <TableCell>
-                    <span className="text-muted-foreground">
-                      {isEmpty(member.roles)
-                        ? '-'
-                        : member.roles.map((it) => it.label).join(', ')}
-                    </span>
-                  </TableCell>
-                  {canViewExperience && (
-                    <>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant="secondary"
-                          className="font-semibold"
-                          style={{
-                            backgroundColor: `var(--experience-level-${member.level})`,
-                            color: `var(--experience-level-${member.level}-fg)`,
-                          }}
-                        >
-                          {member.level}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {member.rectorReady.criteria.hasServedAsRector ? (
-                          <div className="relative inline-flex items-center justify-center mx-auto">
-                            <Check className="h-5 w-5 text-green-600" />
-                            <Star className="h-3 w-3 text-amber-500 fill-amber-500 absolute -top-1 -right-1.5" />
-                          </div>
-                        ) : member.rectorReady.isReady ? (
-                          <Check className="h-5 w-5 text-green-600 mx-auto" />
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                    </>
-                  )}
-                </TableRow>
-              ))}
-              {paginatedData.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={canViewExperience ? 8 : 5}
-                    className="text-center py-8"
-                  >
-                    <p className="text-muted-foreground">
-                      {searchTerm
-                        ? 'No users found matching your search.'
-                        : 'No users found in the system.'}
-                    </p>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Pagination */}
-        <TablePagination
-          pagination={pagination}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-          pageSizeOptions={[5, 10, 20, 50]}
-        />
-      </div>
-
-      {/* User Role Sidebar */}
       <UserRoleSidebar
         member={selectedMember}
         roles={roles}
@@ -287,7 +134,6 @@ export default function MasterRoster({
         onClose={handleCloseModal}
       />
 
-      {/* Delete Confirmation Modal */}
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
