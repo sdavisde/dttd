@@ -27,7 +27,7 @@ These enhancements are prerequisites for multiple subsequent table migrations (C
 
 ---
 
-### [ ] 2.0 Candidate Review Table Migration
+### [x] 2.0 Candidate Review Table Migration
 
 Migrate the most complex table — Candidate Review — to DataTable. This includes:
 
@@ -48,10 +48,10 @@ Migrate the most complex table — Candidate Review — to DataTable. This inclu
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Create column definitions file `app/(public)/review-candidates/config/columns.tsx` — define `ColumnDef<HydratedCandidate>[]` with columns: Name, Email, Sponsor, Submitted (date), Status (with `StatusChip` cell renderer, `filterType: 'select'`, custom `sortingFn` using `STATUS_ORDER`, and `StatusLegend` popover in header), Payment (with `CandidatePaymentInfo` cell renderer), Actions (dropdown with View Details, Send Forms, Request Payment, Reject). Export `candidateReviewGlobalFilterFn` searching name, email, and sponsor.
-- [ ] 2.2 Rewrite `CandidateReviewTable.tsx` to use `DataTable` — replace `useCandidateReviewTable` + `CandidateTableControls` + `CandidateTable` + `TablePagination` with `DataTable` using `useDataTableUrlState`, `onRowClick` for row navigation, column definitions from 2.1. Add "Show Archived" toggle as a `useQueryParam('archived', booleanMarshaller)` that pre-filters rejected candidates from the data array. Pass modal callbacks to action column via closure.
-- [ ] 2.3 Delete legacy files — remove `hooks/use-candidate-review-table.ts`, `app/(public)/review-candidates/components/CandidateTableControls.tsx`, `app/(public)/review-candidates/components/CandidateTable.tsx`
-- [ ] 2.4 Verify build — run `yarn build` and confirm no new TypeScript errors
+- [x] 2.1 Create column definitions file `app/(public)/review-candidates/config/columns.tsx` — define `ColumnDef<HydratedCandidate>[]` with columns: Name, Email, Sponsor, Submitted (date), Status (with `StatusChip` cell renderer, `filterType: 'select'`, custom `sortingFn` using `STATUS_ORDER`, and `StatusLegend` popover in header), Payment (with `CandidatePaymentInfo` cell renderer), Actions (dropdown with View Details, Send Forms, Request Payment, Reject). Export `candidateReviewGlobalFilterFn` searching name, email, and sponsor.
+- [x] 2.2 Rewrite `CandidateReviewTable.tsx` to use `DataTable` — replace `useCandidateReviewTable` + `CandidateTableControls` + `CandidateTable` + `TablePagination` with `DataTable` using `useDataTableUrlState`, `onRowClick` for row navigation, column definitions from 2.1. Add "Show Archived" toggle as a `useQueryParam('archived', booleanMarshaller)` that pre-filters rejected candidates from the data array. Pass modal callbacks to action column via closure.
+- [x] 2.3 Delete legacy files — remove `hooks/use-candidate-review-table.ts`, `app/(public)/review-candidates/components/CandidateTableControls.tsx`, `app/(public)/review-candidates/components/CandidateTable.tsx`
+- [x] 2.4 Verify build — run `yarn build` and confirm no new TypeScript errors
 
 ---
 

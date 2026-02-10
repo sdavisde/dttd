@@ -1,13 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { HydratedCandidate } from '@/lib/candidates/types'
 import { logger } from '@/lib/logger'
 import { updateCandidateStatus } from '@/actions/candidates'
-import { CandidateTable } from './CandidateTable'
-import { CandidateTableControls } from './CandidateTableControls'
-import { TablePagination } from '@/components/ui/table-pagination'
-import { useCandidateReviewTable } from '@/hooks/use-candidate-review-table'
 import * as Results from '@/lib/results'
 import {
   sendCandidateForms,
@@ -15,6 +11,20 @@ import {
 } from '@/services/notifications'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { Users } from 'lucide-react'
+import {
+  DataTable,
+  useDataTableUrlState,
+  useQueryParam,
+} from '@/components/ui/data-table'
+import { booleanMarshaller } from '@/lib/marshallers'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import {
+  getCandidateReviewColumns,
+  candidateReviewGlobalFilterFn,
+} from '../config/columns'
 import { SendFormsConfirmationModal } from './SendFormsConfirmationModal'
 import { SendPaymentRequestConfirmationModal } from './SendPaymentRequestConfirmationModal'
 import { RejectCandidateConfirmationModal } from './RejectCandidateConfirmationModal'
@@ -39,31 +49,56 @@ export function CandidateReviewTable({
     useState<HydratedCandidate | null>(null)
   const router = useRouter()
 
-  // Table controls hook
-  const {
-    paginatedCandidates,
-    searchQuery,
-    setSearchQuery,
-    statusFilters,
-    toggleStatusFilter,
-    showArchived,
-    setShowArchived,
-    sortColumn,
-    sortDirection,
-    handleSort,
-    pagination,
-    setPage,
-    setPageSize,
-    clearFilters,
-  } = useCandidateReviewTable(candidates, {
-    initialPageSize: 25,
-    initialPage: 1,
+  // "Show Archived" toggle synced to URL
+  const [showArchived, setShowArchived] = useQueryParam('archived', {
+    ...booleanMarshaller({ defaultValue: false }),
+    history: 'replace',
   })
 
-  const handleReject = (candidate: HydratedCandidate) => {
-    setCandidateForReject(candidate)
-    setIsRejectModalOpen(true)
+  // URL-synced table state
+  const urlState = useDataTableUrlState({
+    defaultSort: [{ id: 'status', desc: false }],
+    defaultPageSize: 25,
+  })
+
+  // Pre-filter: exclude rejected candidates when "Show Archived" is off
+  const filteredCandidates = useMemo(
+    () =>
+      showArchived
+        ? candidates
+        : candidates.filter((c) => c.status !== 'rejected'),
+    [candidates, showArchived]
+  )
+
+  // Row click → navigate to candidate detail
+  const handleRowClick = (candidate: HydratedCandidate) => {
+    router.push(`/review-candidates/${candidate.id}`)
   }
+
+  // Column definitions (stable via useMemo since callbacks are closures)
+  const columns = useMemo(
+    () =>
+      getCandidateReviewColumns({
+        onSendForms: (candidate) => {
+          setCandidateForSendForms(candidate)
+          setIsSendFormsModalOpen(true)
+        },
+        onSendPaymentRequest: (candidate) => {
+          setCandidateForSendPayment(candidate)
+          setIsSendPaymentModalOpen(true)
+        },
+        onReject: (candidate) => {
+          setCandidateForReject(candidate)
+          setIsRejectModalOpen(true)
+        },
+        onViewDetails: handleRowClick,
+        canEditPayments,
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [canEditPayments]
+  )
+
+  // --- Modal handlers (unchanged) ---
 
   const handleRejectConfirm = async () => {
     if (!candidateForReject) return
@@ -92,11 +127,6 @@ export function CandidateReviewTable({
     setCandidateForReject(null)
   }
 
-  const onSendForms = (candidate: HydratedCandidate) => {
-    setCandidateForSendForms(candidate)
-    setIsSendFormsModalOpen(true)
-  }
-
   const handleSendFormsConfirm = async () => {
     if (!candidateForSendForms) return
 
@@ -109,7 +139,6 @@ export function CandidateReviewTable({
       return
     }
 
-    // Set the candidate status to awaiting_forms
     const result = await updateCandidateStatus(
       candidateForSendForms.id,
       'awaiting_forms'
@@ -142,11 +171,6 @@ export function CandidateReviewTable({
     setCandidateForSendForms(null)
   }
 
-  const onSendPaymentRequest = (candidate: HydratedCandidate) => {
-    setCandidateForSendPayment(candidate)
-    setIsSendPaymentModalOpen(true)
-  }
-
   const handleSendPaymentRequestConfirm = async () => {
     if (!candidateForSendPayment) return
 
@@ -173,37 +197,58 @@ export function CandidateReviewTable({
 
   return (
     <>
-      <div className="space-y-4">
-        <CandidateTableControls
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          statusFilters={statusFilters}
-          onToggleStatus={toggleStatusFilter}
-          showArchived={showArchived}
-          onToggleArchived={setShowArchived}
-          onClearFilters={clearFilters}
-        />
-
-        <CandidateTable
-          candidates={paginatedCandidates}
-          sortColumn={sortColumn}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          showArchived={showArchived}
-          canEditPayments={canEditPayments}
-          onSendForms={onSendForms}
-          onSendPaymentRequest={onSendPaymentRequest}
-          onReject={handleReject}
-        />
-
-        <TablePagination
-          pagination={pagination}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-          pageSizeOptions={[10, 25, 50, 100]}
-          alwaysShow={true}
-        />
-      </div>
+      <DataTable
+        columns={columns}
+        data={filteredCandidates}
+        user={null}
+        initialSort={[{ id: 'status', desc: false }]}
+        globalFilterFn={candidateReviewGlobalFilterFn}
+        urlState={urlState}
+        searchPlaceholder="Search by name, email, or sponsor..."
+        onRowClick={handleRowClick}
+        toolbarChildren={
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="show-archived"
+              checked={showArchived}
+              onCheckedChange={(checked) => setShowArchived(checked === true)}
+            />
+            <Label
+              htmlFor="show-archived"
+              className="text-sm cursor-pointer whitespace-nowrap"
+            >
+              Show Archived
+            </Label>
+          </div>
+        }
+        emptyState={{
+          noData: (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/40 mb-4">
+                <Users className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold">No candidates found</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mt-1">
+                No candidates for this weekend.
+              </p>
+            </div>
+          ),
+          noResults: (
+            <div className="space-y-2 py-4">
+              <p className="text-muted-foreground">
+                No candidates found matching your search.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => urlState.onGlobalFilterChange('')}
+              >
+                Clear filters
+              </Button>
+            </div>
+          ),
+        }}
+      />
 
       <SendFormsConfirmationModal
         isOpen={isSendFormsModalOpen}
