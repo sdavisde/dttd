@@ -1,3 +1,9 @@
+## [1.17.1](https://github.com/sdavisde/dttd/compare/v1.17.0...v1.17.1) (2026-02-14)
+
+### Bug Fixes
+
+- fix FK relation between events and weekends ([4ea2fc9](https://github.com/sdavisde/dttd/commit/4ea2fc9d6185ae6bbb6f15462bd1ae19486a63a9))
+
 ## [1.17.0](https://github.com/sdavisde/dttd/compare/v1.16.0...v1.17.0) (2026-02-10)
 
 ### Features
