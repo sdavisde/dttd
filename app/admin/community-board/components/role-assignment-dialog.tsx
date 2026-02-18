@@ -24,15 +24,15 @@ type RoleAssignmentDialogProps = {
   members: AssignableMember[]
   filteredMembers: AssignableMember[]
   search: string
-  onSearchChange: (value: string) => void
+  onSearchChangeAction: (value: string) => void
   isSaving: boolean
-  onClose: () => void
+  onCloseAction: () => void
   // For INDIVIDUAL roles
-  onAssign: (member: AssignableMember) => void
+  onAssignAction: (member: AssignableMember) => void
   // For COMMITTEE roles
   selectedMembers: string[]
-  onToggleMember: (memberId: string) => void
-  onSaveCommittee: () => void
+  onToggleMemberAction: (memberId: string) => void
+  onSaveCommitteeAction: () => void
 }
 
 export function RoleAssignmentDialog({
@@ -40,18 +40,18 @@ export function RoleAssignmentDialog({
   role,
   filteredMembers,
   search,
-  onSearchChange,
+  onSearchChangeAction,
   isSaving,
-  onClose,
-  onAssign,
+  onCloseAction,
+  onAssignAction,
   selectedMembers,
-  onToggleMember,
-  onSaveCommittee,
+  onToggleMemberAction,
+  onSaveCommitteeAction,
 }: RoleAssignmentDialogProps) {
   const isCommittee = role?.type === 'COMMITTEE'
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onCloseAction}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
@@ -70,7 +70,7 @@ export function RoleAssignmentDialog({
           <Input
             placeholder="Search by name or email..."
             value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onChange={(event) => onSearchChangeAction(event.target.value)}
           />
 
           <div className="max-h-72 overflow-y-auto space-y-1">
@@ -82,14 +82,14 @@ export function RoleAssignmentDialog({
               <CommitteeMemberList
                 members={filteredMembers}
                 selectedMembers={selectedMembers}
-                onToggleMember={onToggleMember}
+                onToggleMember={onToggleMemberAction}
                 isSaving={isSaving}
               />
             ) : (
               <IndividualMemberList
                 members={filteredMembers}
                 activeRoleId={role?.id ?? ''}
-                onAssign={onAssign}
+                onAssign={onAssignAction}
                 isSaving={isSaving}
               />
             )}
@@ -97,10 +97,14 @@ export function RoleAssignmentDialog({
 
           {isCommittee && (
             <DialogFooter>
-              <Button variant="outline" onClick={onClose} disabled={isSaving}>
+              <Button
+                variant="outline"
+                onClick={onCloseAction}
+                disabled={isSaving}
+              >
                 Cancel
               </Button>
-              <Button onClick={onSaveCommittee} disabled={isSaving}>
+              <Button onClick={onSaveCommitteeAction} disabled={isSaving}>
                 {isSaving ? 'Saving...' : 'Save Members'}
               </Button>
             </DialogFooter>

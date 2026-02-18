@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { HydratedCandidate, CandidateStatus } from '@/lib/candidates/types'
-import { useTablePagination } from './use-table-pagination'
+import { useClientPagination } from './use-client-pagination'
 
 type SortColumn = 'name' | 'sponsor' | 'submitted' | 'status' | null
 type SortDirection = 'asc' | 'desc'
@@ -181,7 +181,7 @@ export function useCandidateReviewTable(
     previousPage,
     goToFirstPage,
     goToLastPage,
-  } = useTablePagination(filteredAndSortedCandidates, {
+  } = useClientPagination(filteredAndSortedCandidates, {
     initialPageSize,
     initialPage,
   })

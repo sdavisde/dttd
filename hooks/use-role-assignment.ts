@@ -264,13 +264,13 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
       members,
       filteredMembers,
       search,
-      onSearchChange: setSearch,
+      onSearchChangeAction: setSearch,
       isSaving,
-      onClose: closeDialog,
-      onAssign: handleAssign,
+      onCloseAction: closeDialog,
+      onAssignAction: handleAssign,
       selectedMembers: selectedCommitteeMembers,
-      onToggleMember: toggleCommitteeMember,
-      onSaveCommittee: saveCommitteeMembers,
+      onToggleMemberAction: toggleCommitteeMember,
+      onSaveCommitteeAction: saveCommitteeMembers,
     },
 
     // Confirmation dialog props
@@ -279,8 +279,8 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
       pendingMember,
       currentHolders: pendingHolders,
       isSaving,
-      onCancel: closeConfirmation,
-      onConfirm: confirmAssignment,
+      onCancelAction: closeConfirmation,
+      onConfirmAction: confirmAssignment,
     },
 
     // Actions

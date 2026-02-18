@@ -2,7 +2,6 @@
 
 import { ClipboardList } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Typography } from '@/components/ui/typography'
 import { Tables } from '@/lib/supabase/database.types'
 import { usePreWeekendEmail } from '@/hooks/use-pre-weekend-email'
 import {
@@ -46,10 +45,6 @@ export function RoleAssignments({
               <ClipboardList className="h-5 w-5" />
               Board Positions
             </CardTitle>
-            <Typography variant="muted">
-              Read-only view for all admins. Assignment actions appear when
-              WRITE_BOARD_POSITIONS is enabled.
-            </Typography>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -67,7 +62,7 @@ export function RoleAssignments({
                     assignedMembers={
                       roleAssignment.membersByRoleId[role.id] ?? []
                     }
-                    onAssignClick={() => roleAssignment.openDialog(role)}
+                    onAssignAction={() => roleAssignment.openDialog(role)}
                   />
                 )
               )}
@@ -82,7 +77,7 @@ export function RoleAssignments({
               roleAssignment.membersByRoleId[leadersCommitteeRole?.id ?? ''] ??
               []
             }
-            onEditClick={() =>
+            onEditClickAction={() =>
               leadersCommitteeRole &&
               roleAssignment.openDialog(leadersCommitteeRole)
             }

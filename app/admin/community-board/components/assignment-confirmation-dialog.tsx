@@ -17,8 +17,8 @@ type AssignmentConfirmationDialogProps = {
   pendingMember: AssignableMember | null
   currentHolders: AssignableMember[]
   isSaving: boolean
-  onCancel: () => void
-  onConfirm: () => void
+  onCancelAction: () => void
+  onConfirmAction: () => void
 }
 
 export function AssignmentConfirmationDialog({
@@ -26,8 +26,8 @@ export function AssignmentConfirmationDialog({
   pendingMember,
   currentHolders,
   isSaving,
-  onCancel,
-  onConfirm,
+  onCancelAction,
+  onConfirmAction,
 }: AssignmentConfirmationDialogProps) {
   const holderNames = currentHolders
     .map((holder) => formatMemberName(holder))
@@ -38,7 +38,7 @@ export function AssignmentConfirmationDialog({
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
-        if (!isOpen) onCancel()
+        if (!isOpen) onCancelAction()
       }}
     >
       <DialogContent className="sm:max-w-lg">
@@ -59,10 +59,14 @@ export function AssignmentConfirmationDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel} disabled={isSaving}>
+          <Button
+            variant="outline"
+            onClick={onCancelAction}
+            disabled={isSaving}
+          >
             Cancel
           </Button>
-          <Button onClick={onConfirm} disabled={isSaving}>
+          <Button onClick={onConfirmAction} disabled={isSaving}>
             {isSaving ? 'Assigning...' : 'Confirm Assignment'}
           </Button>
         </DialogFooter>

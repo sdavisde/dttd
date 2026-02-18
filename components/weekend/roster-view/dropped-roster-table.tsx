@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useClientPagination } from '@/hooks/use-client-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { CHARole } from '@/lib/weekend/types'
 import { WeekendRosterMember } from '@/services/weekend'
@@ -84,7 +84,7 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
 
   // Pagination setup
   const { paginatedData, pagination, setPage, setPageSize } =
-    useTablePagination(filteredRoster, {
+    useClientPagination(filteredRoster, {
       initialPageSize: 10,
       initialPage: 1,
     })

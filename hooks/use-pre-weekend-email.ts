@@ -15,10 +15,10 @@ type UsePreWeekendEmailReturn = {
   email: string
   isEditing: boolean
   isSaving: boolean
-  setEmail: (email: string) => void
-  startEdit: () => void
-  save: () => Promise<void>
-  cancel: () => void
+  setEmailAction: (email: string) => void
+  startEditAction: () => void
+  saveAction: () => Promise<void>
+  cancelAction: () => void
 }
 
 export function usePreWeekendEmail({
@@ -72,9 +72,9 @@ export function usePreWeekendEmail({
     email,
     isEditing,
     isSaving,
-    setEmail,
-    startEdit,
-    save,
-    cancel,
+    setEmailAction: setEmail,
+    startEditAction: startEdit,
+    saveAction: save,
+    cancelAction: cancel,
   }
 }

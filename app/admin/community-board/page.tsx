@@ -3,8 +3,9 @@ import { Typography } from '@/components/ui/typography'
 import { getMasterRoster } from '@/services/master-roster'
 import { getRoles } from '@/services/identity/roles'
 import { getContactInformation } from '@/services/notifications'
-import { getMeetingMinutesFiles } from '@/lib/files'
+import { getMeetingMinutesPage } from '@/lib/files'
 import { isErr } from '@/lib/results'
+import { PagedFileItems } from '@/lib/files/types'
 import { RoleAssignments } from './components/role-assignments'
 import { MeetingMinutes } from './components/meeting-minutes'
 
@@ -24,7 +25,7 @@ export default async function CommunityBoardPage() {
   const rosterResult = await getMasterRoster()
   const preWeekendCoupleContactResult =
     await getContactInformation('preweekend-couple')
-  const meetingMinutesResult = await getMeetingMinutesFiles()
+  const meetingMinutesResult = await getMeetingMinutesPage(1, 10)
 
   if (isErr(rolesResult)) {
     throw new Error(`Failed to fetch roles: ${rolesResult.error}`)
@@ -53,10 +54,23 @@ export default async function CommunityBoardPage() {
   )
   const boardRoles = roles.filter((role) => role.label !== 'Leaders Committee')
   const preWeekendCoupleContact = preWeekendCoupleContactResult.data
-  // Default to empty array if meeting minutes folder doesn't exist yet
-  const meetingMinutesFiles = isErr(meetingMinutesResult)
-    ? []
-    : meetingMinutesResult.data
+  const meetingMinutesPageSize = 10
+  let meetingMinutesLoadError: string | null = null
+  let meetingMinutesInitialPageData: PagedFileItems
+
+  if (isErr(meetingMinutesResult)) {
+    meetingMinutesLoadError = meetingMinutesResult.error
+    meetingMinutesInitialPageData = {
+      page: 1,
+      pageSize: meetingMinutesPageSize,
+      sortField: 'created_at',
+      sortDirection: 'desc',
+      currentPageItems: [],
+      nextPageItems: [],
+    }
+  } else {
+    meetingMinutesInitialPageData = meetingMinutesResult.data
+  }
 
   const sortedBoardRoles = [...boardRoles].sort((a, b) => {
     const aIndex = roleSortOrder.indexOf(a.label)
@@ -93,7 +107,10 @@ export default async function CommunityBoardPage() {
           preWeekendCoupleContact={preWeekendCoupleContact}
         />
 
-        <MeetingMinutes initialFiles={meetingMinutesFiles} />
+        <MeetingMinutes
+          initialPageData={meetingMinutesInitialPageData}
+          loadError={meetingMinutesLoadError}
+        />
       </div>
     </>
   )

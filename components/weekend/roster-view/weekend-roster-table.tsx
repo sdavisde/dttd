@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Edit, Search, Stethoscope } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useClientPagination } from '@/hooks/use-client-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { EditTeamMemberModal } from './edit-team-member-modal'
 import { MedicalInfoModal } from './medical-info-modal'
@@ -123,7 +123,7 @@ export function WeekendRosterTable({
 
   // Pagination setup
   const { paginatedData, pagination, setPage, setPageSize } =
-    useTablePagination(filteredRoster, {
+    useClientPagination(filteredRoster, {
       initialPageSize: 10,
       initialPage: 1,
     })

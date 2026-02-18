@@ -12,10 +12,10 @@ type PreWeekendRoleCardProps = {
   email: string
   isEditing: boolean
   isSaving: boolean
-  setEmail: (email: string) => void
-  startEdit: () => void
-  save: () => void
-  cancel: () => void
+  setEmailAction: (email: string) => void
+  startEditAction: () => void
+  saveAction: () => void
+  cancelAction: () => void
 }
 
 export function PreWeekendRoleCard({
@@ -23,16 +23,16 @@ export function PreWeekendRoleCard({
   email,
   isEditing,
   isSaving,
-  setEmail,
-  startEdit,
-  save,
-  cancel,
+  setEmailAction,
+  startEditAction,
+  saveAction,
+  cancelAction,
 }: PreWeekendRoleCardProps) {
   const description = role.description ?? 'Role description coming soon.'
 
   return (
     <Card className="border-muted">
-      <CardContent className="space-y-3 pt-6">
+      <CardContent className="space-y-3">
         <div>
           <Typography variant="h5">{role.label}</Typography>
           <Typography variant="muted">{description}</Typography>
@@ -47,17 +47,17 @@ export function PreWeekendRoleCard({
                 id="preweekend-email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmailAction(e.target.value)}
                 placeholder="email@example.com"
                 disabled={isSaving}
               />
-              <Button size="sm" onClick={save} disabled={isSaving}>
+              <Button size="sm" onClick={saveAction} disabled={isSaving}>
                 <Save className="h-4 w-4" />
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                onClick={cancel}
+                onClick={cancelAction}
                 disabled={isSaving}
               >
                 <X className="h-4 w-4" />
@@ -68,7 +68,7 @@ export function PreWeekendRoleCard({
               <div className="flex-1 rounded-md border px-3 py-2 text-sm">
                 {email || 'No email set'}
               </div>
-              <Button size="sm" variant="outline" onClick={startEdit}>
+              <Button size="sm" variant="outline" onClick={startEditAction}>
                 Edit
               </Button>
             </div>

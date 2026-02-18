@@ -13,20 +13,20 @@ import type {
 type RoleCardProps = {
   role: CommunityBoardRole
   assignedMembers: AssignableMember[]
-  onAssignClick: () => void
+  onAssignAction: () => void
 }
 
 export function RoleCard({
   role,
   assignedMembers,
-  onAssignClick,
+  onAssignAction,
 }: RoleCardProps) {
   const description = role.description ?? 'Role description coming soon.'
   const hasAssignments = assignedMembers.length > 0
 
   return (
     <Card className="border-muted">
-      <CardContent className="space-y-3 pt-6">
+      <CardContent className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <Typography variant="h5">{role.label}</Typography>
@@ -47,7 +47,7 @@ export function RoleCard({
                 Unassigned
               </Badge>
             )}
-            <Button variant="outline" size="sm" onClick={onAssignClick}>
+            <Button variant="outline" size="sm" onClick={onAssignAction}>
               Assign
             </Button>
           </div>

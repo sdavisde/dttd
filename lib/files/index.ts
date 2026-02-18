@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { err, isErr, ok, Result } from '@/lib/results'
+import { err, ok, Result } from '@/lib/results'
 import { slugify, unslugify } from '@/lib/url'
 import { FileObject } from '@supabase/storage-js'
+import { PagedFileItems, StorageSortDirection, StorageSortField } from './types'
 
 export type Bucket = {
   name: string
@@ -61,14 +62,34 @@ export async function getFileSystemItems(
   path: string = ''
 ): Promise<Result<string, FileObject[]>> {
   const supabase = await createClient()
-  const { data: items, error } = await supabase.storage.from(bucket).list(path)
+  const pageSize = 100
+  const allItems: FileObject[] = []
+  let offset = 0
 
-  if (error) {
-    return err(`Error fetching items for ${bucket}/${path}: ${error.message}`)
+  while (true) {
+    const { data: items, error } = await supabase.storage
+      .from(bucket)
+      .list(path, {
+        limit: pageSize,
+        offset,
+      })
+
+    if (error) {
+      return err(`Error fetching items for ${bucket}/${path}: ${error.message}`)
+    }
+
+    const pageItems = items ?? []
+    allItems.push(...pageItems)
+
+    if (pageItems.length < pageSize) {
+      break
+    }
+
+    offset += pageSize
   }
 
   return ok(
-    items
+    allItems
       .filter((item) => item.name !== '.placeholder') // Filter out placeholder files
       .sort((a, b) => a.name.localeCompare(b.name))
   )
@@ -122,6 +143,80 @@ export async function getMeetingMinutesFiles(): Promise<
   Result<string, FileObject[]>
 > {
   return getFileSystemItems('files', MEETING_MINUTES_FOLDER)
+}
+
+/**
+ * Fetches one page plus the next page for efficient forward pagination.
+ */
+export async function getFileSystemItemsPage(
+  bucket: string = 'files',
+  path: string = '',
+  page: number = 1,
+  pageSize: number = 10,
+  sortField: StorageSortField = 'created_at',
+  sortDirection: StorageSortDirection = 'desc'
+): Promise<Result<string, PagedFileItems>> {
+  const supabase = await createClient()
+  const safePage = Math.max(1, page)
+  const safePageSize = Math.max(1, pageSize)
+  const currentOffset = (safePage - 1) * safePageSize
+  const nextOffset = currentOffset + safePageSize
+
+  const [currentPageResult, nextPageResult] = await Promise.all([
+    supabase.storage.from(bucket).list(path, {
+      limit: safePageSize,
+      offset: currentOffset,
+      sortBy: { column: sortField, order: sortDirection },
+    }),
+    supabase.storage.from(bucket).list(path, {
+      limit: safePageSize,
+      offset: nextOffset,
+      sortBy: { column: sortField, order: sortDirection },
+    }),
+  ])
+
+  if (currentPageResult.error) {
+    return err(
+      `Error fetching page ${safePage} for ${bucket}/${path}: ${currentPageResult.error.message}`
+    )
+  }
+
+  if (nextPageResult.error) {
+    return err(
+      `Error fetching page ${safePage + 1} for ${bucket}/${path}: ${nextPageResult.error.message}`
+    )
+  }
+
+  const sanitize = (items: FileObject[] | null) =>
+    (items ?? []).filter((item) => item.name !== '.placeholder')
+
+  return ok({
+    page: safePage,
+    pageSize: safePageSize,
+    sortField,
+    sortDirection,
+    currentPageItems: sanitize(currentPageResult.data),
+    nextPageItems: sanitize(nextPageResult.data),
+  })
+}
+
+/**
+ * Fetches one meeting-minutes page plus the subsequent page.
+ */
+export async function getMeetingMinutesPage(
+  page: number = 1,
+  pageSize: number = 10,
+  sortField: StorageSortField = 'created_at',
+  sortDirection: StorageSortDirection = 'desc'
+): Promise<Result<string, PagedFileItems>> {
+  return getFileSystemItemsPage(
+    'files',
+    MEETING_MINUTES_FOLDER,
+    page,
+    pageSize,
+    sortField,
+    sortDirection
+  )
 }
 
 /**

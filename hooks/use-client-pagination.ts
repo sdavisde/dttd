@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react'
 
-export interface UsePaginationOptions {
+export interface UseClientPaginationOptions {
   initialPage?: number
   initialPageSize?: number
 }
 
-export interface PaginationState {
+export interface ClientPaginationState {
   currentPage: number
   pageSize: number
   totalItems: number
@@ -16,7 +16,7 @@ export interface PaginationState {
   hasPreviousPage: boolean
 }
 
-export interface PaginationActions {
+export interface ClientPaginationActions {
   setPage: (page: number) => void
   setPageSize: (size: number) => void
   nextPage: () => void
@@ -25,16 +25,16 @@ export interface PaginationActions {
   goToLastPage: () => void
 }
 
-export function useTablePagination<T>(
+export function useClientPagination<T>(
   data: T[],
-  options: UsePaginationOptions = {}
+  options: UseClientPaginationOptions = {}
 ) {
   const { initialPage = 1, initialPageSize = 10 } = options
 
   const [currentPage, setCurrentPage] = useState(initialPage)
   const [pageSize, setPageSize] = useState(initialPageSize)
 
-  const paginationState = useMemo((): PaginationState => {
+  const paginationState = useMemo((): ClientPaginationState => {
     const totalItems = data.length
     const totalPages = Math.ceil(totalItems / pageSize)
     const validCurrentPage = Math.min(
@@ -63,13 +63,13 @@ export function useTablePagination<T>(
     return data.slice(start, end)
   }, [data, paginationState.startIndex, pageSize])
 
-  const actions: PaginationActions = {
+  const actions: ClientPaginationActions = {
     setPage: (page: number) => {
       setCurrentPage(Math.min(Math.max(1, page), paginationState.totalPages))
     },
     setPageSize: (size: number) => {
       setPageSize(size)
-      setCurrentPage(1) // Reset to first page when page size changes
+      setCurrentPage(1)
     },
     nextPage: () => {
       if (paginationState.hasNextPage) {

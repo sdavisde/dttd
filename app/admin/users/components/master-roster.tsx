@@ -33,7 +33,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Permission, userHasPermission } from '@/lib/security'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useClientPagination } from '@/hooks/use-client-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { Card, CardContent } from '@/components/ui/card'
 import { Check, Minus } from 'lucide-react'
@@ -90,7 +90,7 @@ export default function MasterRoster({
 
   // Pagination setup
   const { paginatedData, pagination, setPage, setPageSize } =
-    useTablePagination(filteredUsers, {
+    useClientPagination(filteredUsers, {
       initialPageSize: 10,
       initialPage: 1,
     })

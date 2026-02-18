@@ -16,10 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PaginationState } from '@/hooks/use-table-pagination'
+import { ClientPaginationState } from '@/hooks/use-client-pagination'
 
 interface TablePaginationProps {
-  pagination: PaginationState
+  pagination: ClientPaginationState
   onPageChange: (page: number) => void
   onPageSizeChange: (size: number) => void
   pageSizeOptions?: number[]

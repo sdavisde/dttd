@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import { PaymentRecord } from '@/lib/payments/types'
-import { useTablePagination } from '@/hooks/use-table-pagination'
+import { useClientPagination } from '@/hooks/use-client-pagination'
 import { TablePagination } from '@/components/ui/table-pagination'
 
 type PaymentsProps = {
@@ -113,7 +113,7 @@ export function Payments({ payments }: PaymentsProps) {
 
   // Pagination setup
   const { paginatedData, pagination, setPage, setPageSize } =
-    useTablePagination(filteredPayments, {
+    useClientPagination(filteredPayments, {
       initialPageSize: 10,
       initialPage: 1,
     })

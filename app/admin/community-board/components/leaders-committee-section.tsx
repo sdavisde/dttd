@@ -12,13 +12,13 @@ import type {
 type LeadersCommitteeSectionProps = {
   role: CommunityBoardRole | null
   members: AssignableMember[]
-  onEditClick: () => void
+  onEditClickAction: () => void
 }
 
 export function LeadersCommitteeSection({
   role,
   members,
-  onEditClick,
+  onEditClickAction,
 }: LeadersCommitteeSectionProps) {
   const description =
     role?.description ?? 'Committee assignments for board leadership.'
@@ -59,7 +59,7 @@ export function LeadersCommitteeSection({
             variant="outline"
             size="sm"
             className="mt-2"
-            onClick={onEditClick}
+            onClick={onEditClickAction}
           >
             Edit Committee Members
           </Button>
