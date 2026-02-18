@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle } from 'lucide-react'
-import { PagedFileItems } from '@/lib/files/types'
+import { PagedMeetingMinuteFiles } from '@/lib/files/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
@@ -9,7 +9,7 @@ import { MeetingMinutesUpload } from './meeting-minutes-upload'
 import { MeetingMinutesTable } from './meeting-minutes-table'
 
 type MeetingMinutesProps = {
-  initialPageData: PagedFileItems
+  initialPageData: PagedMeetingMinuteFiles
   loadError?: string | null
 }
 

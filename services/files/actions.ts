@@ -3,7 +3,7 @@
 import { Result } from '@/lib/results'
 import { getMeetingMinutesPage } from '@/lib/files'
 import {
-  PagedFileItems,
+  PagedMeetingMinuteFiles,
   StorageSortDirection,
   StorageSortField,
 } from '@/lib/files/types'
@@ -20,6 +20,6 @@ export async function getMeetingMinutesPageAction({
   pageSize = 10,
   sortField = 'created_at',
   sortDirection = 'desc',
-}: MeetingMinutesPageParams): Promise<Result<string, PagedFileItems>> {
+}: MeetingMinutesPageParams): Promise<Result<string, PagedMeetingMinuteFiles>> {
   return getMeetingMinutesPage(page, pageSize, sortField, sortDirection)
 }

@@ -1,9 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { err, ok, Result } from '@/lib/results'
+import { err, isErr, ok, Result } from '@/lib/results'
 import { slugify, unslugify } from '@/lib/url'
 import { FileObject } from '@supabase/storage-js'
-import { PagedFileItems, StorageSortDirection, StorageSortField } from './types'
+import {
+  MeetingMinuteFile,
+  PagedFileItems,
+  PagedMeetingMinuteFiles,
+  StorageSortDirection,
+  StorageSortField,
+} from './types'
 
 export type Bucket = {
   name: string
@@ -201,15 +207,38 @@ export async function getFileSystemItemsPage(
 }
 
 /**
- * Fetches one meeting-minutes page plus the subsequent page.
+ * Calls .info() per file to extract custom user_metadata (e.g. location).
+ * Supabase's .list() does not return user_metadata, only .info() does.
+ */
+async function enrichWithLocation(
+  files: FileObject[],
+  path: string
+): Promise<MeetingMinuteFile[]> {
+  const supabase = await createClient()
+  return Promise.all(
+    files.map(async (file) => {
+      const { data } = await supabase.storage
+        .from('files')
+        .info(`${path}/${file.name}`)
+      return {
+        ...file,
+        location: (data?.metadata?.location as string) ?? undefined,
+      }
+    })
+  )
+}
+
+/**
+ * Fetches one meeting-minutes page plus the subsequent page,
+ * enriched with location metadata from .info() calls.
  */
 export async function getMeetingMinutesPage(
   page: number = 1,
   pageSize: number = 10,
   sortField: StorageSortField = 'created_at',
   sortDirection: StorageSortDirection = 'desc'
-): Promise<Result<string, PagedFileItems>> {
-  return getFileSystemItemsPage(
+): Promise<Result<string, PagedMeetingMinuteFiles>> {
+  const result = await getFileSystemItemsPage(
     'files',
     MEETING_MINUTES_FOLDER,
     page,
@@ -217,6 +246,19 @@ export async function getMeetingMinutesPage(
     sortField,
     sortDirection
   )
+
+  if (isErr(result)) return result
+
+  const [enrichedCurrent, enrichedNext] = await Promise.all([
+    enrichWithLocation(result.data.currentPageItems, MEETING_MINUTES_FOLDER),
+    enrichWithLocation(result.data.nextPageItems, MEETING_MINUTES_FOLDER),
+  ])
+
+  return ok({
+    ...result.data,
+    currentPageItems: enrichedCurrent,
+    nextPageItems: enrichedNext,
+  })
 }
 
 /**

@@ -35,14 +35,14 @@ type SortDirection = 'asc' | 'desc'
 type SortableFileTableProps = {
   files: FileObject[]
   folderName: string
-  onFileClick?: (file: FileObject) => void
+  onFileClickAction?: (file: FileObject) => void
   emptyMessage?: string
 }
 
 export function SortableFileTable({
   files: initialFiles,
   folderName,
-  onFileClick,
+  onFileClickAction,
   emptyMessage = 'No files found in this folder.',
 }: SortableFileTableProps) {
   const [files, setFiles] = useState<FileObject[]>(initialFiles)
@@ -102,8 +102,8 @@ export function SortableFileTable({
   }
 
   const handleRowClick = (file: FileObject) => {
-    if (onFileClick) {
-      onFileClick(file)
+    if (onFileClickAction) {
+      onFileClickAction(file)
     } else {
       handlePreview(file)
     }

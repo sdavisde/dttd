@@ -2,7 +2,11 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { FileObject } from '@supabase/storage-js'
-import { PagedFileItems, StorageSortField } from '@/lib/files/types'
+import {
+  MeetingMinuteFile,
+  PagedMeetingMinuteFiles,
+  StorageSortField,
+} from '@/lib/files/types'
 import { getMeetingMinutesPageAction } from '@/services/files/actions'
 import { MEETING_MINUTES_FOLDER } from '@/lib/files/constants'
 import { logger } from '@/lib/logger'
@@ -35,7 +39,7 @@ import {
 import { toast } from 'sonner'
 
 type MeetingMinutesTableProps = {
-  initialPageData: PagedFileItems
+  initialPageData: PagedMeetingMinuteFiles
 }
 
 export function MeetingMinutesTable({
@@ -54,7 +58,7 @@ export function MeetingMinutesTable({
     previousPage,
     toggleSort,
     removeItemFromCache,
-  } = useServerPagination<FileObject, StorageSortField>({
+  } = useServerPagination<MeetingMinuteFile, StorageSortField>({
     initialPageData,
     fetchPage: getMeetingMinutesPageAction,
   })
@@ -70,7 +74,7 @@ export function MeetingMinutesTable({
     )
   }
 
-  const handlePreview = (file: FileObject) => {
+  const handlePreview = (file: MeetingMinuteFile) => {
     const supabase = createClient()
 
     const { data: publicUrlData } = supabase.storage
@@ -80,7 +84,7 @@ export function MeetingMinutesTable({
     window.open(publicUrlData.publicUrl, '_blank')
   }
 
-  const handleDownload = async (file: FileObject) => {
+  const handleDownload = async (file: MeetingMinuteFile) => {
     const supabase = createClient()
     const { data, error } = await supabase.storage
       .from('files')
@@ -151,6 +155,7 @@ export function MeetingMinutesTable({
                     {getSortIcon('created_at')}
                   </Button>
                 </TableHead>
+                <TableHead className="min-w-[150px]">Location</TableHead>
                 <TableHead className="sticky right-0 bg-background text-right min-w-[120px] border-l">
                   Actions
                 </TableHead>
@@ -173,6 +178,9 @@ export function MeetingMinutesTable({
                     {file.created_at
                       ? new Date(file.created_at).toLocaleDateString()
                       : '-'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {file.location ?? '-'}
                   </TableCell>
                   <TableCell className="sticky right-0 bg-background text-right border-l">
                     <div
@@ -270,12 +278,13 @@ export function MeetingMinutesTable({
                 />
               </div>
             </div>
-            <div className="text-sm text-muted-foreground">
-              <span>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <div>
                 {file.created_at
                   ? new Date(file.created_at).toLocaleDateString()
                   : '-'}
-              </span>
+              </div>
+              {file.location && <div>{file.location}</div>}
             </div>
           </div>
         ))}

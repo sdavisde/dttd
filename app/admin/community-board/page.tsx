@@ -5,7 +5,7 @@ import { getRoles } from '@/services/identity/roles'
 import { getContactInformation } from '@/services/notifications'
 import { getMeetingMinutesPage } from '@/lib/files'
 import { isErr } from '@/lib/results'
-import { PagedFileItems } from '@/lib/files/types'
+import { PagedMeetingMinuteFiles } from '@/lib/files/types'
 import { RoleAssignments } from './components/role-assignments'
 import { MeetingMinutes } from './components/meeting-minutes'
 
@@ -56,7 +56,7 @@ export default async function CommunityBoardPage() {
   const preWeekendCoupleContact = preWeekendCoupleContactResult.data
   const meetingMinutesPageSize = 10
   let meetingMinutesLoadError: string | null = null
-  let meetingMinutesInitialPageData: PagedFileItems
+  let meetingMinutesInitialPageData: PagedMeetingMinuteFiles
 
   if (isErr(meetingMinutesResult)) {
     meetingMinutesLoadError = meetingMinutesResult.error

@@ -11,3 +11,15 @@ export type PagedFileItems = {
   currentPageItems: FileObject[]
   nextPageItems: FileObject[]
 }
+
+export type MeetingMinuteFile = FileObject & {
+  location?: string
+}
+
+export type PagedMeetingMinuteFiles = Omit<
+  PagedFileItems,
+  'currentPageItems' | 'nextPageItems'
+> & {
+  currentPageItems: MeetingMinuteFile[]
+  nextPageItems: MeetingMinuteFile[]
+}
