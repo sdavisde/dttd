@@ -702,15 +702,12 @@ export async function getWeekendOptions(): Promise<
   if (isErr(groupsResult)) return err(groupsResult.error)
 
   const options = groupsResult.data.flatMap((group) => {
-    const mens = group.weekends.MENS
-    const womens = group.weekends.WOMENS
-    const results: Array<{ id: string; label: string }> = []
+    // Use group ID (not individual weekend ID) since gender is selected separately
+    const weekend = group.weekends.MENS ?? group.weekends.WOMENS
+    if (isNil(weekend) || isNil(group.groupId)) return []
 
-    if (mens) results.push({ id: mens.id, label: formatWeekendTitle(mens) })
-    if (womens)
-      results.push({ id: womens.id, label: formatWeekendTitle(womens) })
-
-    return results
+    const label = getWeekendLabel(weekend)
+    return [{ id: group.groupId, label }]
   })
 
   // Return reversed (newest first)
