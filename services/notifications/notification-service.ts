@@ -176,10 +176,8 @@ async function sendCandidatePaymentEmail(
     | 'sponsor'
 
   // Build hydrated candidate shape for email template
-  // Exclude candidate_payments since the email template doesn't use it
-  const { candidate_payments, ...candidateWithoutPayments } = rawCandidate
   const candidate = {
-    ...candidateWithoutPayments,
+    ...rawCandidate,
     candidate_info: candidateInfo,
     candidate_sponsorship_info: sponsorshipInfo,
   } as HydratedCandidate

@@ -15,19 +15,25 @@ import { logger } from '@/lib/logger'
 import * as PaymentService from '@/services/payment/payment-service'
 import type { PaymentTransactionRow } from '@/services/payment/types'
 
-function normalizeCandidate(
+async function normalizeCandidate(
   rawCandidate: RawCandidate
-): Result<string, Candidate> {
+): Promise<Result<string, Candidate>> {
   if (isNil(rawCandidate)) {
     return err('Candidate not found')
   }
 
   const candidateInfo = rawCandidate.candidate_info?.at(0)
   const sponsorshipInfo = rawCandidate.candidate_sponsorship_info?.at(0)
-  const payments = rawCandidate.candidate_payments ?? []
+
+  // Fetch payments from payment_transaction table
+  const paymentsResult = await PaymentService.getPaymentForTarget(
+    'candidate',
+    rawCandidate.id
+  )
+  const payments = isErr(paymentsResult) ? [] : paymentsResult.data
 
   // Calculate total amount paid
-  const amountPaid = sumBy(payments, (it) => it.payment_amount ?? 0)
+  const amountPaid = sumBy(payments, (it) => it.gross_amount)
 
   // Build address from candidate_info if available
   const addressData = {
@@ -118,7 +124,7 @@ export async function getCandidateById(
   if (isErr(result)) {
     return result
   }
-  return normalizeCandidate(result.data)
+  return await normalizeCandidate(result.data)
 }
 
 /**
@@ -132,8 +138,11 @@ export async function getAllCandidates(): Promise<
     return result
   }
 
-  const candidates = result.data
-    .map((raw) => unwrapOr(normalizeCandidate(raw), null))
+  const normalizedResults = await Promise.all(
+    result.data.map((raw) => normalizeCandidate(raw))
+  )
+  const candidates = normalizedResults
+    .map((r) => unwrapOr(r, null))
     .filter((c) => !isNil(c))
 
   return ok(candidates)

@@ -82,8 +82,7 @@ export function CandidateCashCheckPaymentModal({
       ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
       : null
   const currentPaid =
-    candidate.candidate_payments?.reduce((sum, p) => sum + p.gross_amount, 0) ??
-    0
+    candidate.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
   const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -250,7 +249,6 @@ export function CandidateCashCheckPaymentModal({
                   id="payment-amount"
                   type="number"
                   min="0"
-                  max={remainingBalance ?? undefined}
                   step="0.01"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
@@ -260,12 +258,6 @@ export function CandidateCashCheckPaymentModal({
                   disabled={!paymentType}
                 />
               </div>
-              {remainingBalance !== null &&
-                parseFloat(paymentAmount) > remainingBalance && (
-                  <p className="text-xs text-amber-600">
-                    Amount exceeds remaining balance
-                  </p>
-                )}
             </div>
 
             {/* Notes */}

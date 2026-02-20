@@ -16,7 +16,7 @@ export type HydratedCandidate = Omit<
   candidate_sponsorship_info?: Database['public']['Tables']['candidate_sponsorship_info']['Row']
   candidate_info?: Database['public']['Tables']['candidate_info']['Row']
   /** Payments from payment_transaction table */
-  candidate_payments?: PaymentRecord[]
+  payments?: PaymentRecord[]
 }
 
 export type CandidateFormData = Omit<

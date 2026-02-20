@@ -40,7 +40,7 @@ export function CandidatePaymentInfoModal({
     return null
   }
 
-  const payments = candidate.candidate_payments ?? []
+  const payments = candidate.payments ?? []
   const candidateName =
     candidate.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
 

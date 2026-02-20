@@ -63,8 +63,7 @@ const statusSortingFn: SortingFn<HydratedCandidate> = (
 
 function getPaymentCategory(candidate: HydratedCandidate): string {
   const paid =
-    candidate.candidate_payments?.reduce((sum, p) => sum + p.gross_amount, 0) ??
-    0
+    candidate.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
   if (paid <= 0) return 'Unpaid'
   if (paid >= PAYMENT_CONSTANTS.CANDIDATE_FEE) return 'Paid'
   return 'Partial'

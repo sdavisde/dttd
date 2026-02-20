@@ -180,7 +180,7 @@ export async function getAllCandidatesWithDetails(
     const needsWeekendFilter = !!options.weekendGroupId || !!options.weekendType
     const weekendJoinType = needsWeekendFilter ? '!inner' : ''
 
-    // Query candidates without candidate_payments (we'll fetch from payment_transaction)
+    // Query candidates (payments are fetched separately from payment_transaction)
     let query = supabase.from('candidates').select(`
         *,
         candidate_sponsorship_info(*),
@@ -234,7 +234,7 @@ export async function getAllCandidatesWithDetails(
         ...candidate,
         candidate_sponsorship_info: candidate.candidate_sponsorship_info.at(0),
         candidate_info: candidate.candidate_info.at(0),
-        candidate_payments: paymentsMap.get(candidate.id) ?? [],
+        payments: paymentsMap.get(candidate.id) ?? [],
       })) as HydratedCandidate[]
     )
   } catch (error) {

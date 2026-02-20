@@ -51,8 +51,7 @@ function getEmail(c: HydratedCandidate): string | null {
 
 function getPaymentStatus(c: HydratedCandidate): string {
   const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
-  const paid =
-    c.candidate_payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
+  const paid = c.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
   const balance = totalFee - paid
   if (balance <= 0) return 'Paid'
   if (paid > 0) return `$${paid} / $${totalFee}`

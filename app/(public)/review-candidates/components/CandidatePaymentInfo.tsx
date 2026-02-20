@@ -38,7 +38,7 @@ export const CandidatePaymentInfo = ({
   }
 
   const { paid, display } = formatPaymentSummary(candidate)
-  const hasPayments = (candidate.candidate_payments?.length ?? 0) > 0
+  const hasPayments = (candidate.payments?.length ?? 0) > 0
 
   return (
     <div className="flex items-center gap-2">
@@ -102,8 +102,7 @@ export const CandidatePaymentInfo = ({
 function formatPaymentSummary(candidate: HydratedCandidate) {
   const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
   const paid =
-    candidate.candidate_payments?.reduce((sum, p) => sum + p.gross_amount, 0) ??
-    0
+    candidate.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
   const balance = totalFee - paid
 
   return {

@@ -18,7 +18,7 @@ export type SponsorInfo = {
 
 /**
  * Normalized Candidate type for frontend consumption.
- * Aggregates data from candidates, candidate_info, candidate_sponsorship_info, and candidate_payments tables.
+ * Aggregates data from candidates, candidate_info, and candidate_sponsorship_info tables.
  */
 export type Candidate = {
   id: string
@@ -42,5 +42,4 @@ export type Candidate = {
 export type RawCandidate = Tables<'candidates'> & {
   candidate_info: Array<Tables<'candidate_info'>>
   candidate_sponsorship_info: Array<Tables<'candidate_sponsorship_info'>>
-  candidate_payments: Array<Tables<'candidate_payments'>>
 }

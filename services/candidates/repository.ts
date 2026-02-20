@@ -8,8 +8,7 @@ import { isSupabaseError } from '@/lib/supabase/utils'
 export const CandidateQuery = `
   *,
   candidate_info(*),
-  candidate_sponsorship_info(*),
-  candidate_payments(*)
+  candidate_sponsorship_info(*)
 `
 
 export const getCandidateById = async (candidateId: string) => {
