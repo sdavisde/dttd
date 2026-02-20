@@ -57,17 +57,25 @@ type ReleaseOfClaimFormValues = z.infer<typeof releaseOfClaimSchema>
 
 interface ReleaseOfClaimFormProps {
   rosterId: string
+  initialSpecialNeeds?: string
 }
 
-export function ReleaseOfClaimForm({ rosterId }: ReleaseOfClaimFormProps) {
+export function ReleaseOfClaimForm({
+  rosterId,
+  initialSpecialNeeds,
+}: ReleaseOfClaimFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const hasExistingNeeds =
+    !isEmpty(initialSpecialNeeds) && initialSpecialNeeds !== 'None'
 
   const form = useForm<ReleaseOfClaimFormValues>({
     resolver: zodResolver(releaseOfClaimSchema),
     defaultValues: {
+      has_special_needs: hasExistingNeeds ? 'yes' : undefined,
       signature: '',
-      special_needs_description: '',
+      special_needs_description: hasExistingNeeds ? initialSpecialNeeds : '',
     },
   })
 

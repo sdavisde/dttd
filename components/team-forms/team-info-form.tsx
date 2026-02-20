@@ -34,7 +34,10 @@ import {
   completeInfoSheet,
   updateRosterMedicalInfo,
 } from '@/actions/team-forms'
-import { updateUserAddress, updateUserBasicInfo } from '@/services/identity/user'
+import {
+  updateUserAddress,
+  updateUserBasicInfo,
+} from '@/services/identity/user'
 
 interface TeamInfoFormProps {
   userId: string
@@ -122,7 +125,7 @@ export function TeamInfoForm({
     }
 
     toast.success('Information saved successfully!')
-    router.push('/')
+    router.push('/team-forms')
     setIsSubmitting(false)
   }
 

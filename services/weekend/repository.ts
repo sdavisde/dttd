@@ -351,6 +351,27 @@ export async function insertWeekendRosterMember(data: {
 }
 
 /**
+ * Fetches the special_needs field for a roster record by ID.
+ */
+export async function findRosterSpecialNeeds(
+  id: string
+): Promise<Result<string, string | null>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select('special_needs')
+    .eq('id', id)
+    .single()
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data?.special_needs ?? null)
+}
+
+/**
  * Fetches a roster record by ID to verify it exists.
  */
 export async function findRosterRecordById(

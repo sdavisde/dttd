@@ -693,6 +693,15 @@ export async function recordManualPayment(
 }
 
 /**
+ * Fetches the special_needs field for a roster record.
+ */
+export async function getRosterSpecialNeeds(
+  rosterId: string
+): Promise<Result<string, string | null>> {
+  return WeekendRepository.findRosterSpecialNeeds(rosterId)
+}
+
+/**
  * Fetches weekend options for dropdowns/selectors.
  */
 export async function getWeekendOptions(): Promise<

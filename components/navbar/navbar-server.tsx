@@ -39,6 +39,8 @@ export type NavElement = {
   featured?: NavFeaturedContent
   // Visual indicator for restricted/special items
   badge?: 'restricted' | 'new'
+  // Only show this item if the user is on an active weekend team
+  requiresTeamMembership?: boolean
 }
 
 async function getNavElements(): Promise<NavElement[]> {
@@ -114,6 +116,14 @@ async function getNavElements(): Promise<NavElement[]> {
       icon: 'calendar',
       featured: featuredContent,
       children: [
+        {
+          name: 'Team Forms',
+          slug: 'team-forms',
+          permissions_needed: [],
+          description: 'Complete your team forms',
+          icon: 'clipboard-list',
+          requiresTeamMembership: true,
+        },
         {
           name: 'Team Roster',
           slug: 'roster',

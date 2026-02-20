@@ -25,7 +25,7 @@ export default async function TeamFormsPage() {
 
   const user = userResult.data
 
-  if (isNil(user.teamMemberInfo)) {
+  if (isNil(user.teamMemberInfo) || user.teamMemberInfo.status === 'drop') {
     redirect('/?error=UserNotOnRoster')
   }
 
@@ -130,18 +130,9 @@ export default async function TeamFormsPage() {
                 ) : (
                   <Circle className="h-6 w-6 text-muted-foreground" />
                 )}
-                <span
-                  className={cn(
-                    'font-medium',
-                    step.isComplete && 'text-muted-foreground line-through'
-                  )}
-                >
-                  {step.label}
-                </span>
+                <span className="font-medium">{step.label}</span>
               </div>
-              {!step.isComplete && (
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-              )}
+              <ArrowRight className="h-5 w-5 text-muted-foreground" />
             </Link>
           ))}
         </div>
@@ -159,6 +150,9 @@ export default async function TeamFormsPage() {
               <CheckCircle2 className="h-5 w-5" />
               <p className="font-medium">All forms completed!</p>
             </div>
+            <p className="text-sm mt-1 ml-7">
+              You can revisit and update any form above if needed.
+            </p>
           </div>
         )}
       </CardContent>

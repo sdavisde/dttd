@@ -92,6 +92,14 @@ export async function recordManualPayment(
 }
 
 /**
+ * Fetches the special_needs field for a roster record.
+ * Public - used by team form pages for pre-fill.
+ */
+export async function getRosterSpecialNeeds(rosterId: string) {
+  return WeekendService.getRosterSpecialNeeds(rosterId)
+}
+
+/**
  * Fetches weekend options for dropdowns.
  * Public - no auth per user request.
  */

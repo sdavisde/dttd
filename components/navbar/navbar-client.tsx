@@ -20,8 +20,13 @@ export function Navbar({ navElements }: NavbarClientProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const { isAuthenticated, user } = useSession()
 
-  // Filter nav elements based on user permissions
+  // Filter nav elements based on user permissions and team membership
   const filterNavElement = (item: NavElement): NavElement | null => {
+    // Check if this item requires team membership
+    if (item.requiresTeamMembership && isNil(user?.teamMemberInfo)) {
+      return null
+    }
+
     // Check if user has permission for this item
     if (item.permissions_needed.length > 0) {
       try {
