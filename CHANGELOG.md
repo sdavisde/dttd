@@ -1,3 +1,13 @@
+## [1.18.0](https://github.com/sdavisde/dttd/compare/v1.17.1...v1.18.0) (2026-02-20)
+
+### Features
+
+- remove deprecated db tables ([386fe27](https://github.com/sdavisde/dttd/commit/386fe2750c3bca3327fcb9a23dba8c78dd368b3d))
+
+### Bug Fixes
+
+- update seed data for candidate payments ([34e00fe](https://github.com/sdavisde/dttd/commit/34e00fee390001cbdfeea180ab8bc97ad66fe6e6))
+
 ## [1.17.1](https://github.com/sdavisde/dttd/compare/v1.17.0...v1.17.1) (2026-02-14)
 
 ### Bug Fixes
