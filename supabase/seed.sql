@@ -1739,6 +1739,91 @@ INSERT INTO public.weekend_roster (id, weekend_id, user_id, cha_role, status, cr
   ('aa000017-0000-0000-0000-000000000017', 'c0000004-0000-0000-0000-000000000002', 'b0000010-0000-0000-0000-000000000010', 'Table Leader', 'confirmed', '2024-07-17');
 
 -- =============================================================================
+-- SECTION: Candidate Payments (payment_transaction table)
+-- =============================================================================
+-- Payment records for candidates across weekends.
+-- Mix of stripe, cash, and check payments with varying amounts.
+
+-- Men's Weekend #42 (FINISHED - Spring 2024) — most confirmed candidates paid
+INSERT INTO public.payment_transaction (id, type, target_type, target_id, weekend_id, payment_intent_id, gross_amount, net_amount, stripe_fee, payment_method, payment_owner, notes, created_at) VALUES
+  ('cc000001-0000-0000-0000-000000000001', 'fee', 'candidate', 'e0000001-0000-0000-0000-000000000001', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee001abc', 210.00, 200.91, 9.09, 'stripe', 'John Smith', NULL, '2024-02-12 09:30:00'),
+  ('cc000002-0000-0000-0000-000000000002', 'fee', 'candidate', 'e0000002-0000-0000-0000-000000000002', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee002def', 210.00, 200.91, 9.09, 'stripe', 'Jane Doe', NULL, '2024-02-13 14:15:00'),
+  ('cc000003-0000-0000-0000-000000000003', 'fee', 'candidate', 'e0000003-0000-0000-0000-000000000003', 'c0000001-0000-0000-0000-000000000001', 'manual_cash_c003', 200.00, NULL, NULL, 'cash', 'Michael Johnson', 'Cash from sponsor at team meeting', '2024-02-15 19:30:00'),
+  ('cc000004-0000-0000-0000-000000000004', 'fee', 'candidate', 'e0000004-0000-0000-0000-000000000004', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee004ghi', 210.00, 200.91, 9.09, 'stripe', 'Self Payment', NULL, '2024-02-16 10:00:00'),
+  ('cc000005-0000-0000-0000-000000000005', 'fee', 'candidate', 'e0000005-0000-0000-0000-000000000005', 'c0000001-0000-0000-0000-000000000001', 'manual_check_c005', 200.00, NULL, NULL, 'check', 'Sarah Williams', 'Check #3456 from sponsor', '2024-02-18 11:30:00'),
+  ('cc000006-0000-0000-0000-000000000006', 'fee', 'candidate', 'e0000006-0000-0000-0000-000000000006', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee006jkl', 210.00, 200.91, 9.09, 'stripe', 'David Brown', NULL, '2024-02-19 08:45:00'),
+  ('cc000007-0000-0000-0000-000000000007', 'fee', 'candidate', 'e0000007-0000-0000-0000-000000000007', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee007mno', 210.00, 200.91, 9.09, 'stripe', 'Emily Jones', NULL, '2024-02-20 16:20:00'),
+  ('cc000008-0000-0000-0000-000000000008', 'fee', 'candidate', 'e0000008-0000-0000-0000-000000000008', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee008pqr', 210.00, 200.91, 9.09, 'stripe', 'James Garcia', NULL, '2024-02-21 13:00:00'),
+  ('cc000009-0000-0000-0000-000000000009', 'fee', 'candidate', 'e0000009-0000-0000-0000-000000000009', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee009stu', 210.00, 200.91, 9.09, 'stripe', 'Robert Wilson', NULL, '2024-02-22 10:15:00'),
+  ('cc000010-0000-0000-0000-000000000010', 'fee', 'candidate', 'e0000010-0000-0000-0000-000000000010', 'c0000001-0000-0000-0000-000000000001', 'manual_cash_c010', 200.00, NULL, NULL, 'cash', 'Thomas Anderson', 'Cash at registration', '2024-02-23 14:00:00'),
+  ('cc000011-0000-0000-0000-000000000011', 'fee', 'candidate', 'e0000011-0000-0000-0000-000000000011', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee011vwx', 210.00, 200.91, 9.09, 'stripe', 'Daniel Taylor', NULL, '2024-02-24 09:00:00'),
+  ('cc000012-0000-0000-0000-000000000012', 'fee', 'candidate', 'e0000012-0000-0000-0000-000000000012', 'c0000001-0000-0000-0000-000000000001', 'manual_check_c012', 200.00, NULL, NULL, 'check', 'Mark Thomas', 'Check #7891 deposited', '2024-02-25 11:30:00'),
+  ('cc000013-0000-0000-0000-000000000013', 'fee', 'candidate', 'e0000013-0000-0000-0000-000000000013', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee013yza', 210.00, 200.91, 9.09, 'stripe', 'Paul Harris', NULL, '2024-02-26 15:45:00'),
+  ('cc000014-0000-0000-0000-000000000014', 'fee', 'candidate', 'e0000014-0000-0000-0000-000000000014', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee014bcd', 210.00, 200.91, 9.09, 'stripe', 'Steven Clark', NULL, '2024-02-27 08:20:00'),
+  ('cc000015-0000-0000-0000-000000000015', 'fee', 'candidate', 'e0000015-0000-0000-0000-000000000015', 'c0000001-0000-0000-0000-000000000001', 'manual_cash_c015', 200.00, NULL, NULL, 'cash', 'Kevin Lewis', 'Cash from candidate', '2024-02-28 17:00:00'),
+  ('cc000016-0000-0000-0000-000000000016', 'fee', 'candidate', 'e0000016-0000-0000-0000-000000000016', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee016efg', 210.00, 200.91, 9.09, 'stripe', 'Brian Robinson', NULL, '2024-03-01 10:30:00'),
+  ('cc000017-0000-0000-0000-000000000017', 'fee', 'candidate', 'e0000017-0000-0000-0000-000000000017', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee017hij', 210.00, 200.91, 9.09, 'stripe', 'George Walker', NULL, '2024-03-02 13:15:00'),
+  ('cc000018-0000-0000-0000-000000000018', 'fee', 'candidate', 'e0000018-0000-0000-0000-000000000018', 'c0000001-0000-0000-0000-000000000001', 'manual_check_c018', 200.00, NULL, NULL, 'check', 'Edward Hall', 'Check #2345 from sponsor', '2024-03-03 09:45:00'),
+  ('cc000019-0000-0000-0000-000000000019', 'fee', 'candidate', 'e0000019-0000-0000-0000-000000000019', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee019klm', 210.00, 200.91, 9.09, 'stripe', 'Ronald Allen', NULL, '2024-03-04 14:30:00'),
+  ('cc000020-0000-0000-0000-000000000020', 'fee', 'candidate', 'e0000020-0000-0000-0000-000000000020', 'c0000001-0000-0000-0000-000000000001', 'pi_3PaCandFee020nop', 210.00, 200.91, 9.09, 'stripe', 'Timothy Young', NULL, '2024-03-05 11:00:00');
+  -- Candidates e0000021-024 left unpaid for variety
+
+-- Women's Weekend #42 (FINISHED - Spring 2024) — most confirmed candidates paid
+INSERT INTO public.payment_transaction (id, type, target_type, target_id, weekend_id, payment_intent_id, gross_amount, net_amount, stripe_fee, payment_method, payment_owner, notes, created_at) VALUES
+  ('cc000021-0000-0000-0000-000000000021', 'fee', 'candidate', 'e0000025-0000-0000-0000-000000000025', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee025stu', 210.00, 200.91, 9.09, 'stripe', 'Amanda Martinez', NULL, '2024-02-12 10:00:00'),
+  ('cc000022-0000-0000-0000-000000000022', 'fee', 'candidate', 'e0000026-0000-0000-0000-000000000026', 'c0000002-0000-0000-0000-000000000001', 'manual_cash_c026', 200.00, NULL, NULL, 'cash', 'Robert Rodriguez', 'Cash payment at registration', '2024-02-14 18:00:00'),
+  ('cc000023-0000-0000-0000-000000000023', 'fee', 'candidate', 'e0000027-0000-0000-0000-000000000027', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee027vwx', 210.00, 200.91, 9.09, 'stripe', 'Jessica Hernandez', NULL, '2024-02-15 09:15:00'),
+  ('cc000024-0000-0000-0000-000000000024', 'fee', 'candidate', 'e0000028-0000-0000-0000-000000000028', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee028yza', 210.00, 200.91, 9.09, 'stripe', 'William Lopez', NULL, '2024-02-17 14:45:00'),
+  ('cc000025-0000-0000-0000-000000000025', 'fee', 'candidate', 'e0000029-0000-0000-0000-000000000029', 'c0000002-0000-0000-0000-000000000001', 'manual_check_c029', 200.00, NULL, NULL, 'check', 'Ashley Gonzalez', 'Check #7890 from sponsor', '2024-02-19 10:30:00'),
+  ('cc000026-0000-0000-0000-000000000026', 'fee', 'candidate', 'e0000030-0000-0000-0000-000000000030', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee030bcd', 210.00, 200.91, 9.09, 'stripe', 'Christopher Wilson', NULL, '2024-02-20 11:00:00'),
+  ('cc000027-0000-0000-0000-000000000027', 'fee', 'candidate', 'e0000031-0000-0000-0000-000000000031', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee031efg', 210.00, 200.91, 9.09, 'stripe', 'Self Payment', NULL, '2024-02-22 15:30:00'),
+  ('cc000028-0000-0000-0000-000000000028', 'fee', 'candidate', 'e0000032-0000-0000-0000-000000000032', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee032hij', 210.00, 200.91, 9.09, 'stripe', 'Anonymous Donor', 'Scholarship from community fund', '2024-02-23 09:00:00'),
+  ('cc000029-0000-0000-0000-000000000029', 'fee', 'candidate', 'e0000033-0000-0000-0000-000000000033', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee033klm', 210.00, 200.91, 9.09, 'stripe', 'Patricia Davis', NULL, '2024-02-24 12:00:00'),
+  ('cc000030-0000-0000-0000-000000000030', 'fee', 'candidate', 'e0000034-0000-0000-0000-000000000034', 'c0000002-0000-0000-0000-000000000001', 'manual_cash_c034', 200.00, NULL, NULL, 'cash', 'Linda Moore', 'Cash from sponsor', '2024-02-25 14:30:00'),
+  ('cc000031-0000-0000-0000-000000000031', 'fee', 'candidate', 'e0000035-0000-0000-0000-000000000035', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee035nop', 210.00, 200.91, 9.09, 'stripe', 'Barbara Jackson', NULL, '2024-02-26 09:30:00'),
+  ('cc000032-0000-0000-0000-000000000032', 'fee', 'candidate', 'e0000036-0000-0000-0000-000000000036', 'c0000002-0000-0000-0000-000000000001', 'manual_check_c036', 200.00, NULL, NULL, 'check', 'Elizabeth White', 'Check #4567 deposited', '2024-02-27 16:15:00'),
+  ('cc000033-0000-0000-0000-000000000033', 'fee', 'candidate', 'e0000037-0000-0000-0000-000000000037', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee037qrs', 210.00, 200.91, 9.09, 'stripe', 'Jennifer Harris', NULL, '2024-02-28 10:00:00'),
+  ('cc000034-0000-0000-0000-000000000034', 'fee', 'candidate', 'e0000038-0000-0000-0000-000000000038', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee038tuv', 210.00, 200.91, 9.09, 'stripe', 'Maria Martin', NULL, '2024-03-01 08:45:00'),
+  ('cc000035-0000-0000-0000-000000000035', 'fee', 'candidate', 'e0000039-0000-0000-0000-000000000039', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee039wxy', 210.00, 200.91, 9.09, 'stripe', 'Susan Thompson', NULL, '2024-03-02 11:30:00'),
+  ('cc000036-0000-0000-0000-000000000036', 'fee', 'candidate', 'e0000040-0000-0000-0000-000000000040', 'c0000002-0000-0000-0000-000000000001', 'manual_cash_c040', 200.00, NULL, NULL, 'cash', 'Margaret Anderson', 'Cash at team meeting', '2024-03-03 19:00:00'),
+  ('cc000037-0000-0000-0000-000000000037', 'fee', 'candidate', 'e0000041-0000-0000-0000-000000000041', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee041zab', 210.00, 200.91, 9.09, 'stripe', 'Dorothy Taylor', NULL, '2024-03-04 13:00:00'),
+  ('cc000038-0000-0000-0000-000000000038', 'fee', 'candidate', 'e0000042-0000-0000-0000-000000000042', 'c0000002-0000-0000-0000-000000000001', 'pi_3PaCandFee042cde', 210.00, 200.91, 9.09, 'stripe', 'Lisa Brown', NULL, '2024-03-05 15:30:00');
+  -- Candidates e0000043-048 left unpaid for variety
+
+-- Men's Weekend #45 (ACTIVE - Fall 2025) — confirmed have payments, awaiting_payment have partial/none
+INSERT INTO public.payment_transaction (id, type, target_type, target_id, weekend_id, payment_intent_id, gross_amount, net_amount, stripe_fee, payment_method, payment_owner, notes, created_at) VALUES
+  -- Confirmed candidates — all paid in full
+  ('cc000039-0000-0000-0000-000000000039', 'fee', 'candidate', 'e1000100-0000-0000-0000-000000000100', 'c0000007-0000-0000-0000-000000000004', 'pi_3PbCandFee100abc', 210.00, 200.91, 9.09, 'stripe', 'John Smith', NULL, '2025-06-15 10:00:00'),
+  ('cc000040-0000-0000-0000-000000000040', 'fee', 'candidate', 'e1000101-0000-0000-0000-000000000101', 'c0000007-0000-0000-0000-000000000004', 'manual_cash_c101', 200.00, NULL, NULL, 'cash', 'Michael Johnson', 'Cash at team meeting', '2025-06-18 19:30:00'),
+  ('cc000041-0000-0000-0000-000000000041', 'fee', 'candidate', 'e1000102-0000-0000-0000-000000000102', 'c0000007-0000-0000-0000-000000000004', 'pi_3PbCandFee102def', 210.00, 200.91, 9.09, 'stripe', 'David Brown', NULL, '2025-06-20 14:15:00'),
+  ('cc000042-0000-0000-0000-000000000042', 'fee', 'candidate', 'e1000103-0000-0000-0000-000000000103', 'c0000007-0000-0000-0000-000000000004', 'manual_check_c103', 200.00, NULL, NULL, 'check', 'Eric Adams', 'Check #5001 from sponsor', '2025-06-22 09:00:00'),
+  ('cc000043-0000-0000-0000-000000000043', 'fee', 'candidate', 'e1000104-0000-0000-0000-000000000104', 'c0000007-0000-0000-0000-000000000004', 'pi_3PbCandFee104ghi', 210.00, 200.91, 9.09, 'stripe', 'Jacob Baker', NULL, '2025-06-25 11:30:00'),
+  ('cc000044-0000-0000-0000-000000000044', 'fee', 'candidate', 'e1000105-0000-0000-0000-000000000105', 'c0000007-0000-0000-0000-000000000004', 'pi_3PbCandFee105jkl', 210.00, 200.91, 9.09, 'stripe', 'Samuel Rivera', NULL, '2025-06-28 16:00:00'),
+  ('cc000045-0000-0000-0000-000000000045', 'fee', 'candidate', 'e1000106-0000-0000-0000-000000000106', 'c0000007-0000-0000-0000-000000000004', 'manual_cash_c106', 200.00, NULL, NULL, 'cash', 'Patrick Mitchell', 'Cash from sponsor', '2025-07-01 13:45:00'),
+  ('cc000046-0000-0000-0000-000000000046', 'fee', 'candidate', 'e1000107-0000-0000-0000-000000000107', 'c0000007-0000-0000-0000-000000000004', 'pi_3PbCandFee107mno', 210.00, 200.91, 9.09, 'stripe', 'Nathan Flores', NULL, '2025-07-05 10:20:00'),
+  ('cc000047-0000-0000-0000-000000000047', 'fee', 'candidate', 'e1000108-0000-0000-0000-000000000108', 'c0000007-0000-0000-0000-000000000004', 'manual_check_c108', 200.00, NULL, NULL, 'check', 'Adam Nguyen', 'Check #5002 deposited', '2025-07-08 09:15:00'),
+  ('cc000048-0000-0000-0000-000000000048', 'fee', 'candidate', 'e1000109-0000-0000-0000-000000000109', 'c0000007-0000-0000-0000-000000000004', 'pi_3PbCandFee109pqr', 210.00, 200.91, 9.09, 'stripe', 'Aaron Scott', NULL, '2025-07-10 14:00:00'),
+  -- Awaiting payment — one partial payment, two with no payments
+  ('cc000049-0000-0000-0000-000000000049', 'fee', 'candidate', 'e1000110-0000-0000-0000-000000000110', 'c0000007-0000-0000-0000-000000000004', 'manual_cash_c110', 100.00, NULL, NULL, 'cash', 'Jane Doe', 'Partial payment — will pay rest at sendoff', '2025-07-25 18:00:00');
+  -- e1000111 and e1000112 have no payments yet (awaiting payment)
+
+-- Women's Weekend #45 (ACTIVE - Fall 2025) — confirmed have payments, awaiting_payment have partial/none
+INSERT INTO public.payment_transaction (id, type, target_type, target_id, weekend_id, payment_intent_id, gross_amount, net_amount, stripe_fee, payment_method, payment_owner, notes, created_at) VALUES
+  -- Confirmed candidates — all paid in full
+  ('cc000050-0000-0000-0000-000000000050', 'fee', 'candidate', 'e1000122-0000-0000-0000-000000000122', 'c0000008-0000-0000-0000-000000000004', 'pi_3PbCandFee122abc', 210.00, 200.91, 9.09, 'stripe', 'Sarah Davis', NULL, '2025-06-15 10:30:00'),
+  ('cc000051-0000-0000-0000-000000000051', 'fee', 'candidate', 'e1000123-0000-0000-0000-000000000123', 'c0000008-0000-0000-0000-000000000004', 'manual_cash_c123', 200.00, NULL, NULL, 'cash', 'Emily Jones', 'Cash at women''s team meeting', '2025-06-18 19:00:00'),
+  ('cc000052-0000-0000-0000-000000000052', 'fee', 'candidate', 'e1000124-0000-0000-0000-000000000124', 'c0000008-0000-0000-0000-000000000004', 'pi_3PbCandFee124def', 210.00, 200.91, 9.09, 'stripe', 'Amanda Martinez', NULL, '2025-06-21 11:45:00'),
+  ('cc000053-0000-0000-0000-000000000053', 'fee', 'candidate', 'e1000125-0000-0000-0000-000000000125', 'c0000008-0000-0000-0000-000000000004', 'manual_check_c125', 200.00, NULL, NULL, 'check', 'Jessica Hernandez', 'Check #6001 from sponsor', '2025-06-24 09:30:00'),
+  ('cc000054-0000-0000-0000-000000000054', 'fee', 'candidate', 'e1000126-0000-0000-0000-000000000126', 'c0000008-0000-0000-0000-000000000004', 'pi_3PbCandFee126ghi', 210.00, 200.91, 9.09, 'stripe', 'Rachel Green', NULL, '2025-06-27 14:00:00'),
+  ('cc000055-0000-0000-0000-000000000055', 'fee', 'candidate', 'e1000127-0000-0000-0000-000000000127', 'c0000008-0000-0000-0000-000000000004', 'pi_3PbCandFee127jkl', 210.00, 200.91, 9.09, 'stripe', 'Karen Thompson', NULL, '2025-06-30 16:30:00'),
+  ('cc000056-0000-0000-0000-000000000056', 'fee', 'candidate', 'e1000128-0000-0000-0000-000000000128', 'c0000008-0000-0000-0000-000000000004', 'manual_cash_c128', 200.00, NULL, NULL, 'cash', 'Nancy Wilson', 'Cash from candidate', '2025-07-03 10:00:00'),
+  ('cc000057-0000-0000-0000-000000000057', 'fee', 'candidate', 'e1000129-0000-0000-0000-000000000129', 'c0000008-0000-0000-0000-000000000004', 'pi_3PbCandFee129mno', 210.00, 200.91, 9.09, 'stripe', 'Michelle Clark', NULL, '2025-07-06 12:15:00'),
+  -- Awaiting payment — one with two partial payments (split payment test case), one with no payment
+  ('cc000058-0000-0000-0000-000000000058', 'fee', 'candidate', 'e1000130-0000-0000-0000-000000000130', 'c0000008-0000-0000-0000-000000000004', 'manual_cash_c130a', 100.00, NULL, NULL, 'cash', 'Sponsor Payment', 'First installment — cash', '2025-07-20 14:00:00'),
+  ('cc000059-0000-0000-0000-000000000059', 'fee', 'candidate', 'e1000130-0000-0000-0000-000000000130', 'c0000008-0000-0000-0000-000000000004', 'manual_check_c130b', 50.00, NULL, NULL, 'check', 'Sponsor Payment', 'Second installment — Check #6050', '2025-08-01 09:00:00');
+  -- e1000131 has no payments yet (awaiting payment)
+
+-- =============================================================================
 -- SECTION: Contact Information
 -- =============================================================================
 -- Contact information for key community roles (used for email notifications)
