@@ -1,3 +1,9 @@
+## [1.19.0](https://github.com/sdavisde/dttd/compare/v1.18.1...v1.19.0) (2026-02-20)
+
+### Features
+
+- allow editing team forms ([6840c12](https://github.com/sdavisde/dttd/commit/6840c12907bdcd9ebbff23cfd145f4c8e53c1179))
+
 ## [1.18.1](https://github.com/sdavisde/dttd/compare/v1.18.0...v1.18.1) (2026-02-20)
 
 ### Bug Fixes
