@@ -1,3 +1,9 @@
+## [1.18.1](https://github.com/sdavisde/dttd/compare/v1.18.0...v1.18.1) (2026-02-20)
+
+### Bug Fixes
+
+- format options correctly ([05c6d40](https://github.com/sdavisde/dttd/commit/05c6d4018ab8f52066d7f58aa7e0fca75f01a163))
+
 ## [1.18.0](https://github.com/sdavisde/dttd/compare/v1.17.1...v1.18.0) (2026-02-20)
 
 ### Features
