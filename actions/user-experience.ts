@@ -40,7 +40,6 @@ export async function getUserServiceHistory(
         updated_at,
         weekends (
           id,
-          number,
           type,
           start_date,
           title

@@ -5,6 +5,8 @@ import { Permission } from '@/lib/security'
 import { PaymentRecord } from '@/lib/payments/types'
 import * as PaymentService from './payment-service'
 import { PaymentTransactionDTO } from './types'
+import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
+import { isErr, ok } from '@/lib/results'
 
 /**
  * Retrieves a Stripe price by its ID.
@@ -15,10 +17,19 @@ export async function getPrice(priceId: string) {
 }
 
 /**
- * Checks if a team member has made any payment for the given group member.
- * This is a public action used during the payment flow.
+ * Checks if a team member has made any payment.
+ * Accepts either a rosterId (bridges to groupMemberId) or a groupMemberId directly.
+ * This is a public action used during the payment flow and homepage TODO check.
  */
-export async function hasTeamPayment(groupMemberId: string) {
+export async function hasTeamPayment(rosterOrGroupMemberId: string) {
+  // Try to resolve as a rosterId first (bridge for pre-task-4 callers passing teamMemberInfo.id)
+  const groupMemberResult = await getGroupMemberByRosterId(
+    rosterOrGroupMemberId
+  )
+  const groupMemberId = isErr(groupMemberResult)
+    ? rosterOrGroupMemberId // fall back: assume it's already a groupMemberId
+    : groupMemberResult.data.id
+
   return await PaymentService.hasPaymentForTarget(
     'weekend_group_member',
     groupMemberId

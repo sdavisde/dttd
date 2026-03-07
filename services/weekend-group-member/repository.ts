@@ -6,6 +6,30 @@ import { isSupabaseError } from '@/lib/supabase/utils'
 import { RawGroupMember, RawFormCompletion, RawMedicalProfile } from './types'
 
 /**
+ * Upserts a weekend_group_members row for a given group and user.
+ * Safe to call multiple times — ON CONFLICT DO NOTHING ensures idempotency.
+ */
+export async function upsertGroupMember(
+  groupId: string,
+  userId: string
+): Promise<Result<string, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('weekend_group_members')
+    .upsert(
+      { group_id: groupId, user_id: userId },
+      { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+    )
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to upsert group member: ${error.message}`)
+  }
+
+  return ok(undefined)
+}
+
+/**
  * Returns the active group member for a user by joining weekend_group_members
  * through weekend_groups to weekends where status = 'ACTIVE'.
  */

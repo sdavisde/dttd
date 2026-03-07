@@ -599,6 +599,7 @@ export async function getAllUsers(): Promise<
 
 /**
  * Adds a user to a weekend roster.
+ * Also upserts a weekend_group_members row so the user can complete forms and pay.
  */
 export async function addUserToWeekendRoster(
   weekendId: string,
@@ -606,13 +607,34 @@ export async function addUserToWeekendRoster(
   role: string,
   rollo?: string
 ): Promise<Result<string, void>> {
-  return WeekendRepository.insertWeekendRosterMember({
+  const rosterResult = await WeekendRepository.insertWeekendRosterMember({
     weekend_id: weekendId,
     user_id: userId,
     status: 'awaiting_payment',
     cha_role: role,
     rollo: rollo ?? null,
   })
+
+  if (isErr(rosterResult)) {
+    return rosterResult
+  }
+
+  // Ensure a weekend_group_members row exists for this user+group.
+  // Uses the weekend's group_id so a cross-weekend user gets one shared member row.
+  const weekendResult = await WeekendRepository.findWeekendById(weekendId)
+  if (isErr(weekendResult) || !weekendResult.data?.group_id) {
+    // Non-fatal: roster insert succeeded, log and continue
+    logger.warn(
+      { weekendId, userId },
+      'Could not upsert weekend_group_members: weekend or group_id not found'
+    )
+    return ok(undefined)
+  }
+
+  return GroupMemberRepository.upsertGroupMember(
+    weekendResult.data.group_id,
+    userId
+  )
 }
 
 /**
