@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PhoneInput } from '@/components/ui/phone-input'
 import {
   Select,
   SelectContent,
@@ -62,12 +63,22 @@ const formSchema = z.object({
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   zip: z.string().min(1, 'ZIP code is required'),
-  phone: z.string().min(1, 'Phone number is required'),
+  phone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
   /** Health section */
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z
     .string()
-    .min(1, 'Emergency contact phone is required'),
+    .min(1, 'Emergency contact phone is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
   medicalConditions: z.string().optional(),
   medicalPermission: z.boolean(),
   emergencyContactPermission: z.boolean(),
@@ -216,7 +227,11 @@ export function CandidateForms({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="you@example.com"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -547,7 +562,7 @@ export function CandidateForms({
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <PhoneInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -585,7 +600,7 @@ export function CandidateForms({
                   <FormItem>
                     <FormLabel>Emergency Contact Phone</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <PhoneInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

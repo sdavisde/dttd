@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -50,7 +51,13 @@ const sponsorFormSchema = z.object({
   sponsor_name: z.string().min(1, 'Sponsor name is required'),
   sponsor_address: z.string().min(1, 'Address is required'),
   sponsor_email: z.string().optional(),
-  sponsor_phone: z.string().min(1, 'Phone number is required'),
+  sponsor_phone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
   sponsor_church: z.string().min(1, 'Church is required'),
   sponsor_weekend: z.string().min(1, 'Weekend information is required'),
   reunion_group: z.string().min(1, 'Reunion group information is required'),
@@ -202,7 +209,11 @@ export function SponsorForm() {
                       <FormItem>
                         <FormLabel>Candidate Email</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="candidate@example.com"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -286,7 +297,7 @@ export function SponsorForm() {
                       <FormItem>
                         <FormLabel>Sponsor&apos;s Phone #</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <PhoneInput {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

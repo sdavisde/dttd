@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { buildUrlWithRedirect } from '@/lib/url'
 import AuthModeToggle from './AuthModeToggle'
@@ -25,7 +25,7 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [gender, setGender] = useState<'male' | 'female'>('male')
+  const [gender, setGender] = useState<'male' | 'female' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -37,7 +37,6 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
     setMessage(null)
     setLoading(true)
 
-    // Validate password confirmation for registration
     if (mode === 'register' && password !== confirmPassword) {
       setError('Passwords do not match')
       setLoading(false)
@@ -56,6 +55,8 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
         onSuccess?.()
         router.refresh()
       } else {
+        if (!gender) throw new Error('Please select your gender')
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -134,13 +135,19 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete={mode === 'login' ? 'email' : 'email'}
+            className="pl-9"
+            required
+          />
+        </div>
       </div>
 
       <PasswordInput
