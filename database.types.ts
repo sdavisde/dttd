@@ -523,6 +523,70 @@ export type Database = {
         }
         Relationships: []
       }
+      team_form_completions: {
+        Row: {
+          completed_at: string
+          form_type: string
+          id: string
+          weekend_group_member_id: string
+        }
+        Insert: {
+          completed_at: string
+          form_type: string
+          id?: string
+          weekend_group_member_id: string
+        }
+        Update: {
+          completed_at?: string
+          form_type?: string
+          id?: string
+          weekend_group_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'team_form_completions_weekend_group_member_id_fkey'
+            columns: ['weekend_group_member_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_group_members'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      user_medical_profiles: {
+        Row: {
+          created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          medical_conditions: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          medical_conditions?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          medical_conditions?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'user_medical_profiles_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: true
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -649,20 +713,66 @@ export type Database = {
           },
         ]
       }
+      weekend_group_members: {
+        Row: {
+          created_at: string | null
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'weekend_group_members_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_groups'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'weekend_group_members_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      weekend_groups: {
+        Row: {
+          created_at: string | null
+          id: string
+          number: number
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          number: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          number?: number
+        }
+        Relationships: []
+      }
       weekend_roster: {
         Row: {
           additional_cha_role: string | null
           cha_role: string | null
-          completed_camp_waiver_at: string | null
-          completed_commitment_form_at: string | null
-          completed_info_sheet_at: string | null
-          completed_release_of_claim_at: string | null
-          completed_statement_of_belief_at: string | null
           created_at: string
-          emergency_contact_name: string | null
-          emergency_contact_phone: string | null
           id: string
-          medical_conditions: string | null
           rollo: string | null
           special_needs: string | null
           status: string | null
@@ -672,16 +782,8 @@ export type Database = {
         Insert: {
           additional_cha_role?: string | null
           cha_role?: string | null
-          completed_camp_waiver_at?: string | null
-          completed_commitment_form_at?: string | null
-          completed_info_sheet_at?: string | null
-          completed_release_of_claim_at?: string | null
-          completed_statement_of_belief_at?: string | null
           created_at?: string
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
           id?: string
-          medical_conditions?: string | null
           rollo?: string | null
           special_needs?: string | null
           status?: string | null
@@ -691,16 +793,8 @@ export type Database = {
         Update: {
           additional_cha_role?: string | null
           cha_role?: string | null
-          completed_camp_waiver_at?: string | null
-          completed_commitment_form_at?: string | null
-          completed_info_sheet_at?: string | null
-          completed_release_of_claim_at?: string | null
-          completed_statement_of_belief_at?: string | null
           created_at?: string
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
           id?: string
-          medical_conditions?: string | null
           rollo?: string | null
           special_needs?: string | null
           status?: string | null
@@ -730,7 +824,6 @@ export type Database = {
           end_date: string
           group_id: string | null
           id: string
-          number: number | null
           start_date: string
           status: string | null
           title: string | null
@@ -741,7 +834,6 @@ export type Database = {
           end_date: string
           group_id?: string | null
           id?: string
-          number?: number | null
           start_date: string
           status?: string | null
           title?: string | null
@@ -752,13 +844,20 @@ export type Database = {
           end_date?: string
           group_id?: string | null
           id?: string
-          number?: number | null
           start_date?: string
           status?: string | null
           title?: string | null
           type?: Database['public']['Enums']['weekend_type']
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'weekends_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_groups'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: {
