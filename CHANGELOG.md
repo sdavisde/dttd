@@ -1,3 +1,9 @@
+## [1.20.0](https://github.com/sdavisde/dttd/compare/v1.19.0...v1.20.0) (2026-03-07)
+
+### Features
+
+- improve form UX with phone formatting, gender toggle, and email validation ([b90c753](https://github.com/sdavisde/dttd/commit/b90c753a3c2f19d2166775bbe637bc079148638d))
+
 ## [1.19.0](https://github.com/sdavisde/dttd/compare/v1.18.1...v1.19.0) (2026-02-20)
 
 ### Features
