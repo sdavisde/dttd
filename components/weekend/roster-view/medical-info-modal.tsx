@@ -33,34 +33,18 @@ export function MedicalInfoModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Medical Information</DialogTitle>
+          <DialogTitle>Special Needs</DialogTitle>
           <DialogDescription>{memberName}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">
-              Emergency Contact
-            </h4>
-            <div className="rounded-md border p-3 space-y-1">
-              <p className="text-sm">
-                <span className="font-medium">Name:</span>{' '}
-                {member.emergency_contact_name ?? 'Not provided'}
-              </p>
-              <p className="text-sm">
-                <span className="font-medium">Phone:</span>{' '}
-                {member.emergency_contact_phone ?? 'Not provided'}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Medical Conditions
+              Special Needs
             </h4>
             <div className="rounded-md border p-3">
               <p className="text-sm whitespace-pre-wrap">
-                {member.medical_conditions ?? 'None reported'}
+                {member.special_needs ?? 'None reported'}
               </p>
             </div>
           </div>

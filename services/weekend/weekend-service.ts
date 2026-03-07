@@ -35,6 +35,7 @@ import * as PaymentService from '@/services/payment/payment-service'
 import type { PaymentTransactionRow } from '@/services/payment/types'
 import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
+import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
 
 // ============================================================================
 // Helper Functions (Private)
@@ -67,6 +68,7 @@ function toWeekendGroup(weekends: Weekend[]): Result<string, WeekendGroup> {
 function normalizeWeekend(weekend: RawWeekendRecord): Weekend {
   return {
     ...weekend,
+    number: null, // populated from weekend_groups join in Task 3
     status: (weekend.status as WeekendStatus) ?? null,
     groupId: weekend.group_id ?? null,
   }
@@ -110,7 +112,6 @@ function prepareInsertPayload(
     type,
     start_date: payload.start_date,
     end_date: payload.end_date,
-    number: payload.number ?? null,
     status: payload.status ?? WeekendStatus.PLANNING,
     title: payload.title ?? null,
   }
@@ -151,14 +152,6 @@ function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
   const all_payments = raw.payments ?? []
   const total_paid = sumBy(all_payments, (p) => p.gross_amount)
 
-  // Check if all 5 team forms have been completed
-  const forms_complete =
-    !isNil(raw.completed_statement_of_belief_at) &&
-    !isNil(raw.completed_commitment_form_at) &&
-    !isNil(raw.completed_release_of_claim_at) &&
-    !isNil(raw.completed_camp_waiver_at) &&
-    !isNil(raw.completed_info_sheet_at)
-
   return {
     id: raw.id,
     cha_role: raw.cha_role,
@@ -167,28 +160,13 @@ function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
     user_id: raw.user_id,
     created_at: raw.created_at,
     rollo: raw.rollo,
+    special_needs: raw.special_needs,
     users: raw.users,
     payment_info: all_payments[0] ?? null,
     total_paid,
     all_payments,
-    forms_complete,
-    emergency_contact_name: raw.emergency_contact_name,
-    emergency_contact_phone: raw.emergency_contact_phone,
-    medical_conditions: filterMedicalConditions(raw.medical_conditions),
+    forms_complete: raw.forms_complete,
   }
-}
-
-function filterMedicalConditions(
-  medical_conditions: string | null
-): string | null {
-  const NONE_SYNONYM_REGEX = /^\s*(?:no|none|n\/a|na)\s*$/i
-  if (
-    isNil(medical_conditions) ||
-    NONE_SYNONYM_REGEX.test(medical_conditions)
-  ) {
-    return null
-  }
-  return medical_conditions
 }
 
 // ============================================================================
@@ -541,31 +519,57 @@ export async function getWeekendRoster(
 
   const rosterRecords = result.data
 
-  // Fetch payments for all roster members in parallel
-  const paymentPromises = rosterRecords.map(async (record) => {
-    const paymentsResult = await PaymentService.getPaymentForTarget(
-      'weekend_roster',
-      record.id
-    )
-    return {
-      rosterId: record.id,
-      payments: isErr(paymentsResult) ? [] : paymentsResult.data,
-    }
-  })
+  // Fetch payments and forms_complete for all roster members in parallel
+  const [paymentsByRoster, formsCompleteByRoster] = await Promise.all([
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        const paymentsResult = await PaymentService.getPaymentForTarget(
+          'weekend_roster',
+          record.id
+        )
+        return {
+          rosterId: record.id,
+          payments: isErr(paymentsResult) ? [] : paymentsResult.data,
+        }
+      })
+    ),
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        const memberResult =
+          await GroupMemberRepository.getGroupMemberByRosterId(record.id)
+        if (isErr(memberResult)) {
+          return { rosterId: record.id, forms_complete: false }
+        }
+        const completionsResult =
+          await GroupMemberRepository.getFormCompletions(memberResult.data.id)
+        if (isErr(completionsResult)) {
+          return { rosterId: record.id, forms_complete: false }
+        }
+        return {
+          rosterId: record.id,
+          forms_complete: completionsResult.data.length >= 5,
+        }
+      })
+    ),
+  ])
 
-  const paymentsByRoster = await Promise.all(paymentPromises)
-
-  // Create a map of roster ID to payments
+  // Build lookup maps
   const paymentsMap = new Map<string, PaymentRecord[]>()
   for (const { rosterId, payments } of paymentsByRoster) {
     paymentsMap.set(rosterId, payments)
   }
 
-  // Combine roster records with their payments
+  const formsCompleteMap = new Map<string, boolean>()
+  for (const { rosterId, forms_complete } of formsCompleteByRoster) {
+    formsCompleteMap.set(rosterId, forms_complete)
+  }
+
+  // Combine roster records with their payments and forms_complete
   const rawRosterWithPayments: RawWeekendRoster[] = rosterRecords.map(
     (record) => ({
       ...record,
       payments: paymentsMap.get(record.id) ?? [],
+      forms_complete: formsCompleteMap.get(record.id) ?? false,
     })
   )
 

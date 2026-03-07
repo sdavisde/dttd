@@ -107,7 +107,7 @@ export function TeamInfoForm({
 
     // Step 4: Update Medical Info
     const medicalInfoResult = await updateRosterMedicalInfo(
-      rosterId,
+      userId,
       data.medicalInfo
     )
     if (isErr(medicalInfoResult)) {

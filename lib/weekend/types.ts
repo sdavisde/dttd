@@ -11,6 +11,7 @@ export type Weekend = {
   id: string
   start_date: string
   end_date: string
+  /** Weekend number, sourced from weekend_groups.number via join. Null until Task 3 join is added. */
   number: number | null
   status: WeekendStatusValue | null
   title: string | null
@@ -45,7 +46,6 @@ export type WeekendGroupWithId = {
 export type WeekendWriteInput = {
   start_date: string
   end_date: string
-  number?: number | null
   status?: WeekendStatusValue | null
   title?: string | null
 }

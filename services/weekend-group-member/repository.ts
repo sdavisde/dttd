@@ -1,0 +1,201 @@
+import 'server-only'
+
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { Result, err, ok } from '@/lib/results'
+import { isSupabaseError } from '@/lib/supabase/utils'
+import { RawGroupMember, RawFormCompletion, RawMedicalProfile } from './types'
+
+/**
+ * Finds the weekend_group_member for a given weekend_roster ID.
+ * Joins through weekend_roster → weekends → weekend_group_members.
+ */
+export async function getGroupMemberByRosterId(
+  rosterId: string
+): Promise<Result<string, RawGroupMember>> {
+  const supabase = await createClient()
+
+  // Step 1: get the roster record's weekend_id and user_id
+  const { data: roster, error: rosterError } = await supabase
+    .from('weekend_roster')
+    .select('weekend_id, user_id')
+    .eq('id', rosterId)
+    .single()
+
+  if (isSupabaseError(rosterError) || !roster) {
+    return err('Roster record not found')
+  }
+
+  if (!roster.weekend_id || !roster.user_id) {
+    return err('Roster record is missing weekend_id or user_id')
+  }
+
+  // Step 2: get the weekend's group_id
+  const { data: weekend, error: weekendError } = await supabase
+    .from('weekends')
+    .select('group_id')
+    .eq('id', roster.weekend_id)
+    .single()
+
+  if (isSupabaseError(weekendError) || !weekend?.group_id) {
+    return err('Weekend or group_id not found')
+  }
+
+  // Step 3: get the group member
+  const { data: member, error: memberError } = await supabase
+    .from('weekend_group_members')
+    .select('*')
+    .eq('group_id', weekend.group_id)
+    .eq('user_id', roster.user_id)
+    .single()
+
+  if (isSupabaseError(memberError) || !member) {
+    return err('Weekend group member not found')
+  }
+
+  return ok(member as RawGroupMember)
+}
+
+/**
+ * Upserts a form completion record for a group member.
+ */
+export async function upsertFormCompletion(
+  groupMemberId: string,
+  formType: string,
+  completedAt: string
+): Promise<Result<string, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('team_form_completions').upsert(
+    {
+      weekend_group_member_id: groupMemberId,
+      form_type: formType,
+      completed_at: completedAt,
+    },
+    { onConflict: 'weekend_group_member_id,form_type' }
+  )
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to upsert form completion: ${error.message}`)
+  }
+
+  return ok(undefined)
+}
+
+/**
+ * Returns all form completions for a group member.
+ */
+export async function getFormCompletions(
+  groupMemberId: string
+): Promise<Result<string, RawFormCompletion[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('team_form_completions')
+    .select('*')
+    .eq('weekend_group_member_id', groupMemberId)
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to fetch form completions: ${error.message}`)
+  }
+
+  return ok((data ?? []) as RawFormCompletion[])
+}
+
+/**
+ * Updates special_needs on all weekend_roster rows for the same group and user.
+ * Uses admin client to bypass RLS for the multi-row update.
+ */
+export async function updateSpecialNeedsForGroup(
+  groupMemberId: string,
+  specialNeeds: string
+): Promise<Result<string, void>> {
+  const supabase = createAdminClient()
+
+  // Get the group member to find group_id and user_id
+  const { data: member, error: memberError } = await supabase
+    .from('weekend_group_members')
+    .select('group_id, user_id')
+    .eq('id', groupMemberId)
+    .single()
+
+  if (memberError || !member) {
+    return err('Group member not found')
+  }
+
+  // Get all weekend IDs for this group
+  const { data: weekends, error: weekendsError } = await supabase
+    .from('weekends')
+    .select('id')
+    .eq('group_id', member.group_id)
+
+  if (weekendsError || !weekends?.length) {
+    return err('No weekends found for group')
+  }
+
+  const weekendIds = weekends.map((w) => w.id)
+
+  // Update special_needs on all roster rows for this user in this group
+  const { error: updateError } = await supabase
+    .from('weekend_roster')
+    .update({ special_needs: specialNeeds })
+    .eq('user_id', member.user_id)
+    .in('weekend_id', weekendIds)
+
+  if (updateError) {
+    return err(`Failed to update special_needs: ${updateError.message}`)
+  }
+
+  return ok(undefined)
+}
+
+/**
+ * Fetches the user's medical profile.
+ */
+export async function getUserMedicalProfile(
+  userId: string
+): Promise<Result<string, RawMedicalProfile | null>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('user_medical_profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to fetch medical profile: ${error.message}`)
+  }
+
+  return ok(data as RawMedicalProfile | null)
+}
+
+/**
+ * Upserts the user's medical profile.
+ */
+export async function upsertUserMedicalProfile(
+  userId: string,
+  data: {
+    emergency_contact_name: string
+    emergency_contact_phone: string
+    medical_conditions?: string | null
+  }
+): Promise<Result<string, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('user_medical_profiles').upsert(
+    {
+      user_id: userId,
+      emergency_contact_name: data.emergency_contact_name,
+      emergency_contact_phone: data.emergency_contact_phone,
+      medical_conditions: data.medical_conditions ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  )
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to upsert medical profile: ${error.message}`)
+  }
+
+  return ok(undefined)
+}

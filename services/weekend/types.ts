@@ -27,14 +27,7 @@ export type RawWeekendRoster = {
   user_id: string | null
   created_at: string
   rollo: string | null
-  completed_statement_of_belief_at: string | null
-  completed_commitment_form_at: string | null
-  completed_release_of_claim_at: string | null
-  completed_camp_waiver_at: string | null
-  completed_info_sheet_at: string | null
-  emergency_contact_name: string | null
-  emergency_contact_phone: string | null
-  medical_conditions: string | null
+  special_needs: string | null
   users: {
     id: string
     first_name: string | null
@@ -44,6 +37,8 @@ export type RawWeekendRoster = {
   } | null
   /** Payments fetched from payment_transaction table */
   payments: PaymentRecord[]
+  /** Whether all required team forms are complete (fetched via group-member service) */
+  forms_complete: boolean
 }
 
 /**
@@ -58,6 +53,7 @@ export type WeekendRosterMember = {
   user_id: string | null
   created_at: string
   rollo: string | null
+  special_needs: string | null
   users: {
     id: string
     first_name: string | null
@@ -73,12 +69,6 @@ export type WeekendRosterMember = {
   all_payments: PaymentRecord[]
   /** Whether all 5 team forms have been completed */
   forms_complete: boolean
-  /** Emergency contact name */
-  emergency_contact_name: string | null
-  /** Emergency contact phone */
-  emergency_contact_phone: string | null
-  /** Medical conditions */
-  medical_conditions: string | null
 }
 
 /**

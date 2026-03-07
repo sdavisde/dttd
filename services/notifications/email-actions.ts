@@ -292,8 +292,7 @@ export async function notifyAssistantHeadForTeamPayment(
       react: TeamPaymentNotificationEmail({
         teamMemberName: `${teamMember.users.first_name} ${teamMember.users.last_name}`,
         teamMemberEmail: teamMember.users.email,
-        weekendName:
-          weekend.title ?? `${weekend.type} DTTD - #${weekend.number}`,
+        weekendName: weekend.title ?? `${weekend.type} DTTD`,
         paymentAmount,
       }),
     })

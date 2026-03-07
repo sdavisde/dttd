@@ -28,14 +28,7 @@ export const WeekendRosterQuery = `
   user_id,
   created_at,
   rollo,
-  completed_statement_of_belief_at,
-  completed_commitment_form_at,
-  completed_release_of_claim_at,
-  completed_camp_waiver_at,
-  completed_info_sheet_at,
-  emergency_contact_name,
-  emergency_contact_phone,
-  medical_conditions,
+  special_needs,
   users (
     id,
     first_name,
@@ -57,14 +50,7 @@ export type RawWeekendRosterDB = {
   user_id: string | null
   created_at: string
   rollo: string | null
-  completed_statement_of_belief_at: string | null
-  completed_commitment_form_at: string | null
-  completed_release_of_claim_at: string | null
-  completed_camp_waiver_at: string | null
-  completed_info_sheet_at: string | null
-  emergency_contact_name: string | null
-  emergency_contact_phone: string | null
-  medical_conditions: string | null
+  special_needs: string | null
   users: {
     id: string
     first_name: string | null
@@ -169,7 +155,6 @@ export async function insertWeekendGroup(
     type: WeekendType
     start_date: string
     end_date: string
-    number: number | null
     status: WeekendStatusValue
     title: string | null
   }>

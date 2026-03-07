@@ -7,7 +7,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Edit, Stethoscope } from 'lucide-react'
+import { Edit } from 'lucide-react'
 import { PaymentInfo } from '../payment-info'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import '@/components/ui/data-table/types'
@@ -44,7 +44,6 @@ function getPaymentCategory(member: WeekendRosterMember): string {
 
 export interface WeekendRosterColumnCallbacks {
   onEdit: (member: WeekendRosterMember) => void
-  onMedical: (member: WeekendRosterMember) => void
   isEditable: boolean
 }
 
@@ -133,64 +132,6 @@ export function getWeekendRosterColumns(
         filterType: 'select',
         showOnMobile: true,
         mobileLabel: 'Forms',
-        mobilePriority: 'detail',
-      },
-    },
-    {
-      id: 'emergency',
-      accessorFn: (m) => m.emergency_contact_name,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Emergency Contact" />
-      ),
-      cell: ({ row }) => {
-        const member = row.original
-        if (!member.emergency_contact_name) {
-          return <span className="text-muted-foreground">-</span>
-        }
-        return (
-          <div className="text-sm">
-            <div>{member.emergency_contact_name}</div>
-            <div className="text-muted-foreground">
-              {member.emergency_contact_phone ?? '-'}
-            </div>
-          </div>
-        )
-      },
-      meta: {
-        showOnMobile: true,
-        mobileLabel: 'Emergency Contact',
-        mobilePriority: 'detail',
-      },
-    },
-    {
-      id: 'medical',
-      accessorFn: (m) => (m.medical_conditions ? 'Yes' : 'None'),
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Medical" />
-      ),
-      cell: ({ row }) => {
-        const member = row.original
-        if (!member.medical_conditions) {
-          return <span className="text-muted-foreground">-</span>
-        }
-        return (
-          <div onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => callbacks.onMedical(member)}
-              aria-label="View medical information"
-            >
-              <Stethoscope className="h-4 w-4" />
-            </Button>
-          </div>
-        )
-      },
-      enableSorting: false,
-      meta: {
-        filterType: 'select',
-        showOnMobile: true,
-        mobileLabel: 'Medical',
         mobilePriority: 'detail',
       },
     },

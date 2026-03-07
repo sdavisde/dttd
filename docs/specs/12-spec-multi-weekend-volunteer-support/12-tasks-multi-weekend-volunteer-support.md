@@ -103,7 +103,7 @@ No application code changes yet.
 
 ---
 
-### [ ] 2.0 Form Completion and Medical Info Service Rework
+### [x] 2.0 Form Completion and Medical Info Service Rework
 
 **Purpose:** Update all server-side form and medical-info logic to use the new normalized tables.
 After this task a single-weekend volunteer can complete team forms and update medical info with
@@ -119,29 +119,29 @@ no regression; data lands in `team_form_completions` and `user_medical_profiles`
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Run `yarn db:generate` to regenerate `database.types.ts` after Task 1 migrations; fix any immediate TypeScript compilation errors caused by the dropped columns
-- [ ] 2.2 Create `lib/weekend/team/required-forms.config.ts` exporting a `REQUIRED_FORMS` array of objects `{ key: string; label: string }` for the five forms in sequential order (`statement_of_belief`, `commitment_form`, `release_of_claim`, `camp_waiver`, `info_sheet`); this is the single config source used everywhere form_type strings are needed
-- [ ] 2.3 Create `services/weekend-group-member/repository.ts` with:
+- [x] 2.1 Run `yarn db:generate` to regenerate `database.types.ts` after Task 1 migrations; fix any immediate TypeScript compilation errors caused by the dropped columns
+- [x] 2.2 Create `lib/weekend/team/required-forms.config.ts` exporting a `REQUIRED_FORMS` array of objects `{ key: string; label: string }` for the five forms in sequential order (`statement_of_belief`, `commitment_form`, `release_of_claim`, `camp_waiver`, `info_sheet`); this is the single config source used everywhere form_type strings are needed
+- [x] 2.3 Create `services/weekend-group-member/repository.ts` with:
   - `getGroupMemberByRosterId(rosterId)` — joins `weekend_group_members` through `weekends` + `weekend_roster` to return the `weekend_group_member` row for a given roster ID
   - `upsertFormCompletion(groupMemberId, formType, completedAt)` — `INSERT INTO team_form_completions ... ON CONFLICT (weekend_group_member_id, form_type) DO UPDATE SET completed_at = EXCLUDED.completed_at`
   - `getFormCompletions(groupMemberId)` — returns all `team_form_completions` rows for a given member
-- [ ] 2.4 Create `services/weekend-group-member/weekend-group-member-service.ts` with:
+- [x] 2.4 Create `services/weekend-group-member/weekend-group-member-service.ts` with:
   - `getTeamFormsProgress(groupMemberId)` — fetches completions via repository, builds the same `TeamFormsProgress` shape currently returned by the action in `actions/team-forms.ts`, using `REQUIRED_FORMS` config to drive the step list
   - `hasCompletedAllTeamForms(groupMemberId)` — delegates to `getTeamFormsProgress`
-- [ ] 2.5 Create `services/weekend-group-member/types.ts`, `services/weekend-group-member/index.ts` (re-export actions and types)
-- [ ] 2.6 Update `actions/team-forms.ts` — rewrite all six form-completion actions (`signStatementOfBelief`, `signCommitmentForm`, `signCampWaiver`, `completeInfoSheet`, `submitReleaseOfClaim`, `getTeamFormsProgress`, `hasCompletedAllTeamForms`) to:
+- [x] 2.5 Create `services/weekend-group-member/types.ts`, `services/weekend-group-member/index.ts` (re-export actions and types)
+- [x] 2.6 Update `actions/team-forms.ts` — rewrite all six form-completion actions (`signStatementOfBelief`, `signCommitmentForm`, `signCampWaiver`, `completeInfoSheet`, `submitReleaseOfClaim`, `getTeamFormsProgress`, `hasCompletedAllTeamForms`) to:
   - Accept `rosterId` as before (backward-compatible signatures for now; changed in Task 4)
   - Call `getGroupMemberByRosterId(rosterId)` to obtain `groupMemberId`; return `err` if not found
   - Call `upsertFormCompletion(groupMemberId, formType, now())` instead of updating `weekend_roster`
   - `getTeamFormsProgress` and `hasCompletedAllTeamForms` delegate to the new service functions
-- [ ] 2.7 Update `submitReleaseOfClaim` specifically: after upserting the form completion, also update `special_needs` on **all** active `weekend_roster` rows where the user's `user_id` matches and `weekends.group_id` matches the group — use an admin Supabase client for this multi-row update
-- [ ] 2.8 Remove the now-unused medical columns from `services/weekend/repository.ts` `WeekendRosterQuery` constant and from the `RawWeekendRosterDB` type; remove `emergency_contact_name`, `emergency_contact_phone`, and `medical_conditions` from `services/weekend/types.ts` `RawWeekendRoster` and `WeekendRosterMember`; update `normalizeRosterMember` in `weekend-service.ts` accordingly
-- [ ] 2.9 Remove the `completed_*_at` columns from `services/weekend/repository.ts` `WeekendRosterQuery` and `RawWeekendRosterDB`; update `normalizeRosterMember` to set `forms_complete` by querying `team_form_completions` via the group-member service (or accept it as a pre-fetched boolean)
-- [ ] 2.10 Create a helper function `getUserMedicalProfile(userId)` in `services/weekend-group-member/repository.ts` that fetches from `user_medical_profiles`; create a corresponding service function that returns the profile (or null if not found)
-- [ ] 2.11 Update `updateRosterMedicalInfo` action in `actions/team-forms.ts` to write to `user_medical_profiles` keyed by `userId` (upsert) rather than updating `weekend_roster`; update the function signature to accept `userId` instead of `rosterId`
-- [ ] 2.12 Update `app/(public)/team-forms/info-sheet/page.tsx` to call `getUserMedicalProfile(user.id)` for initial values instead of querying `weekend_roster` directly
-- [ ] 2.13 Update `components/team-forms/team-info-form.tsx` to pass `userId` (not `rosterId`) to the medical-info save action
-- [ ] 2.14 Run `yarn build` and confirm zero TypeScript errors before proceeding
+- [x] 2.7 Update `submitReleaseOfClaim` specifically: after upserting the form completion, also update `special_needs` on **all** active `weekend_roster` rows where the user's `user_id` matches and `weekends.group_id` matches the group — use an admin Supabase client for this multi-row update
+- [x] 2.8 Remove the now-unused medical columns from `services/weekend/repository.ts` `WeekendRosterQuery` constant and from the `RawWeekendRosterDB` type; remove `emergency_contact_name`, `emergency_contact_phone`, and `medical_conditions` from `services/weekend/types.ts` `RawWeekendRoster` and `WeekendRosterMember`; update `normalizeRosterMember` in `weekend-service.ts` accordingly
+- [x] 2.9 Remove the `completed_*_at` columns from `services/weekend/repository.ts` `WeekendRosterQuery` and `RawWeekendRosterDB`; update `normalizeRosterMember` to set `forms_complete` by querying `team_form_completions` via the group-member service (or accept it as a pre-fetched boolean)
+- [x] 2.10 Create a helper function `getUserMedicalProfile(userId)` in `services/weekend-group-member/repository.ts` that fetches from `user_medical_profiles`; create a corresponding service function that returns the profile (or null if not found)
+- [x] 2.11 Update `updateRosterMedicalInfo` action in `actions/team-forms.ts` to write to `user_medical_profiles` keyed by `userId` (upsert) rather than updating `weekend_roster`; update the function signature to accept `userId` instead of `rosterId`
+- [x] 2.12 Update `app/(public)/team-forms/info-sheet/page.tsx` to call `getUserMedicalProfile(user.id)` for initial values instead of querying `weekend_roster` directly
+- [x] 2.13 Update `components/team-forms/team-info-form.tsx` to pass `userId` (not `rosterId`) to the medical-info save action
+- [x] 2.14 Run `yarn build` and confirm zero TypeScript errors before proceeding
 
 ---
 
