@@ -64,11 +64,12 @@ function toWeekendGroup(weekends: Weekend[]): Result<string, WeekendGroup> {
 
 /**
  * Maps a raw weekend record to a typed weekend.
+ * Requires the weekend_groups(number) join to populate number.
  */
 function normalizeWeekend(weekend: RawWeekendRecord): Weekend {
   return {
     ...weekend,
-    number: null, // populated from weekend_groups join in Task 3
+    number: weekend.weekend_groups?.number ?? null,
     status: (weekend.status as WeekendStatus) ?? null,
     groupId: weekend.group_id ?? null,
   }
@@ -497,7 +498,7 @@ export async function getWeekendById(
     return err('Weekend not found')
   }
 
-  return ok(result.data)
+  return ok(normalizeWeekend(result.data))
 }
 
 /**
@@ -647,37 +648,25 @@ export async function getWeekendRosterRecord(
 }
 
 /**
- * Records a manual (cash/check) payment for a weekend roster member.
- * Creates a record in the payment_transaction table.
+ * Records a manual (cash/check) payment for a weekend group member.
+ * Creates a record in the payment_transaction table targeting weekend_group_member.
  */
 export async function recordManualPayment(
-  weekendRosterId: string,
+  groupMemberId: string,
   paymentAmount: number,
   paymentMethod: 'cash' | 'check',
   paymentOwner: string,
   notes?: string
 ): Promise<Result<string, PaymentTransactionRow>> {
-  // Verify the weekend roster record exists and get weekend_id
-  const rosterResult =
-    await WeekendRepository.findRosterRecordById(weekendRosterId)
-
-  if (isErr(rosterResult)) {
-    return err(`Failed to find roster record: ${rosterResult.error}`)
-  }
-
-  if (isNil(rosterResult.data)) {
-    return err('Weekend roster record not found')
-  }
-
   // Generate a manual payment intent ID
   const paymentIntentId = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
   // Record payment in the payment_transaction table
   const result = await PaymentService.recordPayment({
     type: 'fee',
-    target_type: 'weekend_roster',
-    target_id: weekendRosterId,
-    weekend_id: null, // Could be fetched from roster record if needed
+    target_type: 'weekend_group_member',
+    target_id: groupMemberId,
+    weekend_id: null,
     payment_intent_id: paymentIntentId,
     gross_amount: paymentAmount,
     payment_method: paymentMethod,
@@ -690,7 +679,7 @@ export async function recordManualPayment(
   }
 
   logger.info(
-    `Manual payment recorded: ${paymentMethod} payment of $${paymentAmount} for roster ID ${weekendRosterId}`
+    `Manual payment recorded: ${paymentMethod} payment of $${paymentAmount} for group member ID ${groupMemberId}`
   )
 
   return ok(result.data)

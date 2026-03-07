@@ -145,7 +145,7 @@ no regression; data lands in `team_form_completions` and `user_medical_profiles`
 
 ---
 
-### [ ] 3.0 Payment Rework (target_type and Stripe contract)
+### [x] 3.0 Payment Rework (target_type and Stripe contract)
 
 **Purpose:** Update the team-fee payment flow so payment records target `weekend_group_member`
 instead of `weekend_roster`. Includes the Stripe checkout metadata change, webhook handler
@@ -167,26 +167,26 @@ single-weekend volunteer's payment creates one `payment_transaction` row with
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Write `supabase/migrations/YYYYMMDDHHMMSS_payment_intent_unique_index.sql`: add `CREATE UNIQUE INDEX payment_transaction_payment_intent_id_key ON payment_transaction(payment_intent_id) WHERE payment_intent_id IS NOT NULL`; run `yarn db:reset` to validate, then `yarn db:generate`
-- [ ] 3.2 Add `'weekend_group_member'` to `TargetTypeSchema` in `services/payment/types.ts` (the `z.enum` that currently lists `'candidate'` and `'weekend_roster'`); update `RawPaymentWithRoster` and related union types if they reference `weekend_roster` by name in joins
-- [ ] 3.3 Update `services/weekend/repository.ts` to join `weekend_groups` when fetching weekends, restoring the `number` field from the group row (e.g., `weekends(*, weekend_groups(number))`); update `RawWeekendRecord` and `normalizeWeekend` in `weekend-service.ts` to populate `Weekend.number` from `weekend_groups.number`
-- [ ] 3.4 Update the weekend detail page breadcrumb in `app/admin/weekends/[weekend_id]/page.tsx` to derive the title as `"Group {number} — {Type}"` (e.g., `"Group 47 — Men's"`) using the group number from the joined `weekend_groups` record rather than `weekend.number` directly; update `formatWeekendTitle` in `lib/weekend/index.ts` if it references `weekend.number`
-- [ ] 3.5 Add `getActiveGroupMemberForUser(userId)` to `services/weekend-group-member/repository.ts`: query `weekend_group_members` joined through `weekend_groups` to the active `weekends` rows, returning the member row for the active group
-- [ ] 3.6 Update `app/(public)/payment/team-fee/page.tsx`:
+- [x] 3.1 Write `supabase/migrations/YYYYMMDDHHMMSS_payment_intent_unique_index.sql`: add `CREATE UNIQUE INDEX payment_transaction_payment_intent_id_key ON payment_transaction(payment_intent_id) WHERE payment_intent_id IS NOT NULL`; run `yarn db:reset` to validate, then `yarn db:generate`
+- [x] 3.2 Add `'weekend_group_member'` to `TargetTypeSchema` in `services/payment/types.ts` (the `z.enum` that currently lists `'candidate'` and `'weekend_roster'`); update `RawPaymentWithRoster` and related union types if they reference `weekend_roster` by name in joins
+- [x] 3.3 Update `services/weekend/repository.ts` to join `weekend_groups` when fetching weekends, restoring the `number` field from the group row (e.g., `weekends(*, weekend_groups(number))`); update `RawWeekendRecord` and `normalizeWeekend` in `weekend-service.ts` to populate `Weekend.number` from `weekend_groups.number`
+- [x] 3.4 Update the weekend detail page breadcrumb in `app/admin/weekends/[weekend_id]/page.tsx` to derive the title as `"Group {number} — {Type}"` (e.g., `"Group 47 — Men's"`) using the group number from the joined `weekend_groups` record rather than `weekend.number` directly; update `formatWeekendTitle` in `lib/weekend/index.ts` if it references `weekend.number`
+- [x] 3.5 Add `getActiveGroupMemberForUser(userId)` to `services/weekend-group-member/repository.ts`: query `weekend_group_members` joined through `weekend_groups` to the active `weekends` rows, returning the member row for the active group
+- [x] 3.6 Update `app/(public)/payment/team-fee/page.tsx`:
   - Remove the `weekend_id` required `searchParams` check
   - Call `getActiveGroupMemberForUser(user.id)` to obtain `groupMemberId`; show the existing "not on roster" alert if not found
   - Pass `{ group_member_id: groupMemberId, payment_owner: payerName }` as Stripe metadata (drop `weekend_id` from required fields; it may still be included as informational)
-- [ ] 3.7 Add `getGroupMemberById(groupMemberId)` to `services/weekend-group-member/repository.ts` (used by the webhook)
-- [ ] 3.8 Update `handleTeamPayment` in `services/stripe/handlers/checkout-session-completed.ts`:
+- [x] 3.7 Add `getGroupMemberById(groupMemberId)` to `services/weekend-group-member/repository.ts` (used by the webhook)
+- [x] 3.8 Update `handleTeamPayment` in `services/stripe/handlers/checkout-session-completed.ts`:
   - Read `group_member_id` from `session.metadata` instead of `user_id + weekend_id`
   - Validate `group_member_id` is non-null; return webhook error if missing
   - Call `getGroupMemberById(groupMemberId)` with admin client to verify it exists
   - Record payment with `target_type: 'weekend_group_member'`, `target_id: groupMemberId`
   - Remove the call to `getWeekendRosterRecord` and `markTeamMemberAsPaid` (status field `paid` on `weekend_roster` is no longer the payment signal; payment existence in `payment_transaction` is the signal)
   - Keep the `notifyAssistantHeadForTeamPayment` call; derive `weekendId` from the group-member record for the notification
-- [ ] 3.9 Update `hasTeamPayment` in `services/payment/actions.ts` to call `hasPaymentForTarget('weekend_group_member', groupMemberId)` instead of `'weekend_roster'`
-- [ ] 3.10 Update `recordManualPayment` in `services/weekend/weekend-service.ts` to accept `groupMemberId` instead of `weekendRosterId`; change the `target_type` to `'weekend_group_member'` and `target_id` to `groupMemberId`; update any admin UI that calls this function
-- [ ] 3.11 Run `yarn build` and confirm zero TypeScript errors
+- [x] 3.9 Update `hasTeamPayment` in `services/payment/actions.ts` to call `hasPaymentForTarget('weekend_group_member', groupMemberId)` instead of `'weekend_roster'`
+- [x] 3.10 Update `recordManualPayment` in `services/weekend/weekend-service.ts` to accept `groupMemberId` instead of `weekendRosterId`; change the `target_type` to `'weekend_group_member'` and `target_id` to `groupMemberId`; update any admin UI that calls this function
+- [x] 3.11 Run `yarn build` and confirm zero TypeScript errors
 
 ---
 

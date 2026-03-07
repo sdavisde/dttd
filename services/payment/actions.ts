@@ -15,13 +15,13 @@ export async function getPrice(priceId: string) {
 }
 
 /**
- * Checks if a team member has made any payment for the given weekend roster.
+ * Checks if a team member has made any payment for the given group member.
  * This is a public action used during the payment flow.
  */
-export async function hasTeamPayment(weekendRosterId: string) {
+export async function hasTeamPayment(groupMemberId: string) {
   return await PaymentService.hasPaymentForTarget(
-    'weekend_roster',
-    weekendRosterId
+    'weekend_group_member',
+    groupMemberId
   )
 }
 

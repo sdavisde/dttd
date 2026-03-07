@@ -34,7 +34,10 @@ export enum WeekendStatus {
 
 export type WeekendStatusValue = `${WeekendStatus}`
 
-export type RawWeekendRecord = Tables<'weekends'>
+export type RawWeekendRecord = Tables<'weekends'> & {
+  /** Joined from weekend_groups to restore the group number field. */
+  weekend_groups: { number: number | null } | null
+}
 
 export type WeekendGroup = Record<WeekendType, Weekend>
 

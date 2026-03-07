@@ -25,7 +25,9 @@ export default async function WeekendDetailPage({
   const weekendResult = await getWeekendById(weekend_id)
   const weekendTitle = !isErr(weekendResult)
     ? (weekendResult.data.title ??
-      `${weekendResult.data.type} Weekend #${weekendResult.data.number}`)
+      (weekendResult.data.number
+        ? `Group ${weekendResult.data.number} — ${weekendResult.data.type === 'MENS' ? "Men's" : "Women's"}`
+        : `${weekendResult.data.type} Weekend`))
     : 'Weekend'
 
   return (

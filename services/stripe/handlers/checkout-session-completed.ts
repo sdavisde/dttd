@@ -3,7 +3,6 @@ import 'server-only'
 import Stripe from 'stripe'
 import { ok, isErr, Results } from '@/lib/results'
 import { logger } from '@/lib/logger'
-import { getWeekendRosterRecord } from '@/services/weekend'
 import {
   notifyAssistantHeadForTeamPayment,
   notifyCandidatePaymentReceivedAdmin,
@@ -17,6 +16,7 @@ import {
 } from './types'
 import { webhookErr } from '../webhook-context'
 import * as PaymentService from '@/services/payment/payment-service'
+import { getGroupMemberById } from '@/services/weekend-group-member/repository'
 
 /**
  * Handler for checkout.session.completed events.
@@ -208,56 +208,48 @@ async function handleCandidatePayment(
 
 /**
  * Handles team member payment processing.
+ * Uses group_member_id from Stripe metadata to target weekend_group_member.
  */
 async function handleTeamPayment(
   session: Stripe.Checkout.Session,
   ctx: WebhookHandlerContext
 ): Promise<ReturnType<WebhookHandler['handle']>> {
-  const teamUserId = session.metadata?.user_id ?? null
-  const weekendId = session.metadata?.weekend_id ?? null
+  const groupMemberId = session.metadata?.group_member_id ?? null
 
-  if (isNil(teamUserId)) {
+  if (isNil(groupMemberId)) {
     return webhookErr(
       WebhookErrorCodes.MISSING_USER_ID,
-      'Missing user_id in session metadata',
+      'Missing group_member_id in session metadata',
       'validation',
       'error',
       ctx.paymentContext
     )
   }
 
-  if (isNil(weekendId)) {
-    return webhookErr(
-      WebhookErrorCodes.MISSING_WEEKEND_ID,
-      'Missing weekend_id in session metadata',
-      'validation',
-      'error',
-      ctx.paymentContext
-    )
-  }
+  logger.info({ groupMemberId }, 'Processing team payment')
 
-  ctx.updateContext({ userId: teamUserId, weekendId })
-  logger.info({ teamUserId, weekendId }, 'Processing team payment')
-
-  // Get weekend roster record
-  const weekendRosterRecord = await getWeekendRosterRecord(
-    teamUserId,
-    weekendId
-  )
-  if (isErr(weekendRosterRecord)) {
+  // Verify the group member exists and get weekendId + userId for notification
+  const groupMemberResult = await getGroupMemberById(groupMemberId)
+  if (isErr(groupMemberResult)) {
     return webhookErr(
       WebhookErrorCodes.WEEKEND_ROSTER_NOT_FOUND,
-      weekendRosterRecord.error,
+      groupMemberResult.error,
       'database_lookup',
       'error',
       ctx.paymentContext
     )
   }
 
-  const weekendRosterId = weekendRosterRecord.data.id!
-  ctx.updateContext({ weekendRosterId })
+  const groupMember = groupMemberResult.data
+  ctx.updateContext({
+    userId: groupMember.user_id,
+    weekendId: groupMember.weekendId ?? undefined,
+  })
 
-  logger.info({ teamUserId, weekendRosterId }, 'Found weekend roster record')
+  logger.info(
+    { groupMemberId, userId: groupMember.user_id },
+    'Found group member record'
+  )
 
   // Record the payment using PaymentService
   const paymentIntentId = session.payment_intent as string
@@ -267,7 +259,7 @@ async function handleTeamPayment(
   const transactionResult = await getTransactionData(paymentIntentId)
   if (isErr(transactionResult)) {
     logger.warn(
-      { weekendRosterId, error: transactionResult.error },
+      { groupMemberId, error: transactionResult.error },
       'Transaction data not available at checkout time - will be backfilled at charge.updated or payout'
     )
   }
@@ -276,9 +268,9 @@ async function handleTeamPayment(
   const paymentResult = await PaymentService.recordPayment(
     {
       type: 'fee',
-      target_type: 'weekend_roster',
-      target_id: weekendRosterId,
-      weekend_id: weekendId,
+      target_type: 'weekend_group_member',
+      target_id: groupMemberId,
+      weekend_id: groupMember.weekendId ?? null,
       payment_intent_id: paymentIntentId,
       gross_amount: grossAmount,
       net_amount: transaction?.netAmount ?? null,
@@ -302,42 +294,25 @@ async function handleTeamPayment(
   }
 
   logger.info(
-    { weekendRosterId, paymentId: paymentResult.data.id },
-    'Successfully recorded weekend roster payment'
+    { groupMemberId, paymentId: paymentResult.data.id },
+    'Successfully recorded group member payment'
   )
-
-  // Mark team member as paid
-  const paidResult = await markTeamMemberAsPaid(
-    weekendRosterId,
-    ctx.adminClient
-  )
-  if (isErr(paidResult)) {
-    return webhookErr(
-      WebhookErrorCodes.STATUS_UPDATE_FAILED,
-      paidResult.error,
-      'status_update',
-      'error',
-      ctx.paymentContext
-    )
-  }
-
-  logger.info({ weekendRosterId }, 'Successfully marked team member as paid')
 
   // Notify assistant head (don't fail webhook if email fails)
   const paymentAmount = grossAmount
   const notifyResult = await notifyAssistantHeadForTeamPayment(
-    teamUserId,
-    weekendId,
+    groupMember.user_id,
+    groupMember.weekendId ?? null,
     paymentAmount
   )
   if (isErr(notifyResult)) {
     logger.error(
-      { teamUserId, weekendId, error: notifyResult.error },
+      { groupMemberId, error: notifyResult.error },
       'Failed to notify assistant head of team payment'
     )
   } else {
     logger.info(
-      { teamUserId, weekendId },
+      { groupMemberId },
       'Successfully notified assistant head of team payment'
     )
   }
@@ -347,9 +322,9 @@ async function handleTeamPayment(
     entityType: 'team_payment',
     entityId: paymentResult.data.id,
     details: {
-      userId: teamUserId,
-      weekendId,
-      weekendRosterId,
+      groupMemberId,
+      userId: groupMember.user_id,
+      weekendId: groupMember.weekendId,
       paymentAmount,
     },
   })
@@ -417,29 +392,6 @@ async function confirmCandidate(
   if (updateError) {
     return Results.err(
       `Failed to update candidate status to confirmed: ${updateError.message}`
-    )
-  }
-
-  return ok(true)
-}
-
-/**
- * Marks a team member as paid in the weekend_roster table.
- */
-async function markTeamMemberAsPaid(
-  weekendRosterId: string,
-  adminClient: WebhookHandlerContext['adminClient']
-): Promise<
-  ReturnType<typeof ok<true>> | ReturnType<typeof Results.err<string>>
-> {
-  const { error: updateError } = await adminClient
-    .from('weekend_roster')
-    .update({ status: 'paid' })
-    .eq('id', weekendRosterId)
-
-  if (updateError) {
-    return Results.err(
-      `Failed to update weekend_roster record to paid: ${updateError.message}`
     )
   }
 

@@ -63,10 +63,10 @@ export const PaymentTypeSchema = z.enum(['fee', 'donation', 'other'])
 export type PaymentType = z.infer<typeof PaymentTypeSchema>
 
 /**
- * Target type values: candidate, weekend_roster, or null (for donations)
+ * Target type values: candidate, weekend_roster, weekend_group_member, or null (for donations)
  */
 export const TargetTypeSchema = z
-  .enum(['candidate', 'weekend_roster'])
+  .enum(['candidate', 'weekend_roster', 'weekend_group_member'])
   .nullable()
 export type TargetType = z.infer<typeof TargetTypeSchema>
 

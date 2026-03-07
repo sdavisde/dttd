@@ -11,6 +11,8 @@ import {
 } from '@/lib/weekend/types'
 import { WeekendSidebarPayload } from './types'
 import * as WeekendService from './weekend-service'
+import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
+import { err, isErr } from '@/lib/results'
 
 // Re-export types for convenience
 export type { WeekendRosterViewData } from './weekend-service'
@@ -73,6 +75,7 @@ export async function getWeekendRosterRecord(
 
 /**
  * Records a manual (cash/check) payment.
+ * Bridges from weekendRosterId to groupMemberId internally.
  * Public - no auth per user request.
  */
 export async function recordManualPayment(
@@ -82,8 +85,14 @@ export async function recordManualPayment(
   paymentOwner: string,
   notes?: string
 ) {
+  const groupMemberResult = await getGroupMemberByRosterId(weekendRosterId)
+  if (isErr(groupMemberResult)) {
+    return err(
+      `Failed to find group member for roster: ${groupMemberResult.error}`
+    )
+  }
   return WeekendService.recordManualPayment(
-    weekendRosterId,
+    groupMemberResult.data.id,
     paymentAmount,
     paymentMethod,
     paymentOwner,

@@ -5,7 +5,6 @@ import { fromSupabase, Result, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { Tables } from '@/database.types'
 import {
-  Weekend,
   WeekendStatus,
   WeekendStatusValue,
   WeekendType,
@@ -70,7 +69,7 @@ export async function findActiveWeekends(): Promise<
 
   const { data, error } = await supabase
     .from('weekends')
-    .select('*')
+    .select('*, weekend_groups(number)')
     .eq('status', WeekendStatus.ACTIVE)
 
   if (isSupabaseError(error)) {
@@ -90,7 +89,7 @@ export async function findWeekendsByGroupId(
 
   const { data, error } = await supabase
     .from('weekends')
-    .select('*')
+    .select('*, weekend_groups(number)')
     .eq('group_id', groupId)
     .order('type', { ascending: true })
 
@@ -108,7 +107,7 @@ export async function findWeekendsByStatuses(
   statuses?: WeekendStatusValue[]
 ): Promise<Result<string, RawWeekendRecord[]>> {
   const supabase = await createClient()
-  let query = supabase.from('weekends').select('*')
+  let query = supabase.from('weekends').select('*, weekend_groups(number)')
 
   if (statuses && statuses.length > 0) {
     query = query.in('status', statuses)
@@ -126,16 +125,16 @@ export async function findWeekendsByStatuses(
 }
 
 /**
- * Fetches a single weekend by ID.
+ * Fetches a single weekend by ID, joining weekend_groups to restore the number field.
  */
 export async function findWeekendById(
   id: string
-): Promise<Result<string, Weekend | null>> {
+): Promise<Result<string, RawWeekendRecord | null>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('weekends')
-    .select('*')
+    .select('*, weekend_groups(number)')
     .eq('id', id)
     .single()
 
@@ -143,7 +142,7 @@ export async function findWeekendById(
     return err(error.message)
   }
 
-  return ok(data as Weekend | null)
+  return ok(data as RawWeekendRecord | null)
 }
 
 /**
@@ -164,7 +163,7 @@ export async function insertWeekendGroup(
   const { data, error } = await supabase
     .from('weekends')
     .insert(payloads)
-    .select('*')
+    .select('*, weekend_groups(number)')
 
   if (isSupabaseError(error)) {
     return err(error.message)
@@ -188,7 +187,7 @@ export async function updateWeekendByGroupAndType(
     .update(payload)
     .eq('group_id', groupId)
     .eq('type', type)
-    .select('*')
+    .select('*, weekend_groups(number)')
     .single()
 
   if (isSupabaseError(error)) {

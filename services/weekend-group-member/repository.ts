@@ -6,6 +6,83 @@ import { isSupabaseError } from '@/lib/supabase/utils'
 import { RawGroupMember, RawFormCompletion, RawMedicalProfile } from './types'
 
 /**
+ * Returns the active group member for a user by joining weekend_group_members
+ * through weekend_groups to weekends where status = 'ACTIVE'.
+ */
+export async function getActiveGroupMemberForUser(
+  userId: string
+): Promise<Result<string, RawGroupMember | null>> {
+  const supabase = await createClient()
+
+  // Find the active weekend group
+  const { data: activeWeekends, error: weekendsError } = await supabase
+    .from('weekends')
+    .select('group_id')
+    .eq('status', 'ACTIVE')
+    .limit(1)
+
+  if (isSupabaseError(weekendsError)) {
+    return err('Failed to fetch active weekends')
+  }
+
+  const groupId = activeWeekends?.[0]?.group_id
+  if (!groupId) {
+    return ok(null)
+  }
+
+  const { data: member, error: memberError } = await supabase
+    .from('weekend_group_members')
+    .select('*')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (isSupabaseError(memberError)) {
+    return err('Failed to fetch group member')
+  }
+
+  return ok(member as RawGroupMember | null)
+}
+
+/**
+ * Finds a weekend_group_member by its ID.
+ * Also fetches a representative weekend_id from the group (for notifications).
+ * Uses admin client to bypass RLS — for use in webhook handlers.
+ */
+export async function getGroupMemberById(
+  groupMemberId: string
+): Promise<Result<string, RawGroupMember & { weekendId: string | null }>> {
+  const supabase = createAdminClient()
+
+  const { data: member, error: memberError } = await supabase
+    .from('weekend_group_members')
+    .select('*')
+    .eq('id', groupMemberId)
+    .maybeSingle()
+
+  if (isSupabaseError(memberError) || !member) {
+    return err('Weekend group member not found')
+  }
+
+  // Get a weekend_id from the group for notification purposes
+  const { data: weekend, error: weekendError } = await supabase
+    .from('weekends')
+    .select('id')
+    .eq('group_id', member.group_id)
+    .limit(1)
+    .maybeSingle()
+
+  if (isSupabaseError(weekendError)) {
+    return err('Failed to fetch weekend for group member')
+  }
+
+  return ok({
+    ...(member as RawGroupMember),
+    weekendId: weekend?.id ?? null,
+  })
+}
+
+/**
  * Finds the weekend_group_member for a given weekend_roster ID.
  * Joins through weekend_roster → weekends → weekend_group_members.
  */

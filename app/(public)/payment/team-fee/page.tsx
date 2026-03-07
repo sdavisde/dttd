@@ -1,32 +1,17 @@
 import Checkout from '@/components/checkout'
 import { notFound } from 'next/navigation'
 import { logger } from '@/lib/logger'
-import { getWeekendRosterRecord } from '@/services/weekend'
+import { getActiveGroupMemberForUser } from '@/services/weekend-group-member/repository'
 import { getLoggedInUser } from '@/services/identity/user'
 import { isErr } from '@/lib/results'
 import { AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getUrl } from '@/lib/url'
 
-interface TeamFeesPaymentPageProps {
-  searchParams: Promise<{
-    weekend_id: string
-  }>
-}
-
-export default async function TeamFeesPaymentPage({
-  searchParams,
-}: TeamFeesPaymentPageProps) {
+export default async function TeamFeesPaymentPage() {
   const teamFeePriceId = process.env.TEAM_FEE_PRICE_ID
   if (!teamFeePriceId) {
     logger.error('Missing team fee price id')
-    return notFound()
-  }
-
-  const weekend_id = (await searchParams).weekend_id
-
-  if (!weekend_id) {
-    logger.error('Missing weekend id query parameter')
     return notFound()
   }
 
@@ -37,11 +22,9 @@ export default async function TeamFeesPaymentPage({
     return notFound()
   }
 
-  const weekendRosterRecord = await getWeekendRosterRecord(user.id, weekend_id)
-  if (isErr(weekendRosterRecord)) {
-    logger.error(
-      `Error fetching weekend roster record ${weekendRosterRecord.error}`
-    )
+  const groupMemberResult = await getActiveGroupMemberForUser(user.id)
+  if (isErr(groupMemberResult) || !groupMemberResult.data) {
+    logger.error('No active group member found for user')
     return (
       <div className="h-[80vh] w-screen flex items-center justify-center p-4">
         <Alert className="max-w-md text-center">
@@ -67,6 +50,8 @@ export default async function TeamFeesPaymentPage({
     )
   }
 
+  const groupMemberId = groupMemberResult.data.id
+
   // Build payer name for payment tracking
   const payerName =
     user.firstName && user.lastName
@@ -77,7 +62,7 @@ export default async function TeamFeesPaymentPage({
     <div className="payment-page">
       <Checkout
         priceId={teamFeePriceId}
-        metadata={{ weekend_id, payment_owner: payerName }}
+        metadata={{ group_member_id: groupMemberId, payment_owner: payerName }}
         returnUrl={getUrl(
           '/payment/team-fee/success?session_id={CHECKOUT_SESSION_ID}'
         )}
