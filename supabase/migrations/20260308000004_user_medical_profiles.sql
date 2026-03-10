@@ -16,30 +16,34 @@ CREATE TABLE IF NOT EXISTS "public"."user_medical_profiles" (
 ALTER TABLE "public"."user_medical_profiles" OWNER TO "postgres";
 
 -- Backfill: for each user in weekend_roster with medical data,
--- take the most recent non-null value per column (ordered by weekends.created_at DESC)
-WITH ranked AS (
-  SELECT
-    wr.user_id,
-    wr.emergency_contact_name,
-    wr.emergency_contact_phone,
-    wr.medical_conditions,
-    ROW_NUMBER() OVER (
-      PARTITION BY wr.user_id
-      ORDER BY w.created_at DESC
-    ) AS rn
+-- independently pick the most recent non-null value per field.
+-- This prevents a newer weekend row with partial data from silently
+-- overwriting older, more complete data.
+WITH ecn AS (
+  SELECT DISTINCT ON (wr.user_id) wr.user_id, wr.emergency_contact_name
   FROM "public"."weekend_roster" wr
   JOIN "public"."weekends" w ON w.id = wr.weekend_id
-  WHERE wr.user_id IS NOT NULL
-    AND (
-      wr.emergency_contact_name IS NOT NULL
-      OR wr.emergency_contact_phone IS NOT NULL
-      OR wr.medical_conditions IS NOT NULL
-    )
+  WHERE wr.user_id IS NOT NULL AND wr.emergency_contact_name IS NOT NULL
+  ORDER BY wr.user_id, w.created_at DESC
 ),
-best AS (
-  SELECT user_id, emergency_contact_name, emergency_contact_phone, medical_conditions
-  FROM ranked
-  WHERE rn = 1
+ecp AS (
+  SELECT DISTINCT ON (wr.user_id) wr.user_id, wr.emergency_contact_phone
+  FROM "public"."weekend_roster" wr
+  JOIN "public"."weekends" w ON w.id = wr.weekend_id
+  WHERE wr.user_id IS NOT NULL AND wr.emergency_contact_phone IS NOT NULL
+  ORDER BY wr.user_id, w.created_at DESC
+),
+mc AS (
+  SELECT DISTINCT ON (wr.user_id) wr.user_id, wr.medical_conditions
+  FROM "public"."weekend_roster" wr
+  JOIN "public"."weekends" w ON w.id = wr.weekend_id
+  WHERE wr.user_id IS NOT NULL AND wr.medical_conditions IS NOT NULL
+  ORDER BY wr.user_id, w.created_at DESC
+),
+all_users AS (
+  SELECT user_id FROM ecn
+  UNION SELECT user_id FROM ecp
+  UNION SELECT user_id FROM mc
 )
 INSERT INTO "public"."user_medical_profiles" (
   "user_id",
@@ -48,11 +52,14 @@ INSERT INTO "public"."user_medical_profiles" (
   "medical_conditions"
 )
 SELECT
-  user_id,
-  emergency_contact_name,
-  emergency_contact_phone,
-  medical_conditions
-FROM best
+  u.user_id,
+  ecn.emergency_contact_name,
+  ecp.emergency_contact_phone,
+  mc.medical_conditions
+FROM all_users u
+LEFT JOIN ecn ON ecn.user_id = u.user_id
+LEFT JOIN ecp ON ecp.user_id = u.user_id
+LEFT JOIN mc  ON mc.user_id  = u.user_id
 ON CONFLICT ("user_id") DO UPDATE SET
   "emergency_contact_name"  = COALESCE(EXCLUDED.emergency_contact_name,  user_medical_profiles.emergency_contact_name),
   "emergency_contact_phone" = COALESCE(EXCLUDED.emergency_contact_phone, user_medical_profiles.emergency_contact_phone),
