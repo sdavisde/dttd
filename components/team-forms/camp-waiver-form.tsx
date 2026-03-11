@@ -34,10 +34,13 @@ type CampWaiverFormValues = z.infer<typeof campWaiverSchema>
 
 interface CampWaiverFormProps {
   userName: string
-  rosterId: string
+  groupMemberId: string
 }
 
-export function CampWaiverForm({ userName, rosterId }: CampWaiverFormProps) {
+export function CampWaiverForm({
+  userName,
+  groupMemberId,
+}: CampWaiverFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -55,7 +58,7 @@ export function CampWaiverForm({ userName, rosterId }: CampWaiverFormProps) {
 
     // TODO: Verify if a new column exists for this waiver.
     // Creating the action call assuming it will exist or user will add it.
-    const result = await signCampWaiver(rosterId)
+    const result = await signCampWaiver(groupMemberId)
 
     if (isErr(result)) {
       toast.error(result.error)

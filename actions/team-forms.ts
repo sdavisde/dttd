@@ -22,58 +22,35 @@ export type TeamFormsProgress = {
   isComplete: boolean
 }
 
-// ---------------------------------------------------------------------------
-// Internal helper: resolve groupMemberId from a rosterId (backward-compat bridge)
-// ---------------------------------------------------------------------------
-async function resolveGroupMemberId(
-  rosterId: string
-): Promise<Result<string, string>> {
-  const result = await GroupMemberRepository.getGroupMemberByRosterId(rosterId)
-  if (isErr(result)) {
-    return err(result.error)
-  }
-  return ok(result.data.id)
-}
-
 /**
- * Marks the Statement of Belief as completed for a given roster record.
+ * Marks the Statement of Belief as completed for a given group member.
  */
 export async function signStatementOfBelief(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const groupMemberResult = await resolveGroupMemberId(rosterId)
-  if (isErr(groupMemberResult)) {
-    return err(groupMemberResult.error)
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
   }
 
   return GroupMemberRepository.upsertFormCompletion(
-    groupMemberResult.data,
+    groupMemberId,
     'statement_of_belief',
     new Date().toISOString()
   )
 }
 
 /**
- * Marks the Commitment Form as completed for a given roster record.
+ * Marks the Commitment Form as completed for a given group member.
  */
 export async function signCommitmentForm(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const groupMemberResult = await resolveGroupMemberId(rosterId)
-  if (isErr(groupMemberResult)) {
-    return err(groupMemberResult.error)
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
   }
 
   return GroupMemberRepository.upsertFormCompletion(
-    groupMemberResult.data,
+    groupMemberId,
     'commitment_form',
     new Date().toISOString()
   )
@@ -84,19 +61,12 @@ export async function signCommitmentForm(
  * Updates special_needs on all active roster rows for the same group.
  */
 export async function submitReleaseOfClaim(
-  rosterId: string,
+  groupMemberId: string,
   specialNeeds: string | null
 ): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
   }
-
-  const groupMemberResult = await resolveGroupMemberId(rosterId)
-  if (isErr(groupMemberResult)) {
-    return err(groupMemberResult.error)
-  }
-
-  const groupMemberId = groupMemberResult.data
 
   // Upsert form completion
   const formResult = await GroupMemberRepository.upsertFormCompletion(
@@ -121,44 +91,34 @@ export async function submitReleaseOfClaim(
 }
 
 /**
- * Marks the Camp Waiver as completed for a given roster record.
+ * Marks the Camp Waiver as completed for a given group member.
  */
 export async function signCampWaiver(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const groupMemberResult = await resolveGroupMemberId(rosterId)
-  if (isErr(groupMemberResult)) {
-    return err(groupMemberResult.error)
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
   }
 
   return GroupMemberRepository.upsertFormCompletion(
-    groupMemberResult.data,
+    groupMemberId,
     'camp_waiver',
     new Date().toISOString()
   )
 }
 
 /**
- * Marks the Info Sheet as completed for a given roster record.
+ * Marks the Info Sheet as completed for a given group member.
  */
 export async function completeInfoSheet(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const groupMemberResult = await resolveGroupMemberId(rosterId)
-  if (isErr(groupMemberResult)) {
-    return err(groupMemberResult.error)
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
   }
 
   return GroupMemberRepository.upsertFormCompletion(
-    groupMemberResult.data,
+    groupMemberId,
     'info_sheet',
     new Date().toISOString()
   )
@@ -168,27 +128,22 @@ export async function completeInfoSheet(
  * Returns granular progress for team forms.
  */
 export async function getTeamFormsProgress(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, TeamFormsProgress>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
   }
 
-  const groupMemberResult = await resolveGroupMemberId(rosterId)
-  if (isErr(groupMemberResult)) {
-    return err(groupMemberResult.error)
-  }
-
-  return serviceGetTeamFormsProgress(groupMemberResult.data)
+  return serviceGetTeamFormsProgress(groupMemberId)
 }
 
 /**
  * Checks if a team member has completed all 5 required forms.
  */
 export async function hasCompletedAllTeamForms(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, boolean>> {
-  const result = await getTeamFormsProgress(rosterId)
+  const result = await getTeamFormsProgress(groupMemberId)
   if (isErr(result)) {
     return err(result.error)
   }

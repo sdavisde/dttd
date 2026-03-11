@@ -33,8 +33,22 @@ export const JoinUserRolesOnUserId = `
 `
 
 export const JoinWeekendRosterOnUserId = `
-  weekend_roster:weekend_roster!user_id(
-    id, user_id, weekend_id, cha_role, status, weekends(type, status)
+  weekend_group_members!user_id(
+    id,
+    group_id,
+    weekend_groups!group_id(
+      weekends!group_id(
+        id,
+        type,
+        status,
+        weekend_roster(
+          id,
+          cha_role,
+          status,
+          weekend_id
+        )
+      )
+    )
   )
 `
 

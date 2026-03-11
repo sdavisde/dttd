@@ -56,12 +56,12 @@ const releaseOfClaimSchema = z
 type ReleaseOfClaimFormValues = z.infer<typeof releaseOfClaimSchema>
 
 interface ReleaseOfClaimFormProps {
-  rosterId: string
+  groupMemberId: string
   initialSpecialNeeds?: string
 }
 
 export function ReleaseOfClaimForm({
-  rosterId,
+  groupMemberId,
   initialSpecialNeeds,
 }: ReleaseOfClaimFormProps) {
   const router = useRouter()
@@ -90,7 +90,10 @@ export function ReleaseOfClaimForm({
 
     const specialNeeds =
       data.has_special_needs === 'yes' ? data.special_needs_description : null
-    const result = await submitReleaseOfClaim(rosterId, specialNeeds ?? null)
+    const result = await submitReleaseOfClaim(
+      groupMemberId,
+      specialNeeds ?? null
+    )
 
     if (isErr(result)) {
       toast.error(result.error)

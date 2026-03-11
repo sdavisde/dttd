@@ -1,10 +1,34 @@
 import { Tables } from '@/database.types'
 
-export type TeamMemberInfo = {
+/**
+ * A single weekend_roster row for a team member, representing their assignment
+ * to one specific weekend (MENS or WOMENS) within a group.
+ * A multi-weekend volunteer will have multiple assignments within the same group.
+ */
+export type TeamAssignment = {
+  /** weekend_roster.id — the row ID for this specific weekend assignment */
   id: string
-  cha_role: string | null
-  status: string | null
+  /** The weekend this assignment belongs to (null if data is missing) */
   weekend_id: string | null
+  /** The team role assigned to this member for this weekend */
+  cha_role: string | null
+  /** Roster status (e.g. 'awaiting_payment', 'paid') */
+  status: string | null
+}
+
+/**
+ * Group-scoped team membership info for the currently active weekend group.
+ * A single weekend_group_members row is shared across both MENS and WOMENS
+ * weekends in the same group, so forms and payment are also shared.
+ */
+export type TeamMemberInfo = {
+  /** weekend_group_members.id — the shared row that ties forms and payment together */
+  groupMemberId: string
+  /** The weekend_groups.id this membership belongs to */
+  groupId: string
+  /** One entry per weekend_roster row in the active group for this user.
+   *  Single-weekend volunteers have one entry; cross-weekend volunteers have two. */
+  assignments: TeamAssignment[]
 }
 
 export type Weekend = {

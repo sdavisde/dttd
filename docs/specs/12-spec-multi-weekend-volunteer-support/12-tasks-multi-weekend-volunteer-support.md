@@ -190,7 +190,7 @@ single-weekend volunteer's payment creates one `payment_transaction` row with
 
 ---
 
-### [ ] 4.0 Multi-Weekend Volunteer Experience
+### [x] 4.0 Multi-Weekend Volunteer Experience
 
 **Purpose:** Reshape `User.teamMemberInfo` into a group-scoped object with an `assignments[]`
 array so a volunteer on both weekends sees shared form state, shared payment state, and a single
@@ -209,28 +209,28 @@ set of homepage TODOs. Single-weekend volunteer experience is unchanged from the
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Add `TeamAssignment` type to `lib/weekend/types.ts`: `{ id: string; weekend_id: string | null; cha_role: string | null; status: string | null }`; reshape `TeamMemberInfo` to `{ groupMemberId: string; groupId: string; assignments: TeamAssignment[] }`; remove the old flat fields (`id`, `cha_role`, `status`, `weekend_id`) from `TeamMemberInfo`
-- [ ] 4.2 Update `JoinWeekendRosterOnUserId` in `services/identity/user/repository.ts` to also fetch `weekend_group_members` with `group_id` and join back to `weekend_roster` through the group; or alternatively query `weekend_group_members` directly and join `weekend_roster` rows from there
-- [ ] 4.3 Update `RawUser` in `services/identity/user/types.ts` to reflect the new join shape (group-member row with nested roster assignments)
-- [ ] 4.4 Rewrite the `teamMemberInfo` derivation block in `normalizeUser` (`services/identity/user/user-service.ts`): instead of `.find()` on `weekend_roster` for the first active row, collect **all** `weekend_roster` rows belonging to the active group via `weekend_group_members`; build `{ groupMemberId, groupId, assignments: [...] }` or return `null` if no active group membership exists
-- [ ] 4.5 Update `TeamMemberUser` in `lib/users/types.ts` if its definition depends on the old `TeamMemberInfo` shape; ensure it still compiles and correctly narrows `teamMemberInfo` to non-null
-- [ ] 4.6 Update `app/(public)/team-forms/layout.tsx`: change `getTeamFormsProgress(user.teamMemberInfo.id)` to `getTeamFormsProgress(user.teamMemberInfo.groupMemberId)`
-- [ ] 4.7 Update the five team form pages to pass `groupMemberId` instead of roster `id`:
+- [x] 4.1 Add `TeamAssignment` type to `lib/weekend/types.ts`: `{ id: string; weekend_id: string | null; cha_role: string | null; status: string | null }`; reshape `TeamMemberInfo` to `{ groupMemberId: string; groupId: string; assignments: TeamAssignment[] }`; remove the old flat fields (`id`, `cha_role`, `status`, `weekend_id`) from `TeamMemberInfo`
+- [x] 4.2 Update `JoinWeekendRosterOnUserId` in `services/identity/user/repository.ts` to also fetch `weekend_group_members` with `group_id` and join back to `weekend_roster` through the group; or alternatively query `weekend_group_members` directly and join `weekend_roster` rows from there
+- [x] 4.3 Update `RawUser` in `services/identity/user/types.ts` to reflect the new join shape (group-member row with nested roster assignments)
+- [x] 4.4 Rewrite the `teamMemberInfo` derivation block in `normalizeUser` (`services/identity/user/user-service.ts`): instead of `.find()` on `weekend_roster` for the first active row, collect **all** `weekend_roster` rows belonging to the active group via `weekend_group_members`; build `{ groupMemberId, groupId, assignments: [...] }` or return `null` if no active group membership exists
+- [x] 4.5 Update `TeamMemberUser` in `lib/users/types.ts` if its definition depends on the old `TeamMemberInfo` shape; ensure it still compiles and correctly narrows `teamMemberInfo` to non-null
+- [x] 4.6 Update `app/(public)/team-forms/layout.tsx`: change `getTeamFormsProgress(user.teamMemberInfo.id)` to `getTeamFormsProgress(user.teamMemberInfo.groupMemberId)`
+- [x] 4.7 Update the five team form pages to pass `groupMemberId` instead of roster `id`:
   - `statement-of-belief/page.tsx`: change `rosterId={user.teamMemberInfo.id}` → `groupMemberId={user.teamMemberInfo.groupMemberId}`
   - `commitment-form/page.tsx`: same rename
   - `release-of-claim/page.tsx`: same rename; also update the redirect guard that currently reads `user.teamMemberInfo.weekend_id` to use `user.teamMemberInfo.assignments[0]?.weekend_id`
   - `camp-waiver/page.tsx`: same rename
   - `info-sheet/page.tsx`: same rename; medical pre-fill already reads from `user_medical_profiles` (Task 2)
-- [ ] 4.8 Rename `rosterId` → `groupMemberId` in the five form components (`statement-of-belief-form.tsx`, `commitment-form-component.tsx`, `release-of-claim-form.tsx`, `camp-waiver-form.tsx`, `team-info-form.tsx`) and update the prop type to `groupMemberId: string`
-- [ ] 4.9 Update form action signatures in `actions/team-forms.ts` to accept `groupMemberId` directly (remove the internal `getGroupMemberByRosterId` bridge introduced in Task 2); the parameter name changes from `rosterId` to `groupMemberId` throughout
-- [ ] 4.10 Update `lib/weekend/team/todos.config.ts`:
+- [x] 4.8 Rename `rosterId` → `groupMemberId` in the five form components (`statement-of-belief-form.tsx`, `commitment-form-component.tsx`, `release-of-claim-form.tsx`, `camp-waiver-form.tsx`, `team-info-form.tsx`) and update the prop type to `groupMemberId: string`
+- [x] 4.9 Update form action signatures in `actions/team-forms.ts` to accept `groupMemberId` directly (remove the internal `getGroupMemberByRosterId` bridge introduced in Task 2); the parameter name changes from `rosterId` to `groupMemberId` throughout
+- [x] 4.10 Update `lib/weekend/team/todos.config.ts`:
   - `checkCompletion` for `team-info` todo: call `hasCompletedAllTeamForms(user.teamMemberInfo.groupMemberId)`
   - `checkCompletion` for `team-payment` todo: call `hasTeamPayment(user.teamMemberInfo.groupMemberId)`
   - Remove the `params` function on the `team-payment` todo (no longer needs `?weekend_id=` query param)
-- [ ] 4.11 Update `lib/weekend/team/todos.actions.ts` (`getTeamTodoData`): replace `user.teamMemberInfo.weekend_id` with `user.teamMemberInfo.assignments[0]?.weekend_id` for the weekend lookup used in URL generation; if no assignments exist return `null`
-- [ ] 4.12 Update `actions/roster.ts` `isUserRectorOnUpcomingWeekend`: remove the `users.gender` lookup and the `genderMatchesWeekend` inference; instead check if any `weekend_roster` row for the user in the active group has `cha_role = 'Rector'` (query directly via `weekend_group_members → weekends → weekend_roster`)
-- [ ] 4.13 Verify `components/navbar/navbar-client.tsx` uses `!!user.teamMemberInfo` (presence check only) and not any gender-derived weekend-matching logic; update if it does
-- [ ] 4.14 Update `getWeekendRoster` in `services/weekend/weekend-service.ts` so that the `forms_complete` and payment status on each `WeekendRosterMember` row reflect the shared `weekend_group_member` state: fetch payment via `getPaymentForTarget('weekend_group_member', groupMemberId)` and fetch form completions via the group-member service
-- [ ] 4.15 Add `groupMemberId` to the `WeekendRosterMember` type in `services/weekend/types.ts` so the admin roster table can display shared status; update `normalizeRosterMember` to populate it
-- [ ] 4.16 Create a test scenario in the local seed (`supabase/seed.sql` or a manual setup script note in the PR description) that adds the same user to both `weekend_roster` rows for the active group; run through the full flow manually to confirm one set of forms, one payment, and one homepage TODO
-- [ ] 4.17 Run `yarn build` and confirm zero TypeScript errors
+- [x] 4.11 Update `lib/weekend/team/todos.actions.ts` (`getTeamTodoData`): replace `user.teamMemberInfo.weekend_id` with `user.teamMemberInfo.assignments[0]?.weekend_id` for the weekend lookup used in URL generation; if no assignments exist return `null`
+- [x] 4.12 Update `actions/roster.ts` `isUserRectorOnUpcomingWeekend`: remove the `users.gender` lookup and the `genderMatchesWeekend` inference; instead check if any `weekend_roster` row for the user in the active group has `cha_role = 'Rector'` (query directly via `weekend_group_members → weekends → weekend_roster`)
+- [x] 4.13 Verify `components/navbar/navbar-client.tsx` uses `!!user.teamMemberInfo` (presence check only) and not any gender-derived weekend-matching logic; update if it does
+- [x] 4.14 Update `getWeekendRoster` in `services/weekend/weekend-service.ts` so that the `forms_complete` and payment status on each `WeekendRosterMember` row reflect the shared `weekend_group_member` state: fetch payment via `getPaymentForTarget('weekend_group_member', groupMemberId)` and fetch form completions via the group-member service
+- [x] 4.15 Add `groupMemberId` to the `WeekendRosterMember` type in `services/weekend/types.ts` so the admin roster table can display shared status; update `normalizeRosterMember` to populate it
+- [x] 4.16 Create a test scenario in the local seed (`supabase/seed.sql` or a manual setup script note in the PR description) that adds the same user to both `weekend_roster` rows for the active group; run through the full flow manually to confirm one set of forms, one payment, and one homepage TODO
+- [x] 4.17 Run `yarn build` and confirm zero TypeScript errors

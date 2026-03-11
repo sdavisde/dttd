@@ -36,13 +36,13 @@ type StatementOfBeliefFormValues = z.infer<typeof statementOfBeliefSchema>
 interface StatementOfBeliefFormProps {
   userName: string
   weekendTitle: string
-  rosterId: string
+  groupMemberId: string
 }
 
 export function StatementOfBeliefForm({
   userName,
   weekendTitle,
-  rosterId,
+  groupMemberId,
 }: StatementOfBeliefFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -57,7 +57,7 @@ export function StatementOfBeliefForm({
   const onSubmit = async (data: StatementOfBeliefFormValues) => {
     setIsSubmitting(true)
 
-    const result = await signStatementOfBelief(rosterId)
+    const result = await signStatementOfBelief(groupMemberId)
 
     if (isErr(result)) {
       toast.error(result.error)

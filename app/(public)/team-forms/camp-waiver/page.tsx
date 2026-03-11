@@ -21,6 +21,9 @@ export default async function CampWaiverPage() {
   const userName = `${user.firstName} ${user.lastName}`.trim()
 
   return (
-    <CampWaiverForm userName={userName} rosterId={user.teamMemberInfo.id} />
+    <CampWaiverForm
+      userName={userName}
+      groupMemberId={user.teamMemberInfo.groupMemberId}
+    />
   )
 }

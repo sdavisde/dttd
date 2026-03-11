@@ -5,11 +5,12 @@ import { isNil, union } from 'lodash'
 import { err, isErr, ok, Result, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
 import { User, UserRoleInfo } from '@/lib/users/types'
-import { CHARole, WeekendStatus } from '@/lib/weekend/types'
+import { CHARole, TeamAssignment, WeekendStatus } from '@/lib/weekend/types'
 import { Address, addressSchema } from '@/lib/users/validation'
 import { BasicInfo } from '@/components/team-forms/schemas'
 import { RawUser } from './types'
 import { getPermissionsForCHARole } from '@/lib/security'
+import type { TeamMemberInfo } from '@/lib/weekend/types'
 
 function normalizeUser(rawUser: RawUser): Result<string, User> {
   if (isNil(rawUser)) {
@@ -28,17 +29,40 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       type: userRole.roles.type,
     })) ?? []
 
-  const teamMemberInfo =
-    rawUser.weekend_roster?.find((member: any) => {
-      if (isNil(member.weekends)) {
-        return false
-      }
-      return member.weekends.status === WeekendStatus.ACTIVE
+  // Find the active group membership: a weekend_group_members row where at least one
+  // of its weekends has status === ACTIVE.
+  const activeGroupMember =
+    rawUser.weekend_group_members?.find((member) => {
+      const weekends = member.weekend_groups?.weekends ?? []
+      return weekends.some((w) => w.status === WeekendStatus.ACTIVE)
     }) ?? null
+
+  let teamMemberInfo: TeamMemberInfo | null = null
+
+  if (activeGroupMember) {
+    const activeWeekends = (
+      activeGroupMember.weekend_groups?.weekends ?? []
+    ).filter((w) => w.status === WeekendStatus.ACTIVE)
+
+    const assignments: TeamAssignment[] = activeWeekends.flatMap((w) =>
+      (w.weekend_roster ?? []).map((r) => ({
+        id: r.id,
+        weekend_id: r.weekend_id,
+        cha_role: r.cha_role,
+        status: r.status,
+      }))
+    )
+
+    teamMemberInfo = {
+      groupMemberId: activeGroupMember.id,
+      groupId: activeGroupMember.group_id,
+      assignments,
+    }
+  }
 
   const rolePermissions = roles.flatMap((role) => role.permissions)
   const chaRolePermissions = getPermissionsForCHARole(
-    teamMemberInfo?.cha_role as CHARole | null
+    (teamMemberInfo?.assignments[0]?.cha_role ?? null) as CHARole | null
   )
   const allPermissions = union(rolePermissions, chaRolePermissions)
   const permissions = new Set(allPermissions)

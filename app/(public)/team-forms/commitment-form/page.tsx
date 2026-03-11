@@ -17,11 +17,16 @@ export default async function CommitmentFormPage() {
   const user = userResult.data
 
   // Verify user is on an active weekend roster
-  if (isNil(user.teamMemberInfo) || isNil(user.teamMemberInfo.weekend_id)) {
+  if (isNil(user.teamMemberInfo)) {
     redirect('/')
   }
 
-  const weekendResult = await getWeekendById(user.teamMemberInfo.weekend_id)
+  const weekendId = user.teamMemberInfo.assignments[0]?.weekend_id
+  if (isNil(weekendId)) {
+    redirect('/')
+  }
+
+  const weekendResult = await getWeekendById(weekendId)
 
   if (Results.isErr(weekendResult)) {
     redirect('/')
@@ -30,7 +35,7 @@ export default async function CommitmentFormPage() {
   const weekend = weekendResult.data
   const weekendTitle = formatWeekendTitle(weekend)
   const userName = `${user.firstName} ${user.lastName}`.trim()
-  const userRole = user.teamMemberInfo.cha_role ?? 'Team Member'
+  const userRole = user.teamMemberInfo.assignments[0]?.cha_role ?? 'Team Member'
   const teamFee = await getTeamFee()
   const teamFeeAmount = Results.unwrapOr(teamFee, null)?.unitAmount ?? null
   const teamFeeDollars = isNil(teamFeeAmount) ? null : teamFeeAmount / 100
@@ -40,7 +45,7 @@ export default async function CommitmentFormPage() {
       userName={userName}
       weekendTitle={weekendTitle}
       userRole={userRole}
-      rosterId={user.teamMemberInfo.id}
+      groupMemberId={user.teamMemberInfo.groupMemberId}
       teamFeeAmount={teamFeeDollars}
     />
   )

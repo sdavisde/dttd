@@ -19,12 +19,20 @@ export default async function ReleaseOfClaimPage() {
     redirect('/')
   }
 
-  const specialNeedsResult = await getRosterSpecialNeeds(user.teamMemberInfo.id)
+  // Use the first assignment's roster ID to fetch special_needs (stored on weekend_roster)
+  const firstRosterId = user.teamMemberInfo.assignments[0]?.id
+  const specialNeedsResult = firstRosterId
+    ? await getRosterSpecialNeeds(firstRosterId)
+    : null
 
   return (
     <ReleaseOfClaimForm
-      rosterId={user.teamMemberInfo.id}
-      initialSpecialNeeds={unwrapOr(specialNeedsResult, null) ?? undefined}
+      groupMemberId={user.teamMemberInfo.groupMemberId}
+      initialSpecialNeeds={
+        specialNeedsResult
+          ? (unwrapOr(specialNeedsResult, null) ?? undefined)
+          : undefined
+      }
     />
   )
 }

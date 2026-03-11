@@ -41,7 +41,7 @@ import {
 
 interface TeamInfoFormProps {
   userId: string
-  rosterId: string
+  groupMemberId: string
   savedAddress: Address | null
   initialBasicInfo: BasicInfo
   initialServiceHistory: Array<UserExperienceFormValue>
@@ -50,7 +50,7 @@ interface TeamInfoFormProps {
 
 export function TeamInfoForm({
   userId,
-  rosterId,
+  groupMemberId,
   savedAddress,
   initialBasicInfo,
   initialServiceHistory,
@@ -117,7 +117,7 @@ export function TeamInfoForm({
     }
 
     // Step 5: Update Info Sheet
-    const infoSheetResult = await completeInfoSheet(rosterId)
+    const infoSheetResult = await completeInfoSheet(groupMemberId)
     if (isErr(infoSheetResult)) {
       toast.error(infoSheetResult.error)
       setIsSubmitting(false)

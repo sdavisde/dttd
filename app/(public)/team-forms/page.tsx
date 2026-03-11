@@ -25,11 +25,13 @@ export default async function TeamFormsPage() {
 
   const user = userResult.data
 
-  if (isNil(user.teamMemberInfo) || user.teamMemberInfo.status === 'drop') {
+  if (isNil(user.teamMemberInfo)) {
     redirect('/?error=UserNotOnRoster')
   }
 
-  const progressResult = await getTeamFormsProgress(user.teamMemberInfo.id)
+  const progressResult = await getTeamFormsProgress(
+    user.teamMemberInfo.groupMemberId
+  )
 
   if (isErr(progressResult)) {
     // Handle error gracefully

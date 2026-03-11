@@ -54,7 +54,7 @@ interface CommitmentFormProps {
   userName: string
   weekendTitle: string
   userRole: string
-  rosterId: string
+  groupMemberId: string
   teamFeeAmount: number | null
 }
 
@@ -62,7 +62,7 @@ export function CommitmentFormComponent({
   userName,
   weekendTitle,
   userRole,
-  rosterId,
+  groupMemberId,
   teamFeeAmount,
 }: CommitmentFormProps) {
   const router = useRouter()
@@ -79,7 +79,7 @@ export function CommitmentFormComponent({
   const onSubmit = async (data: CommitmentFormValues) => {
     setIsSubmitting(true)
 
-    const result = await signCommitmentForm(rosterId)
+    const result = await signCommitmentForm(groupMemberId)
 
     if (isErr(result)) {
       toast.error(result.error)

@@ -62,7 +62,7 @@ export default async function TeamInfoPage() {
   return (
     <TeamInfoForm
       userId={user.id}
-      rosterId={user.teamMemberInfo.id}
+      groupMemberId={user.teamMemberInfo.groupMemberId}
       savedAddress={user.address}
       initialBasicInfo={basicInfo}
       initialServiceHistory={experience}

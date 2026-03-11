@@ -61,6 +61,8 @@ export type WeekendRosterMember = {
     email: string | null
     phone_number: string | null
   } | null
+  /** The shared weekend_group_member ID for this roster member */
+  groupMemberId: string | null
   /** First payment record (for backward compatibility) */
   payment_info: PaymentRecord | null
   /** Total amount paid from all payment records */

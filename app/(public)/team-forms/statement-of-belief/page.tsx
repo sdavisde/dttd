@@ -16,11 +16,16 @@ export default async function StatementOfBeliefPage() {
   const user = userResult.data
 
   // Verify user is on an active weekend roster
-  if (isNil(user.teamMemberInfo) || isNil(user.teamMemberInfo.weekend_id)) {
+  if (isNil(user.teamMemberInfo)) {
     redirect('/')
   }
 
-  const weekendResult = await getWeekendById(user.teamMemberInfo.weekend_id)
+  const weekendId = user.teamMemberInfo.assignments[0]?.weekend_id
+  if (isNil(weekendId)) {
+    redirect('/')
+  }
+
+  const weekendResult = await getWeekendById(weekendId)
 
   if (isErr(weekendResult)) {
     redirect('/')
@@ -34,7 +39,7 @@ export default async function StatementOfBeliefPage() {
     <StatementOfBeliefForm
       userName={userName}
       weekendTitle={weekendTitle}
-      rosterId={user.teamMemberInfo.id}
+      groupMemberId={user.teamMemberInfo.groupMemberId}
     />
   )
 }
