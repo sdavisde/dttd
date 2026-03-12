@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,7 +27,13 @@ const profileFormSchema = z.object({
   email: z.email(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  phoneNumber: z.string().min(1),
+  phoneNumber: z
+    .string()
+    .min(1, 'Phone number is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
 })
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
@@ -207,12 +214,7 @@ export default function ProfilePage() {
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="123-456-7890"
-                        required
-                        className="w-full"
-                        {...field}
-                      />
+                      <PhoneInput className="w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
