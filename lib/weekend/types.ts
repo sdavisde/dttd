@@ -1,34 +1,47 @@
 import { Tables } from '@/database.types'
 
 /**
- * A single weekend_roster row for a team member, representing their assignment
- * to one specific weekend (MENS or WOMENS) within a group.
- * A multi-weekend volunteer will have multiple assignments within the same group.
+ * A volunteer's assignment to one specific weekend within the group.
+ * Represents one active (non-dropped) weekend_roster row.
+ * Drop status rows are excluded — they are only visible in the admin roster view.
+ *
+ * Weekend-specific data lives here (role, rollo).
+ * Group-level data (forms, payment) lives on TeamMemberInfo.
  */
-export type TeamAssignment = {
-  /** weekend_roster.id — the row ID for this specific weekend assignment */
-  id: string
-  /** The weekend this assignment belongs to (null if data is missing) */
-  weekend_id: string | null
-  /** The team role assigned to this member for this weekend */
-  cha_role: string | null
-  /** Roster status (e.g. 'awaiting_payment', 'paid') */
-  status: string | null
+export type WeekendAssignment = {
+  /** weekend_roster.id */
+  rosterId: string
+  /** The weekend_id this assignment belongs to */
+  weekendId: string | null
+  /** MENS or WOMENS */
+  weekendType: string | null
+  /** The CHA role assigned for this weekend */
+  chaRole: string | null
+  /** The rollo talk assigned for this weekend (if applicable) */
+  rollo: string | null
+  /** Additional CHA role (if any) */
+  additionalChaRole: string | null
 }
 
 /**
- * Group-scoped team membership info for the currently active weekend group.
- * A single weekend_group_members row is shared across both MENS and WOMENS
- * weekends in the same group, so forms and payment are also shared.
+ * Group-scoped team membership for the currently active weekend group.
+ *
+ * Key principle: forms and team fee payment belong to the GROUP MEMBER (once per
+ * group), while role/rollo assignments are per-weekend and live on WeekendAssignment.
+ *
+ * A single-weekend volunteer has one WeekendAssignment; a volunteer serving on
+ * both Men's and Women's weekends in the same group has two.
+ * If all of a user's roster rows are dropped, teamMemberInfo will be null.
  */
 export type TeamMemberInfo = {
-  /** weekend_group_members.id — the shared row that ties forms and payment together */
+  /** weekend_group_members.id — the hub for team forms and team fee payment */
   groupMemberId: string
   /** The weekend_groups.id this membership belongs to */
   groupId: string
-  /** One entry per weekend_roster row in the active group for this user.
-   *  Single-weekend volunteers have one entry; cross-weekend volunteers have two. */
-  assignments: TeamAssignment[]
+  /** The weekend group number (e.g. 11 for "DTTD #11") */
+  groupNumber: number | null
+  /** Active (non-dropped) roster assignments for this volunteer in the group. */
+  weekendAssignments: WeekendAssignment[]
 }
 
 export type Weekend = {

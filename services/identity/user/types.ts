@@ -21,6 +21,8 @@ export type RawUser = Tables<'users'> & {
     group_id: string
     /** Nested join: the weekend_group this member belongs to */
     weekend_groups: {
+      /** The weekend group number (e.g. 11 for "DTTD #11") */
+      number: number | null
       /** All weekends in this group (typically MENS + WOMENS) */
       weekends: Array<{
         id: string
@@ -31,6 +33,8 @@ export type RawUser = Tables<'users'> & {
         weekend_roster: Array<{
           id: string
           cha_role: string | null
+          rollo: string | null
+          additional_cha_role: string | null
           status: string | null
           weekend_id: string | null
         }>

@@ -5,7 +5,7 @@ import { isNil, union } from 'lodash'
 import { err, isErr, ok, Result, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
 import { User, UserRoleInfo } from '@/lib/users/types'
-import { CHARole, TeamAssignment, WeekendStatus } from '@/lib/weekend/types'
+import { CHARole, WeekendAssignment, WeekendStatus } from '@/lib/weekend/types'
 import { Address, addressSchema } from '@/lib/users/validation'
 import { BasicInfo } from '@/components/team-forms/schemas'
 import { RawUser } from './types'
@@ -44,25 +44,36 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       activeGroupMember.weekend_groups?.weekends ?? []
     ).filter((w) => w.status === WeekendStatus.ACTIVE)
 
-    const assignments: TeamAssignment[] = activeWeekends.flatMap((w) =>
-      (w.weekend_roster ?? []).map((r) => ({
-        id: r.id,
-        weekend_id: r.weekend_id,
-        cha_role: r.cha_role,
-        status: r.status,
-      }))
+    // Exclude dropped roster rows — they are admin-only concern
+    const weekendAssignments: WeekendAssignment[] = activeWeekends.flatMap(
+      (w) =>
+        (w.weekend_roster ?? [])
+          .filter((r) => r.status !== 'drop')
+          .map((r) => ({
+            rosterId: r.id,
+            weekendId: r.weekend_id,
+            weekendType: w.type,
+            chaRole: r.cha_role,
+            rollo: r.rollo,
+            additionalChaRole: r.additional_cha_role,
+          }))
     )
 
-    teamMemberInfo = {
-      groupMemberId: activeGroupMember.id,
-      groupId: activeGroupMember.group_id,
-      assignments,
+    // Only set teamMemberInfo if the user has at least one active (non-dropped) assignment
+    if (weekendAssignments.length > 0) {
+      teamMemberInfo = {
+        groupMemberId: activeGroupMember.id,
+        groupId: activeGroupMember.group_id,
+        groupNumber: activeGroupMember.weekend_groups?.number ?? null,
+        weekendAssignments,
+      }
     }
   }
 
   const rolePermissions = roles.flatMap((role) => role.permissions)
-  const chaRolePermissions = getPermissionsForCHARole(
-    (teamMemberInfo?.assignments[0]?.cha_role ?? null) as CHARole | null
+  // Union CHA role permissions across all weekend assignments
+  const chaRolePermissions = (teamMemberInfo?.weekendAssignments ?? []).flatMap(
+    (a) => getPermissionsForCHARole(a.chaRole as CHARole | null)
   )
   const allPermissions = union(rolePermissions, chaRolePermissions)
   const permissions = new Set(allPermissions)

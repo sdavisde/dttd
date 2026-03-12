@@ -1,13 +1,11 @@
 import { TeamMemberUser } from '@/lib/users/types'
-import { Weekend } from '@/lib/weekend/types'
 
 /**
  * Data provided to checkCompletion callbacks for determining TODO completion status.
- * Note: groupMemberId is available via user.teamMemberInfo.groupMemberId
+ * groupMemberId is available via user.teamMemberInfo.groupMemberId
  */
 export type TodoCompletionContext = {
   user: TeamMemberUser
-  weekend: Weekend
 }
 
 /**

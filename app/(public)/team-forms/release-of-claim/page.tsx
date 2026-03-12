@@ -19,8 +19,8 @@ export default async function ReleaseOfClaimPage() {
     redirect('/')
   }
 
-  // Use the first assignment's roster ID to fetch special_needs (stored on weekend_roster)
-  const firstRosterId = user.teamMemberInfo.assignments[0]?.id
+  // special_needs is shared across all roster rows in the group; any rosterId works
+  const firstRosterId = user.teamMemberInfo.weekendAssignments[0]?.rosterId
   const specialNeedsResult = firstRosterId
     ? await getRosterSpecialNeeds(firstRosterId)
     : null

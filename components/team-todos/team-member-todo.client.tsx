@@ -17,7 +17,7 @@ type TeamMemberTodoListProps = {
   items: Array<Omit<TodoItemConfig, 'checkCompletion' | 'params'>>
   urls: Record<string, string | null>
   completionState: TodoCompletionState
-  weekendId: string
+  groupMemberId: string
 }
 
 /**
@@ -27,7 +27,7 @@ type TeamMemberTodoListProps = {
 function hydrateCompletionState(
   items: TodoItemConfig[],
   serverState: TodoCompletionState,
-  weekendId: string
+  groupMemberId: string
 ): TodoCompletionState {
   if (typeof window === 'undefined') {
     return serverState
@@ -37,7 +37,7 @@ function hydrateCompletionState(
 
   items.forEach((item) => {
     if (item.clientSideCompletion) {
-      const isComplete = getTodoCompletion(weekendId, item.id)
+      const isComplete = getTodoCompletion(groupMemberId, item.id)
       if (isComplete) {
         hydratedState[item.id] = true
       }
@@ -55,7 +55,7 @@ export function TeamMemberTodoClient({
   items,
   urls,
   completionState: serverCompletionState,
-  weekendId,
+  groupMemberId,
 }: TeamMemberTodoListProps) {
   // Track which todos have been clicked this session (for immediate UI updates)
   const [clickedTodos, setClickedTodos] = useState<Record<string, boolean>>({})
@@ -65,14 +65,14 @@ export function TeamMemberTodoClient({
     const hydrated = hydrateCompletionState(
       items,
       serverCompletionState,
-      weekendId
+      groupMemberId
     )
     return { ...hydrated, ...clickedTodos }
-  }, [items, serverCompletionState, weekendId, clickedTodos])
+  }, [items, serverCompletionState, groupMemberId, clickedTodos])
 
   const handleTodoClick = (todoId: string) => {
     // Save to localStorage
-    setTodoCompletion(weekendId, todoId)
+    setTodoCompletion(groupMemberId, todoId)
 
     // Update clicked state for immediate UI feedback
     setClickedTodos((prev) => ({
