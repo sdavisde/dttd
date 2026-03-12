@@ -1,3 +1,19 @@
+## [1.21.0](https://github.com/sdavisde/dttd/compare/v1.20.0...v1.21.0) (2026-03-12)
+
+### Features
+
+- form completion and medical info service rework ([9fa9e13](https://github.com/sdavisde/dttd/commit/9fa9e138bd9b8b82d6958c65e0b6a4f03d5c66af))
+- multi-weekend volunteer experience — task 4.0 ([7590e53](https://github.com/sdavisde/dttd/commit/7590e5368c495de8b1dc692b67ef2c061d12b5ef))
+- payment rework — target weekend_group_member ([ea4c264](https://github.com/sdavisde/dttd/commit/ea4c2646b62dfd1bfe97ff874554f08eba59294a))
+- schema foundation migrations for multi-weekend volunteer support ([47f05ae](https://github.com/sdavisde/dttd/commit/47f05aeff849ec7306fddb7754bc12f088e03a56))
+- **volunteer:** rework TeamMemberInfo for multi-weekend support ([39863fe](https://github.com/sdavisde/dttd/commit/39863fef7ba83e74766319b28c5ae4bb0b829381))
+
+### Bug Fixes
+
+- **db:** add admin policy for user_medical_profiles to support impersonation ([1242f4d](https://github.com/sdavisde/dttd/commit/1242f4d51cfc8eda6045a72ea8b2d655a2562675))
+- post-migration bugs in payment and info-sheet flows ([af33b70](https://github.com/sdavisde/dttd/commit/af33b70c26d45fd4348ddabf782a1692aea25d2a))
+- update migration script to ensure fields aren't missed ([dd206b7](https://github.com/sdavisde/dttd/commit/dd206b732464c4a537ca3fbb0179922612c3f780))
+
 ## [1.20.0](https://github.com/sdavisde/dttd/compare/v1.19.0...v1.20.0) (2026-03-07)
 
 ### Features
