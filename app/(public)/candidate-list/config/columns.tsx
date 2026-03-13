@@ -1,10 +1,10 @@
 'use client'
 
-import { ColumnDef, FilterFn } from '@tanstack/react-table'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { ColumnDef, FilterFn } from '@tanstack/react-table'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { Permission, userHasPermission } from '@/lib/security'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { isNil } from 'lodash'
 import '@/components/ui/data-table/types'

@@ -1,6 +1,6 @@
 'use client'
 
-import { PaymentTransactionDTO } from '@/services/payment'
+import type { PaymentTransactionDTO } from '@/services/payment'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import { paymentsColumns, paymentsGlobalFilterFn } from '../config/columns'
 

@@ -2,8 +2,8 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { err, fromSupabase, ok } from '@/lib/results'
-import { Address } from '@/lib/users/validation'
-import { BasicInfo } from '@/components/team-forms/schemas'
+import type { Address } from '@/lib/users/validation'
+import type { BasicInfo } from '@/components/team-forms/schemas'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 export const GetUserInfoQuery = `

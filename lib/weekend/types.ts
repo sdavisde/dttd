@@ -1,4 +1,4 @@
-import { Tables } from '@/database.types'
+import type { Tables } from '@/database.types'
 
 /**
  * A volunteer's assignment to one specific weekend within the group.

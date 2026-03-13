@@ -9,7 +9,7 @@ import type {
   GroupedExperience,
   UserExperienceRecord,
 } from '@/services/master-roster/types'
-import { UserExperience } from './validation'
+import type { UserExperience } from './validation'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 const DTTD_COMMUNITY = 'DTTD'

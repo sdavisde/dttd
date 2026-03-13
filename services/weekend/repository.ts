@@ -1,15 +1,17 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { fromSupabase, Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { fromSupabase, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
-import { Tables } from '@/database.types'
+import type { Tables } from '@/database.types'
+import type {
+  WeekendStatusValue,
+  WeekendUpdateInput,
+  RawWeekendRecord} from '@/lib/weekend/types';
 import {
   WeekendStatus,
-  WeekendStatusValue,
-  WeekendType,
-  WeekendUpdateInput,
-  RawWeekendRecord,
+  WeekendType
 } from '@/lib/weekend/types'
 import { logger } from '@/lib/logger'
 import { isEmpty, isNil } from 'lodash'

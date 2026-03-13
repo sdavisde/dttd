@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Column } from '@tanstack/react-table'
+import type { Column } from '@tanstack/react-table'
 import { ListFilter, Search, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'

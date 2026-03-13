@@ -4,7 +4,7 @@ import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import { PaymentRecord } from '@/lib/payments/types'
 import * as PaymentService from './payment-service'
-import { PaymentTransactionDTO } from './types'
+import type { PaymentTransactionDTO } from './types'
 import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
 import { isErr, ok } from '@/lib/results'
 

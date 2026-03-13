@@ -7,7 +7,8 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { isErr } from '@/lib/results'
 import { Permission } from '@/lib/security'
-import Select, { MultiValue } from 'react-select'
+import type { MultiValue } from 'react-select';
+import Select from 'react-select'
 import {
   Sheet,
   SheetContent,
@@ -18,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Role } from '@/services/identity/roles'
+import type { Role } from '@/services/identity/roles'
 
 interface RolesSidebar {
   role: Role | null

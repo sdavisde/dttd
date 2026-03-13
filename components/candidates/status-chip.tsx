@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { CandidateStatus } from '@/lib/candidates/types'
+import type { CandidateStatus } from '@/lib/candidates/types'
 
 interface StatusChipProps {
   status: CandidateStatus

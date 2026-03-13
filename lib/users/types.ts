@@ -1,6 +1,6 @@
-import { TeamMemberInfo } from '@/lib/weekend/types'
-import { Address } from './validation'
-import { RoleType } from '@/services/identity/roles'
+import type { TeamMemberInfo } from '@/lib/weekend/types'
+import type { Address } from './validation'
+import type { RoleType } from '@/services/identity/roles'
 
 export type CommunityInformation = {
   churchAffiliation: string | null

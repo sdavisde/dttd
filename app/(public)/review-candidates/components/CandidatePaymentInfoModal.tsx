@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { getCandidateFee } from '@/services/payment/actions'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { Results } from '@/lib/results'

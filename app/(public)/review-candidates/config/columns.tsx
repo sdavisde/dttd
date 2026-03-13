@@ -1,7 +1,7 @@
 'use client'
 
-import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table'
-import { HydratedCandidate, CandidateStatus } from '@/lib/candidates/types'
+import type { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table'
+import type { HydratedCandidate, CandidateStatus } from '@/lib/candidates/types'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { StatusLegend } from '../components/StatusLegend'

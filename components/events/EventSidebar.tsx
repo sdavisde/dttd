@@ -17,7 +17,7 @@ import { type Event } from '@/services/events'
 
 import { useEventForm } from './hooks/use-event-form'
 import { EventFormFields } from './event-form-fields'
-import { WeekendOption } from './event-form-schema'
+import type { WeekendOption } from './event-form-schema'
 
 // Re-export for backwards compatibility
 export type { WeekendOption } from './event-form-schema'

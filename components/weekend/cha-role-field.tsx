@@ -25,7 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Control, FieldPath } from 'react-hook-form'
+import type { Control, FieldPath } from 'react-hook-form'
 
 interface ChaRoleFieldProps<T extends Record<string, any>> {
   control: Control<T>

@@ -1,16 +1,18 @@
 import 'server-only'
 
-import Stripe from 'stripe'
-import { ok, Result } from '@/lib/results'
+import type Stripe from 'stripe'
+import type { Result } from '@/lib/results';
+import { ok } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import { checkoutSessionCompletedHandler } from './checkout-session-completed'
 import { chargeUpdatedHandler } from './charge-updated'
 import { payoutPaidHandler } from './payout-paid'
-import {
+import type {
   WebhookHandler,
-  WebhookHandlerContext,
   WebhookError,
-  HandlerSuccess,
+  HandlerSuccess} from './types';
+import {
+  WebhookHandlerContext,
   WebhookErrorCodes,
 } from './types'
 import { webhookErr, createHandlerContext } from '../webhook-context'

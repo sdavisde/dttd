@@ -1,7 +1,7 @@
-import { PostgrestSingleResponse } from '@supabase/supabase-js'
+import type { PostgrestSingleResponse } from '@supabase/supabase-js'
 import { isNil } from 'lodash'
 import { NextResponse } from 'next/server'
-import z from 'zod'
+import type z from 'zod'
 import { logger } from './logger'
 
 export type ErrorResult<E> = {

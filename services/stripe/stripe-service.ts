@@ -1,7 +1,8 @@
 import 'server-only'
 
 import { stripe } from '@/lib/stripe'
-import { err, ok, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { err, ok } from '@/lib/results'
 import { logger } from '@/lib/logger'
 
 /**

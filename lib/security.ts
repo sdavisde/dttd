@@ -1,4 +1,4 @@
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { Errors } from './error'
 import { CHARole } from './weekend/types'
 import { isNil } from 'lodash'

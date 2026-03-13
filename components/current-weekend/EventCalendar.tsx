@@ -2,10 +2,11 @@
 
 import * as React from 'react'
 import { Calendar } from '@/components/ui/calendar'
-import {
+import type {
   Event,
-  EVENT_TYPE_COLORS,
-  EventTypeValue,
+  EventTypeValue} from '@/services/events/types';
+import {
+  EVENT_TYPE_COLORS
 } from '@/services/events/types'
 import { cn } from '@/lib/utils'
 import { format, isSameDay, parseISO } from 'date-fns'

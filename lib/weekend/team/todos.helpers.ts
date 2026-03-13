@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import {
+import type {
   TodoItemConfig,
   TodoCompletionContext,
   TodoCompletionState,

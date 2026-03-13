@@ -1,8 +1,9 @@
 import 'server-only'
 
 import { isNil } from 'lodash'
-import { Result, err, ok, isErr } from '@/lib/results'
-import {
+import type { Result} from '@/lib/results';
+import { err, ok, isErr } from '@/lib/results'
+import type {
   Event,
   RawEventRecord,
   EventCreateInput,

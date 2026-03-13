@@ -1,6 +1,7 @@
 'use server'
 
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok } from '@/lib/results'
 import { createClient } from '@/lib/supabase/server'
 
 export async function deleteFolder(

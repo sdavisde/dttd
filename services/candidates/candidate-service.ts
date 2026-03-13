@@ -1,10 +1,11 @@
 import 'server-only'
 
 import { isNil, sumBy } from 'lodash'
-import { err, isErr, ok, Result, unwrapOr } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, isErr, ok, unwrapOr } from '@/lib/results'
 import { notifyCandidatePaymentReceived } from '@/services/notifications/notification-service'
 import * as CandidateRepository from './repository'
-import {
+import type {
   Candidate,
   CandidateStatus,
   RawCandidate,

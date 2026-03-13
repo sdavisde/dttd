@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { getFilteredNavData } from '@/lib/admin/navigation'
 
 type AdminLayoutProps = {

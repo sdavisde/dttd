@@ -1,9 +1,10 @@
 import 'server-only'
 
 import * as Sentry from '@sentry/nextjs'
-import { err, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { err } from '@/lib/results'
 import { logger } from '@/lib/logger'
-import {
+import type {
   WebhookError,
   WebhookPaymentContext,
   ProcessingStage,

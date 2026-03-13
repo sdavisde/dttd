@@ -1,4 +1,4 @@
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { isNil } from 'lodash'
 import { cookies } from 'next/headers'
 import { getUserById } from '@/services/identity/user/user-service'

@@ -1,6 +1,7 @@
 import { CheckCircle, Clock, CircleCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { WeekendStatus, WeekendStatusValue } from '@/lib/weekend/types'
+import type { WeekendStatusValue } from '@/lib/weekend/types';
+import { WeekendStatus } from '@/lib/weekend/types'
 
 interface WeekendStatusBadgeProps {
   status?: WeekendStatusValue | null

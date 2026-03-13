@@ -1,5 +1,5 @@
-import { Database, Tables } from '@/database.types'
-import { Address } from '@/lib/users/validation'
+import type { Database, Tables } from '@/database.types'
+import type { Address } from '@/lib/users/validation'
 
 export type CandidateStatus = Database['public']['Enums']['candidate_status']
 

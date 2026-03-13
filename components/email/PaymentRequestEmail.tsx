@@ -1,4 +1,4 @@
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { getUrl } from '@/lib/url'
 import {
   Body,

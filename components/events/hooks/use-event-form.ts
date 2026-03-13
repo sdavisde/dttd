@@ -12,9 +12,10 @@ import { type Event } from '@/services/events'
 import { createEvent, updateEvent, deleteEvent } from '@/services/events'
 import { type EventTypeValue } from '@/services/events/types'
 import { isErr } from '@/lib/results'
+import type {
+  EventFormData} from '../event-form-schema';
 import {
   eventFormSchema,
-  EventFormData,
   DEFAULT_FORM_VALUES,
   CT_TIMEZONE,
 } from '../event-form-schema'

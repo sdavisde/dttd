@@ -1,8 +1,9 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, ok, err } from '@/lib/results'
-import { Tables } from '@/database.types'
+import type { Result} from '@/lib/results';
+import { ok, err } from '@/lib/results'
+import type { Tables } from '@/database.types'
 
 export async function getContactInformation(
   contactId: string

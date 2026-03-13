@@ -1,12 +1,14 @@
 'use server'
 
-import { CreateEmailResponseSuccess, Resend } from 'resend'
+import type { CreateEmailResponseSuccess} from 'resend';
+import { Resend } from 'resend'
 import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotificationEmail'
 import CandidateFormsCompletedEmail from '@/components/email/CandidateFormsCompletedEmail'
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok, isErr } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok, isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
-import { Tables } from '@/database.types'
+import type { Tables } from '@/database.types'
 import CandidateFormsEmail from '@/components/email/CandidateFormsEmail'
 import { getHydratedCandidate } from '@/actions/candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'

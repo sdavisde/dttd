@@ -16,7 +16,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { NavElement } from './navbar-server'
+import type { NavElement } from './navbar-server'
 import { NavbarIcon } from './navbar-icon'
 
 type MobileNavProps = {

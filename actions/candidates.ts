@@ -1,9 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok, isErr } from '@/lib/results'
-import { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
-import {
+import type { Result} from '@/lib/results';
+import { err, ok, isErr } from '@/lib/results'
+import type { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
+import type {
   CandidateStatus,
   PaymentRecord,
   HydratedCandidate,
@@ -13,8 +14,8 @@ import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import { sendCandidateFormsCompletedEmail } from '@/services/notifications'
 import { logger } from '@/lib/logger'
-import { WeekendType } from '@/lib/weekend/types'
-import { Database } from '@/database.types'
+import type { WeekendType } from '@/lib/weekend/types'
+import type { Database } from '@/database.types'
 import { getPaymentForTarget } from '@/services/payment/payment-service'
 
 type CandidateSponsorshipInfoUpdate =

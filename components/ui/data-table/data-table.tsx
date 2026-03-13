@@ -1,13 +1,15 @@
 'use client'
 
-import { ReactNode, useCallback, useMemo, useState } from 'react'
-import {
+import type { ReactNode} from 'react';
+import { useCallback, useMemo, useState } from 'react'
+import type {
   ColumnDef,
   ColumnFiltersState,
   FilterFn,
   Row,
   SortingState,
-  VisibilityState,
+  VisibilityState} from '@tanstack/react-table';
+import {
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -20,7 +22,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { userHasPermission } from '@/lib/security'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import {
   Table,
   TableBody,

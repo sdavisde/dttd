@@ -7,7 +7,7 @@ import {
   CheckCircle,
   CalendarDays,
 } from 'lucide-react'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'

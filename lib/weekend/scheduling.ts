@@ -1,6 +1,6 @@
 import { isNil } from 'lodash'
 import { formatWeekendTitle } from '.'
-import { WeekendGroupWithId, Weekend } from '@/lib/weekend/types'
+import type { WeekendGroupWithId, Weekend } from '@/lib/weekend/types'
 import { setDatetimeToMidnight, toLocalDateFromISO } from '@/lib/utils'
 
 export type DateRange = {

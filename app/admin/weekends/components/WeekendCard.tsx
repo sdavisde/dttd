@@ -3,7 +3,7 @@
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { capitalize, cn, toLocalDateFromISO } from '@/lib/utils'
-import { Weekend } from '@/lib/weekend/types'
+import type { Weekend } from '@/lib/weekend/types'
 import { formatDateLabel } from '@/lib/weekend/scheduling'
 import Link from 'next/link'
 

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import { CandidateStatus } from '@/lib/candidates/types'
+import type { CandidateStatus } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 
 interface StatusInfoSheetProps {

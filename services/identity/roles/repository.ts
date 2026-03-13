@@ -2,7 +2,7 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { fromSupabase, ok } from '@/lib/results'
-import { Permission } from '@/lib/security'
+import type { Permission } from '@/lib/security'
 
 export const getAllRoles = async () => {
   const supabase = await createClient()

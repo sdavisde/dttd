@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { ok } from '@/lib/results'
 import { isNil } from 'lodash'
 
 /**

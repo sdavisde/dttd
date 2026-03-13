@@ -1,6 +1,6 @@
 'use client'
 
-import { CandidateStatus } from '@/lib/candidates/types'
+import type { CandidateStatus } from '@/lib/candidates/types'
 import { updateCandidateStatusField } from '@/actions/candidates'
 import {
   Select,

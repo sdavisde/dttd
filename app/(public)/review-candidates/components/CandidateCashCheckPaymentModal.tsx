@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { recordManualCandidatePayment } from '@/services/candidates/actions'
 import { getCandidateFee } from '@/services/payment/actions'
 import { useRouter } from 'next/navigation'

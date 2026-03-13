@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { WeekendRosterMember } from '@/services/weekend'
+import type { WeekendRosterMember } from '@/services/weekend'
 import { DataTable } from '@/components/ui/data-table'
 import { useDataTableUrlState } from '@/hooks/use-data-table-url-state'
 import { EditTeamMemberModal } from './edit-team-member-modal'

@@ -6,7 +6,7 @@ import { getActiveWeekends, getWeekendOptions } from '@/services/weekend'
 import { getAllCandidatesWithDetails } from '@/actions/candidates'
 import { WeekendType } from '@/lib/weekend/types'
 import { Result, Results, isErr, isOk } from '@/lib/results'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 
 export interface ReviewPageData {
   candidates: HydratedCandidate[]

@@ -5,7 +5,7 @@
  * Most weekend types are defined in lib/weekend/types.ts and re-exported from index.ts.
  */
 
-import { Tables } from '@/database.types'
+import type { Tables } from '@/database.types'
 
 /**
  * Payment record from the payment_transaction table.

@@ -1,10 +1,11 @@
 import 'server-only'
 
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import { ok, isErr, isOk } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import { getPayoutTransactions } from '../stripe-service'
-import { WebhookHandler, WebhookErrorCodes } from './types'
+import type { WebhookHandler} from './types';
+import { WebhookErrorCodes } from './types'
 import { webhookErr } from '../webhook-context'
 import * as DepositService from '@/services/deposit/deposit-service'
 import * as PaymentService from '@/services/payment/payment-service'

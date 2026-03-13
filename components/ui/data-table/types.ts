@@ -1,5 +1,5 @@
-import { Permission } from '@/lib/security'
-import { RowData } from '@tanstack/react-table'
+import type { Permission } from '@/lib/security'
+import type { RowData } from '@tanstack/react-table'
 
 export type DataTableColumnMeta = {
   requiredPermission?: Permission

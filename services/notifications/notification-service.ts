@@ -1,13 +1,14 @@
 import 'server-only'
 
 import { Resend } from 'resend'
-import { err, isErr, ok, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { err, isErr, ok } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import * as NotificationRepository from './repository'
 // TODO: This should use the candidates service public API instead of direct repository access
 import * as CandidateRepository from '@/services/candidates/repository'
-import { ContactInfo, NotificationRecipient } from './types'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { ContactInfo, NotificationRecipient } from './types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
 
 const resend = new Resend(process.env.RESEND_API_KEY)

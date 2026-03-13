@@ -1,4 +1,4 @@
-import { TeamMemberUser } from '@/lib/users/types'
+import type { TeamMemberUser } from '@/lib/users/types'
 
 /**
  * Data provided to checkCompletion callbacks for determining TODO completion status.

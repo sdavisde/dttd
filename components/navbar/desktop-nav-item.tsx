@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
-import { NavElement } from './navbar-server'
+import type { NavElement } from './navbar-server'
 import { MegaMenuDropdown } from './mega-menu-dropdown'
 import { isEmpty, isNil } from 'lodash'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { NavElement } from './navbar-server'
+import type { NavElement } from './navbar-server'
 import { MegaMenuLink } from './mega-menu-link'
 import { FeaturedContentPanel } from './featured-content-panel'
 

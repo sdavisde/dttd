@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { PaymentRequestEmailPreview } from './PaymentRequestEmailPreview'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { Info } from 'lucide-react'

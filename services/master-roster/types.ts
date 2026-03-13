@@ -1,7 +1,7 @@
-import { CommunityInformation } from '@/lib/users/types'
-import { Address } from '@/lib/users/validation'
-import { UserExperience } from '@/lib/users/experience/validation'
-import { RoleType } from '@/services/identity/roles'
+import type { CommunityInformation } from '@/lib/users/types'
+import type { Address } from '@/lib/users/validation'
+import type { UserExperience } from '@/lib/users/experience/validation'
+import type { RoleType } from '@/services/identity/roles'
 
 export type MasterRosterMember = {
   id: string

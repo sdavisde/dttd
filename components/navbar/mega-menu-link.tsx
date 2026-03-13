@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Lock } from 'lucide-react'
-import { NavElement } from './navbar-server'
+import type { NavElement } from './navbar-server'
 import { NavbarIcon } from './navbar-icon'
 
 type MegaMenuLinkProps = {

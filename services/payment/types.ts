@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Database } from '@/database.types'
+import type { Database } from '@/database.types'
 
 /**
  * Plain object representation of a Stripe price.

@@ -8,14 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import type {
+  ChartConfig} from '@/components/ui/chart';
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { Badge } from '@/components/ui/badge'
-import { ExperienceDistribution } from '@/services/master-roster/types'
+import type { ExperienceDistribution } from '@/services/master-roster/types'
 import { isNil } from 'lodash'
 
 type ExperienceDistributionChartProps = {

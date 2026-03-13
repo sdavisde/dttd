@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { logger } from '@/lib/logger'
-import { Database } from '@/database.types'
+import type { Database } from '@/database.types'
 
 /**
  * Creates a Supabase client for use in server components and server actions.

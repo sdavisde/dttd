@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Users as UsersIcon } from 'lucide-react'
 import { UserRoleSidebar } from './UserRoleSidebar'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { Card, CardContent } from '@/components/ui/card'

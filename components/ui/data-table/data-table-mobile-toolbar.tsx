@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Column, Table } from '@tanstack/react-table'
+import type { Column, Table } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown, ListFilter, X } from 'lucide-react'
 import z from 'zod'
 

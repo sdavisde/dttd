@@ -1,6 +1,7 @@
 'use server'
 
-import { Result, err, ok, isErr } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok, isErr } from '@/lib/results'
 import { isNil, isEmpty } from 'lodash'
 import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
 import {

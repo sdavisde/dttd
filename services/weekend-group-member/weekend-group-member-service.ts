@@ -1,8 +1,9 @@
 import 'server-only'
 
-import { Result, err, ok, isErr } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok, isErr } from '@/lib/results'
 import { REQUIRED_FORMS } from '@/lib/weekend/team/required-forms.config'
-import { TeamFormsProgress } from '@/actions/team-forms'
+import type { TeamFormsProgress } from '@/actions/team-forms'
 import * as Repository from './repository'
 
 /**

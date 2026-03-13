@@ -1,7 +1,7 @@
 'use client'
 
-import { ReactNode } from 'react'
-import { Table } from '@tanstack/react-table'
+import type { ReactNode } from 'react'
+import type { Table } from '@tanstack/react-table'
 import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'

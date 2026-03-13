@@ -3,7 +3,7 @@
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import * as DepositService from './deposit-service'
-import { DepositDTO } from './types'
+import type { DepositDTO } from './types'
 
 /**
  * Retrieves all deposits from the deposits table.

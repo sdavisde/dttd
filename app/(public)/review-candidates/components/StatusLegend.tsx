@@ -1,4 +1,4 @@
-import { CandidateStatus } from '@/lib/candidates/types'
+import type { CandidateStatus } from '@/lib/candidates/types'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { Typography } from '@/components/ui/typography'
 

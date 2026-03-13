@@ -8,8 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Download, FileText } from 'lucide-react'
-import { HydratedCandidate } from '@/lib/candidates/types'
-import { User } from '@/lib/users/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
+import type { User } from '@/lib/users/types'
 import { userHasPermission, Permission } from '@/lib/security'
 import { isNil } from 'lodash'
 import {

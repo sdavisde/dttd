@@ -1,4 +1,4 @@
-import { Tables } from '@/database.types'
+import type { Tables } from '@/database.types'
 
 export type RawGroupMember = Tables<'weekend_group_members'>
 

@@ -1,10 +1,11 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { addMonths } from 'date-fns'
-import { RawEventRecord, EventCreateInput, EventUpdateInput } from './types'
+import type { RawEventRecord, EventCreateInput, EventUpdateInput } from './types'
 import { isNil } from 'lodash'
 
 /**

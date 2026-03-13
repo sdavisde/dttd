@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { SupabaseClient } from '@/lib/supabase/types'
+import type { SupabaseClient } from '@/lib/supabase/types'
 
 async function getFolderSize(
   supabase: SupabaseClient,

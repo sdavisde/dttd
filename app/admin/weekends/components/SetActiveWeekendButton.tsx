@@ -12,7 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { WeekendGroupWithId, WeekendStatus } from '@/lib/weekend/types'
+import type { WeekendGroupWithId} from '@/lib/weekend/types';
+import { WeekendStatus } from '@/lib/weekend/types'
 import { getGroupStatus } from '@/lib/weekend'
 import { setActiveWeekendGroup } from '@/services/weekend'
 import { isErr } from '@/lib/results'

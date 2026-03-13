@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Permission, permissionLock } from '@/lib/security'
 import { logger } from '@/lib/logger'
-import { FileObject } from '@supabase/storage-js'
+import type { FileObject } from '@supabase/storage-js'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,

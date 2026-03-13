@@ -1,9 +1,11 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok } from '@/lib/results'
+import type {
+  UserExperience} from '@/lib/users/experience';
 import {
-  UserExperience,
   calculateExperienceLevel,
   calculateRectorReadyStatus,
   groupExperienceByCommunity,
@@ -12,8 +14,8 @@ import {
 } from '@/lib/users/experience'
 import z from 'zod'
 import { isNil } from 'lodash'
-import { UserExperienceFormValue } from '@/components/team-forms/schemas'
-import { UserServiceHistory } from '@/services/master-roster/types'
+import type { UserExperienceFormValue } from '@/components/team-forms/schemas'
+import type { UserServiceHistory } from '@/services/master-roster/types'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 /**

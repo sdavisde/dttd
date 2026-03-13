@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { Sparkles } from 'lucide-react'
 import * as React from 'react'
-import { TeamInfoFormValues } from './schemas'
+import type { TeamInfoFormValues } from './schemas'
 import { isEmpty, partition } from 'lodash'
 
 const SKILLS_OPTIONS: string[] = [

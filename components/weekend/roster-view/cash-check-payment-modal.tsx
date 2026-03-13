@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { WeekendRosterMember, recordManualPayment } from '@/services/weekend'
+import type { WeekendRosterMember} from '@/services/weekend';
+import { recordManualPayment } from '@/services/weekend'
 import { getTeamFee } from '@/services/payment/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'

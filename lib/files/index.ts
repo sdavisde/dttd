@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { err, isErr, ok, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { err, isErr, ok } from '@/lib/results'
 import { slugify, unslugify } from '@/lib/url'
-import { FileObject } from '@supabase/storage-js'
+import type { FileObject } from '@supabase/storage-js'
 
 export type Bucket = {
   name: string

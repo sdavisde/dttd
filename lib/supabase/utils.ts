@@ -1,4 +1,4 @@
-import { PostgrestError } from '@supabase/supabase-js'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 export function isSupabaseError(
   maybeError: PostgrestError | null

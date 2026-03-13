@@ -1,7 +1,8 @@
 'use client'
 
-import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table'
-import { WeekendRosterMember } from '@/services/weekend'
+import type { ColumnDef, FilterFn, SortingFn } from '@tanstack/react-table';
+import { Row } from '@tanstack/react-table'
+import type { WeekendRosterMember } from '@/services/weekend'
 import { CHARole } from '@/lib/weekend/types'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'

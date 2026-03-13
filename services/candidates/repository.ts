@@ -1,7 +1,8 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { fromSupabase, Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { fromSupabase, err, ok } from '@/lib/results'
 import { Tables } from '@/database.types'
 import { isSupabaseError } from '@/lib/supabase/utils'
 

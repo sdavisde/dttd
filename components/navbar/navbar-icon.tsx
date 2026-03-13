@@ -1,8 +1,8 @@
 'use client'
 
-import { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
-import { NavIconName } from './navbar-server'
+import type { NavIconName } from './navbar-server'
 import { isNil } from 'lodash'
 
 // Map icon names to actual Lucide icon components

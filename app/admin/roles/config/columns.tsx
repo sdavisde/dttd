@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef, FilterFn } from '@tanstack/react-table'
+import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { Role } from '@/services/identity/roles'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'

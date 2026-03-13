@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Calendar } from 'lucide-react'
-import { NavFeaturedContent } from './navbar-server'
+import type { NavFeaturedContent } from './navbar-server'
 
 type FeaturedContentPanelProps = {
   featured: NavFeaturedContent

@@ -1,14 +1,16 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { fromSupabase, Result } from '@/lib/results'
-import {
+import type { Result } from '@/lib/results';
+import { fromSupabase } from '@/lib/results'
+import type {
   ServiceOptions,
   PaymentTransactionRow,
   PaymentTransactionInsert,
   PaymentTransactionUpdate,
-  RawPaymentTransaction,
-  TargetType,
+  TargetType} from './types';
+import {
+  RawPaymentTransaction
 } from './types'
 
 // ============================================================================

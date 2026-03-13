@@ -1,6 +1,7 @@
 'use client'
 
-import { Row, flexRender } from '@tanstack/react-table'
+import type { Row} from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table'
 import { ChevronDown } from 'lucide-react'
 
 import { cn } from '@/lib/utils'

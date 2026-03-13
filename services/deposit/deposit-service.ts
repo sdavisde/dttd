@@ -1,23 +1,25 @@
 import 'server-only'
 
-import { err, isErr, ok, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { err, isErr, ok } from '@/lib/results'
 import * as DepositRepository from './repository'
 import * as PaymentRepository from '@/services/payment/repository'
-import {
+import type {
   ServiceOptions,
   CreateDepositInput,
-  CreateDepositSchema,
   UpdateDepositInput,
-  UpdateDepositSchema,
   RecordStripePayoutInput,
-  RecordStripePayoutSchema,
   RawDepositWithPayments,
   DepositDTO,
   DepositPaymentDTO,
   DepositRow,
   DepositType,
   DepositStatus,
-  RawDepositPaymentWithTransaction,
+  RawDepositPaymentWithTransaction} from './types';
+import {
+  CreateDepositSchema,
+  UpdateDepositSchema,
+  RecordStripePayoutSchema
 } from './types'
 import { isNil, sumBy } from 'lodash'
 

@@ -23,7 +23,7 @@ import { User, Building } from 'lucide-react'
 import { MonthPickerPopover } from '@/components/ui/month-picker'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import * as React from 'react'
-import { TeamInfoFormValues } from './schemas'
+import type { TeamInfoFormValues } from './schemas'
 import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 
 export function BasicInfoSection() {

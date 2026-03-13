@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
-import { Address } from '@/lib/users/validation'
+import type { Address } from '@/lib/users/validation'
 import {
   FormControl,
   FormField,
@@ -23,7 +23,7 @@ import {
 import { MapPin } from 'lucide-react'
 import { Typography } from '@/components/ui/typography'
 import { isNil } from 'lodash'
-import { TeamInfoFormValues } from './schemas'
+import type { TeamInfoFormValues } from './schemas'
 
 interface AddressSectionProps {
   savedAddress: Address | null

@@ -1,9 +1,10 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
-import { RawGroupMember, RawFormCompletion, RawMedicalProfile } from './types'
+import type { RawGroupMember, RawFormCompletion, RawMedicalProfile } from './types'
 
 /**
  * Upserts a weekend_group_members row for a given group and user.

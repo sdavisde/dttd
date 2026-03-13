@@ -1,6 +1,6 @@
 'use server'
 
-import { EventCreateInput, EventUpdateInput } from './types'
+import type { EventCreateInput, EventUpdateInput } from './types'
 import * as EventsService from './events-service'
 
 // Re-export types for convenience

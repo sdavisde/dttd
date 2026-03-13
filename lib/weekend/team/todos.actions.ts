@@ -7,7 +7,7 @@ import {
   getCompletionState,
   areAllTodosComplete,
 } from './todos.helpers'
-import { TeamMemberUser } from '@/lib/users/types'
+import type { TeamMemberUser } from '@/lib/users/types'
 
 export type TeamTodoData = {
   urls: Record<string, string | null>

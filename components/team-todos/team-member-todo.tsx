@@ -1,4 +1,4 @@
-import { TeamMemberUser } from '@/lib/users/types'
+import type { TeamMemberUser } from '@/lib/users/types'
 import { getTeamTodoData } from '@/lib/weekend/team/todos.actions'
 import { Typography } from '@/components/ui/typography'
 import { isNil } from 'lodash'

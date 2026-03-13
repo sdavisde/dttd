@@ -22,7 +22,7 @@ import { Separator } from '@/components/ui/separator'
 import { Permission, userHasPermission } from '@/lib/security'
 import { isNil, isEqual } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
-import { MasterRosterMember } from '@/services/master-roster/types'
+import type { MasterRosterMember } from '@/services/master-roster/types'
 import { updateUserRoles } from '@/services/identity/roles'
 
 interface UserRoleSidebarProps {

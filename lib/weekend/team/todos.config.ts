@@ -1,7 +1,7 @@
 import { hasTeamPayment } from '@/services/payment'
 import { hasCompletedAllTeamForms } from '@/actions/team-forms'
 import { isOk } from '@/lib/results'
-import { TodoItemConfig } from './todos.types'
+import type { TodoItemConfig } from './todos.types'
 
 /**
  * Configuration for team preparation TODO items.

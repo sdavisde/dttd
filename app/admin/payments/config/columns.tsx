@@ -1,7 +1,7 @@
 'use client'
 
-import { ColumnDef, FilterFn } from '@tanstack/react-table'
-import { PaymentTransactionDTO } from '@/services/payment'
+import type { ColumnDef, FilterFn } from '@tanstack/react-table'
+import type { PaymentTransactionDTO } from '@/services/payment'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

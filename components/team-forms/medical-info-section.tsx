@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { Heart } from 'lucide-react'
-import { TeamInfoFormValues } from './schemas'
+import type { TeamInfoFormValues } from './schemas'
 
 export function MedicalInfoSection() {
   const { control } = useFormContext<TeamInfoFormValues>()

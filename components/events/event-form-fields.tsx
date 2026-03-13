@@ -1,6 +1,6 @@
 'use client'
 
-import { UseFormReturn } from 'react-hook-form'
+import type { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { EVENT_TYPE_VALUES, EVENT_TYPE_LABELS } from '@/services/events/types'
-import { EventFormData, WeekendOption } from './event-form-schema'
+import type { EventFormData, WeekendOption } from './event-form-schema'
 
 interface EventFormFieldsProps {
   form: UseFormReturn<EventFormData>

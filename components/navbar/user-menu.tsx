@@ -15,7 +15,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { Permission, canImpersonate, userHasPermission } from '@/lib/security'
 import { ImpersonationDialog } from '@/components/admin/sidebar/impersonation-dialog'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { isNil } from 'lodash'
 
 type UserMenuProps = {

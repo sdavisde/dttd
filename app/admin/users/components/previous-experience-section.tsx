@@ -1,6 +1,7 @@
+import type {
+  UserExperience} from '@/lib/users/experience';
 import {
-  groupExperienceByCommunity,
-  UserExperience,
+  groupExperienceByCommunity
 } from '@/lib/users/experience'
 import { Badge } from '@/components/ui/badge'
 

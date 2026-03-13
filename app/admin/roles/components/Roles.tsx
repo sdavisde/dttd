@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react'
 import { Plus } from 'lucide-react'
 import { RolesSidebar } from './RolesSidebar'
-import { deleteRole, Role } from '@/services/identity/roles'
+import type { Role } from '@/services/identity/roles';
+import { deleteRole } from '@/services/identity/roles'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'

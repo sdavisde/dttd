@@ -1,8 +1,8 @@
 import 'server-only'
 
-import Stripe from 'stripe'
-import { Result } from '@/lib/results'
-import { createAdminClient } from '@/lib/supabase/server'
+import type Stripe from 'stripe'
+import type { Result } from '@/lib/results'
+import type { createAdminClient } from '@/lib/supabase/server'
 
 /**
  * Context for tracking payment-related information in webhook processing.

@@ -1,5 +1,5 @@
-import { HydratedCandidate } from '@/lib/candidates/types'
-import { User } from '@/lib/users/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
+import type { User } from '@/lib/users/types'
 import { CANDIDATE_COLUMNS, getDesktopColumns } from '../config/columns'
 
 /**

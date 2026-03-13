@@ -1,7 +1,7 @@
 'use client'
 
 import { CalendarDays } from 'lucide-react'
-import { WeekendGroupWithId } from '@/lib/weekend/types'
+import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { WeekendGroupContainer } from './WeekendGroupContainer'

@@ -1,4 +1,4 @@
-import { Database, Tables } from '@/database.types'
+import type { Database, Tables } from '@/database.types'
 
 export type CandidateStatus = Database['public']['Enums']['candidate_status']
 

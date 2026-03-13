@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { WeekendGroupWithId } from '@/lib/weekend/types'
+import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { cn, setDatetimeToMidnight } from '@/lib/utils'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import {
@@ -41,8 +41,9 @@ import {
 } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
+import type {
+  DateRange} from '@/lib/weekend/scheduling';
 import {
-  DateRange,
   addDays,
   buildMonthOptions,
   formatDateForApi,

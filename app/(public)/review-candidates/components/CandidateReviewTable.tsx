@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { logger } from '@/lib/logger'
 import { updateCandidateStatus } from '@/actions/candidates'
 import * as Results from '@/lib/results'

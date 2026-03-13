@@ -1,5 +1,5 @@
 import { Permission, userHasPermission } from '@/lib/security'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 
 export type AdminNavElement = {
   title: string

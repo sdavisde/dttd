@@ -2,14 +2,14 @@
 
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
-import { User } from '@/lib/users/types'
-import {
+import type { User } from '@/lib/users/types'
+import type {
   WeekendStatusValue,
   WeekendGroupWithId,
   CreateWeekendGroupInput,
   UpdateWeekendGroupInput,
 } from '@/lib/weekend/types'
-import { WeekendSidebarPayload } from './types'
+import type { WeekendSidebarPayload } from './types'
 import * as WeekendService from './weekend-service'
 import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
 import { err, isErr } from '@/lib/results'

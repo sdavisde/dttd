@@ -1,8 +1,9 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { fromSupabase, ok, Result } from '@/lib/results'
-import {
+import type { Result } from '@/lib/results';
+import { fromSupabase, ok } from '@/lib/results'
+import type {
   ServiceOptions,
   DepositRow,
   DepositInsert,

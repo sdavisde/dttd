@@ -3,7 +3,7 @@
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import * as NotificationService from './notification-service'
 import { Permission } from '@/lib/security'
-import { ContactInfo } from './types'
+import type { ContactInfo } from './types'
 
 // ============================================================================
 // Authorized Actions (Require User Session)

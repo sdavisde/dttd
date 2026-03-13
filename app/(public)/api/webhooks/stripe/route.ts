@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { logger } from '@/lib/logger'
 import { isErr } from '@/lib/results'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import { isNil } from 'lodash'
 import {
   routeWebhookEvent,

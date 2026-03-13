@@ -34,7 +34,7 @@ import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
 import { calculateAge } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
-import { Database } from '@/database.types'
+import type { Database } from '@/database.types'
 
 type CandidateInfo = Database['public']['Tables']['candidate_info']['Row']
 

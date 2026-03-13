@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { PartyPopper } from 'lucide-react'
 import { TodoItem } from './todo-item'
-import {
+import type {
   TodoItemConfig,
   TodoCompletionState,
 } from '@/lib/weekend/team/todos.types'

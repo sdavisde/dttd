@@ -1,6 +1,6 @@
 import 'server-only'
 
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import { ok, isErr, Results } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import {
@@ -9,9 +9,10 @@ import {
 } from '@/services/notifications'
 import { isNil } from 'lodash'
 import { getTransactionData } from '../stripe-service'
-import {
+import type {
   WebhookHandler,
-  WebhookHandlerContext,
+  WebhookHandlerContext} from './types';
+import {
   WebhookErrorCodes,
 } from './types'
 import { webhookErr } from '../webhook-context'

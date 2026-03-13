@@ -1,7 +1,7 @@
 'use client'
 
 import { Typography } from '@/components/ui/typography'
-import { WeekendRosterMember } from '@/services/weekend'
+import type { WeekendRosterMember } from '@/services/weekend'
 import { useRoster } from '@/hooks/use-roster'
 
 type ActiveRosterHeaderProps = {

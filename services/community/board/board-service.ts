@@ -1,15 +1,17 @@
 import 'server-only'
 
-import { err, isErr, ok, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { err, isErr, ok } from '@/lib/results'
 import { getRoles } from '@/services/identity/roles'
 import { getMasterRoster } from '@/services/master-roster'
 import { getContactInformation } from '@/services/notifications'
-import {
-  BOARD_ROLE_SORT_ORDER,
-  BOARD_COMMITTEE_ROLES,
+import type {
   BoardMember,
   BoardRole,
-  CommunityBoardData,
+  CommunityBoardData} from './types';
+import {
+  BOARD_ROLE_SORT_ORDER,
+  BOARD_COMMITTEE_ROLES
 } from './types'
 import type { Role } from '@/services/identity/roles'
 import type { MasterRosterMember } from '@/services/master-roster'

@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { getCommunityEncouragement } from '@/services/community'
 import { EncouragementEditor } from './EncouragementEditor'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { Permission, userHasPermission } from '@/lib/security'
 
 interface CommunityEncouragementProps {

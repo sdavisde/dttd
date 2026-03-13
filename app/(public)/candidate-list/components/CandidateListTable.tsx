@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { HydratedCandidate } from '@/lib/candidates/types'
-import { User } from '@/lib/users/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
+import type { User } from '@/lib/users/types'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { candidateColumns, candidateGlobalFilterFn } from '../config/columns'

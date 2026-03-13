@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileObject } from '@supabase/storage-js'
+import type { FileObject } from '@supabase/storage-js'
 import { Typography } from '@/components/ui/typography'
 import { Folder } from 'lucide-react'
 import { FileTable } from './FileTable'

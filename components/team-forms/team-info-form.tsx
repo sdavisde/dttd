@@ -15,13 +15,15 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { Address, emptyAddress } from '@/lib/users/validation'
-import {
+import type { Address} from '@/lib/users/validation';
+import { emptyAddress } from '@/lib/users/validation'
+import type {
   BasicInfo,
   MedicalInfo,
   TeamInfoFormValues,
-  TeamInfoSchema,
-  UserExperienceFormValue,
+  UserExperienceFormValue} from './schemas';
+import {
+  TeamInfoSchema
 } from './schemas'
 import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'

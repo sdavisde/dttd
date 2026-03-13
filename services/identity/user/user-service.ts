@@ -2,15 +2,17 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { isNil, union } from 'lodash'
-import { err, isErr, ok, Result, Results, unwrapOr } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, isErr, ok, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
-import { User, UserRoleInfo } from '@/lib/users/types'
-import { CHARole, WeekendAssignment, WeekendStatus } from '@/lib/weekend/types'
-import { Address, addressSchema } from '@/lib/users/validation'
-import { BasicInfo } from '@/components/team-forms/schemas'
-import { RawUser } from './types'
+import type { User, UserRoleInfo } from '@/lib/users/types'
+import { WeekendStatus } from '@/lib/weekend/types'
+import type { Address} from '@/lib/users/validation';
+import { addressSchema } from '@/lib/users/validation'
+import type { BasicInfo } from '@/components/team-forms/schemas'
+import type { RawUser } from './types'
 import { getPermissionsForCHARole } from '@/lib/security'
-import type { TeamMemberInfo } from '@/lib/weekend/types'
+import type { TeamMemberInfo , CHARole, WeekendAssignment} from '@/lib/weekend/types'
 
 function normalizeUser(rawUser: RawUser): Result<string, User> {
   if (isNil(rawUser)) {
