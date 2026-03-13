@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
       .from(bucket)
       .download(path)
 
-    if (!isNil(downloadError)) {
-      logger.error(`Error downloading file: ${downloadError.message}`)
+    if (!isNil(downloadError) || isNil(fileData)) {
+      logger.error(`Error downloading file: ${downloadError?.message}`)
       return new NextResponse('File not found', { status: 404 })
     }
 

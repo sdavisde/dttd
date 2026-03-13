@@ -1,7 +1,7 @@
 import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import type { Result } from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, isErr, ok } from '@/lib/results'
 import { slugify, unslugify } from '@/lib/url'
 import type { FileObject } from '@supabase/storage-js'
@@ -22,8 +22,8 @@ export async function getBuckets(): Promise<Bucket[]> {
   const { data: buckets, error: bucketsError } =
     await supabase.storage.listBuckets()
 
-  if (!isNil(bucketsError)) {
-    logger.error(`Error fetching buckets: ${bucketsError.message}`)
+  if (!isNil(bucketsError) || isNil(buckets)) {
+    logger.error(`Error fetching buckets: ${bucketsError?.message}`)
     return []
   }
 
@@ -33,9 +33,9 @@ export async function getBuckets(): Promise<Bucket[]> {
         .from(bucket.name)
         .list()
 
-      if (!isNil(foldersError)) {
+      if (!isNil(foldersError) || isNil(folders)) {
         logger.error(
-          `Error fetching folders for bucket ${bucket.name}: ${foldersError.message}`
+          `Error fetching folders for bucket ${bucket.name}: ${foldersError?.message}`
         )
         return { name: bucket.name, folders: [] }
       }
@@ -65,8 +65,8 @@ export async function getFileSystemItems(
   const supabase = await createClient()
   const { data: items, error } = await supabase.storage.from(bucket).list(path)
 
-  if (!isNil(error)) {
-    return err(`Error fetching items for ${bucket}/${path}: ${error.message}`)
+  if (!isNil(error) || isNil(items)) {
+    return err(`Error fetching items for ${bucket}/${path}: ${error?.message}`)
   }
 
   return ok(
@@ -93,8 +93,8 @@ export async function fetchFolderContents(
       .from('files')
       .list(currentPath)
 
-    if (!isNil(error)) {
-      return err(`Error validating path segment ${segment}: ${error.message}`)
+    if (!isNil(error) || isNil(items)) {
+      return err(`Error validating path segment ${segment}: ${error?.message}`)
     }
 
     const folderExists = items.some(
@@ -120,8 +120,8 @@ export async function getFileFolders(isAdmin: boolean = false) {
     const supabase = await createClient()
     const { data, error } = await supabase.storage.from('files').list('')
 
-    if (!isNil(error)) {
-      logger.error(`Error fetching root folders: ${error.message}`)
+    if (!isNil(error) || isNil(data)) {
+      logger.error(`Error fetching root folders: ${error?.message}`)
       return []
     }
 

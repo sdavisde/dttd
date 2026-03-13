@@ -2,8 +2,8 @@ import 'server-only'
 
 import { isNil } from 'lodash'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import type { Result } from '@/lib/results';
-import { fromSupabase, ok } from '@/lib/results'
+import type { Result } from '@/lib/results'
+import { err, fromSupabase, ok } from '@/lib/results'
 import type {
   ServiceOptions,
   DepositRow,
@@ -303,7 +303,7 @@ export async function getDepositForPayment(
     .maybeSingle()
 
   if (!isNil(response.error)) {
-    return fromSupabase(response)
+    return err(response.error.message)
   }
 
   // Extract the deposit from the joined data

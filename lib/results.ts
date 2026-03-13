@@ -266,7 +266,7 @@ export const fromSupabase = <D>(
     return err(supabaseResponse.error.message)
   }
 
-  return ok(supabaseResponse.data)
+  return ok(supabaseResponse.data as D)
 }
 
 /**

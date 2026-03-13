@@ -134,7 +134,7 @@ function ChartTooltipContent({
       return null
     }
 
-    const [item] = payload
+    const [item] = payload ?? []
     const key = `${labelKey ?? item?.dataKey ?? item?.name ?? 'value'}`
     const itemConfig = getPayloadConfigFromPayload(config, item, key)
     const value =
@@ -145,7 +145,7 @@ function ChartTooltipContent({
     if (!isNil(labelFormatter)) {
       return (
         <div className={cn('font-medium', labelClassName)}>
-          {labelFormatter(value, payload)}
+          {labelFormatter(value, payload ?? [])}
         </div>
       )
     }
@@ -169,7 +169,7 @@ function ChartTooltipContent({
     return null
   }
 
-  const nestLabel = payload.length === 1 && indicator !== 'dot'
+  const nestLabel = (payload?.length ?? 0) === 1 && indicator !== 'dot'
 
   return (
     <div
@@ -180,7 +180,7 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload
+        {(payload ?? [])
           .filter((item) => item.type !== 'none')
           .map((item, index) => {
             const key = `${nameKey ?? item.name ?? item.dataKey ?? 'value'}`
@@ -195,7 +195,9 @@ function ChartTooltipContent({
                   indicator === 'dot' && 'items-center'
                 )}
               >
-                {!isNil(formatter) && item?.value !== undefined && !isNil(item.name) ? (
+                {!isNil(formatter) &&
+                item?.value !== undefined &&
+                !isNil(item.name) ? (
                   formatter(item.value, item.name, item, index, item.payload)
                 ) : (
                   <>
@@ -278,7 +280,7 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload
+      {(payload ?? [])
         .filter((item) => item.type !== 'none')
         .map((item) => {
           const key = `${nameKey ?? item.dataKey ?? 'value'}`

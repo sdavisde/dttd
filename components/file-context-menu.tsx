@@ -55,7 +55,8 @@ export function FileContextMenu({
   const router = useRouter()
   const { user } = useSession()
 
-  const fullPath = currentPath !== '' ? `${currentPath}/${item.name}` : item.name
+  const fullPath =
+    currentPath !== '' ? `${currentPath}/${item.name}` : item.name
 
   const handleDownload = () => {
     if (!item.isFolder) {
@@ -88,7 +89,7 @@ export function FileContextMenu({
           .from(bucket)
           .list(fullPath)
 
-        if (!isNil(listError)) throw listError
+        if (!isNil(listError) || isNil(files)) throw listError
 
         // Move each file to the new folder path
         for (const file of files) {
@@ -138,7 +139,7 @@ export function FileContextMenu({
           .from(bucket)
           .list(fullPath)
 
-        if (!isNil(listError)) throw listError
+        if (!isNil(listError) || isNil(files)) throw listError
 
         // Delete all files in the folder
         const filesToDelete = files.map((file) => `${fullPath}/${file.name}`)

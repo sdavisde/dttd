@@ -11,9 +11,9 @@ async function getFolderSize(
     .from(bucketName)
     .list(folderPath)
 
-  if (!isNil(error)) {
+  if (!isNil(error) || isNil(items)) {
     throw new Error(
-      `Failed to list items in ${bucketName}/${folderPath}: ${error.message}`
+      `Failed to list items in ${bucketName}/${folderPath}: ${error?.message}`
     )
   }
 
@@ -22,7 +22,8 @@ async function getFolderSize(
     if (!isNil(item.metadata?.size) && item.metadata.size > 0) {
       size += item.metadata.size
     } else {
-      const childPath = folderPath !== '' ? `${folderPath}/${item.name}` : item.name
+      const childPath =
+        folderPath !== '' ? `${folderPath}/${item.name}` : item.name
       const folderSize = await getFolderSize(supabase, bucketName, childPath)
       size += folderSize
     }
@@ -36,8 +37,8 @@ export async function getStorageUsage() {
   const { data: buckets, error: bucketsError } =
     await supabase.storage.listBuckets()
 
-  if (!isNil(bucketsError)) {
-    throw new Error(`Failed to list buckets: ${bucketsError.message}`)
+  if (!isNil(bucketsError) || isNil(buckets)) {
+    throw new Error(`Failed to list buckets: ${bucketsError?.message}`)
   }
 
   let totalSize = 0

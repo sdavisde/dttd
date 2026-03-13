@@ -60,8 +60,8 @@ export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
     const { data, error } = await supabase.storage
       .from('files')
       .download(`${folderName}/${file.name}`)
-    if (!isNil(error)) {
-      logger.error(`Error downloading file: ${error.message}`)
+    if (!isNil(error) || isNil(data)) {
+      logger.error(`Error downloading file: ${error?.message}`)
       return
     }
     const url = window.URL.createObjectURL(data)

@@ -2,7 +2,7 @@ import 'server-only'
 
 import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { ok, err } from '@/lib/results'
 import type { Tables } from '@/database.types'
 
@@ -64,5 +64,5 @@ export async function upsertSetting(
     return err(error.message)
   }
 
-  return ok(data)
+  return ok(data as RawSiteSetting)
 }
