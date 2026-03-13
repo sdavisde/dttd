@@ -246,7 +246,7 @@ export function CandidateForms({
                     <FormLabel>Date of Birth</FormLabel>
                     <FormControl>
                       <DatePicker
-                        date={field.value ? new Date(field.value) : undefined}
+                        date={field.value !== '' ? new Date(field.value) : undefined}
                         onDateChange={(date) =>
                           field.onChange(date?.toISOString())
                         }
@@ -630,7 +630,7 @@ export function CandidateForms({
           </CardContent>
         </Card>
 
-        {successMessage && (
+        {successMessage !== '' && (
           <Alert variant="success">
             <AlertTitle>Success</AlertTitle>
             <AlertDescription>{successMessage}</AlertDescription>

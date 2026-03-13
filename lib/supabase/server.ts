@@ -3,6 +3,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import type { Database } from '@/database.types'
 
@@ -13,13 +14,13 @@ import type { Database } from '@/database.types'
 export async function createClient() {
   const cookieStore = await cookies()
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (isNil(process.env.NEXT_PUBLIC_SUPABASE_URL)) {
     logger.error(
       'Trying to create server-side supabase client but NEXT_PUBLIC_SUPABASE_URL is not set'
     )
     throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set')
   }
-  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+  if (isNil(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
     logger.error(
       'Trying to create server-side supabase client but NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set'
     )
@@ -56,13 +57,13 @@ export async function createClient() {
  * This client uses the secret key and should never be exposed to the client.
  */
 export function createAdminClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (isNil(process.env.NEXT_PUBLIC_SUPABASE_URL)) {
     logger.error(
       'Trying to create admin supabase client but NEXT_PUBLIC_SUPABASE_URL is not set'
     )
     throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set')
   }
-  if (!process.env.SUPABASE_SECRET_KEY) {
+  if (isNil(process.env.SUPABASE_SECRET_KEY)) {
     logger.error(
       'Trying to create admin supabase client but SUPABASE_SECRET_KEY is not set'
     )

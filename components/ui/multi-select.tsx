@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
+import { isNil } from 'lodash'
 import { Check, X, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -120,7 +121,7 @@ export const MultiSelect = React.forwardRef<
                 <div className="flex flex-wrap items-center">
                   {selectedValues.slice(0, maxCount).map((value) => {
                     const option = options.find((o) => o.value === value)
-                    if (!option) return null
+                    if (isNil(option)) return null
 
                     return (
                       <Badge
@@ -199,7 +200,7 @@ export const MultiSelect = React.forwardRef<
                       >
                         <Check className={cn('h-4 w-4')} />
                       </div>
-                      {option.icon && (
+                      {!isNil(option.icon) && (
                         <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                       )}
                       <span>{option.label}</span>

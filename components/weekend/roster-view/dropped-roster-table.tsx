@@ -22,7 +22,7 @@ export function DroppedRosterTable({ roster }: DroppedRosterTableProps) {
   })
 
   // Early return if no dropped members and no search query
-  if (droppedMembers.length === 0 && !urlState.globalFilter) {
+  if (droppedMembers.length === 0 && urlState.globalFilter === '') {
     return null
   }
 

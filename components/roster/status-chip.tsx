@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge'
+import { isNil } from 'lodash'
 
 type RosterStatus = 'awaiting_payment' | 'paid' | 'drop'
 
@@ -16,7 +17,7 @@ export function RosterStatusChip({ status }: RosterStatusChipProps) {
     drop: { color: 'error', label: 'Drop' },
   }
 
-  if (!status) {
+  if (isNil(status)) {
     return <Badge variant="outline">No Status</Badge>
   }
 

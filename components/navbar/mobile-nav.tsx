@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronDown, Lock, Menu } from 'lucide-react'
+import { isNil } from 'lodash'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -41,7 +42,7 @@ export function MobileNav({ navElements }: MobileNavProps) {
           </SheetHeader>
           <div className="flex flex-col space-y-2 px-4">
             {navElements.map((item) =>
-              item.children ? (
+              !isNil(item.children) ? (
                 <MobileNavItem
                   key={item.name}
                   item={item}
@@ -90,7 +91,7 @@ function MobileNavItem({ item, onNavigate }: MobileNavItemProps) {
               className="flex items-center gap-3 py-2 hover:text-primary transition-colors"
               onClick={onNavigate}
             >
-              {child.icon && (
+              {!isNil(child.icon) && (
                 <NavbarIcon
                   iconName={child.icon}
                   className={`h-4 w-4 ${
@@ -109,7 +110,7 @@ function MobileNavItem({ item, onNavigate }: MobileNavItemProps) {
                     </span>
                   )}
                 </div>
-                {child.description && (
+                {!isNil(child.description) && (
                   <div className="text-xs text-gray-500">
                     {child.description}
                   </div>

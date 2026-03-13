@@ -83,7 +83,7 @@ export function AddressSection({ savedAddress }: AddressSectionProps) {
                   </Label>
                   <div className="text-sm text-muted-foreground pl-1">
                     {savedAddress.addressLine1}
-                    {savedAddress.addressLine2 && (
+                    {!isNil(savedAddress.addressLine2) && (
                       <>
                         <br />
                         {savedAddress.addressLine2}

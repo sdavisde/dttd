@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
+import { isNil } from 'lodash'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { updateUserRoles, setRoleMembers } from '@/services/identity/roles'
@@ -35,7 +36,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
   const membersByRoleId = useMemo(() => {
     return members.reduce<Record<string, BoardMember[]>>((acc, member) => {
       member.roles.forEach((role) => {
-        if (!acc[role.id]) {
+        if (!Object.hasOwn(acc, role.id)) {
           acc[role.id] = []
         }
         acc[role.id].push(member)
@@ -47,7 +48,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
   // Computed: filtered members based on search
   const filteredMembers = useMemo(() => {
     const trimmed = search.trim().toLowerCase()
-    if (!trimmed) return members
+    if (trimmed === '') return members
     return members.filter((member) => {
       const fullName = formatMemberName(member).toLowerCase()
       const email = (member.email ?? '').toLowerCase()
@@ -92,7 +93,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Save committee members
   const saveCommitteeMembers = useCallback(async () => {
-    if (!activeRole) return
+    if (isNil(activeRole)) return
 
     setIsSaving(true)
     try {
@@ -101,7 +102,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
         userIds: selectedCommitteeMembers,
       })
 
-      if (result && isErr(result)) {
+      if (!isNil(result) && isErr(result)) {
         toast.error(result.error)
         return
       }
@@ -138,7 +139,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
   // Core assignment logic
   const assignRole = useCallback(
     async (member: BoardMember, otherHolders: BoardMember[]) => {
-      if (!activeRole) return
+      if (isNil(activeRole)) return
 
       const alreadyAssigned = member.roles.some(
         (role) => role.id === activeRole.id
@@ -160,7 +161,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
                 userId: holder.id,
                 roleIds: updatedRoleIds,
               })
-              if (result && isErr(result)) {
+              if (!isNil(result) && isErr(result)) {
                 throw new Error(result.error)
               }
             })
@@ -176,7 +177,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
           roleIds: newRoleIds,
         })
 
-        if (result && isErr(result)) {
+        if (!isNil(result) && isErr(result)) {
           toast.error(result.error)
           return
         }
@@ -200,7 +201,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
   // Handle assignment (with confirmation check for INDIVIDUAL roles)
   const handleAssign = useCallback(
     async (member: BoardMember) => {
-      if (!activeRole) return
+      if (isNil(activeRole)) return
 
       const alreadyAssigned = member.roles.some(
         (role) => role.id === activeRole.id
@@ -228,7 +229,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
 
   // Confirm pending assignment
   const confirmAssignment = useCallback(async () => {
-    if (!pendingMember || !activeRole) return
+    if (isNil(pendingMember) || isNil(activeRole)) return
     await assignRole(pendingMember, pendingHolders)
   }, [pendingMember, activeRole, pendingHolders, assignRole])
 

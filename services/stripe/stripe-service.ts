@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { stripe } from '@/lib/stripe'
 import type { Result } from '@/lib/results';
 import { err, ok } from '@/lib/results'
@@ -57,7 +58,7 @@ export async function getTransactionData(
     // 1. Get the PaymentIntent to find the latest charge
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
 
-    if (!paymentIntent.latest_charge) {
+    if (isNil(paymentIntent.latest_charge)) {
       logger.warn(
         { paymentIntentId },
         'PaymentIntent has no charge yet - fee data not available'
@@ -73,7 +74,7 @@ export async function getTransactionData(
     // 2. Get the Charge to find the balance transaction
     const charge = await stripe.charges.retrieve(chargeId)
 
-    if (!charge.balance_transaction) {
+    if (isNil(charge.balance_transaction)) {
       logger.warn(
         { chargeId },
         'Charge has no balance_transaction yet - fee data not available'
@@ -158,7 +159,7 @@ export async function getPayoutTransactions(
         limit: 100,
       }
 
-      if (startingAfter) {
+      if (!isNil(startingAfter)) {
         params.starting_after = startingAfter
       }
 
@@ -166,7 +167,7 @@ export async function getPayoutTransactions(
 
       for (const bt of balanceTransactions.data) {
         // The source of a charge balance transaction is the charge ID
-        if (bt.source && typeof bt.source === 'string') {
+        if (!isNil(bt.source) && typeof bt.source === 'string') {
           // Retrieve the charge to get the payment_intent
           const charge = await stripe.charges.retrieve(bt.source)
 

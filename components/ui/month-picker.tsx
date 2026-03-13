@@ -63,7 +63,7 @@ export function MonthPicker({ selected, onSelect }: MonthPickerProps) {
           <Button
             key={month}
             variant={
-              selected &&
+              !isNil(selected) &&
               selected.getMonth() === index &&
               selected.getFullYear() === viewDate.getFullYear()
                 ? 'default'
@@ -106,7 +106,7 @@ export function MonthPickerPopover({
             className
           )}
         >
-          {value ? format(value, 'MMMM yyyy') : <span>{placeholder}</span>}
+          {!isNil(value) ? format(value, 'MMMM yyyy') : <span>{placeholder}</span>}
           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>

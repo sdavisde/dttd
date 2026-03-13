@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { isNil } from 'lodash'
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,7 @@ export function RejectCandidateConfirmationModal({
 }: RejectCandidateConfirmationModalProps) {
   const [isLoading, setIsLoading] = useState(false)
 
-  if (!candidate?.candidate_sponsorship_info) {
+  if (isNil(candidate?.candidate_sponsorship_info)) {
     return null
   }
 

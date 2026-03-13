@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import type { SupabaseClient } from '@/lib/supabase/types'
 
@@ -10,7 +11,7 @@ async function getFolderSize(
     .from(bucketName)
     .list(folderPath)
 
-  if (error) {
+  if (!isNil(error)) {
     throw new Error(
       `Failed to list items in ${bucketName}/${folderPath}: ${error.message}`
     )
@@ -18,10 +19,10 @@ async function getFolderSize(
 
   let size = 0
   for (const item of items) {
-    if (item.metadata?.size) {
+    if (!isNil(item.metadata?.size) && item.metadata.size > 0) {
       size += item.metadata.size
     } else {
-      const childPath = folderPath ? `${folderPath}/${item.name}` : item.name
+      const childPath = folderPath !== '' ? `${folderPath}/${item.name}` : item.name
       const folderSize = await getFolderSize(supabase, bucketName, childPath)
       size += folderSize
     }
@@ -35,7 +36,7 @@ export async function getStorageUsage() {
   const { data: buckets, error: bucketsError } =
     await supabase.storage.listBuckets()
 
-  if (bucketsError) {
+  if (!isNil(bucketsError)) {
     throw new Error(`Failed to list buckets: ${bucketsError.message}`)
   }
 

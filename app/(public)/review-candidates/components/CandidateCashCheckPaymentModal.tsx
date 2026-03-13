@@ -27,6 +27,7 @@ import { toast } from 'sonner'
 import { isOk, Results } from '@/lib/results'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { useQuery } from '@tanstack/react-query'
+import { isNil } from 'lodash'
 
 type CandidateCashCheckPaymentModalProps = {
   open: boolean
@@ -51,7 +52,7 @@ export function CandidateCashCheckPaymentModal({
     queryFn: async () => {
       const result = await getCandidateFee()
       const price = Results.toNullable(result)
-      return price?.unitAmount ? price.unitAmount / 100 : null
+      return !isNil(price?.unitAmount) ? price.unitAmount / 100 : null
     },
     staleTime: Infinity,
   })
@@ -68,17 +69,17 @@ export function CandidateCashCheckPaymentModal({
 
   // Initialize paidBy with appropriate name when modal opens
   useEffect(() => {
-    if (open && candidate) {
+    if (open && !isNil(candidate)) {
       setPaidBy(defaultPayerName)
     }
   }, [open, candidate, defaultPayerName])
 
-  if (!candidate) {
+  if (isNil(candidate)) {
     return null
   }
 
   const totalFee =
-    paymentType && stripePriceDollars
+    !isNil(paymentType) && !isNil(stripePriceDollars)
       ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
       : null
   const currentPaid =
@@ -87,7 +88,7 @@ export function CandidateCashCheckPaymentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!paymentType) return
+    if (isNil(paymentType)) return
     setIsSubmitting(true)
 
     try {
@@ -95,7 +96,7 @@ export function CandidateCashCheckPaymentModal({
         candidate.id,
         parseFloat(paymentAmount),
         paymentType,
-        paidBy.trim() || defaultPayerName,
+        paidBy.trim() !== '' ? paidBy.trim() : defaultPayerName,
         notes
       )
 
@@ -191,7 +192,7 @@ export function CandidateCashCheckPaymentModal({
                 onChange={(e) => setPaidBy(e.target.value)}
                 placeholder="Name of person paying"
                 className="pl-10"
-                disabled={!paymentType}
+                disabled={isNil(paymentType)}
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -209,7 +210,7 @@ export function CandidateCashCheckPaymentModal({
                   Loading fee...
                 </span>
               </div>
-            ) : !paymentType ? (
+            ) : isNil(paymentType) ? (
               <p className="text-sm text-muted-foreground text-center py-2">
                 Select a payment method to see fee details
               </p>
@@ -255,7 +256,7 @@ export function CandidateCashCheckPaymentModal({
                   placeholder="0.00"
                   className="pl-10"
                   required
-                  disabled={!paymentType}
+                  disabled={isNil(paymentType)}
                 />
               </div>
             </div>
@@ -275,7 +276,7 @@ export function CandidateCashCheckPaymentModal({
                     : 'Optional notes about the payment...'
                 }
                 rows={3}
-                disabled={!paymentType}
+                disabled={isNil(paymentType)}
               />
             </div>
 
@@ -293,7 +294,7 @@ export function CandidateCashCheckPaymentModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isSubmitting || !paymentAmount || !paymentType}
+                disabled={isSubmitting || paymentAmount === '' || isNil(paymentType)}
               >
                 {isSubmitting ? 'Recording...' : 'Record Payment'}
               </Button>

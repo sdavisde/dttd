@@ -2,13 +2,14 @@ import { CheckCircle, Clock, CircleCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { WeekendStatusValue } from '@/lib/weekend/types';
 import { WeekendStatus } from '@/lib/weekend/types'
+import { isNil } from 'lodash'
 
 interface WeekendStatusBadgeProps {
   status?: WeekendStatusValue | null
 }
 
 export function WeekendStatusBadge({ status }: WeekendStatusBadgeProps) {
-  if (!status) {
+  if (isNil(status)) {
     return null
   }
 

@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { WeekendRosterMember } from '@/services/weekend'
+import { isNil } from 'lodash'
 
 type MedicalInfoModalProps = {
   open: boolean
@@ -20,13 +21,13 @@ export function MedicalInfoModal({
   onClose,
   member,
 }: MedicalInfoModalProps) {
-  if (!member) {
+  if (isNil(member)) {
     return null
   }
 
   const memberName =
-    member.users?.first_name && member.users?.last_name
-      ? `${member.users.first_name} ${member.users.last_name}`
+    !isNil(member.users?.first_name) && !isNil(member.users?.last_name)
+      ? `${member.users!.first_name} ${member.users!.last_name}`
       : 'Team Member'
 
   return (

@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import { sendSponsorshipNotificationEmail } from '@/services/notifications'
 import * as Results from '@/lib/results'
+import { isNil } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
 import { createCandidateWithSponsorshipInfo } from '@/actions/candidates'
 import { useWeekends } from '@/hooks/useWeekends'
@@ -122,7 +123,7 @@ export function SponsorForm() {
     try {
       logger.info(`Submitting sponsor form: ${JSON.stringify(data)}`)
 
-      if (!user?.email) {
+      if (isNil(user?.email) || user?.email === '') {
         throw new Error('Current user email not found')
       }
 
@@ -242,22 +243,22 @@ export function SponsorForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {weekends?.MENS && (
+                            {!isNil(weekends?.MENS) && (
                               <SelectItem value={weekends.MENS.id}>
                                 Men&apos;s Weekend -{' '}
                                 {weekends.MENS.title ??
                                   `Weekend #${weekends.MENS.number}`}
                               </SelectItem>
                             )}
-                            {weekends?.WOMENS && (
+                            {!isNil(weekends?.WOMENS) && (
                               <SelectItem value={weekends.WOMENS.id}>
                                 Women&apos;s Weekend -{' '}
                                 {weekends.WOMENS.title ??
                                   `Weekend #${weekends.WOMENS.number}`}
                               </SelectItem>
                             )}
-                            {!weekends?.MENS &&
-                              !weekends?.WOMENS &&
+                            {isNil(weekends?.MENS) &&
+                              isNil(weekends?.WOMENS) &&
                               !isLoadingWeekends && (
                                 <SelectItem value="" disabled>
                                   No active weekends available

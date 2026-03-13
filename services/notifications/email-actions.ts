@@ -1,5 +1,6 @@
 'use server'
 
+import { isNil } from 'lodash'
 import type { CreateEmailResponseSuccess} from 'resend';
 import { Resend } from 'resend'
 import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotificationEmail'
@@ -33,7 +34,7 @@ export async function sendSponsorshipNotificationEmail(
 
     const candidate = candidateResult.data
 
-    if (!candidate) {
+    if (isNil(candidate)) {
       return err('Candidate not found')
     }
 
@@ -52,7 +53,7 @@ export async function sendSponsorshipNotificationEmail(
       react: SponsorshipNotificationEmail(candidate),
     })
 
-    if (error) {
+    if (!isNil(error)) {
       logger.error(
         error,
         `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}`
@@ -75,7 +76,7 @@ export async function sendCandidateForms(
   candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
-    if (!candidateSponsorshipInfo.candidate_email) {
+    if (isNil(candidateSponsorshipInfo.candidate_email)) {
       return err('Candidate email not found on candidate')
     }
 
@@ -87,7 +88,7 @@ export async function sendCandidateForms(
         react: CandidateFormsEmail(candidateSponsorshipInfo),
       })
 
-    if (candidateFormsEmailError) {
+    if (!isNil(candidateFormsEmailError)) {
       return err(`Failed to send email: ${candidateFormsEmailError.message}`)
     }
 
@@ -132,7 +133,7 @@ export async function sendPaymentRequestEmail(
     let paymentOwnerName: string = ''
 
     if (paymentOwner === 'sponsor') {
-      if (!candidate.candidate_sponsorship_info?.sponsor_email) {
+      if (isNil(candidate.candidate_sponsorship_info?.sponsor_email)) {
         logger.error(
           `Sponsor email not found for sponsorship request ${candidate.candidate_sponsorship_info?.id}`
         )
@@ -144,7 +145,7 @@ export async function sendPaymentRequestEmail(
     }
 
     if (paymentOwner === 'candidate') {
-      if (!candidate.candidate_sponsorship_info?.candidate_email) {
+      if (isNil(candidate.candidate_sponsorship_info?.candidate_email)) {
         logger.error(
           `Candidate email not found for ${candidate.candidate_sponsorship_info?.candidate_name}`
         )
@@ -171,7 +172,7 @@ export async function sendPaymentRequestEmail(
       }),
     })
 
-    if (error) {
+    if (!isNil(error)) {
       logger.error(
         `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${error.message}`
       )
@@ -188,7 +189,7 @@ export async function sendPaymentRequestEmail(
       .update({ status: 'awaiting_payment' })
       .eq('id', candidateId)
 
-    if (updateError) {
+    if (!isNil(updateError)) {
       logger.error(
         `Failed to update candidate status to awaiting_payment for ${candidate.candidate_sponsorship_info?.candidate_name}: ${updateError.message}`
       )
@@ -218,7 +219,7 @@ export async function notifyAssistantHeadForTeamPayment(
   weekendId: string | null,
   paymentAmount: number
 ): Promise<Result<string, true>> {
-  if (!teamUserId || !weekendId) {
+  if (isNil(teamUserId) || isNil(weekendId)) {
     return err('Team user ID or weekend ID is null')
   }
 
@@ -264,25 +265,25 @@ export async function notifyAssistantHeadForTeamPayment(
     const { data: assistantHead, error: assistantHeadError } =
       assistantHeadResult
 
-    if (teamMemberError || !teamMember) {
+    if (!isNil(teamMemberError) || isNil(teamMember)) {
       return err(
-        `Failed to fetch team member details: ${teamMemberError?.message || 'Team member not found'}`
+        `Failed to fetch team member details: ${teamMemberError?.message ?? 'Team member not found'}`
       )
     }
 
-    if (weekendError || !weekend) {
+    if (!isNil(weekendError) || isNil(weekend)) {
       return err(
-        `Failed to fetch weekend details: ${weekendError?.message || 'Weekend not found'}`
+        `Failed to fetch weekend details: ${weekendError?.message ?? 'Weekend not found'}`
       )
     }
 
-    if (assistantHeadError || !assistantHead) {
+    if (!isNil(assistantHeadError) || isNil(assistantHead)) {
       return err(
-        `Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message || 'Assistant Head not found'}`
+        `Failed to fetch assistant head for weekend ${weekendId}: ${assistantHeadError?.message ?? 'Assistant Head not found'}`
       )
     }
 
-    if (!assistantHead.users.email) {
+    if (isNil(assistantHead.users.email)) {
       return err(`Assistant head email not found for weekend ${weekendId}`)
     }
 
@@ -299,7 +300,7 @@ export async function notifyAssistantHeadForTeamPayment(
       }),
     })
 
-    if (error) {
+    if (!isNil(error)) {
       logger.error(
         `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}: ${error.message}`
       )
@@ -333,7 +334,7 @@ export async function sendCandidateFormsCompletedEmail(
 
     const candidate = candidateResult.data
 
-    if (!candidate) {
+    if (isNil(candidate)) {
       return err('Candidate not found')
     }
 
@@ -345,8 +346,8 @@ export async function sendCandidateFormsCompletedEmail(
     }
 
     const candidateName =
-      candidate.candidate_info?.first_name &&
-      candidate.candidate_info?.last_name
+      !isNil(candidate.candidate_info?.first_name) &&
+      !isNil(candidate.candidate_info?.last_name)
         ? `${candidate.candidate_info.first_name} ${candidate.candidate_info.last_name}`
         : (candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate')
 
@@ -358,7 +359,7 @@ export async function sendCandidateFormsCompletedEmail(
       react: CandidateFormsCompletedEmail(candidate),
     })
 
-    if (error) {
+    if (!isNil(error)) {
       logger.error(
         error,
         `Failed to send candidate forms completed email for ${candidateName}`

@@ -23,7 +23,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
   // Filter nav elements based on user permissions and team membership
   const filterNavElement = (item: NavElement): NavElement | null => {
     // Check if this item requires team membership
-    if (item.requiresTeamMembership && isNil(user?.teamMemberInfo)) {
+    if (item.requiresTeamMembership === true && isNil(user?.teamMemberInfo)) {
       return null
     }
 
@@ -37,7 +37,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
     }
 
     // Filter children if they exist
-    if (item.children) {
+    if (!isNil(item.children)) {
       const filteredChildren = item.children
         .map(filterNavElement)
         .filter((child) => !isNil(child))
@@ -81,7 +81,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
                   item={item}
                   align="left"
                   isActive={activeMenu === item.name}
-                  onMouseEnter={() => item.children && setActiveMenu(item.name)}
+                  onMouseEnter={() => !isNil(item.children) && setActiveMenu(item.name)}
                   onMouseLeave={() => setActiveMenu(null)}
                 />
               ))}
@@ -99,7 +99,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
                   item={item}
                   align="right"
                   isActive={activeMenu === item.name}
-                  onMouseEnter={() => item.children && setActiveMenu(item.name)}
+                  onMouseEnter={() => !isNil(item.children) && setActiveMenu(item.name)}
                   onMouseLeave={() => setActiveMenu(null)}
                 />
               ))}

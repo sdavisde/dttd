@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isNil } from 'lodash'
 import type { FileObject } from '@supabase/storage-js'
 import { logger } from '@/lib/logger'
 import {
@@ -59,7 +60,7 @@ export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
     const { data, error } = await supabase.storage
       .from('files')
       .download(`${folderName}/${file.name}`)
-    if (error) {
+    if (!isNil(error)) {
       logger.error(`Error downloading file: ${error.message}`)
       return
     }
@@ -109,12 +110,12 @@ export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  {file.metadata?.size
+                  {!isNil(file.metadata?.size)
                     ? `${(file.metadata.size / 1024).toFixed(1)} KB`
                     : '-'}
                 </TableCell>
                 <TableCell>
-                  {file.updated_at
+                  {!isNil(file.updated_at)
                     ? new Date(file.updated_at).toLocaleDateString()
                     : '-'}
                 </TableCell>

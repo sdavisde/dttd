@@ -21,6 +21,7 @@ import {
 import { Download, FileText, FolderOpen, Folder } from 'lucide-react'
 import Link from 'next/link'
 import { slugify } from '@/lib/url'
+import { isNil } from 'lodash'
 
 type PublicFileTableProps = {
   files: FileObject[]
@@ -41,7 +42,7 @@ export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
     const { data, error } = await supabase.storage
       .from('files')
       .download(`${folderName}/${file.name}`)
-    if (error) {
+    if (!isNil(error)) {
       logger.error(`Error downloading file: ${error.message}`)
       return
     }
@@ -130,12 +131,12 @@ export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {file.metadata?.size
+                      {!isNil(file.metadata?.size)
                         ? `${(file.metadata.size / 1024).toFixed(1)} KB`
                         : '-'}
                     </TableCell>
                     <TableCell>
-                      {file.updated_at
+                      {!isNil(file.updated_at)
                         ? new Date(file.updated_at).toLocaleDateString()
                         : '-'}
                     </TableCell>

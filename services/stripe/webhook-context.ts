@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import * as Sentry from '@sentry/nextjs'
 import type { Result } from '@/lib/results';
 import { err } from '@/lib/results'
@@ -62,16 +63,16 @@ export async function withWebhookScope<T>(
     scope.setTag('webhook.event_type', paymentContext.eventType)
     scope.setTag('webhook.event_id', paymentContext.eventId)
 
-    if (paymentContext.paymentIntentId) {
+    if (!isNil(paymentContext.paymentIntentId)) {
       scope.setTag('payment_intent_id', paymentContext.paymentIntentId)
     }
-    if (paymentContext.candidateId) {
+    if (!isNil(paymentContext.candidateId)) {
       scope.setTag('candidate_id', paymentContext.candidateId)
     }
-    if (paymentContext.userId) {
+    if (!isNil(paymentContext.userId)) {
       scope.setTag('user_id', paymentContext.userId)
     }
-    if (paymentContext.weekendId) {
+    if (!isNil(paymentContext.weekendId)) {
       scope.setTag('weekend_id', paymentContext.weekendId)
     }
 
@@ -111,13 +112,13 @@ export function reportWebhookError(error: WebhookError): void {
     scope.setTag('webhook.stage', error.stage)
     scope.setTag('webhook.severity', error.severity)
 
-    if (error.context.eventType) {
+    if (!isNil(error.context.eventType)) {
       scope.setTag('webhook.event_type', error.context.eventType)
     }
-    if (error.context.paymentIntentId) {
+    if (!isNil(error.context.paymentIntentId)) {
       scope.setTag('payment_intent_id', error.context.paymentIntentId)
     }
-    if (error.context.candidateId) {
+    if (!isNil(error.context.candidateId)) {
       scope.setTag('candidate_id', error.context.candidateId)
     }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { isNil } from 'lodash'
 
 /**
  * Custom hook for managing URL hash state.
@@ -18,14 +19,14 @@ export function useHashState(): [string | null, (hash: string | null) => void] {
   const [hash, setHashState] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null
     const currentHash = window.location.hash.slice(1)
-    return currentHash || null
+    return currentHash !== '' ? currentHash : null
   })
 
   // Listen for hash changes (browser back/forward, manual URL changes)
   useEffect(() => {
     const handleHashChange = () => {
       const newHash = window.location.hash.slice(1)
-      setHashState(newHash || null)
+      setHashState(newHash !== '' ? newHash : null)
     }
 
     window.addEventListener('hashchange', handleHashChange)
@@ -33,7 +34,7 @@ export function useHashState(): [string | null, (hash: string | null) => void] {
   }, [])
 
   const setHash = useCallback((newHash: string | null) => {
-    if (newHash) {
+    if (!isNil(newHash)) {
       window.history.pushState(null, '', `#${newHash}`)
     } else {
       // Remove hash without triggering a scroll
@@ -52,7 +53,7 @@ export function useHashState(): [string | null, (hash: string | null) => void] {
  * @returns The date string if valid, or null if invalid
  */
 export function parseDateFromHash(hash: string | null): string | null {
-  if (!hash) return null
+  if (isNil(hash)) return null
   const match = hash.match(/^\d{4}-\d{2}-\d{2}$/)
-  return match ? hash : null
+  return !isNil(match) ? hash : null
 }

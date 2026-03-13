@@ -10,11 +10,11 @@ import { isNil } from 'lodash'
  */
 export function permissionLock(permissions: Array<Permission>) {
   return (user: User | null): true => {
-    if (!user) {
+    if (isNil(user)) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
 
-    if (!userHasPermission(user, permissions)) {
+    if (userHasPermission(user, permissions) === false) {
       throw new Error(Errors.INSUFFICIENT_PERMISSIONS.toString())
     }
 

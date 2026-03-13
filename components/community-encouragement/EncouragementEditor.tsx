@@ -17,7 +17,7 @@ import { updateCommunityEncouragement } from '@/services/community'
 import { isErr } from '@/lib/results'
 import type { CommunityEncouragement } from '@/services/community'
 import { useRouter } from 'next/navigation'
-import { isEmpty } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 
 interface EncouragementEditorProps {
   initialEncouragement: CommunityEncouragement | null
@@ -161,7 +161,7 @@ export function EncouragementEditor({
               />
             </div>
 
-            {error && (
+            {!isNil(error) && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>

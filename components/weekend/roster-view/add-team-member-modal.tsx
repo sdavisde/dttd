@@ -43,6 +43,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Check, ChevronsUpDown, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { isNil } from 'lodash'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const addTeamMemberFormSchema = z.object({
@@ -157,12 +158,12 @@ export function AddTeamMemberModal({
                             aria-expanded={userComboboxOpen}
                             className="w-full justify-between"
                           >
-                            {field.value
+                            {field.value !== ''
                               ? (() => {
                                   const selectedUser = users.find(
                                     (user) => user.id === field.value
                                   )
-                                  return selectedUser
+                                  return !isNil(selectedUser)
                                     ? `${selectedUser.first_name} ${selectedUser.last_name}`
                                     : 'Select team member...'
                                 })()
@@ -193,7 +194,7 @@ export function AddTeamMemberModal({
                                     <span>
                                       {user.first_name} {user.last_name}
                                     </span>
-                                    {user.email && (
+                                    {!isNil(user.email) && (
                                       <span className="text-sm text-muted-foreground">
                                         {user.email}
                                       </span>
@@ -236,7 +237,7 @@ export function AddTeamMemberModal({
                 description="What Rollo is this team member going to do? Select SILENT if they are not doing a Rollo."
               />
 
-              {form.formState.errors.root && (
+              {!isNil(form.formState.errors.root) && (
                 <Alert variant="destructive">
                   <AlertCircle />
                   <AlertTitle>Error</AlertTitle>

@@ -27,7 +27,7 @@ export const calculateAge = (dateOfBirth: string): number => {
 export const formatPhoneNumber = (
   phoneNumber: string | null | undefined
 ): string => {
-  if (!phoneNumber) return '-'
+  if (isNil(phoneNumber) || phoneNumber === '') return '-'
 
   // Remove all non-digit characters
   const cleaned = phoneNumber.replace(/\D/g, '')
@@ -59,7 +59,7 @@ export type FormattedDateTime =
  * Does NOT apply timezone conversion to avoid date shifting.
  */
 export const formatDateOnly = (dateString: string | null): string => {
-  if (!dateString) return 'Date TBD'
+  if (isNil(dateString) || dateString === '') return 'Date TBD'
 
   try {
     const date = toLocalDateFromISO(dateString)
@@ -83,7 +83,7 @@ export const formatDateOnly = (dateString: string | null): string => {
  * Use this for events where the actual time matters.
  */
 export const formatDateTime = (datetime: string | null): FormattedDateTime => {
-  if (!datetime) return 'Date TBD'
+  if (isNil(datetime) || datetime === '') return 'Date TBD'
 
   try {
     const date = new Date(datetime)
@@ -118,14 +118,14 @@ export const setDatetimeToMidnight = (date: Date) => {
 }
 
 export const toLocalDateFromISO = (dateString?: string | null): Date | null => {
-  if (!dateString) {
+  if (isNil(dateString) || dateString === '') {
     return null
   }
 
   const isoPortion = dateString.split('T')[0]
   const [yearStr, monthStr, dayStr] = isoPortion.split('-')
 
-  if (!yearStr || !monthStr || !dayStr) {
+  if (yearStr === undefined || monthStr === undefined || dayStr === undefined) {
     return null
   }
 

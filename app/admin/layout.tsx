@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import type { User } from '@/lib/users/types'
 import { getFilteredNavData } from '@/lib/admin/navigation'
+import { isNil } from 'lodash'
 
 type AdminLayoutProps = {
   children: React.ReactNode
@@ -24,7 +25,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
   try {
-    if (Results.isErr(userResult) || !user) {
+    if (Results.isErr(userResult) || isNil(user)) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
     permissionLock([Permission.READ_ADMIN_PORTAL])(user)

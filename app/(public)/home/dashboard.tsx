@@ -8,6 +8,7 @@ import {
   CalendarDays,
 } from 'lucide-react'
 import type { User } from '@/lib/users/types'
+import { isNil } from 'lodash'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'
@@ -72,7 +73,7 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
             <UserPlus className="w-10 h-10" />
             <span className="text-lg font-semibold">Sponsor a Candidate</span>
           </Button>
-          {prayerWheelUrl && (
+          {!isNil(prayerWheelUrl) && (
             <Button
               variant="outline"
               className="w-full h-52 flex flex-col items-center justify-center gap-2"

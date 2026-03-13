@@ -12,6 +12,7 @@ import { buildUrlWithRedirect } from '@/lib/url'
 import AuthModeToggle from './AuthModeToggle'
 import PasswordInput from './PasswordInput'
 import RegistrationFields from './RegistrationFields'
+import { isNil } from 'lodash'
 
 interface AuthFormProps {
   onSuccess?: () => void
@@ -51,11 +52,11 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
           email,
           password,
         })
-        if (error) throw error
+        if (!isNil(error)) throw error
         onSuccess?.()
         router.refresh()
       } else {
-        if (!gender) throw new Error('Please select your gender')
+        if (isNil(gender)) throw new Error('Please select your gender')
 
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -69,14 +70,14 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
           },
         })
 
-        if (error) throw error
+        if (!isNil(error)) throw error
 
         // Sign in the user immediately after registration
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
-        if (signInError) throw signInError
+        if (!isNil(signInError)) throw signInError
 
         onSuccess?.()
         router.refresh()
@@ -97,7 +98,7 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       })
-      if (error) throw error
+      if (!isNil(error)) throw error
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     }
@@ -110,13 +111,13 @@ export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
     >
       <AuthModeToggle mode={mode} onModeChange={setMode} />
 
-      {error && (
+      {!isNil(error) && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {message && (
+      {!isNil(message) && (
         <Alert variant="info">
           <AlertDescription>{message}</AlertDescription>
         </Alert>

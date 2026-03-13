@@ -71,14 +71,14 @@ export function RectorReadySection({ status }: RectorReadySectionProps) {
               className={cn(
                 'mt-0.5 flex items-center justify-center w-5 h-5 rounded-full text-xs shrink-0',
                 item.met
-                  ? item.isHighlight
+                  ? item.isHighlight === true
                     ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                     : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-muted text-muted-foreground'
               )}
             >
               {item.met ? (
-                item.isHighlight ? (
+                item.isHighlight === true ? (
                   <Star className="w-3 h-3 fill-current" />
                 ) : (
                   <Check className="w-3 h-3" />

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import { validateRedirectUrl } from '@/lib/redirect'
 
@@ -45,7 +46,7 @@ export async function updateSession(request: NextRequest) {
     /^\/(forgot-password|reset-password|login|join|auth\/callback|\/?)$/
   const redirectToHomeUrls = /^\/(login|join)?$/
 
-  if (user && redirectToHomeUrls.test(request.nextUrl.pathname)) {
+  if (!isNil(user) && redirectToHomeUrls.test(request.nextUrl.pathname)) {
     // Check for redirectTo parameter and validate it
     const redirectTo = request.nextUrl.searchParams.get('redirectTo')
     const targetPath = validateRedirectUrl(redirectTo, '/home')
@@ -65,7 +66,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (!user && !publicUrls.test(request.nextUrl.pathname)) {
+  if (isNil(user) && !publicUrls.test(request.nextUrl.pathname)) {
     // Capture the original URL to redirect back after login
     const originalUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`
     logger.info(
@@ -91,7 +92,7 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to go out
   // of sync and terminate the user's session prematurely!
   logger.info(
-    `finished updating session while requesting ${request.nextUrl.pathname}. user exists?: ${!!user}`
+    `finished updating session while requesting ${request.nextUrl.pathname}. user exists?: ${!isNil(user)}`
   )
 
   return supabaseResponse

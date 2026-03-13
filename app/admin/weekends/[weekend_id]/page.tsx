@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { WeekendRosterView } from '@/components/weekend'
 import { getLoggedInUser } from '@/services/identity/user'
 import { getWeekendById } from '@/services/weekend'
+import { isNil } from 'lodash'
 
 type WeekendDetailPageProps = {
   params: Promise<{ weekend_id: string }>
@@ -25,7 +26,7 @@ export default async function WeekendDetailPage({
   const weekendResult = await getWeekendById(weekend_id)
   const weekendTitle = !isErr(weekendResult)
     ? (weekendResult.data.title ??
-      (weekendResult.data.number
+      (!isNil(weekendResult.data.number)
         ? `Group ${weekendResult.data.number} — ${weekendResult.data.type === 'MENS' ? "Men's" : "Women's"}`
         : `${weekendResult.data.type} Weekend`))
     : 'Weekend'

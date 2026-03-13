@@ -21,6 +21,7 @@ import { PhoneInput } from '@/components/ui/phone-input'
 import z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { isNil } from 'lodash'
 import { Button } from '@/components/ui/button'
 
 const profileFormSchema = z.object({
@@ -58,7 +59,7 @@ export default function ProfilePage() {
       return
     }
 
-    if (user) {
+    if (!isNil(user)) {
       form.setValue('email', user.email ?? '')
       form.setValue('firstName', user.firstName ?? '')
       form.setValue('lastName', user.lastName ?? '')
@@ -74,7 +75,7 @@ export default function ProfilePage() {
     try {
       const supabase = createClient()
 
-      if (!user?.id) {
+      if (isNil(user?.id)) {
         form.setError('root', {
           message:
             'Looks like you have been automatically logged out. Please log in again.',
@@ -92,7 +93,7 @@ export default function ProfilePage() {
         })
         .eq('id', user?.id)
 
-      if (error) {
+      if (!isNil(error)) {
         form.setError('root', { message: error.message })
       }
 
@@ -125,7 +126,7 @@ export default function ProfilePage() {
         <Typography variant="p">Manage your account information</Typography>
 
         <div className="">
-          {message && (
+          {!isNil(message) && (
             <Alert variant="default" className="mb-3">
               <CheckCircle2 />
               <AlertTitle>Profile updated successfully!</AlertTitle>

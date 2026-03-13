@@ -68,12 +68,12 @@ export const getMensWeekendDateRange = (
 
   const mensStart =
     toLocalDateFromISO(mensWeekend.start_date) ??
-    (womensStartDate ? addDays(womensStartDate, -7) : null)
+    (!isNil(womensStartDate) ? addDays(womensStartDate, -7) : null)
   const mensEnd =
     toLocalDateFromISO(mensWeekend.end_date) ??
-    (mensStart ? addDays(mensStart, 3) : null)
+    (!isNil(mensStart) ? addDays(mensStart, 3) : null)
 
-  if (mensStart && mensEnd) {
+  if (!isNil(mensStart) && !isNil(mensEnd)) {
     return {
       range: {
         start: setDatetimeToMidnight(mensStart),

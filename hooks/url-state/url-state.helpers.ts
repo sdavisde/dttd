@@ -17,7 +17,7 @@ export function filtersToRecord(filters: ColumnFiltersState): ParamRecord {
     const val = filter.value
     if (Array.isArray(val) && val.length > 0) {
       record[filter.id] = val
-    } else if (typeof val === 'string' && val) {
+    } else if (typeof val === 'string' && val !== '') {
       record[filter.id] = val
     }
   }

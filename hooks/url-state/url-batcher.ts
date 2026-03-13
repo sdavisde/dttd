@@ -52,7 +52,7 @@ function flush(): void {
   }
 
   const qs = params.toString()
-  const url = `${window.location.pathname}${qs ? `?${qs}` : ''}`
+  const url = `${window.location.pathname}${qs !== '' ? `?${qs}` : ''}`
   // Spread history.state so we don't clobber Next.js internals
   const state = { ...window.history.state }
 

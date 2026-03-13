@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import { err, fromSupabase, ok } from '@/lib/results'
 import type { Address } from '@/lib/users/validation'
@@ -83,7 +84,7 @@ export const updateUserRoles = async (userId: string, roleIds: string[]) => {
     .from('user_roles')
     .delete()
     .eq('user_id', userId)
-  if (fromSupabase(response).error) {
+  if (!isNil(fromSupabase(response).error)) {
     return err('Failed to delete user roles')
   }
 
@@ -113,7 +114,7 @@ export const deleteUser = async (userId: string) => {
     .delete()
     .eq('user_id', userId)
 
-  if (fromSupabase(deleteRolesResponse).error) {
+  if (!isNil(fromSupabase(deleteRolesResponse).error)) {
     return err('Failed to delete user roles')
   }
 
@@ -123,7 +124,7 @@ export const deleteUser = async (userId: string) => {
     .delete()
     .eq('user_id', userId)
 
-  if (fromSupabase(deleteRosterResponse).error) {
+  if (!isNil(fromSupabase(deleteRosterResponse).error)) {
     return err('Failed to delete weekend roster')
   }
 
@@ -157,7 +158,7 @@ export const updateUserBasicInfo = async (userId: string, data: BasicInfo) => {
     .update({
       church_affiliation: data.church_affiliation,
       weekend_attended: weekendAttendedStr,
-      essentials_training_date: data.essentials_training_date
+      essentials_training_date: !isNil(data.essentials_training_date)
         ? data.essentials_training_date.toISOString()
         : null,
       special_gifts_and_skills: data.special_gifts_and_skills ?? null,

@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results';
 import { fromSupabase, ok } from '@/lib/results'
@@ -24,7 +25,7 @@ import type {
  * Otherwise, returns a regular client that respects RLS policies.
  */
 async function getClient(options?: ServiceOptions) {
-  if (options?.dangerouslyBypassRLS) {
+  if (options?.dangerouslyBypassRLS === true) {
     return createAdminClient()
   }
   return createClient()
@@ -301,7 +302,7 @@ export async function getDepositForPayment(
     .eq('payment_transaction_id', paymentTransactionId)
     .maybeSingle()
 
-  if (response.error) {
+  if (!isNil(response.error)) {
     return fromSupabase(response)
   }
 

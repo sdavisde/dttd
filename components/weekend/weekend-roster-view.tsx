@@ -78,7 +78,7 @@ export async function WeekendRosterView({
                 {weekendTitle}
               </Typography>
               {headerSlot}
-              {!headerSlot && weekend.status && (
+              {isNil(headerSlot) && !isNil(weekend.status) && (
                 <WeekendStatusBadge status={weekend.status} />
               )}
             </div>
@@ -91,7 +91,7 @@ export async function WeekendRosterView({
               <span>-</span>
               <Datetime dateTime={endDate} />
             </Typography>
-            {weekend.groupId && (
+            {!isNil(weekend.groupId) && (
               <Button asChild variant="outline" size="sm" className="mt-3">
                 <Link
                   href={`/candidate-list?weekend=${weekend.groupId}&weekendType=${weekend.type}`}

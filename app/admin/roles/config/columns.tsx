@@ -154,7 +154,7 @@ export const rolesGlobalFilterFn: FilterFn<Role> = (
   filterValue
 ) => {
   const query = (filterValue as string).toLowerCase().trim()
-  if (!query) return true
+  if (query === '') return true
 
   const role = row.original
   const label = role.label.toLowerCase()

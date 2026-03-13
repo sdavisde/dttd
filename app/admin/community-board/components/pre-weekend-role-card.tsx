@@ -109,7 +109,7 @@ export function PreWeekendRoleCard({
           ) : (
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm text-muted-foreground">
-                {email || 'No email set'}
+                {email !== '' ? email : 'No email set'}
               </span>
               <Button size="sm" variant="ghost" onClick={startEditEmail}>
                 <Pencil className="h-3.5 w-3.5" />

@@ -1,4 +1,5 @@
 import type { HydratedCandidate } from '@/lib/candidates/types'
+import { isNil } from 'lodash'
 
 interface PaymentRequestEmailPreviewProps {
   candidate: HydratedCandidate
@@ -53,7 +54,7 @@ export function PaymentRequestEmailPreview({
                 {candidate.candidate_sponsorship_info?.candidate_name ??
                   'No name'}
               </p>
-              {candidate.candidate_sponsorship_info?.sponsor_name && (
+              {!isNil(candidate.candidate_sponsorship_info?.sponsor_name) && (
                 <p className="text-gray-700 mb-2">
                   <strong>Sponsor Name:</strong>{' '}
                   {candidate.candidate_sponsorship_info?.sponsor_name}

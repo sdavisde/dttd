@@ -1,4 +1,5 @@
 import React from 'react'
+import { isNil } from 'lodash'
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { Controller } from 'react-hook-form'
 import {
@@ -51,7 +52,7 @@ export function YesNoField<T extends FieldValues>({
               </div>
             </RadioGroup>
           </FormControl>
-          {error && <FormMessage>{error}</FormMessage>}
+          {!isNil(error) && <FormMessage>{error}</FormMessage>}
         </FormItem>
       )}
     />

@@ -12,6 +12,7 @@ import {
 } from '@/actions/password-reset'
 import { isErr } from '@/lib/results'
 import Link from 'next/link'
+import { isNil } from 'lodash'
 
 interface ForgotPasswordFormProps {
   onBackToLogin?: () => void
@@ -30,7 +31,7 @@ export default function ForgotPasswordForm({
     setError(null)
     setLoading(true)
 
-    if (!email.trim()) {
+    if (email.trim() === '') {
       setError('Email address is required')
       setLoading(false)
       return
@@ -121,7 +122,7 @@ export default function ForgotPasswordForm({
         </p>
       </div>
 
-      {error && (
+      {!isNil(error) && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -143,7 +144,7 @@ export default function ForgotPasswordForm({
       <Button
         type="submit"
         className="w-full mt-4"
-        disabled={loading || !email.trim()}
+        disabled={loading || email.trim() === ''}
       >
         {loading ? (
           <>

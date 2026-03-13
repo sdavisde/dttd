@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import type { Result } from '@/lib/results';
@@ -21,7 +22,7 @@ export async function getBuckets(): Promise<Bucket[]> {
   const { data: buckets, error: bucketsError } =
     await supabase.storage.listBuckets()
 
-  if (bucketsError) {
+  if (!isNil(bucketsError)) {
     logger.error(`Error fetching buckets: ${bucketsError.message}`)
     return []
   }
@@ -32,7 +33,7 @@ export async function getBuckets(): Promise<Bucket[]> {
         .from(bucket.name)
         .list()
 
-      if (foldersError) {
+      if (!isNil(foldersError)) {
         logger.error(
           `Error fetching folders for bucket ${bucket.name}: ${foldersError.message}`
         )
@@ -64,7 +65,7 @@ export async function getFileSystemItems(
   const supabase = await createClient()
   const { data: items, error } = await supabase.storage.from(bucket).list(path)
 
-  if (error) {
+  if (!isNil(error)) {
     return err(`Error fetching items for ${bucket}/${path}: ${error.message}`)
   }
 
@@ -92,7 +93,7 @@ export async function fetchFolderContents(
       .from('files')
       .list(currentPath)
 
-    if (error) {
+    if (!isNil(error)) {
       return err(`Error validating path segment ${segment}: ${error.message}`)
     }
 
@@ -105,7 +106,7 @@ export async function fetchFolderContents(
       return err(`Cannot find ${segment} in files/${currentPath}`)
     }
 
-    currentPath = currentPath ? `${currentPath}/${segment}` : segment
+    currentPath = currentPath !== '' ? `${currentPath}/${segment}` : segment
   }
 
   return getFileSystemItems('files', currentPath)
@@ -119,7 +120,7 @@ export async function getFileFolders(isAdmin: boolean = false) {
     const supabase = await createClient()
     const { data, error } = await supabase.storage.from('files').list('')
 
-    if (error) {
+    if (!isNil(error)) {
       logger.error(`Error fetching root folders: ${error.message}`)
       return []
     }

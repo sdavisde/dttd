@@ -14,7 +14,7 @@ import '@/components/ui/data-table/types'
 // ---------------------------------------------------------------------------
 
 function calculateAge(dateOfBirth: string | null | undefined): number | null {
-  if (!dateOfBirth) return null
+  if (isNil(dateOfBirth) || dateOfBirth === '') return null
   const today = new Date()
   const birthDate = new Date(dateOfBirth)
   let age = today.getFullYear() - birthDate.getFullYear()
@@ -31,13 +31,13 @@ function calculateAge(dateOfBirth: string | null | undefined): number | null {
 function formatEmergencyContact(candidate: HydratedCandidate): string | null {
   const name = candidate.candidate_info?.emergency_contact_name
   const phone = candidate.candidate_info?.emergency_contact_phone
-  if (!name) return null
-  return phone ? `${name} (${phone})` : name
+  if (isNil(name)) return null
+  return !isNil(phone) ? `${name} (${phone})` : name
 }
 
 function getName(c: HydratedCandidate): string | null {
-  return c.candidate_info?.first_name && c.candidate_info?.last_name
-    ? `${c.candidate_info.first_name} ${c.candidate_info.last_name}`
+  return !isNil(c.candidate_info?.first_name) && !isNil(c.candidate_info?.last_name)
+    ? `${c.candidate_info?.first_name} ${c.candidate_info?.last_name}`
     : (c.candidate_sponsorship_info?.candidate_name ?? null)
 }
 
@@ -201,8 +201,10 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
     ),
     cell: ({ getValue }) => getValue<string | null>() ?? '-',
     sortingFn: (rowA, rowB) => {
-      const a = parseInt(rowA.getValue('age') as string, 10) || 0
-      const b = parseInt(rowB.getValue('age') as string, 10) || 0
+      const rawA = parseInt(rowA.getValue('age') as string, 10)
+      const a = Number.isNaN(rawA) ? 0 : rawA
+      const rawB = parseInt(rowB.getValue('age') as string, 10)
+      const b = Number.isNaN(rawB) ? 0 : rawB
       return a - b
     },
     meta: {
@@ -297,7 +299,7 @@ export const candidateGlobalFilterFn: FilterFn<HydratedCandidate> = (
   filterValue
 ) => {
   const query = (filterValue as string).toLowerCase().trim()
-  if (!query) return true
+  if (query === '') return true
 
   const candidate = row.original
 

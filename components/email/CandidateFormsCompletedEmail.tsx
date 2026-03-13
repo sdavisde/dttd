@@ -13,6 +13,7 @@ import {
   Button,
 } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
+import { isNil } from 'lodash'
 
 export default function CandidateFormsCompletedEmail({
   id,
@@ -20,8 +21,8 @@ export default function CandidateFormsCompletedEmail({
   candidate_info,
 }: HydratedCandidate) {
   const candidateName =
-    candidate_info?.first_name && candidate_info?.last_name
-      ? `${candidate_info.first_name} ${candidate_info.last_name}`
+    !isNil(candidate_info?.first_name) && !isNil(candidate_info?.last_name)
+      ? `${candidate_info!.first_name} ${candidate_info!.last_name}`
       : (candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate')
 
   return (
@@ -67,7 +68,7 @@ export default function CandidateFormsCompletedEmail({
                     candidate_sponsorship_info?.candidate_email ??
                     'No email'}
                 </Text>
-                {candidate_info?.phone && (
+                {!isNil(candidate_info?.phone) && (
                   <Text className="text-gray-700 mb-2">
                     <strong>Candidate Phone:</strong> {candidate_info.phone}
                   </Text>

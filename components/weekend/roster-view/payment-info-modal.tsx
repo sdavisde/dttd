@@ -14,6 +14,7 @@ import { getTeamFee } from '@/services/payment/actions'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { Results } from '@/lib/results'
 import { useQuery } from '@tanstack/react-query'
+import { isNil } from 'lodash'
 
 type PaymentInfoModalProps = {
   open: boolean
@@ -31,20 +32,20 @@ export function PaymentInfoModal({
     queryFn: async () => {
       const result = await getTeamFee()
       const price = Results.toNullable(result)
-      return price?.unitAmount ? price.unitAmount / 100 : null
+      return !isNil(price?.unitAmount) && price!.unitAmount > 0 ? price!.unitAmount / 100 : null
     },
     staleTime: Infinity,
   })
 
-  if (!rosterMember) {
+  if (isNil(rosterMember)) {
     return null
   }
 
   const { users, all_payments = [] } = rosterMember
 
   const memberName =
-    users?.first_name && users?.last_name
-      ? `${users.first_name} ${users.last_name}`
+    !isNil(users?.first_name) && !isNil(users?.last_name)
+      ? `${users!.first_name} ${users!.last_name}`
       : 'Unknown User'
 
   const formatAmount = (amount: number | null) => {
@@ -56,7 +57,7 @@ export function PaymentInfoModal({
   }
 
   const getStripeDashboardUrl = (paymentIntentId: string | null) => {
-    if (!paymentIntentId || paymentIntentId.startsWith('manual_')) return null
+    if (isNil(paymentIntentId) || paymentIntentId.startsWith('manual_')) return null
     return `https://dashboard.stripe.com/payments/${paymentIntentId}`
   }
 
@@ -67,9 +68,9 @@ export function PaymentInfoModal({
 
   // Check if there are any manual payments to determine if discount applies
   const hasManualPayments = all_payments.some((p) =>
-    p.payment_intent_id?.startsWith('manual_')
+    p.payment_intent_id?.startsWith('manual_') === true
   )
-  const totalFee = stripePriceDollars
+  const totalFee = !isNil(stripePriceDollars)
     ? hasManualPayments
       ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
       : stripePriceDollars
@@ -77,7 +78,7 @@ export function PaymentInfoModal({
   const remainingBalance = totalFee !== null ? totalFee - totalPaid : null
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Unknown date'
+    if (isNil(dateString)) return 'Unknown date'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -89,8 +90,8 @@ export function PaymentInfoModal({
     method: string | null,
     paymentIntentId: string | null
   ) => {
-    if (!method) return 'Unknown'
-    if (paymentIntentId?.startsWith('manual_')) {
+    if (isNil(method)) return 'Unknown'
+    if (paymentIntentId?.startsWith('manual_') === true) {
       return method.charAt(0).toUpperCase() + method.slice(1)
     }
     return method === 'card' ? 'Credit Card' : method
@@ -182,14 +183,14 @@ export function PaymentInfoModal({
                       </span>
                     </div>
 
-                    {payment.payment_intent_id &&
+                    {!isNil(payment.payment_intent_id) &&
                       !payment.payment_intent_id.startsWith('manual_') && (
                         <div className="flex items-center gap-2">
                           <Hash className="h-3 w-3 text-muted-foreground" />
                           <code className="text-xs bg-muted px-2 py-1 rounded">
                             {payment.payment_intent_id}
                           </code>
-                          {stripeUrl && (
+                          {!isNil(stripeUrl) && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -202,7 +203,7 @@ export function PaymentInfoModal({
                         </div>
                       )}
 
-                    {payment.notes && (
+                    {!isNil(payment.notes) && payment.notes !== '' && (
                       <div className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1">
                         <span className="font-medium">Notes:</span>{' '}
                         {payment.notes}

@@ -89,7 +89,7 @@ export const payoutPaidHandler: WebhookHandler<Stripe.PayoutPaidEvent> = {
     }
 
     // Calculate arrival date
-    const arrivalDate = payout.arrival_date
+    const arrivalDate = payout.arrival_date !== 0
       ? new Date(payout.arrival_date * 1000).toISOString()
       : null
 

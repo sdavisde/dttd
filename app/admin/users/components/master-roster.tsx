@@ -27,6 +27,7 @@ import {
   masterRosterColumns,
   masterRosterGlobalFilterFn,
 } from '../config/columns'
+import { isNil } from 'lodash'
 
 interface MasterRosterProps {
   masterRoster: MasterRosterType
@@ -69,10 +70,10 @@ export default function MasterRoster({
   }
 
   const handleDeleteConfirm = async () => {
-    if (!userToDelete) return
+    if (isNil(userToDelete)) return
 
     const res = await deleteUser(userToDelete.id)
-    if (res.error) {
+    if (!isNil(res.error)) {
       toast.error(res.error)
       return
     }

@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation'
 import { isErr } from '@/lib/results'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import { getRolesColumns, rolesGlobalFilterFn } from '../config/columns'
+import { isNil } from 'lodash'
 
 interface RolesProps {
   roles: Role[]
@@ -46,7 +47,7 @@ export default function Roles({ roles, readOnly }: RolesProps) {
   }
 
   const confirmDeleteRole = async () => {
-    if (!roleToDelete) return
+    if (isNil(roleToDelete)) return
 
     setIsDeleting(true)
 

@@ -1,3 +1,5 @@
+import { isNil } from 'lodash'
+
 /**
  * Generic marshaller interface — defines how to convert a typed value
  * to and from a string representation.
@@ -86,7 +88,7 @@ export function arrayMarshaller(
   const { separator = ',' } = options
   return {
     marshal: (value) => (value.length > 0 ? value.join(separator) : null),
-    unmarshal: (raw) => (raw ? raw.split(separator) : []),
+    unmarshal: (raw) => (!isNil(raw) ? raw.split(separator) : []),
   }
 }
 

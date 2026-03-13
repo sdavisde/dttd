@@ -111,7 +111,7 @@ export async function findWeekendsByStatuses(
   const supabase = await createClient()
   let query = supabase.from('weekends').select('*, weekend_groups(number)')
 
-  if (statuses && statuses.length > 0) {
+  if (!isNil(statuses) && statuses.length > 0) {
     query = query.in('status', statuses)
   }
 
@@ -308,7 +308,7 @@ export async function findWeekendRosterRecord(
     .eq('weekend_id', weekendId)
     .single()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 
@@ -488,7 +488,7 @@ export async function findActiveWeekendLeadershipRoster(
   const womensLeadership: RawLeadershipRosterMember[] = []
 
   for (const member of roster) {
-    if (!member.weekend_id) continue
+    if (isNil(member.weekend_id)) continue
 
     const weekendType = weekendTypeMap.get(member.weekend_id)
     if (weekendType === WeekendType.MENS) {

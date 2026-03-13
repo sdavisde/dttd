@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isNil } from 'lodash'
 import { useRouter } from 'next/navigation'
 import { Permission, permissionLock } from '@/lib/security'
 import { logger } from '@/lib/logger'
@@ -50,7 +51,7 @@ export function CreateFolderSidebar({
     try {
       permissionLock([Permission.FILES_UPLOAD])(user)
 
-      if (!folderName.trim()) {
+      if (folderName.trim() === '') {
         setError('Folder name cannot be empty')
         return
       }
@@ -75,7 +76,7 @@ export function CreateFolderSidebar({
           upsert: false,
         })
 
-      if (createError) {
+      if (!isNil(createError)) {
         if (createError.message.includes('already exists')) {
           setError('A folder with this name already exists')
         } else {
@@ -140,7 +141,7 @@ export function CreateFolderSidebar({
             </div>
           </div>
 
-          {error && (
+          {!isNil(error) && (
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>

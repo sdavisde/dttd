@@ -51,7 +51,7 @@ export async function getUserServiceHistory(
       .eq('user_id', userId)
       .order('created_at', { ascending: true })
 
-    if (error) {
+    if (!isNil(error)) {
       return err(`Failed to fetch user experience: ${error.message}`)
     }
 
@@ -137,12 +137,12 @@ export async function upsertUserExperience(
       updated_at: new Date().toISOString(),
       // Ensure weekend_id is null for external
       weekend_id: null,
-      ...(entry.id ? { id: entry.id } : {}),
+      ...(!isNil(entry.id) ? { id: entry.id } : {}),
     }
 
     const { error } = await supabase.from('users_experience').upsert([payload]) // Upsert on ID (primary key)
 
-    if (error) {
+    if (!isNil(error)) {
       console.error('Error saving experience:', error)
       // Check for specific unique violation if constraint name differs
       return err(`Failed to save experience: ${error.message}`)
@@ -169,7 +169,7 @@ export async function deleteUserExperience(
       .delete()
       .eq('id', experienceId)
 
-    if (error) {
+    if (!isNil(error)) {
       console.error('Error deleting experience:', error)
       return err(`Failed to delete experience: ${error.message}`)
     }

@@ -4,26 +4,27 @@ import { logger } from '@/lib/logger'
 import { getActiveGroupMemberForUser } from '@/services/weekend-group-member/repository'
 import { getLoggedInUser } from '@/services/identity/user'
 import { isErr } from '@/lib/results'
+import { isNil } from 'lodash'
 import { AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getUrl } from '@/lib/url'
 
 export default async function TeamFeesPaymentPage() {
   const teamFeePriceId = process.env.TEAM_FEE_PRICE_ID
-  if (!teamFeePriceId) {
+  if (isNil(teamFeePriceId) || teamFeePriceId === '') {
     logger.error('Missing team fee price id')
     return notFound()
   }
 
   const userResult = await getLoggedInUser()
   const user = userResult?.data
-  if (isErr(userResult) || !user) {
+  if (isErr(userResult) || isNil(user)) {
     logger.error('User not found')
     return notFound()
   }
 
   const groupMemberResult = await getActiveGroupMemberForUser(user.id)
-  if (isErr(groupMemberResult) || !groupMemberResult.data) {
+  if (isErr(groupMemberResult) || isNil(groupMemberResult.data)) {
     logger.error('No active group member found for user')
     return (
       <div className="h-[80vh] w-screen flex items-center justify-center p-4">
@@ -54,7 +55,7 @@ export default async function TeamFeesPaymentPage() {
 
   // Build payer name for payment tracking
   const payerName =
-    user.firstName && user.lastName
+    !isNil(user.firstName) && !isNil(user.lastName)
       ? `${user.firstName} ${user.lastName}`
       : (user.email ?? 'Unknown')
 

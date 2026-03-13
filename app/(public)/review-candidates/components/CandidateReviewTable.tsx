@@ -18,6 +18,7 @@ import {
   useQueryParam,
 } from '@/components/ui/data-table'
 import { booleanMarshaller } from '@/lib/marshallers'
+import { isNil } from 'lodash'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -101,7 +102,7 @@ export function CandidateReviewTable({
   // --- Modal handlers (unchanged) ---
 
   const handleRejectConfirm = async () => {
-    if (!candidateForReject) return
+    if (isNil(candidateForReject)) return
 
     logger.info(`Rejecting candidate: ${candidateForReject.id}`)
 
@@ -128,13 +129,13 @@ export function CandidateReviewTable({
   }
 
   const handleSendFormsConfirm = async () => {
-    if (!candidateForSendForms) return
+    if (isNil(candidateForSendForms)) return
 
     logger.info(`Sending candidate forms: ${candidateForSendForms.id}`)
 
     const candidateSponsorshipInfo =
       candidateForSendForms.candidate_sponsorship_info
-    if (!candidateSponsorshipInfo) {
+    if (isNil(candidateSponsorshipInfo)) {
       logger.error('Candidate sponsorship info not found')
       return
     }
@@ -172,7 +173,7 @@ export function CandidateReviewTable({
   }
 
   const handleSendPaymentRequestConfirm = async () => {
-    if (!candidateForSendPayment) return
+    if (isNil(candidateForSendPayment)) return
 
     logger.info(`Sending payment request: ${candidateForSendPayment.id}`)
 

@@ -25,7 +25,7 @@ export function DataTableSearch<TData>({
         onChange={(e) => table.setGlobalFilter(e.target.value)}
         className="pl-10 pr-10"
       />
-      {globalFilter && (
+      {globalFilter !== '' && (
         <button
           type="button"
           onClick={() => table.setGlobalFilter('')}

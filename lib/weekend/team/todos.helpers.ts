@@ -16,7 +16,7 @@ export function getTodoUrl(
     return null
   }
 
-  const params = item.params ? item.params(context) : ''
+  const params = !isNil(item.params) ? item.params(context) : ''
   return `${item.href}${params}`
 }
 
@@ -31,7 +31,7 @@ export async function getCompletionState(
 
   await Promise.all(
     items.map(async (item) => {
-      if (item.checkCompletion) {
+      if (!isNil(item.checkCompletion)) {
         completionState[item.id] = await item.checkCompletion(context)
       } else {
         completionState[item.id] = false

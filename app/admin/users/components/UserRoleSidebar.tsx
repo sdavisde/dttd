@@ -48,7 +48,7 @@ export function UserRoleSidebar({
 
   // Calculate total DTTD weekends from member experience
   const totalDTTDWeekends = useMemo(() => {
-    if (!member?.experience?.length) return 0
+    if (isNil(member?.experience) || member.experience.length === 0) return 0
     const grouped = groupExperienceByCommunity(member.experience)
     return grouped.find((g) => g.community === 'DTTD')?.records.length ?? 0
   }, [member?.experience])
@@ -91,7 +91,7 @@ export function UserRoleSidebar({
         roleIds: selectedRoleIds,
       })
 
-      if (result && isErr(result)) {
+      if (!isNil(result) && isErr(result)) {
         setError(result.error)
         return
       }
@@ -135,7 +135,7 @@ export function UserRoleSidebar({
                     Name
                   </Typography>
                   <Typography variant="h6" className="font-medium">
-                    {(member?.firstName ?? member?.lastName)
+                    {(!isNil(member?.firstName) || !isNil(member?.lastName))
                       ? `${member?.firstName ?? ''} ${member?.lastName ?? ''}`.trim()
                       : 'Unknown User'}
                   </Typography>
@@ -177,7 +177,7 @@ export function UserRoleSidebar({
             </div>
           </div>
 
-          {showExperience && member && (
+          {showExperience && !isNil(member) && (
             <div className="space-y-2">
               <Typography variant="muted" className="text-sm font-bold">
                 Experience & Qualifications
@@ -227,7 +227,7 @@ export function UserRoleSidebar({
             </div>
           )}
 
-          {error && (
+          {!isNil(error) && (
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>

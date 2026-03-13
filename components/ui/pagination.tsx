@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { isNil } from 'lodash'
 
 const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
   <nav
@@ -45,10 +46,10 @@ const PaginationLink = ({
   ...props
 }: PaginationLinkProps) => (
   <Button
-    aria-current={isActive ? 'page' : undefined}
-    variant={isActive ? 'default' : 'ghost'}
+    aria-current={isActive === true ? 'page' : undefined}
+    variant={isActive === true ? 'default' : 'ghost'}
     size={size}
-    className={cn('h-8 w-8 p-0', isActive && 'pointer-events-none', className)}
+    className={cn('h-8 w-8 p-0', isActive === true && 'pointer-events-none', className)}
     {...props}
   />
 )

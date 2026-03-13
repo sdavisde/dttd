@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { useSession } from '@/components/auth/session-provider'
+import { isNil } from 'lodash'
 
 interface FolderSidebarProps {
   bucketName: string
@@ -41,13 +42,13 @@ export function FolderSidebar({
   const router = useRouter()
   const { user } = useSession()
 
-  const isEditing = !!folderToEdit
+  const isEditing = !isNil(folderToEdit)
 
   // Reset form when sidebar opens/closes or when editing folder changes
   useEffect(() => {
     if (isOpen) {
       setError(null)
-      if (isEditing && folderToEdit) {
+      if (isEditing && !isNil(folderToEdit)) {
         setFolderName(folderToEdit.name)
       } else {
         setFolderName('')
@@ -62,7 +63,7 @@ export function FolderSidebar({
     try {
       permissionLock([Permission.FILES_UPLOAD])(user)
 
-      if (!folderName.trim()) {
+      if (folderName.trim() === '') {
         setError('Folder name cannot be empty')
         return
       }
@@ -81,7 +82,7 @@ export function FolderSidebar({
 
       const supabase = createClient()
 
-      if (isEditing && folderToEdit) {
+      if (isEditing && !isNil(folderToEdit)) {
         // Handle folder rename - this is a complex operation that requires moving files
         // For now, we'll show an error indicating this feature needs more implementation
         setError(
@@ -97,7 +98,7 @@ export function FolderSidebar({
             upsert: false,
           })
 
-        if (createError) {
+        if (!isNil(createError)) {
           if (createError.message.includes('already exists')) {
             setError('A folder with this name already exists')
           } else {
@@ -173,7 +174,7 @@ export function FolderSidebar({
             </div>
           </div>
 
-          {error && (
+          {!isNil(error) && (
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>

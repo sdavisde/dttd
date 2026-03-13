@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Lock } from 'lucide-react'
 import type { NavElement } from './navbar-server'
 import { NavbarIcon } from './navbar-icon'
+import { isNil } from 'lodash'
 
 type MegaMenuLinkProps = {
   item: NavElement
@@ -15,7 +16,7 @@ export function MegaMenuLink({ item }: MegaMenuLinkProps) {
       href={`/${item.slug}`}
       className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
     >
-      {item.icon && (
+      {!isNil(item.icon) && (
         <div
           className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
             item.badge === 'restricted'
@@ -43,7 +44,7 @@ export function MegaMenuLink({ item }: MegaMenuLinkProps) {
             </span>
           )}
         </div>
-        {item.description && (
+        {!isNil(item.description) && (
           <div className="text-sm text-gray-500 mt-0.5">{item.description}</div>
         )}
       </div>

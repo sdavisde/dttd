@@ -49,7 +49,7 @@ export async function getReviewPageData(
 
   if (isWeekendMissingButAvailable || isTypeMissing) {
     const params = new URLSearchParams()
-    if (targetWeekend) params.set('weekend', targetWeekend)
+    if (!isNil(targetWeekend)) params.set('weekend', targetWeekend)
     params.set('weekendType', targetType)
     redirect(`/review-candidates?${params.toString()}`)
   }

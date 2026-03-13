@@ -3,6 +3,7 @@
 import type { Result} from '@/lib/results';
 import { err, ok } from '@/lib/results'
 import { createClient } from '@/lib/supabase/server'
+import { isNil } from 'lodash'
 
 export async function deleteFolder(
   bucketName: string,
@@ -14,7 +15,7 @@ export async function deleteFolder(
     .from(bucketName)
     .list(folderName)
   const filesToRemove = list?.map((it) => `${folderName}/${it.name}`)
-  if (!filesToRemove) {
+  if (isNil(filesToRemove)) {
     return err('No files to remove')
   }
 
@@ -22,7 +23,7 @@ export async function deleteFolder(
     .from(bucketName)
     .remove(filesToRemove)
 
-  if (listError || removeError) {
+  if (!isNil(listError) || !isNil(removeError)) {
     return err(listError?.message ?? removeError?.message ?? 'Unknown error')
   }
   return ok(filesToRemove)

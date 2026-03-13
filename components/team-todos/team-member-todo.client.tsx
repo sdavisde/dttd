@@ -36,7 +36,7 @@ function hydrateCompletionState(
   const hydratedState = { ...serverState }
 
   items.forEach((item) => {
-    if (item.clientSideCompletion) {
+    if (item.clientSideCompletion === true) {
       const isComplete = getTodoCompletion(groupMemberId, item.id)
       if (isComplete) {
         hydratedState[item.id] = true
@@ -102,7 +102,7 @@ export function TeamMemberTodoClient({
           isComplete={completionState[item.id] ?? false}
           tooltip={item.tooltip}
           onLinkClick={
-            item.clientSideCompletion
+            item.clientSideCompletion === true
               ? () => handleTodoClick(item.id)
               : undefined
           }

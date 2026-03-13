@@ -14,6 +14,7 @@ import {
 import { AlertTriangle, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { logger } from '@/lib/logger'
+import { isNil } from 'lodash'
 
 function ErrorNavbar() {
   return (
@@ -103,7 +104,7 @@ export default function Error({
               <br />
               <span>with the following error code:</span>
             </p>
-            {error.digest && (
+            {!isNil(error.digest) && (
               <p className="mt-4 text-xs text-muted-foreground">
                 Error ID: {error.digest}
               </p>

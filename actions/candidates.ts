@@ -1,8 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok, isErr } from '@/lib/results'
+import { isNil } from 'lodash'
 import type { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
 import type {
   CandidateStatus,
@@ -41,8 +42,8 @@ export async function createCandidateWithSponsorshipInfo(
       .select()
       .single()
 
-    if (candidateError) {
-      return err(`Failed to create candidate: ${candidateError.message}`)
+    if (!isNil(candidateError) || isNil(candidate)) {
+      return err(`Failed to create candidate: ${candidateError?.message ?? 'No data returned'}`)
     }
 
     // Create the sponsorship info record
@@ -53,7 +54,7 @@ export async function createCandidateWithSponsorshipInfo(
         ...sponsorshipInfo,
       })
 
-    if (sponsorshipInfoError) {
+    if (!isNil(sponsorshipInfoError)) {
       return err(
         `Failed to create sponsorship info: ${sponsorshipInfoError.message}`
       )
@@ -82,7 +83,7 @@ export async function deleteCandidate(
       .delete()
       .eq('candidate_id', candidateId)
 
-    if (sponsorshipInfoError) {
+    if (!isNil(sponsorshipInfoError)) {
       return err(
         `Failed to delete sponsorship info: ${sponsorshipInfoError.message}`
       )
@@ -94,7 +95,7 @@ export async function deleteCandidate(
       .delete()
       .eq('candidate_id', candidateId)
 
-    if (candidateInfoError) {
+    if (!isNil(candidateInfoError)) {
       return err(
         `Failed to delete candidate info: ${candidateInfoError.message}`
       )
@@ -106,7 +107,7 @@ export async function deleteCandidate(
       .delete()
       .eq('id', candidateId)
 
-    if (candidateError) {
+    if (!isNil(candidateError)) {
       return err(`Failed to delete candidate: ${candidateError.message}`)
     }
 
@@ -139,9 +140,9 @@ export async function getHydratedCandidate(
       .eq('id', candidateId)
       .single()
 
-    if (candidateError) {
+    if (!isNil(candidateError) || isNil(candidate)) {
       return err(
-        `Failed to get candidate with details: ${candidateError.message}`
+        `Failed to get candidate with details: ${candidateError?.message ?? 'No data returned'}`
       )
     }
 
@@ -178,7 +179,8 @@ export async function getAllCandidatesWithDetails(
     const supabase = await createClient()
 
     // Determine if we need to filter by weekend (requires inner join)
-    const needsWeekendFilter = !!options.weekendGroupId || !!options.weekendType
+    const needsWeekendFilter =
+      !isNil(options.weekendGroupId) || !isNil(options.weekendType)
     const weekendJoinType = needsWeekendFilter ? '!inner' : ''
 
     // Query candidates (payments are fetched separately from payment_transaction)
@@ -194,19 +196,19 @@ export async function getAllCandidatesWithDetails(
         )
       `)
 
-    if (options.weekendGroupId) {
+    if (!isNil(options.weekendGroupId)) {
       query = query.eq('weekends.group_id', options.weekendGroupId)
     }
 
-    if (options.weekendType) {
+    if (!isNil(options.weekendType)) {
       query = query.eq('weekends.type', options.weekendType)
     }
 
     const { data: candidates, error: candidatesError } = await query
 
-    if (candidatesError) {
+    if (!isNil(candidatesError) || isNil(candidates)) {
       return err(
-        `Failed to get candidates with details: ${candidatesError.message}`
+        `Failed to get candidates with details: ${candidatesError?.message ?? 'No data returned'}`
       )
     }
 
@@ -257,7 +259,7 @@ export async function updateCandidateStatus(
       .update({ status })
       .eq('id', candidateId)
 
-    if (updateError) {
+    if (!isNil(updateError)) {
       return err(`Failed to update candidate status: ${updateError.message}`)
     }
 
@@ -287,7 +289,7 @@ export async function addCandidateInfo(
         ...data,
       })
 
-    if (candidateInfoError) {
+    if (!isNil(candidateInfoError)) {
       return err(`Failed to add candidate info: ${candidateInfoError.message}`)
     }
 
@@ -297,7 +299,7 @@ export async function addCandidateInfo(
       .update({ status: 'pending_approval' })
       .eq('id', candidateId)
 
-    if (statusError) {
+    if (!isNil(statusError)) {
       return err(`Failed to update candidate status: ${statusError.message}`)
     }
 
@@ -332,7 +334,7 @@ export async function updateCandidatePaymentOwner(
       .update({ payment_owner: paymentOwner })
       .eq('candidate_id', candidateId)
 
-    if (updateError) {
+    if (!isNil(updateError)) {
       return err(`Failed to update payment owner: ${updateError.message}`)
     }
 
@@ -364,7 +366,7 @@ export const updateCandidateSponsorshipField = authorizedAction<
       .update({ [field]: value })
       .eq('candidate_id', candidateId)
 
-    if (updateError) {
+    if (!isNil(updateError)) {
       return err(`Failed to update ${field}: ${updateError.message}`)
     }
 
@@ -396,7 +398,7 @@ export const updateCandidateInfoField = authorizedAction<
       .update({ [field]: value })
       .eq('candidate_id', candidateId)
 
-    if (updateError) {
+    if (!isNil(updateError)) {
       return err(`Failed to update ${field}: ${updateError.message}`)
     }
 
@@ -424,7 +426,7 @@ export const updateCandidateStatusField = authorizedAction<
       .update({ status })
       .eq('id', candidateId)
 
-    if (updateError) {
+    if (!isNil(updateError)) {
       return err(`Failed to update status: ${updateError.message}`)
     }
 

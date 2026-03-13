@@ -52,7 +52,7 @@ export default async function TeamInfoPage() {
       community: '',
       weekend_number: '',
     },
-    essentials_training_date: user.communityInformation.essentialsTrainingDate
+    essentials_training_date: !isNil(user.communityInformation.essentialsTrainingDate)
       ? new Date(user.communityInformation.essentialsTrainingDate)
       : undefined,
     special_gifts_and_skills:

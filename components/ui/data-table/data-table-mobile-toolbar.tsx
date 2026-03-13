@@ -20,7 +20,7 @@ import {
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
 import { DataTableSearch } from './data-table-search'
 import { Results } from '@/lib/results'
-import { isEmpty } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import '@/components/ui/data-table/types'
 
 const SelectedValuesSchema = z.array(z.string())
@@ -49,13 +49,13 @@ export function DataTableMobileToolbar<TData>({
     () =>
       table
         .getAllColumns()
-        .filter((c) => c.columnDef.meta?.filterType && c.getIsVisible()),
+        .filter((c) => !isNil(c.columnDef.meta?.filterType) && c.getIsVisible()),
     [table]
   )
 
   const columnFilterCount = table.getState().columnFilters.length
   const globalFilter = (table.getState().globalFilter as string) ?? ''
-  const hasActiveFilters = columnFilterCount > 0 || !!globalFilter
+  const hasActiveFilters = columnFilterCount > 0 || globalFilter !== ''
 
   const handleSortChange = (columnId: string) => {
     if (columnId === '') {
@@ -66,7 +66,7 @@ export function DataTableMobileToolbar<TData>({
   }
 
   const handleDirectionToggle = () => {
-    if (!sortColumnId) return
+    if (sortColumnId === '') return
     table.setSorting([{ id: sortColumnId, desc: !sortDesc }])
   }
 
@@ -92,7 +92,7 @@ export function DataTableMobileToolbar<TData>({
         </Select>
 
         {/* Sort direction toggle */}
-        {sortColumnId && (
+        {sortColumnId !== '' && (
           <Button
             variant="outline"
             size="icon"
@@ -201,7 +201,7 @@ function MobileTextFilter<TData, TValue>({
       <Input
         placeholder={`Filter ${title.toLowerCase()}...`}
         value={filterValue}
-        onChange={(e) => column.setFilterValue(e.target.value || undefined)}
+        onChange={(e) => column.setFilterValue(e.target.value !== '' ? e.target.value : undefined)}
         className="h-8"
       />
     </div>

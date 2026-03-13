@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 import '@/components/ui/data-table/types'
 import z from 'zod'
 import { Results } from '@/lib/results'
-import { isEmpty } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 
 interface DataTableColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>
@@ -28,7 +28,7 @@ export function DataTableColumnFilter<TData, TValue>({
   const filterType = column.columnDef.meta?.filterType
   const isActive = column.getFilterValue() !== undefined
 
-  if (!filterType) return null
+  if (isNil(filterType)) return null
 
   return (
     <Popover>
@@ -68,7 +68,7 @@ function TextFilter<TData, TValue>({
         onChange={(e) => column.setFilterValue(e.target.value ?? undefined)}
         className="h-8"
       />
-      {filterValue && (
+      {filterValue !== '' && (
         <Button
           variant="ghost"
           size="sm"

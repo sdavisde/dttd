@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import type { Result} from '@/lib/results';
 import { ok, err } from '@/lib/results'
@@ -18,7 +19,7 @@ export async function getSettingByKey(
     .eq('key', key)
     .maybeSingle()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 
@@ -35,7 +36,7 @@ export async function getSettingsByKeys(
     .select('*')
     .in('key', keys)
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 
@@ -59,7 +60,7 @@ export async function upsertSetting(
     .select()
     .single()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 

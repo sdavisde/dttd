@@ -41,7 +41,7 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
 
   let teamMemberInfo: TeamMemberInfo | null = null
 
-  if (activeGroupMember) {
+  if (!isNil(activeGroupMember)) {
     const activeWeekends = (
       activeGroupMember.weekend_groups?.weekends ?? []
     ).filter((w) => w.status === WeekendStatus.ACTIVE)

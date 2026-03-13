@@ -14,6 +14,7 @@ import { getCandidateFee } from '@/services/payment/actions'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { Results } from '@/lib/results'
 import { useQuery } from '@tanstack/react-query'
+import { isNil } from 'lodash'
 
 type CandidatePaymentInfoModalProps = {
   open: boolean
@@ -31,12 +32,12 @@ export function CandidatePaymentInfoModal({
     queryFn: async () => {
       const result = await getCandidateFee()
       const price = Results.toNullable(result)
-      return price?.unitAmount ? price.unitAmount / 100 : null
+      return !isNil(price?.unitAmount) ? price.unitAmount / 100 : null
     },
     staleTime: Infinity,
   })
 
-  if (!candidate) {
+  if (isNil(candidate)) {
     return null
   }
 
@@ -53,7 +54,7 @@ export function CandidatePaymentInfoModal({
   }
 
   const getStripeDashboardUrl = (paymentIntentId: string | null) => {
-    if (!paymentIntentId || paymentIntentId.startsWith('manual_')) return null
+    if (isNil(paymentIntentId) || paymentIntentId.startsWith('manual_')) return null
     return `https://dashboard.stripe.com/payments/${paymentIntentId}`
   }
 
@@ -63,10 +64,10 @@ export function CandidatePaymentInfoModal({
   )
 
   // Check if there are any manual payments to determine if discount applies
-  const hasManualPayments = payments.some((p) =>
-    p.payment_intent_id?.startsWith('manual_')
+  const hasManualPayments = payments.some(
+    (p) => p.payment_intent_id?.startsWith('manual_') === true
   )
-  const totalFee = stripePriceDollars
+  const totalFee = !isNil(stripePriceDollars)
     ? hasManualPayments
       ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
       : stripePriceDollars
@@ -74,7 +75,7 @@ export function CandidatePaymentInfoModal({
   const remainingBalance = totalFee !== null ? totalFee - totalPaid : null
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Unknown date'
+    if (isNil(dateString)) return 'Unknown date'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -84,9 +85,9 @@ export function CandidatePaymentInfoModal({
 
   const getPaymentTypeDisplay = (payment: (typeof payments)[0]) => {
     // Check if it's a manual payment
-    if (payment.payment_intent_id?.startsWith('manual_')) {
+    if (payment.payment_intent_id?.startsWith('manual_') === true) {
       const method = payment.payment_method
-      if (method) {
+      if (!isNil(method)) {
         return method.charAt(0).toUpperCase() + method.slice(1)
       }
       return 'Manual'
@@ -181,20 +182,20 @@ export function CandidatePaymentInfoModal({
                     </div>
 
                     {/* Show payment owner if available */}
-                    {payment.payment_owner && (
+                    {!isNil(payment.payment_owner) && (
                       <div className="text-xs text-muted-foreground">
                         Paid by: {payment.payment_owner}
                       </div>
                     )}
 
-                    {payment.payment_intent_id &&
+                    {!isNil(payment.payment_intent_id) &&
                       !payment.payment_intent_id.startsWith('manual_') && (
                         <div className="flex items-center gap-2">
                           <Hash className="h-3 w-3 text-muted-foreground" />
                           <code className="text-xs bg-muted px-2 py-1 rounded">
                             {payment.payment_intent_id}
                           </code>
-                          {stripeUrl && (
+                          {!isNil(stripeUrl) && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -207,7 +208,7 @@ export function CandidatePaymentInfoModal({
                         </div>
                       )}
 
-                    {payment.notes && (
+                    {!isNil(payment.notes) && (
                       <div className="text-xs text-muted-foreground bg-muted/30 rounded px-2 py-1">
                         <span className="font-medium">Notes:</span>{' '}
                         {payment.notes}

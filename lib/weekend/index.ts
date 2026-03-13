@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 import { capitalize } from '@/lib/utils'
 import type { Weekend, WeekendGroupWithId, WeekendStatusValue } from './types'
 import type { TeamMemberInfo } from './types'
@@ -6,7 +7,7 @@ export const genderMatchesWeekend = (
   gender: string | null,
   weekendType: string | null
 ) => {
-  if (!gender || !weekendType) return false
+  if (isNil(gender) || isNil(weekendType)) return false
   return (
     (gender === 'male' && weekendType === 'MENS') ||
     (gender === 'female' && weekendType === 'WOMENS')
@@ -19,13 +20,13 @@ export const trimWeekendTypeFromTitle = (title: string) => {
 
 export const formatWeekendTitle = (weekend: Weekend) => {
   const weekendTypeLabel = capitalize(weekend.type.toLowerCase())
-  if (weekend.title) {
+  if (!isNil(weekend.title)) {
     // Remove mens or womens if it's in the weekend title already so that we can add it at the beginning consistently.
     const reducedTitle = trimWeekendTypeFromTitle(weekend.title)
     return `${weekendTypeLabel} ${reducedTitle}`
   }
 
-  const numberSuffix = weekend.number ? ` #${weekend.number}` : ''
+  const numberSuffix = !isNil(weekend.number) ? ` #${weekend.number}` : ''
   return `${weekendTypeLabel}${numberSuffix}`
 }
 
@@ -43,12 +44,12 @@ export const getGroupStatus = (
  */
 export function formatTeamMemberTitle(teamMemberInfo: TeamMemberInfo): string {
   const { groupNumber, weekendAssignments } = teamMemberInfo
-  const numberStr = groupNumber ? ` #${groupNumber}` : ''
+  const numberStr = !isNil(groupNumber) ? ` #${groupNumber}` : ''
 
   if (weekendAssignments.length === 1) {
     const type = weekendAssignments[0].weekendType
-    const typeLabel = type ? capitalize(type.toLowerCase()) : null
-    return typeLabel ? `${typeLabel} DTTD${numberStr}` : `DTTD${numberStr}`
+    const typeLabel = !isNil(type) ? capitalize(type.toLowerCase()) : null
+    return !isNil(typeLabel) ? `${typeLabel} DTTD${numberStr}` : `DTTD${numberStr}`
   }
 
   return `DTTD${numberStr}`
@@ -76,10 +77,10 @@ export function formatTeamMemberRole(teamMemberInfo: TeamMemberInfo): string {
 
   return weekendAssignments
     .map((a) => {
-      const typeLabel = a.weekendType
+      const typeLabel = !isNil(a.weekendType)
         ? capitalize(a.weekendType.toLowerCase())
         : null
-      const suffix = typeLabel ? ` (${typeLabel})` : ''
+      const suffix = !isNil(typeLabel) ? ` (${typeLabel})` : ''
       return `${a.chaRole ?? 'Team Member'}${suffix}`
     })
     .join(' and ')

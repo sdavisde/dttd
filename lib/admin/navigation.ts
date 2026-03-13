@@ -1,5 +1,6 @@
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
+import { isNil } from 'lodash'
 
 export type AdminNavElement = {
   title: string
@@ -114,7 +115,7 @@ export function getFilteredNavData(
 ) {
   const navMain = adminNavItems.map((item) => ({
     ...item,
-    items: item.url === '/admin/files' && fileFolders ? fileFolders : undefined,
+    items: item.url === '/admin/files' && !isNil(fileFolders) ? fileFolders : undefined,
   }))
 
   return {

@@ -159,7 +159,7 @@ export function CommitmentFormComponent({
               })}
             </div>
 
-            {form.formState.errors.commitments && (
+            {!isNil(form.formState.errors.commitments) && (
               <p className="text-sm font-medium text-destructive">
                 {form.formState.errors.commitments.message ??
                   'You must agree to all commitments.'}

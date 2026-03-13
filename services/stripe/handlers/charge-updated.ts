@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import type Stripe from 'stripe'
 import { ok, isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
@@ -22,7 +23,7 @@ export const chargeUpdatedHandler: WebhookHandler<Stripe.ChargeUpdatedEvent> = {
     const charge = event.data.object
 
     // Only process if balance_transaction is now present
-    if (!charge.balance_transaction) {
+    if (isNil(charge.balance_transaction)) {
       logger.debug(
         { chargeId: charge.id },
         'charge.updated: No balance_transaction yet, skipping'
@@ -36,7 +37,7 @@ export const chargeUpdatedHandler: WebhookHandler<Stripe.ChargeUpdatedEvent> = {
         ? charge.payment_intent
         : charge.payment_intent?.id
 
-    if (!paymentIntentId) {
+    if (isNil(paymentIntentId)) {
       logger.debug(
         { chargeId: charge.id },
         'charge.updated: No payment_intent, skipping'

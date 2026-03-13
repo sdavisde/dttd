@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { isNil } from 'lodash'
 
 export interface DatePickerProps {
   date?: Date
@@ -43,7 +44,7 @@ export function DatePicker({
         <Button
           variant="outline"
           data-slot="date-picker-trigger"
-          data-empty={!date}
+          data-empty={isNil(date)}
           disabled={disabled}
           className={cn(
             'w-[280px] justify-start text-left font-normal',
@@ -51,7 +52,7 @@ export function DatePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'PPP') : <span>{placeholder}</span>}
+          {!isNil(date) ? format(date, 'PPP') : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent

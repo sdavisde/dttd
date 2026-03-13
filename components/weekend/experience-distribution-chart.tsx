@@ -106,7 +106,7 @@ export function ExperienceDistributionChart({
                     <Cell fill="var(--border)" />
                     <Label
                       content={({ viewBox }) => {
-                        if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                        if (!isNil(viewBox) && 'cx' in viewBox && 'cy' in viewBox) {
                           return (
                             <text
                               x={viewBox.cx}
@@ -229,7 +229,7 @@ export function ExperienceDistributionChart({
                   ))}
                   <Label
                     content={({ viewBox }) => {
-                      if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      if (!isNil(viewBox) && 'cx' in viewBox && 'cy' in viewBox) {
                         return (
                           <text
                             x={viewBox.cx}

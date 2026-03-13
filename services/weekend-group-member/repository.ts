@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Result} from '@/lib/results';
 import { err, ok } from '@/lib/results'
@@ -51,7 +52,7 @@ export async function getActiveGroupMemberForUser(
   }
 
   const groupId = activeWeekends?.[0]?.group_id
-  if (!groupId) {
+  if (isNil(groupId)) {
     return ok(null)
   }
 
@@ -85,7 +86,7 @@ export async function getGroupMemberById(
     .eq('id', groupMemberId)
     .maybeSingle()
 
-  if (isSupabaseError(memberError) || !member) {
+  if (isSupabaseError(memberError) || isNil(member)) {
     return err('Weekend group member not found')
   }
 
@@ -123,11 +124,11 @@ export async function getGroupMemberByRosterId(
     .eq('id', rosterId)
     .single()
 
-  if (isSupabaseError(rosterError) || !roster) {
+  if (isSupabaseError(rosterError) || isNil(roster)) {
     return err('Roster record not found')
   }
 
-  if (!roster.weekend_id || !roster.user_id) {
+  if (isNil(roster.weekend_id) || isNil(roster.user_id)) {
     return err('Roster record is missing weekend_id or user_id')
   }
 
@@ -138,7 +139,7 @@ export async function getGroupMemberByRosterId(
     .eq('id', roster.weekend_id)
     .single()
 
-  if (isSupabaseError(weekendError) || !weekend?.group_id) {
+  if (isSupabaseError(weekendError) || isNil(weekend?.group_id)) {
     return err('Weekend or group_id not found')
   }
 
@@ -150,7 +151,7 @@ export async function getGroupMemberByRosterId(
     .eq('user_id', roster.user_id)
     .single()
 
-  if (isSupabaseError(memberError) || !member) {
+  if (isSupabaseError(memberError) || isNil(member)) {
     return err('Weekend group member not found')
   }
 
@@ -220,7 +221,7 @@ export async function updateSpecialNeedsForGroup(
     .eq('id', groupMemberId)
     .single()
 
-  if (memberError || !member) {
+  if (!isNil(memberError) || isNil(member)) {
     return err('Group member not found')
   }
 
@@ -230,7 +231,7 @@ export async function updateSpecialNeedsForGroup(
     .select('id')
     .eq('group_id', member.group_id)
 
-  if (weekendsError || !weekends?.length) {
+  if (!isNil(weekendsError) || isNil(weekends) || weekends.length === 0) {
     return err('No weekends found for group')
   }
 
@@ -243,7 +244,7 @@ export async function updateSpecialNeedsForGroup(
     .eq('user_id', member.user_id)
     .in('weekend_id', weekendIds)
 
-  if (updateError) {
+  if (!isNil(updateError)) {
     return err(`Failed to update special_needs: ${updateError.message}`)
   }
 

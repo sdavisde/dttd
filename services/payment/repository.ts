@@ -23,7 +23,7 @@ import {
  * Otherwise, returns a regular client that respects RLS policies.
  */
 async function getClient(options?: ServiceOptions) {
-  if (options?.dangerouslyBypassRLS) {
+  if (options?.dangerouslyBypassRLS === true) {
     return createAdminClient()
   }
   return createClient()

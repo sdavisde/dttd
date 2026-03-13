@@ -266,7 +266,7 @@ export const candidateReviewGlobalFilterFn: FilterFn<HydratedCandidate> = (
   filterValue
 ) => {
   const query = (filterValue as string).toLowerCase().trim()
-  if (!query) return true
+  if (query === '') return true
 
   const candidate = row.original
   const name = (

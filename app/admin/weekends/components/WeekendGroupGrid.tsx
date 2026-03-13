@@ -19,7 +19,7 @@ export function WeekendGroupGrid({
   handleGroupEdit,
   isPast = false,
 }: WeekendGroupGridProps) {
-  if (!groups || groups.length === 0) {
+  if (groups.length === 0) {
     return (
       <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
         <Alert className="h-full flex flex-col">

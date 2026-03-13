@@ -276,7 +276,7 @@ export const paymentsGlobalFilterFn: FilterFn<PaymentTransactionDTO> = (
   filterValue
 ) => {
   const query = (filterValue as string).toLowerCase().trim()
-  if (!query) return true
+  if (query === '') return true
 
   const payment = row.original
   const payer = (payment.payment_owner ?? '').toLowerCase()

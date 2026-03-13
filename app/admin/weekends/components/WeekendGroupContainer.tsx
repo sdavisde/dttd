@@ -37,7 +37,7 @@ export function WeekendGroupContainer({
         <Typography variant="h5" className="font-semibold text-center">
           {groupTitle}
         </Typography>
-        {canEdit && (
+        {canEdit === true && (
           <Button
             variant="ghost"
             size="icon"

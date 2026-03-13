@@ -15,6 +15,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
+import { isNil } from 'lodash'
 
 const Form = FormProvider
 
@@ -49,7 +50,7 @@ const useFormField = () => {
   const formState = useFormState({ name: fieldContext.name })
   const fieldState = getFieldState(fieldContext.name, formState)
 
-  if (!fieldContext) {
+  if (!('name' in fieldContext)) {
     throw new Error('useFormField should be used within <FormField>')
   }
 
@@ -96,7 +97,7 @@ function FormLabel({
   return (
     <Label
       data-slot="form-label"
-      data-error={!!error}
+      data-error={!isNil(error)}
       className={cn('data-[error=true]:text-destructive leading-4', className)}
       htmlFor={formItemId}
       {...props}
@@ -112,11 +113,11 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
       data-slot="form-control"
       id={formItemId}
       aria-describedby={
-        !error
+        isNil(error)
           ? `${formDescriptionId}`
           : `${formDescriptionId} ${formMessageId}`
       }
-      aria-invalid={!!error}
+      aria-invalid={!isNil(error)}
       {...props}
     />
   )
@@ -137,9 +138,9 @@ function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? '') : props.children
+  const body = !isNil(error) ? String(error?.message ?? '') : props.children
 
-  if (!body) {
+  if (isNil(body) || body === '') {
     return null
   }
 

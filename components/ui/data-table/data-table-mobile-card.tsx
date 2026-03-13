@@ -11,6 +11,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import '@/components/ui/data-table/types'
+import { isNil } from 'lodash'
 
 interface DataTableMobileCardProps<TData> {
   row: Row<TData>
@@ -48,8 +49,8 @@ export function DataTableMobileCard<TData>({
     >
       <div className="flex w-full items-center gap-2 p-4 text-left">
         <div
-          className={cn('min-w-0 flex-1', onCardClick && 'cursor-pointer')}
-          onClick={onCardClick ? () => onCardClick(row.original) : undefined}
+          className={cn('min-w-0 flex-1', !isNil(onCardClick) && 'cursor-pointer')}
+          onClick={!isNil(onCardClick) ? () => onCardClick(row.original) : undefined}
         >
           {/* Primary field (name) */}
           {primaryCells.map((cell) => (
@@ -90,7 +91,7 @@ export function DataTableMobileCard<TData>({
                   key={cell.id}
                   className="flex items-baseline gap-2 text-sm"
                 >
-                  {label && (
+                  {!isNil(label) && label !== '' && (
                     <span className="text-muted-foreground w-28 shrink-0">
                       {label}
                     </span>

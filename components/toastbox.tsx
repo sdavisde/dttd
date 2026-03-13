@@ -25,7 +25,7 @@ export function useToastListener() {
     // Remove error parameter from URL
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.delete('error')
-    const newUrl = `${window.location.pathname}${newSearchParams.toString() ? '?' + newSearchParams.toString() : ''}`
+    const newUrl = `${window.location.pathname}${newSearchParams.toString() !== '' ? '?' + newSearchParams.toString() : ''}`
     router.replace(newUrl)
   }, [error, searchParams, router])
 }

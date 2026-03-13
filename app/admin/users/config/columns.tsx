@@ -20,7 +20,7 @@ export const masterRosterColumns: ColumnDef<MasterRosterMember>[] = [
       const firstName = member.firstName ?? ''
       const lastName = member.lastName ?? ''
       const name = `${firstName} ${lastName}`.trim()
-      return name || 'Unknown User'
+      return name !== '' ? name : 'Unknown User'
     },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
@@ -165,7 +165,7 @@ export const masterRosterGlobalFilterFn: FilterFn<MasterRosterMember> = (
   filterValue
 ) => {
   const query = (filterValue as string).toLowerCase().trim()
-  if (!query) return true
+  if (query === '') return true
 
   const member = row.original
   const name =

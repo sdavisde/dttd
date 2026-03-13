@@ -54,7 +54,7 @@ export function AssignmentConfirmationDialog({
               <span className="text-foreground font-medium">
                 Replacing current holder(s):
               </span>{' '}
-              {holderNames || 'Unknown user'}
+              {holderNames !== '' ? holderNames : 'Unknown user'}
             </div>
           )}
         </div>

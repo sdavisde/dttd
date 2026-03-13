@@ -22,7 +22,7 @@ export async function isUserRectorOnUpcomingWeekend(): Promise<
     error: userError,
   } = await supabase.auth.getUser()
 
-  if (userError || !user) {
+  if (!isNil(userError) || isNil(user)) {
     return ok(false)
   }
 
@@ -32,7 +32,7 @@ export async function isUserRectorOnUpcomingWeekend(): Promise<
     .select('id, group_id')
     .eq('status', 'ACTIVE')
 
-  if (!activeWeekends?.length) {
+  if (isNil(activeWeekends) || activeWeekends.length === 0) {
     return ok(false)
   }
 
@@ -65,5 +65,5 @@ export async function isUserRectorOnUpcomingWeekend(): Promise<
     .eq('cha_role', 'Rector')
     .maybeSingle()
 
-  return ok(!!rectorCheck)
+  return ok(!isNil(rectorCheck))
 }

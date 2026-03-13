@@ -66,15 +66,15 @@ const sortByDateAscending = (groups: WeekendGroupWithId[]) =>
       toLocalDateFromISO(b.weekends.MENS?.start_date) ??
       toLocalDateFromISO(b.weekends.WOMENS?.start_date)
 
-    if (!aDate && !bDate) {
+    if (isNil(aDate) && isNil(bDate)) {
       return 0
     }
 
-    if (!aDate) {
+    if (isNil(aDate)) {
       return 1
     }
 
-    if (!bDate) {
+    if (isNil(bDate)) {
       return -1
     }
 
@@ -90,15 +90,15 @@ const sortByDateDescending = (groups: WeekendGroupWithId[]) =>
       toLocalDateFromISO(b.weekends.WOMENS?.end_date) ??
       toLocalDateFromISO(b.weekends.MENS?.end_date)
 
-    if (!aDate && !bDate) {
+    if (isNil(aDate) && isNil(bDate)) {
       return 0
     }
 
-    if (!aDate) {
+    if (isNil(aDate)) {
       return 1
     }
 
-    if (!bDate) {
+    if (isNil(bDate)) {
       return -1
     }
 
@@ -144,7 +144,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
   }
 
   const sidebarState = isSidebarOpen ? 'open' : 'closed'
-  const sidebarAnnouncement = selectedGroup
+  const sidebarAnnouncement = !isNil(selectedGroup)
     ? `Editing weekend group ${selectedGroup.groupId}`
     : 'No weekend group selected'
 

@@ -31,7 +31,7 @@ export default async function CandidateFeesPaymentPage({
   const { candidate_id } = await searchParams
 
   const candidateFeePriceId = process.env.CANDIDATE_FEE_PRICE_ID
-  if (!candidateFeePriceId) {
+  if (isNil(candidateFeePriceId) || candidateFeePriceId === '') {
     throw new Error('Missing candidate fee price id')
   }
 
@@ -94,7 +94,7 @@ export default async function CandidateFeesPaymentPage({
 
   // Determine the actual payer name based on who is paying
   const payerName =
-    candidate.paymentOwner === 'sponsor' && candidate.sponsorInfo
+    candidate.paymentOwner === 'sponsor' && !isNil(candidate.sponsorInfo)
       ? candidate.sponsorInfo.name
       : `${candidate.firstName} ${candidate.lastName}`
 

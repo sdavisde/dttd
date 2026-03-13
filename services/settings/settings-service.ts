@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import type { Result} from '@/lib/results';
 import { err, ok, isErr } from '@/lib/results'
 import { getLoggedInUser } from '@/services/identity/user'
@@ -21,7 +22,7 @@ function normalizeSetting(raw: {
   return {
     key: raw.key,
     value: raw.value,
-    updatedAt: raw.updated_at ? new Date(raw.updated_at) : new Date(),
+    updatedAt: !isNil(raw.updated_at) ? new Date(raw.updated_at) : new Date(),
     updatedBy: raw.updated_by_user_id,
   }
 }

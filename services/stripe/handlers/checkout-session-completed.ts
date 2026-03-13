@@ -30,7 +30,7 @@ export const checkoutSessionCompletedHandler: WebhookHandler<Stripe.CheckoutSess
       const session = event.data.object
 
       if (
-        !session.payment_intent ||
+        isNil(session.payment_intent) ||
         typeof session.payment_intent !== 'string'
       ) {
         return webhookErr(
@@ -44,7 +44,7 @@ export const checkoutSessionCompletedHandler: WebhookHandler<Stripe.CheckoutSess
 
       ctx.updateContext({
         paymentIntentId: session.payment_intent,
-        amount: session.amount_total ? session.amount_total / 100 : undefined,
+        amount: !isNil(session.amount_total) ? session.amount_total / 100 : undefined,
       })
 
       logger.info(
@@ -118,7 +118,7 @@ async function handleCandidatePayment(
 
   // Record the payment using PaymentService
   const paymentIntentId = session.payment_intent as string
-  const grossAmount = session.amount_total ? session.amount_total / 100 : 0
+  const grossAmount = !isNil(session.amount_total) ? session.amount_total / 100 : 0
 
   // Try to fetch Stripe fee data (may not be available at checkout time)
   const transactionResult = await getTransactionData(paymentIntentId)
@@ -254,7 +254,7 @@ async function handleTeamPayment(
 
   // Record the payment using PaymentService
   const paymentIntentId = session.payment_intent as string
-  const grossAmount = session.amount_total ? session.amount_total / 100 : 0
+  const grossAmount = !isNil(session.amount_total) ? session.amount_total / 100 : 0
 
   // Try to fetch Stripe fee data (may not be available at checkout time)
   const transactionResult = await getTransactionData(paymentIntentId)
@@ -356,11 +356,11 @@ async function candidateIsAwaitingPayment(
     .eq('id', candidateId)
     .single()
 
-  if (fetchError) {
+  if (!isNil(fetchError)) {
     return Results.err(fetchError.message)
   }
 
-  if (!candidate) {
+  if (isNil(candidate)) {
     return Results.err(`Candidate not found with id: ${candidateId}`)
   }
 
@@ -390,7 +390,7 @@ async function confirmCandidate(
     .update({ status: 'confirmed' })
     .eq('id', candidateId)
 
-  if (updateError) {
+  if (!isNil(updateError)) {
     return Results.err(
       `Failed to update candidate status to confirmed: ${updateError.message}`
     )

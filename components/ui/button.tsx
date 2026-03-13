@@ -3,6 +3,7 @@ import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
+import { isNil } from 'lodash'
 import Link from 'next/link'
 
 const buttonVariants = cva(
@@ -54,7 +55,7 @@ function Button({
 }: ButtonProps) {
   const Comp = asChild ? Slot : 'button'
 
-  if (href) {
+  if (!isNil(href) && href !== '') {
     return (
       <Link href={href} {...linkProps}>
         <Button

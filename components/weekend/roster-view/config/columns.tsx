@@ -12,13 +12,14 @@ import { Edit } from 'lucide-react'
 import { PaymentInfo } from '../payment-info'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import '@/components/ui/data-table/types'
+import { isNil } from 'lodash'
 
 // ---------------------------------------------------------------------------
 // Role sorting helper
 // ---------------------------------------------------------------------------
 
 const getRoleSortOrder = (role: string | null) => {
-  if (!role) return 999
+  if (isNil(role)) return 999
   const index = Object.values(CHARole).indexOf(role as CHARole)
   return index === -1 ? 998 : index
 }
@@ -55,8 +56,8 @@ export function getWeekendRosterColumns(
     {
       id: 'name',
       accessorFn: (m) => {
-        if (m.users?.first_name && m.users?.last_name) {
-          return `${m.users.first_name} ${m.users.last_name}`
+        if (!isNil(m.users?.first_name) && !isNil(m.users?.last_name)) {
+          return `${m.users!.first_name} ${m.users!.last_name}`
         }
         return 'Unknown User'
       },
@@ -100,7 +101,7 @@ export function getWeekendRosterColumns(
         return (
           <div>
             <span>{member.cha_role ?? '-'}</span>
-            {member.rollo && <span className="ms-1">- {member.rollo}</span>}
+            {!isNil(member.rollo) && <span className="ms-1">- {member.rollo}</span>}
           </div>
         )
       },
@@ -190,8 +191,8 @@ export const droppedRosterColumns: ColumnDef<WeekendRosterMember>[] = [
   {
     id: 'name',
     accessorFn: (m) => {
-      if (m.users?.first_name && m.users?.last_name) {
-        return `${m.users.first_name} ${m.users.last_name}`
+      if (!isNil(m.users?.first_name) && !isNil(m.users?.last_name)) {
+        return `${m.users!.first_name} ${m.users!.last_name}`
       }
       return 'Unknown User'
     },
@@ -299,7 +300,7 @@ export const rosterGlobalFilterFn: FilterFn<WeekendRosterMember> = (
   filterValue
 ) => {
   const query = (filterValue as string).toLowerCase().trim()
-  if (!query) return true
+  if (query === '') return true
 
   const member = row.original
   const name =

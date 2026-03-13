@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { AlertTriangle } from 'lucide-react'
+import { isNil } from 'lodash'
 
 /**
  * Global error boundary for catching errors in the root layout.
@@ -62,7 +63,7 @@ export default function GlobalError({
                 <br />
                 <span>with the following error code:</span>
               </p>
-              {error.digest && (
+              {!isNil(error.digest) && (
                 <p className="mt-4 text-xs text-muted-foreground">
                   Error ID: {error.digest}
                 </p>

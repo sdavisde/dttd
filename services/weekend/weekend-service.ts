@@ -207,7 +207,7 @@ export async function getActiveWeekends(): Promise<
 export async function getWeekendGroup(
   groupId: string
 ): Promise<Result<string, WeekendGroupWithId>> {
-  if (!groupId) {
+  if (groupId === '') {
     return err('group_id is required to fetch a group')
   }
 
@@ -289,7 +289,7 @@ export async function getWeekendGroupsByStatus(
 export async function setActiveWeekendGroup(
   groupId: string
 ): Promise<Result<string, WeekendGroupWithId>> {
-  if (!groupId) {
+  if (groupId === '') {
     return err('group_id is required to set active weekend')
   }
 
@@ -326,7 +326,7 @@ export async function setActiveWeekendGroup(
 export async function createWeekendGroup(
   input: CreateWeekendGroupInput
 ): Promise<Result<string, WeekendGroupWithId>> {
-  if (!input.groupId) {
+  if (isNil(input.groupId)) {
     return err('groupId is required when creating a weekend group')
   }
 
@@ -426,7 +426,7 @@ export async function updateWeekendGroup(
 export async function deleteWeekendGroup(
   groupId: string
 ): Promise<Result<string, { success: boolean }>> {
-  if (!groupId) {
+  if (groupId === '') {
     return err('group_id is required to delete a group')
   }
 
@@ -549,7 +549,7 @@ export async function getWeekendRoster(
     Promise.all(
       rosterRecords.map(async (record) => {
         const groupMemberId = groupMemberMap.get(record.id) ?? null
-        if (!groupMemberId) {
+        if (isNil(groupMemberId)) {
           return { rosterId: record.id, payments: [] }
         }
         const paymentsResult = await PaymentService.getPaymentForTarget(
@@ -565,7 +565,7 @@ export async function getWeekendRoster(
     Promise.all(
       rosterRecords.map(async (record) => {
         const groupMemberId = groupMemberMap.get(record.id) ?? null
-        if (!groupMemberId) {
+        if (isNil(groupMemberId)) {
           return { rosterId: record.id, forms_complete: false }
         }
         const completionsResult =
@@ -651,7 +651,7 @@ export async function addUserToWeekendRoster(
   // Ensure a weekend_group_members row exists for this user+group.
   // Uses the weekend's group_id so a cross-weekend user gets one shared member row.
   const weekendResult = await WeekendRepository.findWeekendById(weekendId)
-  if (isErr(weekendResult) || !weekendResult.data?.group_id) {
+  if (isErr(weekendResult) || isNil(weekendResult.data?.group_id)) {
     // Non-fatal: roster insert succeeded, log and continue
     logger.warn(
       { weekendId, userId },
@@ -674,7 +674,7 @@ export async function getWeekendRosterRecord(
   teamUserId: string | null,
   weekendId: string | null
 ): Promise<Result<string, Tables<'weekend_roster'>>> {
-  if (!teamUserId || !weekendId) {
+  if (isNil(teamUserId) || isNil(weekendId)) {
     return err('Team user ID or weekend ID is null')
   }
 
@@ -869,13 +869,12 @@ function sortByLeadershipRole(
 function normalizeLeadershipMember(
   member: WeekendRepository.RawLeadershipRosterMember
 ): LeadershipTeamMember | null {
-  if (!member.users || !member.cha_role) {
+  if (isNil(member.users) || isNil(member.cha_role)) {
     return null
   }
 
-  const fullName =
-    `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim() ??
-    'Unknown'
+  const fullNameRaw = `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim()
+  const fullName = fullNameRaw !== '' ? fullNameRaw : 'Unknown'
 
   return {
     id: member.id,

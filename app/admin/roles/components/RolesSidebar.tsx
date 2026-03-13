@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import type { Role } from '@/services/identity/roles'
+import { isNil } from 'lodash'
 
 interface RolesSidebar {
   role: Role | null
@@ -69,7 +70,7 @@ export function RolesSidebar({
     } else {
       // Reset form when modal closes
       setError(null)
-      if (!role) {
+      if (isNil(role)) {
         setRoleName('')
         setPermissions([])
       }
@@ -83,13 +84,13 @@ export function RolesSidebar({
   }
 
   const handleSave = async () => {
-    if (!roleName.trim()) return
+    if (roleName.trim() === '') return
 
     setIsLoading(true)
     setError(null)
 
     try {
-      if (role) {
+      if (!isNil(role)) {
         // Update existing role
         const result = await updateRolePermissions({
           roleId: role.id,
@@ -112,7 +113,7 @@ export function RolesSidebar({
       }
 
       toast.success(
-        role ? 'Role updated successfully' : 'Role created successfully'
+        !isNil(role) ? 'Role updated successfully' : 'Role created successfully'
       )
       router.refresh()
       onClose()
@@ -127,9 +128,9 @@ export function RolesSidebar({
   }
 
   // Check if anything has changed for existing roles
-  const hasChanges = role
+  const hasChanges = !isNil(role)
     ? JSON.stringify(permissions.sort()) !==
-      JSON.stringify((role.permissions || []).sort())
+      JSON.stringify((role.permissions ?? []).sort())
     : roleName.trim() !== '' || permissions.length > 0
 
   return (
@@ -137,19 +138,19 @@ export function RolesSidebar({
       <SheetContent>
         <SheetHeader>
           <SheetTitle>
-            {role ? `Edit Role: ${role.label}` : 'Create New Role'}
+            {!isNil(role) ? `Edit Role: ${role.label}` : 'Create New Role'}
           </SheetTitle>
         </SheetHeader>
 
         <div className="space-y-4 p-4">
-          {error && (
+          {!isNil(error) && (
             <Alert variant="destructive">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          {!role && (
+          {isNil(role) && (
             <div className="space-y-2">
               <label htmlFor="roleName" className="text-sm font-medium">
                 Role Name
@@ -187,9 +188,9 @@ export function RolesSidebar({
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!roleName.trim() || isLoading || !hasChanges}
+              disabled={roleName.trim() === '' || isLoading || !hasChanges}
             >
-              {isLoading ? 'Saving...' : role ? 'Save Changes' : 'Create Role'}
+              {isLoading ? 'Saving...' : !isNil(role) ? 'Save Changes' : 'Create Role'}
             </Button>
           </SheetFooter>
         )}

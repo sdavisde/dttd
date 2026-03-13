@@ -12,6 +12,7 @@ import {
   Button,
 } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
+import { isNil } from 'lodash'
 
 interface TeamPaymentNotificationEmailProps {
   teamMemberName: string
@@ -63,7 +64,7 @@ export default function TeamPaymentNotificationEmail({
                 <Text className="text-gray-700 mb-2">
                   <strong>Team Member Name:</strong> {teamMemberName}
                 </Text>
-                {teamMemberEmail && (
+                {!isNil(teamMemberEmail) && (
                   <Text className="text-gray-700 mb-2">
                     <strong>Team Member Email:</strong> {teamMemberEmail}
                   </Text>

@@ -5,13 +5,14 @@ import { getAllPayments } from '@/services/payment'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Payments } from './components/Payments'
+import { isNil } from 'lodash'
 
 export default async function PaymentsPage() {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
 
   try {
-    if (isErr(userResult) || !user) {
+    if (isErr(userResult) || isNil(user)) {
       throw new Error('User not found')
     }
   } catch (error) {

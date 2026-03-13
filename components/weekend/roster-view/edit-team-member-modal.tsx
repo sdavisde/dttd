@@ -36,6 +36,7 @@ import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { AlertCircle } from 'lucide-react'
+import { isNil } from 'lodash'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const editTeamMemberFormSchema = z.object({
@@ -97,7 +98,7 @@ export function EditTeamMemberModal({
 
   // Update form values when rosterMember changes
   React.useEffect(() => {
-    if (rosterMember) {
+    if (!isNil(rosterMember)) {
       form.setValue('status', rosterMember.status ?? '')
       form.setValue('cha_role', rosterMember.cha_role ?? '')
       form.setValue('rollo', rosterMember.rollo ?? '')
@@ -114,7 +115,7 @@ export function EditTeamMemberModal({
     cha_role,
     rollo,
   }) => {
-    if (!rosterMember) {
+    if (isNil(rosterMember)) {
       setError('root', { message: 'No roster member selected' })
       return
     }
@@ -149,7 +150,7 @@ export function EditTeamMemberModal({
   }
 
   const handleDrop = async () => {
-    if (!rosterMember) {
+    if (isNil(rosterMember)) {
       setError('root', { message: 'No roster member selected' })
       return
     }
@@ -180,7 +181,7 @@ export function EditTeamMemberModal({
   }
 
   const handleDelete = async () => {
-    if (!rosterMember) {
+    if (isNil(rosterMember)) {
       setError('root', { message: 'No roster member selected' })
       return
     }
@@ -210,7 +211,7 @@ export function EditTeamMemberModal({
     }
   }
 
-  if (!rosterMember) {
+  if (isNil(rosterMember)) {
     return null
   }
 
@@ -254,7 +255,7 @@ export function EditTeamMemberModal({
               Remove from Roster
             </Button>*/}
 
-            {form.formState.errors.root && (
+            {!isNil(form.formState.errors.root) && (
               <Alert variant="destructive">
                 <AlertCircle />
                 <AlertTitle>Error</AlertTitle>

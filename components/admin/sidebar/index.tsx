@@ -24,6 +24,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { isNil } from 'lodash'
 
 // Icon mapping for serializable data
 const iconMap: Record<string, LucideIcon> = {
@@ -69,7 +70,7 @@ export function AdminSidebar({
   const transformedData = {
     navMain: data.navMain.map((item) => ({
       ...item,
-      icon: item.icon ? iconMap[item.icon] : undefined,
+      icon: !isNil(item.icon) ? iconMap[item.icon] : undefined,
     })),
   }
 

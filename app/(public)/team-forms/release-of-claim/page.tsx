@@ -21,7 +21,7 @@ export default async function ReleaseOfClaimPage() {
 
   // special_needs is shared across all roster rows in the group; any rosterId works
   const firstRosterId = user.teamMemberInfo.weekendAssignments[0]?.rosterId
-  const specialNeedsResult = firstRosterId
+  const specialNeedsResult = !isNil(firstRosterId)
     ? await getRosterSpecialNeeds(firstRosterId)
     : null
 
@@ -29,7 +29,7 @@ export default async function ReleaseOfClaimPage() {
     <ReleaseOfClaimForm
       groupMemberId={user.teamMemberInfo.groupMemberId}
       initialSpecialNeeds={
-        specialNeedsResult
+        !isNil(specialNeedsResult)
           ? (unwrapOr(specialNeedsResult, null) ?? undefined)
           : undefined
       }

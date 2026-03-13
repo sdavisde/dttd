@@ -21,7 +21,7 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const columnFilterCount = table.getState().columnFilters.length
   const globalFilter = (table.getState().globalFilter as string) ?? ''
-  const hasActiveFilters = columnFilterCount > 0 || !!globalFilter
+  const hasActiveFilters = columnFilterCount > 0 || globalFilter !== ''
 
   return (
     <div className="flex items-center gap-2">

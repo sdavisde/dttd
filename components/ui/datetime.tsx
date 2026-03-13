@@ -1,5 +1,6 @@
 import { Typography } from './typography'
 import { type FormattedDateTime } from '@/lib/utils'
+import { isNil } from 'lodash'
 
 type DatetimeOptions = {
   showTime?: boolean
@@ -19,10 +20,10 @@ export function Datetime({
       <Typography variant="small" className="block">
         {dateTime.dateStr}
       </Typography>
-      {options?.showTime && (
+      {options?.showTime === true && (
         <Typography variant="small" className="block text-muted-foreground">
           {dateTime.timeStr}
-          {location && ` - ${location}`}
+          {!isNil(location) && location !== '' && ` - ${location}`}
         </Typography>
       )}
     </>

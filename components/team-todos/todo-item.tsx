@@ -45,7 +45,7 @@ export function TodoItem({
         aria-hidden="true"
       />
       <span className={cn(isComplete && 'line-through')}>{label}</span>
-      {!href && tooltip && (
+      {isNil(href) && !isNil(tooltip) && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Info className="size-4 text-muted-foreground cursor-help" />

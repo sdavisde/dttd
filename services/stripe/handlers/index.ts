@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import type Stripe from 'stripe'
 import type { Result } from '@/lib/results';
 import { ok } from '@/lib/results'
@@ -59,7 +60,7 @@ export async function routeWebhookEvent(
 ): Promise<Result<WebhookError, HandlerSuccess>> {
   const handler = handlers.get(event.type)
 
-  if (!handler) {
+  if (isNil(handler)) {
     logger.info(
       { eventType: event.type, eventId: event.id },
       `No handler for event type: ${event.type}`

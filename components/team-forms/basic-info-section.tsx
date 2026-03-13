@@ -23,6 +23,7 @@ import { User, Building } from 'lucide-react'
 import { MonthPickerPopover } from '@/components/ui/month-picker'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import * as React from 'react'
+import { isNil } from 'lodash'
 import type { TeamInfoFormValues } from './schemas'
 import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 
@@ -30,7 +31,7 @@ export function BasicInfoSection() {
   const { control, setValue, watch } = useFormContext<TeamInfoFormValues>()
 
   const [hasCompleted, setHasCompleted] = React.useState(
-    !!watch('basicInfo.essentials_training_date') ? 'yes' : 'no'
+    !isNil(watch('basicInfo.essentials_training_date')) ? 'yes' : 'no'
   )
 
   return (

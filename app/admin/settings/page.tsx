@@ -4,6 +4,7 @@ import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
 import { getPrayerWheelUrls } from '@/services/settings'
 import { isErr, Results } from '@/lib/results'
+import { isNil } from 'lodash'
 
 async function getContactInformation() {
   const supabase = await createClient()
@@ -13,7 +14,7 @@ async function getContactInformation() {
     .select('*')
     .order('label')
 
-  if (error) {
+  if (!isNil(error)) {
     console.error('Error fetching contact information:', error)
     return []
   }

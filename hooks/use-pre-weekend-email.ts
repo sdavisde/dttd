@@ -8,6 +8,7 @@ import {
   type ContactInfo,
 } from '@/services/notifications'
 import { isErr } from '@/lib/results'
+import { isNil } from 'lodash'
 
 type UsePreWeekendEmailProps = {
   contact: ContactInfo
@@ -41,7 +42,7 @@ export function usePreWeekendEmail({
   }
 
   const saveEmail = async () => {
-    if (!email.trim()) {
+    if (email.trim() === '') {
       toast.error('Email address cannot be empty')
       return
     }
@@ -53,7 +54,7 @@ export function usePreWeekendEmail({
         emailAddress: email.trim(),
       })
 
-      if (result && isErr(result)) {
+      if (!isNil(result) && isErr(result)) {
         toast.error(result.error)
         return
       }

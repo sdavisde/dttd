@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { Resend } from 'resend'
 import type { Result } from '@/lib/results';
 import { err, isErr, ok } from '@/lib/results'
@@ -48,7 +49,7 @@ export async function getRecipientContactInfo(
 
   const data = result.data
 
-  if (!data.email_address) {
+  if (isNil(data.email_address)) {
     return err(`Email address not found for recipient: ${recipient}`)
   }
 
@@ -90,7 +91,7 @@ export async function getPreWeekendCoupleEmailAdmin(): Promise<
 
   const data = result.data
 
-  if (!data.email_address) {
+  if (isNil(data.email_address)) {
     return err('Email address not found for preweekend-couple')
   }
 
@@ -168,7 +169,7 @@ async function sendCandidatePaymentEmail(
   const sponsorshipInfo = rawCandidate.candidate_sponsorship_info?.at(0)
 
   const candidateName =
-    candidateInfo?.first_name && candidateInfo?.last_name
+    !isNil(candidateInfo?.first_name) && !isNil(candidateInfo?.last_name)
       ? `${candidateInfo.first_name} ${candidateInfo.last_name}`
       : (sponsorshipInfo?.candidate_name ?? 'Candidate')
 
@@ -195,7 +196,7 @@ async function sendCandidatePaymentEmail(
     }),
   })
 
-  if (error) {
+  if (!isNil(error)) {
     logger.error(
       error,
       `Failed to send candidate payment notification email for ${candidateName}`

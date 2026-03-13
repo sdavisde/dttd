@@ -93,7 +93,7 @@ export function useDataTableUrlState(
 
   // --- Derived TanStack Table state ---
 
-  const sorting: SortingState = sortColumn
+  const sorting: SortingState = sortColumn !== ''
     ? [{ id: sortColumn, desc: sortDesc }]
     : defaultSort
 

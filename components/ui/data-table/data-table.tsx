@@ -172,7 +172,7 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    ...(globalFilterFn ? { globalFilterFn } : {}),
+    ...(!isNil(globalFilterFn) ? { globalFilterFn } : {}),
   })
 
   // Mobile expanded card state (single-expand)
@@ -232,10 +232,10 @@ export function DataTable<TData, TValue>({
                     key={row.id}
                     className={cn(
                       index % 2 === 1 ? 'bg-muted/25' : undefined,
-                      onRowClick && 'cursor-pointer'
+                      !isNil(onRowClick) && 'cursor-pointer'
                     )}
                     onClick={
-                      onRowClick ? () => onRowClick(row.original) : undefined
+                      !isNil(onRowClick) ? () => onRowClick(row.original) : undefined
                     }
                   >
                     {row.getVisibleCells().map((cell) => (

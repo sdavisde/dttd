@@ -27,7 +27,7 @@ export function EditableNumberField({
 }: EditableNumberFieldProps) {
   const displayValue = isNil(value)
     ? emptyText
-    : formatDisplay
+    : !isNil(formatDisplay)
       ? formatDisplay(value)
       : value.toString()
 

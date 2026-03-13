@@ -262,7 +262,7 @@ export const toNullable = <E, D>(result: Result<E, D>): D | null => {
 export const fromSupabase = <D>(
   supabaseResponse: PostgrestSingleResponse<D>
 ): Result<string, D> => {
-  if (supabaseResponse.error) {
+  if (!isNil(supabaseResponse.error)) {
     return err(supabaseResponse.error.message)
   }
 
@@ -303,10 +303,7 @@ export const safeParse = <T>(
  * Results.logFailures(result1, result2, result3)
  */
 export const logFailures = (...results: Array<Result<unknown, unknown>>) => {
-  if (Array.isArray(results)) {
-    results.forEach((r) => logger.error(r.error))
-  }
-  logger.error(results)
+  results.forEach((r) => logger.error(r.error))
 }
 
 type JsonResponseOptions<E, D> = {

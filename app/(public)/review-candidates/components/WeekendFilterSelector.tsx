@@ -35,7 +35,7 @@ export function WeekendFilterSelector({
 
   const handleWeekendChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) {
+    if (value !== '') {
       params.set('weekend', value)
     } else {
       params.delete('weekend')
@@ -45,7 +45,7 @@ export function WeekendFilterSelector({
 
   const handleTypeChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) {
+    if (value !== '') {
       params.set('weekendType', value)
     } else {
       params.delete('weekendType')

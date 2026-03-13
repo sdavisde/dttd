@@ -13,6 +13,7 @@ import {
   Button,
 } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
+import { isNil } from 'lodash'
 
 interface CandidateFeePaymentRequestEmailProps {
   candidate: HydratedCandidate
@@ -76,7 +77,7 @@ export default function CandidateFeePaymentRequestEmail({
                     {candidate.candidate_sponsorship_info?.candidate_name ??
                       'No name'}
                   </Text>
-                  {candidate.candidate_sponsorship_info?.sponsor_name && (
+                  {!isNil(candidate.candidate_sponsorship_info?.sponsor_name) && (
                     <Text className="text-gray-700 mb-2">
                       <strong>Sponsor Name:</strong>{' '}
                       {candidate.candidate_sponsorship_info?.sponsor_name}

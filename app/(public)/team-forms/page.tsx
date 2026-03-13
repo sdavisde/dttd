@@ -139,7 +139,7 @@ export default async function TeamFormsPage() {
           ))}
         </div>
 
-        {nextStep && (
+        {!isNil(nextStep) && (
           <div className="flex justify-end pt-4">
             <Button asChild>
               <Link href={nextStep.href}>Continue to {nextStep.label}</Link>
