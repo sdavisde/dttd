@@ -1,3 +1,15 @@
+## [1.22.0](https://github.com/sdavisde/dttd/compare/v1.21.0...v1.22.0) (2026-03-13)
+
+### Features
+
+- **ui:** use PhoneInput component for all phone number form fields ([5f3a13e](https://github.com/sdavisde/dttd/commit/5f3a13e24645046328c83e65d3eda11a1b353c8b))
+
+### Bug Fixes
+
+- add null guards for Supabase storage responses and fix type casts ([4c07cd3](https://github.com/sdavisde/dttd/commit/4c07cd355daf63c27a5c868050fc34814106386e))
+- fix implicit null checks ([e9fb295](https://github.com/sdavisde/dttd/commit/e9fb295527676b35463cda8aa1fb48bd01a27675))
+- type imports are sorted ([cb7ea44](https://github.com/sdavisde/dttd/commit/cb7ea44247d2ae50b297ab4d6c194ba43ed9800e))
+
 ## [1.21.0](https://github.com/sdavisde/dttd/compare/v1.20.0...v1.21.0) (2026-03-12)
 
 ### Features
