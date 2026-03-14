@@ -2,7 +2,7 @@ import 'server-only'
 
 import { randomUUID } from 'crypto'
 import { isEmpty, isNil, sumBy } from 'lodash'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok, isErr, map, unwrap, unwrapOr } from '@/lib/results'
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
@@ -20,11 +20,9 @@ import type {
   WeekendWriteInput,
   WeekendUpdateInput,
   CreateWeekendGroupInput,
-  UpdateWeekendGroupInput} from '@/lib/weekend/types';
-import {
-  WeekendType,
-  WeekendStatus
+  UpdateWeekendGroupInput,
 } from '@/lib/weekend/types'
+import { WeekendType, WeekendStatus } from '@/lib/weekend/types'
 import type {
   RawWeekendRoster,
   PaymentRecord,
@@ -153,7 +151,8 @@ function getWeekendLabel(weekend: Weekend | null): string {
  */
 function normalizeRosterMember(
   raw: RawWeekendRoster,
-  groupMemberId: string | null = null
+  groupMemberId: string | null = null,
+  medicalProfile: WeekendRosterMember['medical_profile'] = null
 ): WeekendRosterMember {
   const all_payments = raw.payments ?? []
   const total_paid = sumBy(all_payments, (p) => p.gross_amount)
@@ -173,6 +172,7 @@ function normalizeRosterMember(
     total_paid,
     all_payments,
     forms_complete: raw.forms_complete,
+    medical_profile: medicalProfile,
   }
 }
 
@@ -544,42 +544,64 @@ export async function getWeekendRoster(
     groupMemberMap.set(rosterId, groupMemberId)
   }
 
-  // Fetch payments (via weekend_group_member) and forms_complete in parallel
-  const [paymentsByRoster, formsCompleteByRoster] = await Promise.all([
-    Promise.all(
-      rosterRecords.map(async (record) => {
-        const groupMemberId = groupMemberMap.get(record.id) ?? null
-        if (isNil(groupMemberId)) {
-          return { rosterId: record.id, payments: [] }
-        }
-        const paymentsResult = await PaymentService.getPaymentForTarget(
-          'weekend_group_member',
-          groupMemberId
-        )
-        return {
-          rosterId: record.id,
-          payments: unwrapOr(paymentsResult, []),
-        }
-      })
-    ),
-    Promise.all(
-      rosterRecords.map(async (record) => {
-        const groupMemberId = groupMemberMap.get(record.id) ?? null
-        if (isNil(groupMemberId)) {
-          return { rosterId: record.id, forms_complete: false }
-        }
-        const completionsResult =
-          await GroupMemberRepository.getFormCompletions(groupMemberId)
-        if (isErr(completionsResult)) {
-          return { rosterId: record.id, forms_complete: false }
-        }
-        return {
-          rosterId: record.id,
-          forms_complete: completionsResult.data.length >= 5,
-        }
-      })
-    ),
-  ])
+  // Fetch payments, forms_complete, and medical profiles in parallel
+  const [paymentsByRoster, formsCompleteByRoster, medicalProfilesByRoster] =
+    await Promise.all([
+      Promise.all(
+        rosterRecords.map(async (record) => {
+          const groupMemberId = groupMemberMap.get(record.id) ?? null
+          if (isNil(groupMemberId)) {
+            return { rosterId: record.id, payments: [] }
+          }
+          const paymentsResult = await PaymentService.getPaymentForTarget(
+            'weekend_group_member',
+            groupMemberId
+          )
+          return {
+            rosterId: record.id,
+            payments: unwrapOr(paymentsResult, []),
+          }
+        })
+      ),
+      Promise.all(
+        rosterRecords.map(async (record) => {
+          const groupMemberId = groupMemberMap.get(record.id) ?? null
+          if (isNil(groupMemberId)) {
+            return { rosterId: record.id, forms_complete: false }
+          }
+          const completionsResult =
+            await GroupMemberRepository.getFormCompletions(groupMemberId)
+          if (isErr(completionsResult)) {
+            return { rosterId: record.id, forms_complete: false }
+          }
+          return {
+            rosterId: record.id,
+            forms_complete: completionsResult.data.length >= 5,
+          }
+        })
+      ),
+      Promise.all(
+        rosterRecords.map(async (record) => {
+          if (isNil(record.user_id)) {
+            return { rosterId: record.id, medicalProfile: null }
+          }
+          const profileResult =
+            await GroupMemberRepository.getUserMedicalProfile(record.user_id)
+          if (isErr(profileResult) || isNil(profileResult.data)) {
+            return { rosterId: record.id, medicalProfile: null }
+          }
+          const profile = profileResult.data
+          return {
+            rosterId: record.id,
+            medicalProfile: {
+              emergency_contact_name: profile.emergency_contact_name,
+              emergency_contact_phone: profile.emergency_contact_phone,
+              medical_conditions: profile.medical_conditions,
+            },
+          }
+        })
+      ),
+    ])
 
   // Build lookup maps
   const paymentsMap = new Map<string, PaymentRecord[]>()
@@ -592,6 +614,14 @@ export async function getWeekendRoster(
     formsCompleteMap.set(rosterId, forms_complete)
   }
 
+  const medicalProfileMap = new Map<
+    string,
+    WeekendRosterMember['medical_profile']
+  >()
+  for (const { rosterId, medicalProfile } of medicalProfilesByRoster) {
+    medicalProfileMap.set(rosterId, medicalProfile)
+  }
+
   // Combine roster records with their payments, forms_complete, and groupMemberId
   const rawRosterWithPayments: RawWeekendRoster[] = rosterRecords.map(
     (record) => ({
@@ -602,7 +632,11 @@ export async function getWeekendRoster(
   )
 
   const normalizedRoster = rawRosterWithPayments.map((record) =>
-    normalizeRosterMember(record, groupMemberMap.get(record.id) ?? null)
+    normalizeRosterMember(
+      record,
+      groupMemberMap.get(record.id) ?? null,
+      medicalProfileMap.get(record.id) ?? null
+    )
   )
   return ok(normalizedRoster)
 }
@@ -873,7 +907,8 @@ function normalizeLeadershipMember(
     return null
   }
 
-  const fullNameRaw = `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim()
+  const fullNameRaw =
+    `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim()
   const fullName = fullNameRaw !== '' ? fullNameRaw : 'Unknown'
 
   return {

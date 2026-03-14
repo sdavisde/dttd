@@ -1,6 +1,6 @@
 'use client'
 
-import type { ColumnDef, FilterFn, SortingFn } from '@tanstack/react-table';
+import type { ColumnDef, FilterFn, SortingFn } from '@tanstack/react-table'
 import { Row } from '@tanstack/react-table'
 import type { WeekendRosterMember } from '@/services/weekend'
 import { CHARole } from '@/lib/weekend/types'
@@ -8,11 +8,11 @@ import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Edit } from 'lucide-react'
+import { Edit, Stethoscope } from 'lucide-react'
 import { PaymentInfo } from '../payment-info'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import '@/components/ui/data-table/types'
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 
 // ---------------------------------------------------------------------------
 // Role sorting helper
@@ -46,6 +46,7 @@ function getPaymentCategory(member: WeekendRosterMember): string {
 
 export interface WeekendRosterColumnCallbacks {
   onEdit: (member: WeekendRosterMember) => void
+  onMedical: (member: WeekendRosterMember) => void
   isEditable: boolean
 }
 
@@ -101,7 +102,9 @@ export function getWeekendRosterColumns(
         return (
           <div>
             <span>{member.cha_role ?? '-'}</span>
-            {!isNil(member.rollo) && <span className="ms-1">- {member.rollo}</span>}
+            {!isNil(member.rollo) && (
+              <span className="ms-1">- {member.rollo}</span>
+            )}
           </div>
         )
       },
@@ -134,6 +137,64 @@ export function getWeekendRosterColumns(
         filterType: 'select',
         showOnMobile: true,
         mobileLabel: 'Forms',
+        mobilePriority: 'detail',
+      },
+    },
+    {
+      id: 'emergency',
+      accessorFn: (m) => m.medical_profile?.emergency_contact_name ?? null,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Emergency Contact" />
+      ),
+      cell: ({ row }) => {
+        const profile = row.original.medical_profile
+        if (isNil(profile?.emergency_contact_name)) {
+          return <span className="text-muted-foreground">-</span>
+        }
+        return (
+          <div className="text-sm">
+            <div>{profile.emergency_contact_name}</div>
+            <div className="text-muted-foreground">
+              {profile.emergency_contact_phone ?? '-'}
+            </div>
+          </div>
+        )
+      },
+      meta: {
+        showOnMobile: true,
+        mobileLabel: 'Emergency Contact',
+        mobilePriority: 'detail',
+      },
+    },
+    {
+      id: 'special_needs',
+      accessorFn: (m) => (!isNil(m.special_needs) ? 'Yes' : 'None'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Special Needs" />
+      ),
+      cell: ({ row }) => {
+        const member = row.original
+        if (isNil(member.special_needs) || isEmpty(member.special_needs)) {
+          return <span className="text-muted-foreground">-</span>
+        }
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => callbacks.onMedical(member)}
+              aria-label="View special needs"
+            >
+              <Stethoscope className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      },
+      enableSorting: false,
+      meta: {
+        filterType: 'select',
+        showOnMobile: true,
+        mobileLabel: 'Special Needs',
         mobilePriority: 'detail',
       },
     },

@@ -41,11 +41,10 @@ Rollos (prepared talks) are assigned to specific roles and tracked in `weekend_r
 
 ## Chapel
 
-| Role                 | Description         |
-| -------------------- | ------------------- |
-| **Head Chapel**      | _TODO: description_ |
-| **Chapel**           | _TODO: description_ |
-| **Head Chapel Tech** | _TODO: description_ |
+| Role            | Description         |
+| --------------- | ------------------- |
+| **Head Chapel** | _TODO: description_ |
+| **Chapel**      | _TODO: description_ |
 
 ## Music
 
@@ -56,10 +55,11 @@ Rollos (prepared talks) are assigned to specific roles and tracked in `weekend_r
 
 ## Tech
 
-| Role          | Description         |
-| ------------- | ------------------- |
-| **Head Tech** | _TODO: description_ |
-| **Tech**      | _TODO: description_ |
+| Role                 | Description         |
+| -------------------- | ------------------- |
+| **Head Tech**        | _TODO: description_ |
+| **Tech**             | _TODO: description_ |
+| **Head Chapel Tech** | _TODO: description_ |
 
 ## Palanca
 

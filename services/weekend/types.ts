@@ -71,6 +71,12 @@ export type WeekendRosterMember = {
   all_payments: PaymentRecord[]
   /** Whether all 5 team forms have been completed */
   forms_complete: boolean
+  /** Medical profile from user_medical_profiles (populated when permission is granted) */
+  medical_profile: {
+    emergency_contact_name: string | null
+    emergency_contact_phone: string | null
+    medical_conditions: string | null
+  } | null
 }
 
 /**
