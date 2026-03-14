@@ -1,6 +1,25 @@
 # DTTD - Dusty Trails Tres Dias
 
-Community management platform for Dusty Trails Tres Dias, a christian community based out of south-central Texas
+A community management portal built for **Dusty Trails Tres Dias**, a Christian renewal weekend ministry based in central Texas.
+
+## About This Project
+
+Dusty Trails Tres Dias (DTTD) is a local chapter of the [Tres Dias](https://tresdias.org) movement — a worldwide network of Christian communities whose mission is to train servant leaders. The community invited me to build this portal to reduce the administrative friction of hosting their twice-yearly renewal weekends.
+
+The original request was simple: online payments and digital forms instead of paper. The platform has since grown to cover the full candidate journey (sponsorship → application → payment → weekend) and team/volunteer coordination.
+
+**Design philosophy**: DTTD has a strong emphasis on person-to-person relationship. The goal is to handle the logistics that don't need to be in person, not to automate away human connection.
+
+**Who uses it:**
+
+| Role                        | What they do here                                               |
+| --------------------------- | --------------------------------------------------------------- |
+| Candidates                  | Submit their application, fill out forms, pay their weekend fee |
+| Sponsors                    | Submit a sponsorship nomination on behalf of a candidate        |
+| Team members (volunteers)   | Complete required team forms, pay the team fee, view the roster |
+| Admins / Pre-Weekend Couple | Manage candidate approvals, rosters, and weekend configuration  |
+
+For a deeper explanation of how Tres Dias weekends work and why the system is structured the way it is, see [`docs/domain.md`](docs/domain.md).
 
 ## Quick Start
 

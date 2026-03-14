@@ -81,12 +81,16 @@ The application uses Supabase with several key tables:
 
 ### Business Domain
 
+> For a full explanation of the Tres Dias ministry, weekend structure, and participant roles, see [`docs/domain.md`](docs/domain.md). Read it before working on features that touch the candidate journey, team roster, or weekend management.
+
 **Core Concepts**:
 
-- **Weekend**: 72-hour spiritual renewal events (42 candidate capacity)
-- **Candidate**: Guest participant requiring sponsorship and approval
-- **Sponsor**: Community member who nominates candidates
-- **Pre-Weekend Couple**: Weekend organizers managing candidate approval
+- **Weekend group**: One DTTD number (e.g., DTTD #11) containing both a Men's and Women's weekend
+- **Weekend**: 72-hour spiritual renewal event (42 candidate capacity); Men's always first, Women's one week later
+- **Candidate**: Guest participant requiring sponsorship, approval, and payment
+- **Sponsor**: Community member who nominates a candidate and maintains a personal relationship with them
+- **Team member**: Volunteer with a CHA role; serves on one or both weekends in a group
+- **Pre-Weekend Couple (PWC)**: Weekend organizers with admin-level access who manage candidate approval and team logistics
 
 **User Permissions**:
 
