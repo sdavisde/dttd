@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/sdavisde/dttd/compare/v1.23.0...v1.23.1) (2026-03-15)
+
+### Bug Fixes
+
+- tie events to weekend groups instead of individual weekends ([565ecfc](https://github.com/sdavisde/dttd/commit/565ecfc5c44448bbd614dcb65bf6fa03b8760063))
+- use individual weekend IDs instead of group IDs for events ([466b259](https://github.com/sdavisde/dttd/commit/466b259284e1a1ec4f0e5a9f660cf54bb1afe51c))
+
 ## [1.23.0](https://github.com/sdavisde/dttd/compare/v1.22.0...v1.23.0) (2026-03-15)
 
 ### Features
