@@ -8,7 +8,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Edit, Stethoscope } from 'lucide-react'
+import { ClipboardList, Edit, Stethoscope } from 'lucide-react'
 import { PaymentInfo } from '../payment-info'
 import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import '@/components/ui/data-table/types'
@@ -47,6 +47,7 @@ function getPaymentCategory(member: WeekendRosterMember): string {
 export interface WeekendRosterColumnCallbacks {
   onEdit: (member: WeekendRosterMember) => void
   onMedical: (member: WeekendRosterMember) => void
+  onViewFormInfo: (member: WeekendRosterMember) => void
   isEditable: boolean
 }
 
@@ -137,6 +138,37 @@ export function getWeekendRosterColumns(
         filterType: 'select',
         showOnMobile: true,
         mobileLabel: 'Forms',
+        mobilePriority: 'detail',
+      },
+    },
+    {
+      id: 'team_form_info',
+      accessorFn: (m) => (m.forms_complete ? 'Complete' : 'Incomplete'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Team Forms" />
+      ),
+      cell: ({ row }) => {
+        const member = row.original
+        if (!member.forms_complete) {
+          return <span className="text-muted-foreground">-</span>
+        }
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => callbacks.onViewFormInfo(member)}
+              aria-label="View team form info"
+            >
+              <ClipboardList className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      },
+      meta: {
+        filterType: 'select',
+        showOnMobile: true,
+        mobileLabel: 'Team Forms',
         mobilePriority: 'detail',
       },
     },

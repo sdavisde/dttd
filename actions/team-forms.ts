@@ -1,6 +1,6 @@
 'use server'
 
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok, isErr } from '@/lib/results'
 import { isNil, isEmpty } from 'lodash'
 import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
@@ -8,6 +8,10 @@ import {
   getTeamFormsProgress as serviceGetTeamFormsProgress,
   hasCompletedAllTeamForms as serviceHasCompletedAllTeamForms,
 } from '@/services/weekend-group-member/weekend-group-member-service'
+import { authorizedAction } from '@/lib/actions/authorized-action'
+import { Permission } from '@/lib/security'
+import { getUserById } from '@/services/identity/user/user-service'
+import { getUserServiceHistory } from '@/actions/user-experience'
 
 export type TeamFormsProgress = {
   steps: {
@@ -150,6 +154,69 @@ export async function hasCompletedAllTeamForms(
   }
   return ok(result.data.isComplete)
 }
+
+/**
+ * Read-only summary of a team member's info sheet submission.
+ * Excludes medical information (shown separately via the medical column).
+ */
+export type TeamFormSummary = {
+  address: {
+    addressLine1: string
+    addressLine2?: string
+    city: string
+    state: string
+    zip: string
+  } | null
+  churchAffiliation: string | null
+  weekendAttended: string | null
+  essentialsTrainingDate: string | null
+  specialGiftsAndSkills: string[] | null
+  experience: Array<{
+    chaRole: string
+    weekendReference: string
+    rollo: string | null
+  }>
+}
+
+/**
+ * Fetches a read-only summary of a team member's info sheet data.
+ * Permission-gated by READ_TEAM_FORM_INFO.
+ */
+export const getTeamFormSummary = authorizedAction<string, TeamFormSummary>(
+  Permission.READ_TEAM_FORM_INFO,
+  async (userId) => {
+    if (isNil(userId) || isEmpty(userId)) {
+      return err('User ID is required')
+    }
+
+    const [userResult, experienceResult] = await Promise.all([
+      getUserById(userId),
+      getUserServiceHistory(userId),
+    ])
+
+    if (isErr(userResult)) {
+      return err('Failed to fetch user info')
+    }
+
+    const user = userResult.data
+    const experience = isErr(experienceResult)
+      ? []
+      : experienceResult.data.experience.map((r) => ({
+          chaRole: r.cha_role,
+          weekendReference: r.weekend_reference,
+          rollo: r.rollo,
+        }))
+
+    return ok({
+      address: user.address,
+      churchAffiliation: user.communityInformation.churchAffiliation,
+      weekendAttended: user.communityInformation.weekendAttended,
+      essentialsTrainingDate: user.communityInformation.essentialsTrainingDate,
+      specialGiftsAndSkills: user.communityInformation.specialGiftsAndSkills,
+      experience,
+    })
+  }
+)
 
 /**
  * Updates emergency contact and medical information.

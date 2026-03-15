@@ -99,6 +99,9 @@ export enum Permission {
   READ_CANDIDATE_CHURCH = 'READ_CANDIDATE_CHURCH',
   READ_CANDIDATE_PAYMENTS = 'READ_CANDIDATE_PAYMENTS',
   EXPORT_CANDIDATE_LIST = 'EXPORT_CANDIDATE_LIST',
+
+  // Team form submissions
+  READ_TEAM_FORM_INFO = 'READ_TEAM_FORM_INFO',
 }
 
 /**
@@ -117,6 +120,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
     Permission.READ_CANDIDATE_MARITAL_STATUS,
     Permission.READ_CANDIDATE_SPONSOR_INFO,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.BACKUP_RECTOR]: [
     Permission.READ_WRITE_TEAM_PAYMENTS,
@@ -130,6 +134,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_SPONSOR_INFO,
     Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
     Permission.READ_CANDIDATE_CHURCH,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.HEAD]: [
     Permission.READ_WRITE_TEAM_PAYMENTS,
@@ -141,6 +146,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
     Permission.READ_CANDIDATE_MARITAL_STATUS,
     Permission.READ_CANDIDATE_SPONSOR_INFO,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.ASSISTANT_HEAD]: [
     Permission.READ_WRITE_TEAM_PAYMENTS,
@@ -152,6 +158,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
     Permission.READ_CANDIDATE_MARITAL_STATUS,
     Permission.READ_CANDIDATE_SPONSOR_INFO,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.ROSTER]: [
     Permission.WRITE_TEAM_ROSTER,

@@ -61,6 +61,9 @@ export async function WeekendRosterView({
   const canViewSpecialNeeds = userHasPermission(user, [
     Permission.READ_CANDIDATE_MEDICAL_INFO,
   ])
+  const canViewTeamFormInfo = userHasPermission(user, [
+    Permission.READ_TEAM_FORM_INFO,
+  ])
 
   // Check if weekend is editable
   const isWeekendEditable =
@@ -140,6 +143,7 @@ export async function WeekendRosterView({
           includePaymentInformation={canViewPaymentInfo}
           includeEmergencyContact={canViewEmergencyContact}
           includeSpecialNeeds={canViewSpecialNeeds}
+          includeTeamFormInfo={canViewTeamFormInfo}
         />
       </div>
 
