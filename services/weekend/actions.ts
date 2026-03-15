@@ -109,11 +109,20 @@ export async function getRosterSpecialNeeds(rosterId: string) {
 }
 
 /**
- * Fetches weekend options for dropdowns.
+ * Fetches weekend group options for dropdowns.
  * Public - no auth per user request.
  */
 export async function getWeekendOptions() {
   return WeekendService.getWeekendOptions()
+}
+
+/**
+ * Fetches individual weekend options for dropdowns.
+ * Returns actual weekend IDs (not group IDs) for entities with FK to weekends table.
+ * Public - no auth per user request.
+ */
+export async function getIndividualWeekendOptions() {
+  return WeekendService.getIndividualWeekendOptions()
 }
 
 /**

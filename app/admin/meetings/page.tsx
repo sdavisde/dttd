@@ -1,6 +1,6 @@
 import { getLoggedInUser } from '@/services/identity/user'
 import { getUpcomingEvents, getPastEvents } from '@/services/events'
-import { getWeekendOptions } from '@/services/weekend'
+import { getIndividualWeekendOptions } from '@/services/weekend'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import Meetings from './components/Meetings'
 import { permissionLock, userHasPermission, Permission } from '@/lib/security'
@@ -31,7 +31,7 @@ export default async function MeetingsPage() {
     await Promise.all([
       getUpcomingEvents(),
       getPastEvents(),
-      getWeekendOptions(),
+      getIndividualWeekendOptions(),
     ])
 
   const upcomingEvents = isErr(upcomingEventsResult)
