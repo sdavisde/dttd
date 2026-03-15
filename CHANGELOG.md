@@ -1,3 +1,13 @@
+## [1.23.0](https://github.com/sdavisde/dttd/compare/v1.22.0...v1.23.0) (2026-03-15)
+
+### Features
+
+- **weekend:** add team form info column and modal to roster table ([8fc86ce](https://github.com/sdavisde/dttd/commit/8fc86ce6e8d9e6caa9afc4d06d58bbc1a35ed42d))
+
+### Bug Fixes
+
+- show medical columns with permissions ([fefa5bb](https://github.com/sdavisde/dttd/commit/fefa5bb465ee455ae1f3848fb49b9b5ff1b9dc16))
+
 ## [1.22.0](https://github.com/sdavisde/dttd/compare/v1.21.0...v1.22.0) (2026-03-13)
 
 ### Features
