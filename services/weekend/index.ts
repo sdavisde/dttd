@@ -17,7 +17,6 @@ export {
   getRosterSpecialNeeds,
   recordManualPayment,
   getWeekendOptions,
-  getIndividualWeekendOptions,
   getWeekendRosterViewData,
   getActiveWeekendLeadershipTeam,
   // Protected actions (auth required)

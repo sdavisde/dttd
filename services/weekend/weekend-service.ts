@@ -803,35 +803,6 @@ export async function getWeekendOptions(): Promise<
   return ok(options.reverse())
 }
 
-/**
- * Fetches individual weekend options for dropdowns/selectors.
- * Returns individual weekend IDs (not group IDs) — suitable for entities
- * with a foreign key to the weekends table (e.g. events).
- */
-export async function getIndividualWeekendOptions(): Promise<
-  Result<string, Array<{ id: string; label: string }>>
-> {
-  const groupsResult = await getWeekendGroupsByStatus()
-  if (isErr(groupsResult)) return err(groupsResult.error)
-
-  const options = groupsResult.data.flatMap((group) => {
-    const results: Array<{ id: string; label: string }> = []
-    const { MENS, WOMENS } = group.weekends
-
-    if (!isNil(MENS)) {
-      results.push({ id: MENS.id, label: formatWeekendTitle(MENS) })
-    }
-    if (!isNil(WOMENS)) {
-      results.push({ id: WOMENS.id, label: formatWeekendTitle(WOMENS) })
-    }
-
-    return results
-  })
-
-  // Return reversed (newest first)
-  return ok(options.reverse())
-}
-
 // ============================================================================
 // Composite Data Functions (for Server Components)
 // ============================================================================

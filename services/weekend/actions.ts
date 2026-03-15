@@ -117,15 +117,6 @@ export async function getWeekendOptions() {
 }
 
 /**
- * Fetches individual weekend options for dropdowns.
- * Returns actual weekend IDs (not group IDs) for entities with FK to weekends table.
- * Public - no auth per user request.
- */
-export async function getIndividualWeekendOptions() {
-  return WeekendService.getIndividualWeekendOptions()
-}
-
-/**
  * Fetches leadership team members from active weekends.
  * Men leaders come from the active MENS weekend, women leaders from WOMENS weekend.
  * Public - displayed on current weekend page.

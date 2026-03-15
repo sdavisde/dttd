@@ -13,8 +13,7 @@ import { createEvent, updateEvent, deleteEvent } from '@/services/events'
 import { type EventTypeValue } from '@/services/events/types'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'
-import type {
-  EventFormData} from '../event-form-schema';
+import type { EventFormData } from '../event-form-schema'
 import {
   eventFormSchema,
   DEFAULT_FORM_VALUES,
@@ -53,7 +52,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         hasEndDateTime: !isNil(event.endDatetime),
         endDate: null,
         endTime: null,
-        weekendId: event.weekendId ?? null,
+        weekendGroupId: event.weekendGroupId ?? null,
       }
 
       if (!isNil(event.datetime)) {
@@ -101,7 +100,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         location: data.location ?? null,
         type: (data.type as EventTypeValue) ?? null,
         end_datetime: endDatetimeUtc,
-        weekend_id: data.weekendId ?? null,
+        weekend_group_id: data.weekendGroupId ?? null,
       }
 
       if (isEditing && !isNil(event)) {
@@ -170,7 +169,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         hasEndDateTime: currentFormData.hasEndDateTime,
         endDate: currentFormData.endDate?.toISOString(),
         endTime: currentFormData.endTime,
-        weekendId: currentFormData.weekendId,
+        weekendGroupId: currentFormData.weekendGroupId,
       }) !==
       JSON.stringify({
         title: originalFormData.title,
@@ -181,7 +180,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         hasEndDateTime: originalFormData.hasEndDateTime,
         endDate: originalFormData.endDate?.toISOString(),
         endTime: originalFormData.endTime,
-        weekendId: originalFormData.weekendId,
+        weekendGroupId: originalFormData.weekendGroupId,
       })
     : currentFormData.title !== '' ||
       currentFormData.date?.toDateString() !== new Date().toDateString() ||
@@ -189,7 +188,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
       currentFormData.location !== '' ||
       currentFormData.type !== null ||
       currentFormData.hasEndDateTime !== false ||
-      currentFormData.weekendId !== null
+      currentFormData.weekendGroupId !== null
 
   const isFormValid = form.formState.isValid
   const isSaveDisabled =
