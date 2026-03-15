@@ -140,7 +140,7 @@ export function EventFormFields({
       {weekendOptions.length > 0 && (
         <FormField
           control={form.control}
-          name="weekendId"
+          name="weekendGroupId"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-sm font-medium">

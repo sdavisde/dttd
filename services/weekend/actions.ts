@@ -109,7 +109,7 @@ export async function getRosterSpecialNeeds(rosterId: string) {
 }
 
 /**
- * Fetches weekend options for dropdowns.
+ * Fetches weekend group options for dropdowns.
  * Public - no auth per user request.
  */
 export async function getWeekendOptions() {

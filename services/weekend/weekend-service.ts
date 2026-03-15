@@ -780,7 +780,9 @@ export async function getRosterSpecialNeeds(
 }
 
 /**
- * Fetches weekend options for dropdowns/selectors.
+ * Fetches weekend group options for dropdowns/selectors.
+ * Returns group IDs — suitable for filtering (e.g. candidate lists)
+ * where gender is selected separately.
  */
 export async function getWeekendOptions(): Promise<
   Result<string, Array<{ id: string; label: string }>>

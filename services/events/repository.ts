@@ -1,11 +1,15 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { addMonths } from 'date-fns'
-import type { RawEventRecord, EventCreateInput, EventUpdateInput } from './types'
+import type {
+  RawEventRecord,
+  EventCreateInput,
+  EventUpdateInput,
+} from './types'
 import { isNil } from 'lodash'
 
 /**
@@ -118,21 +122,17 @@ export async function findEventsForPeriod(
 }
 
 /**
- * Fetches events for specific weekend IDs.
+ * Fetches events for a specific weekend group.
  */
-export async function findEventsByWeekendIds(
-  weekendIds: string[]
+export async function findEventsByGroupId(
+  groupId: string
 ): Promise<Result<string, RawEventRecord[]>> {
-  if (weekendIds.length === 0) {
-    return ok([])
-  }
-
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('events')
     .select('*')
-    .in('weekend_id', weekendIds)
+    .eq('weekend_group_id', groupId)
     .order('datetime', { ascending: true })
 
   if (isSupabaseError(error)) {
@@ -140,26 +140,6 @@ export async function findEventsByWeekendIds(
   }
 
   return ok(data ?? [])
-}
-
-/**
- * Fetches weekend IDs for a given group ID.
- */
-export async function findWeekendIdsByGroupId(
-  groupId: string
-): Promise<Result<string, string[]>> {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('weekends')
-    .select('id')
-    .eq('group_id', groupId)
-
-  if (isSupabaseError(error)) {
-    return err(error.message)
-  }
-
-  return ok((data ?? []).map((w) => w.id))
 }
 
 /**

@@ -11,7 +11,7 @@ export const eventFormSchema = z.object({
   hasEndDateTime: z.boolean(),
   endDate: z.date().nullable().optional(),
   endTime: z.string().nullable().optional(),
-  weekendId: z.string().nullable().optional(),
+  weekendGroupId: z.string().nullable().optional(),
 })
 
 export type EventFormData = z.infer<typeof eventFormSchema>
@@ -30,5 +30,5 @@ export const DEFAULT_FORM_VALUES: EventFormData = {
   hasEndDateTime: false,
   endDate: null,
   endTime: null,
-  weekendId: null,
+  weekendGroupId: null,
 }
