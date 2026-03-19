@@ -34,6 +34,8 @@ import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
 import { calculateAge } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
+import { isDevMode } from '@/lib/dev-mode'
+import { CANDIDATE_FORM_TEST_DATA } from './candidate-forms.helpers'
 import type { Database } from '@/database.types'
 
 type CandidateInfo = Database['public']['Tables']['candidate_info']['Row']
@@ -183,9 +185,18 @@ export function CandidateForms({
     }
   }
 
+  const fillTestData = () => {
+    form.reset(CANDIDATE_FORM_TEST_DATA)
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {isDevMode() && (
+          <Button type="button" variant="outline" onClick={fillTestData}>
+            Fill with test data
+          </Button>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
@@ -246,7 +257,9 @@ export function CandidateForms({
                     <FormLabel>Date of Birth</FormLabel>
                     <FormControl>
                       <DatePicker
-                        date={field.value !== '' ? new Date(field.value) : undefined}
+                        date={
+                          field.value !== '' ? new Date(field.value) : undefined
+                        }
                         onDateChange={(date) =>
                           field.onChange(date?.toISOString())
                         }

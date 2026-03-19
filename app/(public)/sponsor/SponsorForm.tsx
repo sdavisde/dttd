@@ -41,6 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { isDevMode } from '@/lib/dev-mode'
+import { SPONSOR_FORM_TEST_DATA } from './sponsor-form.helpers'
 
 /**
  * This should match 1:1 with the candidate_sponsorship_info table
@@ -186,6 +188,21 @@ export function SponsorForm() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
+              {isDevMode() && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mb-4"
+                  onClick={() => {
+                    form.reset({
+                      ...SPONSOR_FORM_TEST_DATA,
+                      weekend_id: weekends?.MENS?.id ?? '',
+                    })
+                  }}
+                >
+                  Fill with test data
+                </Button>
+              )}
               <div className="flex flex-col gap-2">
                 <Typography variant="h6">Basic Information</Typography>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

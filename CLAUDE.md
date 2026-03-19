@@ -14,6 +14,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - yarn db:stop - stops all supabase containers
   - yarn db:reset - resets the database to its initial state (runs migrations and seed after wiping the DB. DANGEROUS, ONLY USE WHEN TOLD)
 
+## Dev Mode
+
+- `isDevMode()` from `@/lib/dev-mode` returns `true` when `NODE_ENV === 'development'` (i.e., during `yarn dev`)
+- Use it to conditionally render dev-only UI like "Fill with test data" buttons on forms
+- Currently used in: `SponsorForm.tsx`, `candidate-forms.tsx`
+- When adding new forms, include a dev-mode autofill button following the same pattern
+
 ## Project Overview
 
 Dusty Trails Tres Dias (DTTD) is a Christian community management platform for spiritual renewal weekends. The application manages the complete candidate journey from sponsorship through weekend participation.
