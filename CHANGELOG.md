@@ -1,3 +1,9 @@
+## [1.24.0](https://github.com/sdavisde/dttd/compare/v1.23.1...v1.24.0) (2026-03-19)
+
+### Features
+
+- **forms:** add dev-mode "Fill with test data" buttons to candidate and sponsor forms ([d5da267](https://github.com/sdavisde/dttd/commit/d5da267b9b3dee03c594d4077af83fc14e1bb34d))
+
 ## [1.23.1](https://github.com/sdavisde/dttd/compare/v1.23.0...v1.23.1) (2026-03-15)
 
 ### Bug Fixes
