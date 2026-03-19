@@ -1,3 +1,9 @@
+## [1.25.0](https://github.com/sdavisde/dttd/compare/v1.24.0...v1.25.0) (2026-03-19)
+
+### Features
+
+- **payments:** add weekend column, summary totals, and report page ([9d78143](https://github.com/sdavisde/dttd/commit/9d78143527a40fbc1be38a8d0e8a2097d2b1418d))
+
 ## [1.24.0](https://github.com/sdavisde/dttd/compare/v1.23.1...v1.24.0) (2026-03-19)
 
 ### Features
