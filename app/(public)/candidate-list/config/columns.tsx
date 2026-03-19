@@ -2,7 +2,6 @@
 
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { HydratedCandidate } from '@/lib/candidates/types'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
@@ -50,12 +49,10 @@ function getEmail(c: HydratedCandidate): string | null {
   )
 }
 
-function getPaymentStatus(c: HydratedCandidate): string {
-  const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
-  const paid = c.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
-  const balance = totalFee - paid
-  if (balance <= 0) return 'Paid'
-  if (paid > 0) return `$${paid} / $${totalFee}`
+function getPaymentStatusDisplay(c: HydratedCandidate): string {
+  const { totalPaid, totalFee, status } = c.paymentSummary
+  if (status === 'Paid') return 'Paid'
+  if (status === 'Partial') return `$${totalPaid} / $${totalFee}`
   return 'Unpaid'
 }
 
@@ -263,7 +260,7 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
   // -- Status columns --
   {
     id: 'payment',
-    accessorFn: getPaymentStatus,
+    accessorFn: getPaymentStatusDisplay,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Payment" />
     ),
@@ -465,7 +462,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
   {
     id: 'payment',
     header: 'Payment',
-    accessor: getPaymentStatus,
+    accessor: getPaymentStatusDisplay,
     showOnMobile: true,
     minWidth: '120px',
     requiredPermission: Permission.READ_CANDIDATE_PAYMENTS,

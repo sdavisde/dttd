@@ -6,7 +6,7 @@ import { getUrl } from '@/lib/url'
 import { Errors } from '@/lib/error'
 import { isEmpty, isNil } from 'lodash'
 import { getCandidateById } from '@/services/candidates'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
+import { getCandidateFee } from '@/services/payment/payment-service'
 
 interface CandidateFeesPaymentPageProps {
   searchParams: Promise<{
@@ -69,12 +69,18 @@ export default async function CandidateFeesPaymentPage({
   }
 
   // Check if candidate fees have already been paid for this candidate
-  if (candidate.amountPaid >= PAYMENT_CONSTANTS.CANDIDATE_FEE) {
+  const feeResult = await getCandidateFee()
+  const candidateFee =
+    !Results.isErr(feeResult) && !isNil(feeResult.data.unitAmount)
+      ? feeResult.data.unitAmount / 100
+      : 0
+
+  if (candidateFee > 0 && candidate.amountPaid >= candidateFee) {
     logger.info({
       path: '/payment/candidate-fee',
       candidate_id,
       amountPaid: candidate.amountPaid,
-      candidateFee: PAYMENT_CONSTANTS.CANDIDATE_FEE,
+      candidateFee,
       msg: 'Candidate fees already paid',
     })
     redirect(`/home?error=${Errors.CANDIDATE_FEES_ALREADY_PAID}`)

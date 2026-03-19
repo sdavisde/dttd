@@ -17,7 +17,11 @@ import { sendCandidateFormsCompletedEmail } from '@/services/notifications'
 import { logger } from '@/lib/logger'
 import type { WeekendType } from '@/lib/weekend/types'
 import type { Database } from '@/database.types'
-import { getPaymentForTarget } from '@/services/payment/payment-service'
+import {
+  getPaymentForTarget,
+  getCandidateFee,
+} from '@/services/payment/payment-service'
+import { getPaymentSummary } from '@/lib/payments/utils'
 
 type CandidateSponsorshipInfoUpdate =
   Database['public']['Tables']['candidate_sponsorship_info']['Update']
@@ -43,7 +47,9 @@ export async function createCandidateWithSponsorshipInfo(
       .single()
 
     if (!isNil(candidateError) || isNil(candidate)) {
-      return err(`Failed to create candidate: ${candidateError?.message ?? 'No data returned'}`)
+      return err(
+        `Failed to create candidate: ${candidateError?.message ?? 'No data returned'}`
+      )
     }
 
     // Create the sponsorship info record
@@ -212,19 +218,28 @@ export async function getAllCandidatesWithDetails(
       )
     }
 
-    // Fetch payments for all candidates in parallel from payment_transaction table
-    const paymentPromises = candidates.map(async (candidate) => {
-      const paymentsResult = await getPaymentForTarget(
-        'candidate',
-        candidate.id
-      )
-      return {
-        candidateId: candidate.id,
-        payments: isErr(paymentsResult) ? [] : paymentsResult.data,
-      }
-    })
+    // Fetch payments and Stripe fee in parallel
+    const [paymentsByCandidate, candidateFeeResult] = await Promise.all([
+      Promise.all(
+        candidates.map(async (candidate) => {
+          const paymentsResult = await getPaymentForTarget(
+            'candidate',
+            candidate.id
+          )
+          return {
+            candidateId: candidate.id,
+            payments: isErr(paymentsResult) ? [] : paymentsResult.data,
+          }
+        })
+      ),
+      getCandidateFee(),
+    ])
 
-    const paymentsByCandidate = await Promise.all(paymentPromises)
+    // Stripe fee in dollars (unitAmount is in cents)
+    const baseFee =
+      !isErr(candidateFeeResult) && !isNil(candidateFeeResult.data.unitAmount)
+        ? candidateFeeResult.data.unitAmount / 100
+        : 0
 
     // Create a map of candidate ID to payments
     const paymentsMap = new Map<string, PaymentRecord[]>()
@@ -233,12 +248,17 @@ export async function getAllCandidatesWithDetails(
     }
 
     return ok(
-      candidates.map((candidate) => ({
-        ...candidate,
-        candidate_sponsorship_info: candidate.candidate_sponsorship_info.at(0),
-        candidate_info: candidate.candidate_info.at(0),
-        payments: paymentsMap.get(candidate.id) ?? [],
-      })) as HydratedCandidate[]
+      candidates.map((candidate) => {
+        const payments = paymentsMap.get(candidate.id) ?? []
+        return {
+          ...candidate,
+          candidate_sponsorship_info:
+            candidate.candidate_sponsorship_info.at(0),
+          candidate_info: candidate.candidate_info.at(0),
+          payments,
+          paymentSummary: getPaymentSummary(payments, baseFee),
+        }
+      }) as HydratedCandidate[]
     )
   } catch (error) {
     return err(

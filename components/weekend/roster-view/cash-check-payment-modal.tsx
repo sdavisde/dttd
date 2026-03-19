@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { DollarSign, CreditCard, FileText, Loader2, User } from 'lucide-react'
+import { DollarSign, CreditCard, FileText, User } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -19,15 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { WeekendRosterMember} from '@/services/weekend';
+import type { WeekendRosterMember } from '@/services/weekend'
 import { recordManualPayment } from '@/services/weekend'
-import { getTeamFee } from '@/services/payment/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { isOk, Results } from '@/lib/results'
+import { isOk } from '@/lib/results'
 import { isNil } from 'lodash'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
-import { useQuery } from '@tanstack/react-query'
 
 type CashCheckPaymentModalProps = {
   open: boolean
@@ -47,16 +44,6 @@ export function CashCheckPaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
-    queryKey: ['teamFee'],
-    queryFn: async () => {
-      const result = await getTeamFee()
-      const price = Results.toNullable(result)
-      return !isNil(price?.unitAmount) && price!.unitAmount > 0 ? price!.unitAmount / 100 : null
-    },
-    staleTime: Infinity,
-  })
-
   const users = rosterMember?.users
   const memberName =
     !isNil(users?.first_name) && !isNil(users?.last_name)
@@ -74,12 +61,11 @@ export function CashCheckPaymentModal({
     return null
   }
 
-  const totalFee =
-    !isNil(paymentType) && !isNil(stripePriceDollars)
-      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
-      : null
-  const currentPaid = rosterMember.total_paid ?? 0
-  const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
+  const {
+    totalFee,
+    totalPaid: currentPaid,
+    balance: remainingBalance,
+  } = rosterMember.paymentSummary
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -194,16 +180,9 @@ export function CashCheckPaymentModal({
             </p>
           </div>
 
-          {/* Payment Summary - conditional display */}
+          {/* Payment Summary */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            {isLoadingPrice ? (
-              <div className="flex items-center justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span className="text-sm text-muted-foreground">
-                  Loading fee...
-                </span>
-              </div>
-            ) : isNil(paymentType) ? (
+            {isNil(paymentType) ? (
               <p className="text-sm text-muted-foreground text-center py-2">
                 Select a payment method to see fee details
               </p>
@@ -221,9 +200,7 @@ export function CashCheckPaymentModal({
                   <span>Remaining Balance:</span>
                   <span
                     className={
-                      remainingBalance !== null && remainingBalance > 0
-                        ? 'text-amber-600'
-                        : 'text-green-600'
+                      remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
                     }
                   >
                     ${remainingBalance}
@@ -243,7 +220,7 @@ export function CashCheckPaymentModal({
                   id="payment-amount"
                   type="number"
                   min="0"
-                  max={remainingBalance ?? undefined}
+                  max={remainingBalance}
                   step="0.01"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
@@ -253,12 +230,11 @@ export function CashCheckPaymentModal({
                   disabled={isNil(paymentType)}
                 />
               </div>
-              {remainingBalance !== null &&
-                parseFloat(paymentAmount) > remainingBalance && (
-                  <p className="text-xs text-amber-600">
-                    Amount exceeds remaining balance
-                  </p>
-                )}
+              {parseFloat(paymentAmount) > remainingBalance && (
+                <p className="text-xs text-amber-600">
+                  Amount exceeds remaining balance
+                </p>
+              )}
             </div>
 
             {/* Notes */}
@@ -294,7 +270,9 @@ export function CashCheckPaymentModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isSubmitting || paymentAmount === '' || isNil(paymentType)}
+                disabled={
+                  isSubmitting || paymentAmount === '' || isNil(paymentType)
+                }
               >
                 {isSubmitting ? 'Recording...' : 'Record Payment'}
               </Button>

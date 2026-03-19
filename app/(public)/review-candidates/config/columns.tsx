@@ -6,7 +6,6 @@ import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { StatusLegend } from '../components/StatusLegend'
 import { CandidatePaymentInfo } from '../components/CandidatePaymentInfo'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import { Info, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -62,11 +61,7 @@ const statusSortingFn: SortingFn<HydratedCandidate> = (
 // ---------------------------------------------------------------------------
 
 function getPaymentCategory(candidate: HydratedCandidate): string {
-  const paid =
-    candidate.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
-  if (paid <= 0) return 'Unpaid'
-  if (paid >= PAYMENT_CONSTANTS.CANDIDATE_FEE) return 'Paid'
-  return 'Partial'
+  return candidate.paymentSummary.status
 }
 
 // ---------------------------------------------------------------------------

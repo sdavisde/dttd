@@ -1,4 +1,5 @@
 import type { Database, Tables } from '@/database.types'
+import type { PaymentSummary } from '@/lib/payments/utils'
 
 export type CandidateStatus = Database['public']['Enums']['candidate_status']
 
@@ -17,6 +18,8 @@ export type HydratedCandidate = Omit<
   candidate_info?: Database['public']['Tables']['candidate_info']['Row']
   /** Payments from payment_transaction table */
   payments?: PaymentRecord[]
+  /** Pre-computed payment summary (fee from Stripe, discount-aware) */
+  paymentSummary: PaymentSummary
 }
 
 export type CandidateFormData = Omit<

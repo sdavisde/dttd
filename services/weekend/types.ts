@@ -6,6 +6,7 @@
  */
 
 import type { Tables } from '@/database.types'
+import type { PaymentSummary } from '@/lib/payments/utils'
 
 /**
  * Payment record from the payment_transaction table.
@@ -69,6 +70,8 @@ export type WeekendRosterMember = {
   total_paid: number
   /** Array of all payment records for this member */
   all_payments: PaymentRecord[]
+  /** Pre-computed payment summary (fee from Stripe, discount-aware) */
+  paymentSummary: PaymentSummary
   /** Whether all 5 team forms have been completed */
   forms_complete: boolean
   /** Medical profile from user_medical_profiles (populated when permission is granted) */

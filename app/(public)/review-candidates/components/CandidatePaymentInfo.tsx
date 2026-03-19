@@ -3,7 +3,6 @@
 import { Info, Plus } from 'lucide-react'
 import { CandidatePaymentInfoModal } from './CandidatePaymentInfoModal'
 import { CandidateCashCheckPaymentModal } from './CandidateCashCheckPaymentModal'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import type { HydratedCandidate } from '@/lib/candidates/types'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -37,7 +36,8 @@ export const CandidatePaymentInfo = ({
     setCashCheckModalOpen(false)
   }
 
-  const { paid, display } = formatPaymentSummary(candidate)
+  const { totalPaid } = candidate.paymentSummary
+  const display = `$${totalPaid.toFixed(0)}`
   const hasPayments = (candidate.payments?.length ?? 0) > 0
 
   return (
@@ -55,7 +55,7 @@ export const CandidatePaymentInfo = ({
           <span
             className={cn(
               'text-sm font-medium',
-              paid > 0 ? 'text-green-600' : 'text-muted-foreground'
+              totalPaid > 0 ? 'text-green-600' : 'text-muted-foreground'
             )}
           >
             {display}
@@ -96,19 +96,4 @@ export const CandidatePaymentInfo = ({
       />
     </div>
   )
-}
-
-// Format payment summary for display
-function formatPaymentSummary(candidate: HydratedCandidate) {
-  const totalFee = PAYMENT_CONSTANTS.CANDIDATE_FEE
-  const paid =
-    candidate.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
-  const balance = totalFee - paid
-
-  return {
-    paid,
-    balance,
-    display: `$${paid.toFixed(0)}`,
-    isPaidInFull: balance <= 0,
-  }
 }

@@ -32,6 +32,7 @@ import type {
   LeadershipTeamData,
 } from './types'
 import * as PaymentService from '@/services/payment/payment-service'
+import { getPaymentSummary } from '@/lib/payments/utils'
 import type { PaymentTransactionRow } from '@/services/payment/types'
 import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
@@ -151,6 +152,7 @@ function getWeekendLabel(weekend: Weekend | null): string {
  */
 function normalizeRosterMember(
   raw: RawWeekendRoster,
+  baseFee: number,
   groupMemberId: string | null = null,
   medicalProfile: WeekendRosterMember['medical_profile'] = null
 ): WeekendRosterMember {
@@ -171,6 +173,7 @@ function normalizeRosterMember(
     payment_info: all_payments[0] ?? null,
     total_paid,
     all_payments,
+    paymentSummary: getPaymentSummary(all_payments, baseFee),
     forms_complete: raw.forms_complete,
     medical_profile: medicalProfile,
   }
@@ -544,64 +547,76 @@ export async function getWeekendRoster(
     groupMemberMap.set(rosterId, groupMemberId)
   }
 
-  // Fetch payments, forms_complete, and medical profiles in parallel
-  const [paymentsByRoster, formsCompleteByRoster, medicalProfilesByRoster] =
-    await Promise.all([
-      Promise.all(
-        rosterRecords.map(async (record) => {
-          const groupMemberId = groupMemberMap.get(record.id) ?? null
-          if (isNil(groupMemberId)) {
-            return { rosterId: record.id, payments: [] }
-          }
-          const paymentsResult = await PaymentService.getPaymentForTarget(
-            'weekend_group_member',
-            groupMemberId
-          )
-          return {
-            rosterId: record.id,
-            payments: unwrapOr(paymentsResult, []),
-          }
-        })
-      ),
-      Promise.all(
-        rosterRecords.map(async (record) => {
-          const groupMemberId = groupMemberMap.get(record.id) ?? null
-          if (isNil(groupMemberId)) {
-            return { rosterId: record.id, forms_complete: false }
-          }
-          const completionsResult =
-            await GroupMemberRepository.getFormCompletions(groupMemberId)
-          if (isErr(completionsResult)) {
-            return { rosterId: record.id, forms_complete: false }
-          }
-          return {
-            rosterId: record.id,
-            forms_complete: completionsResult.data.length >= 5,
-          }
-        })
-      ),
-      Promise.all(
-        rosterRecords.map(async (record) => {
-          if (isNil(record.user_id)) {
-            return { rosterId: record.id, medicalProfile: null }
-          }
-          const profileResult =
-            await GroupMemberRepository.getUserMedicalProfile(record.user_id)
-          if (isErr(profileResult) || isNil(profileResult.data)) {
-            return { rosterId: record.id, medicalProfile: null }
-          }
-          const profile = profileResult.data
-          return {
-            rosterId: record.id,
-            medicalProfile: {
-              emergency_contact_name: profile.emergency_contact_name,
-              emergency_contact_phone: profile.emergency_contact_phone,
-              medical_conditions: profile.medical_conditions,
-            },
-          }
-        })
-      ),
-    ])
+  // Fetch payments, forms_complete, medical profiles, and team fee in parallel
+  const [
+    paymentsByRoster,
+    formsCompleteByRoster,
+    medicalProfilesByRoster,
+    teamFeeResult,
+  ] = await Promise.all([
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        const groupMemberId = groupMemberMap.get(record.id) ?? null
+        if (isNil(groupMemberId)) {
+          return { rosterId: record.id, payments: [] }
+        }
+        const paymentsResult = await PaymentService.getPaymentForTarget(
+          'weekend_group_member',
+          groupMemberId
+        )
+        return {
+          rosterId: record.id,
+          payments: unwrapOr(paymentsResult, []),
+        }
+      })
+    ),
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        const groupMemberId = groupMemberMap.get(record.id) ?? null
+        if (isNil(groupMemberId)) {
+          return { rosterId: record.id, forms_complete: false }
+        }
+        const completionsResult =
+          await GroupMemberRepository.getFormCompletions(groupMemberId)
+        if (isErr(completionsResult)) {
+          return { rosterId: record.id, forms_complete: false }
+        }
+        return {
+          rosterId: record.id,
+          forms_complete: completionsResult.data.length >= 5,
+        }
+      })
+    ),
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        if (isNil(record.user_id)) {
+          return { rosterId: record.id, medicalProfile: null }
+        }
+        const profileResult = await GroupMemberRepository.getUserMedicalProfile(
+          record.user_id
+        )
+        if (isErr(profileResult) || isNil(profileResult.data)) {
+          return { rosterId: record.id, medicalProfile: null }
+        }
+        const profile = profileResult.data
+        return {
+          rosterId: record.id,
+          medicalProfile: {
+            emergency_contact_name: profile.emergency_contact_name,
+            emergency_contact_phone: profile.emergency_contact_phone,
+            medical_conditions: profile.medical_conditions,
+          },
+        }
+      })
+    ),
+    PaymentService.getTeamFee(),
+  ])
+
+  // Stripe fee in dollars (unitAmount is in cents)
+  const baseFee =
+    !isErr(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
+      ? teamFeeResult.data.unitAmount / 100
+      : 0
 
   // Build lookup maps
   const paymentsMap = new Map<string, PaymentRecord[]>()
@@ -634,6 +649,7 @@ export async function getWeekendRoster(
   const normalizedRoster = rawRosterWithPayments.map((record) =>
     normalizeRosterMember(
       record,
+      baseFee,
       groupMemberMap.get(record.id) ?? null,
       medicalProfileMap.get(record.id) ?? null
     )

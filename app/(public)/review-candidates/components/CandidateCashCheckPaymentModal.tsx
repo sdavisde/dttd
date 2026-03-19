@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { DollarSign, CreditCard, FileText, Loader2, User } from 'lucide-react'
+import { DollarSign, CreditCard, FileText, User } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -21,12 +21,9 @@ import {
 } from '@/components/ui/select'
 import type { HydratedCandidate } from '@/lib/candidates/types'
 import { recordManualCandidatePayment } from '@/services/candidates/actions'
-import { getCandidateFee } from '@/services/payment/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { isOk, Results } from '@/lib/results'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
-import { useQuery } from '@tanstack/react-query'
+import { isOk } from '@/lib/results'
 import { isNil } from 'lodash'
 
 type CandidateCashCheckPaymentModalProps = {
@@ -46,16 +43,6 @@ export function CandidateCashCheckPaymentModal({
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
-
-  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
-    queryKey: ['candidateFee'],
-    queryFn: async () => {
-      const result = await getCandidateFee()
-      const price = Results.toNullable(result)
-      return !isNil(price?.unitAmount) ? price.unitAmount / 100 : null
-    },
-    staleTime: Infinity,
-  })
 
   const candidateName =
     candidate?.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
@@ -78,13 +65,11 @@ export function CandidateCashCheckPaymentModal({
     return null
   }
 
-  const totalFee =
-    !isNil(paymentType) && !isNil(stripePriceDollars)
-      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
-      : null
-  const currentPaid =
-    candidate.payments?.reduce((sum, p) => sum + p.gross_amount, 0) ?? 0
-  const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
+  const {
+    totalFee,
+    totalPaid: currentPaid,
+    balance: remainingBalance,
+  } = candidate.paymentSummary
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -201,16 +186,9 @@ export function CandidateCashCheckPaymentModal({
             </p>
           </div>
 
-          {/* Payment Summary - conditional display */}
+          {/* Payment Summary */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            {isLoadingPrice ? (
-              <div className="flex items-center justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span className="text-sm text-muted-foreground">
-                  Loading fee...
-                </span>
-              </div>
-            ) : isNil(paymentType) ? (
+            {isNil(paymentType) ? (
               <p className="text-sm text-muted-foreground text-center py-2">
                 Select a payment method to see fee details
               </p>
@@ -228,9 +206,7 @@ export function CandidateCashCheckPaymentModal({
                   <span>Remaining Balance:</span>
                   <span
                     className={
-                      remainingBalance !== null && remainingBalance > 0
-                        ? 'text-amber-600'
-                        : 'text-green-600'
+                      remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
                     }
                   >
                     ${remainingBalance}
@@ -294,7 +270,9 @@ export function CandidateCashCheckPaymentModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isSubmitting || paymentAmount === '' || isNil(paymentType)}
+                disabled={
+                  isSubmitting || paymentAmount === '' || isNil(paymentType)
+                }
               >
                 {isSubmitting ? 'Recording...' : 'Record Payment'}
               </Button>

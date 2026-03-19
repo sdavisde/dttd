@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ClipboardList, Edit, Stethoscope } from 'lucide-react'
 import { PaymentInfo } from '../payment-info'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
 import '@/components/ui/data-table/types'
 import { isEmpty, isNil } from 'lodash'
 
@@ -35,9 +34,7 @@ const roleSortingFn: SortingFn<WeekendRosterMember> = (rowA, rowB) => {
 // ---------------------------------------------------------------------------
 
 function getPaymentCategory(member: WeekendRosterMember): string {
-  if (member.total_paid <= 0) return 'Unpaid'
-  if (member.total_paid >= PAYMENT_CONSTANTS.TEAM_FEE) return 'Paid'
-  return 'Partial'
+  return member.paymentSummary.status
 }
 
 // ---------------------------------------------------------------------------
