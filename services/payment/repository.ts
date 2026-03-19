@@ -1,16 +1,15 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import type { Result } from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { fromSupabase } from '@/lib/results'
 import type {
   ServiceOptions,
   PaymentTransactionRow,
   PaymentTransactionInsert,
   PaymentTransactionUpdate,
-  TargetType} from './types';
-import {
-  RawPaymentTransaction
+  PaymentTransactionWithWeekend,
+  TargetType,
 } from './types'
 
 // ============================================================================
@@ -53,7 +52,8 @@ export const PaymentTransactionQuery = `
   notes,
   charge_id,
   balance_transaction_id,
-  created_at
+  created_at,
+  weekends(title, type)
 `
 
 // ============================================================================
@@ -148,7 +148,7 @@ export async function getPaymentsByTargetId(
  */
 export async function getAllPayments(
   options?: ServiceOptions
-): Promise<Result<string, PaymentTransactionRow[]>> {
+): Promise<Result<string, PaymentTransactionWithWeekend[]>> {
   const supabase = await getClient(options)
   const response = await supabase
     .from('payment_transaction')

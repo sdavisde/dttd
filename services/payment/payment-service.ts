@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { stripe } from '@/lib/stripe'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, isErr, ok, Results } from '@/lib/results'
 import * as PaymentRepository from './repository'
 import type Stripe from 'stripe'
@@ -13,13 +13,12 @@ import type {
   BackfillStripeDataInput,
   PaymentTransactionDTO,
   PaymentTransactionRow,
+  PaymentTransactionWithWeekend,
   TargetType,
   PaymentType,
-  PaymentMethod} from './types';
-import {
-  CreatePaymentSchema,
-  BackfillStripeDataSchema
+  PaymentMethod,
 } from './types'
+import { CreatePaymentSchema, BackfillStripeDataSchema } from './types'
 
 // ============================================================================
 // Stripe Price Functions
@@ -108,7 +107,7 @@ export async function getCandidateFee(): Promise<Result<string, PriceInfo>> {
  * UUID without FK constraints. The payment_owner field serves as the source of truth.
  */
 function normalizePaymentTransaction(
-  raw: PaymentTransactionRow
+  raw: PaymentTransactionWithWeekend
 ): PaymentTransactionDTO {
   // payment_owner contains the actual payer name (set during payment creation)
   const payerName = raw.payment_owner
@@ -131,6 +130,8 @@ function normalizePaymentTransaction(
     created_at: raw.created_at ?? new Date().toISOString(),
     payer_name: payerName,
     payer_email: null, // Email not stored in payment_transaction; would require separate lookup
+    weekend_title: raw.weekends?.title ?? null,
+    weekend_type: (raw.weekends?.type as 'MENS' | 'WOMENS') ?? null,
   }
 }
 

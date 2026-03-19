@@ -12,19 +12,18 @@ import {
 } from '@/components/ui/popover'
 import { Info } from 'lucide-react'
 import { isNil } from 'lodash'
+import {
+  formatCurrency,
+  formatTargetType,
+  formatPaymentMethod,
+  formatWeekendLabel,
+  getTargetTypeBadgeVariant,
+} from '@/lib/payments/formatters'
 import '@/components/ui/data-table/types'
 
 // ---------------------------------------------------------------------------
 // Helper functions
 // ---------------------------------------------------------------------------
-
-const formatCurrency = (amount: number | null) => {
-  if (amount === null) return '—'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount)
-}
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -34,45 +33,6 @@ const formatDate = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-const formatTargetType = (targetType: PaymentTransactionDTO['target_type']) => {
-  switch (targetType) {
-    case 'weekend_roster':
-      return 'Team'
-    case 'candidate':
-      return 'Candidate'
-    default:
-      return 'Other'
-  }
-}
-
-const getTargetTypeBadgeColor = (
-  targetType: PaymentTransactionDTO['target_type']
-) => {
-  switch (targetType) {
-    case 'weekend_roster':
-      return 'default' as const
-    case 'candidate':
-      return 'secondary' as const
-    default:
-      return 'outline' as const
-  }
-}
-
-const formatPaymentMethod = (
-  method: PaymentTransactionDTO['payment_method']
-) => {
-  switch (method) {
-    case 'stripe':
-      return 'Stripe'
-    case 'cash':
-      return 'Cash'
-    case 'check':
-      return 'Check'
-    default:
-      return method ?? 'Unknown'
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -141,7 +101,7 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       <DataTableColumnHeader column={column} title="Type" />
     ),
     cell: ({ getValue, row }) => (
-      <Badge variant={getTargetTypeBadgeColor(row.original.target_type)}>
+      <Badge variant={getTargetTypeBadgeVariant(row.original.target_type)}>
         {getValue<string>()}
       </Badge>
     ),
@@ -149,6 +109,22 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       filterType: 'select',
       showOnMobile: true,
       mobileLabel: 'Type',
+      mobilePriority: 'secondary',
+    },
+  },
+  {
+    id: 'weekend',
+    accessorFn: (p) => formatWeekendLabel(p),
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Weekend" />
+    ),
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{getValue<string>()}</span>
+    ),
+    meta: {
+      filterType: 'select',
+      showOnMobile: true,
+      mobileLabel: 'Weekend',
       mobilePriority: 'secondary',
     },
   },
@@ -285,6 +261,7 @@ export const paymentsGlobalFilterFn: FilterFn<PaymentTransactionDTO> = (
   const grossAmount = formatCurrency(payment.gross_amount).toLowerCase()
   const notes = (payment.notes ?? '').toLowerCase()
   const intentId = (payment.payment_intent_id ?? '').toLowerCase()
+  const weekend = formatWeekendLabel(payment).toLowerCase()
 
   return (
     payer.includes(query) ||
@@ -292,6 +269,7 @@ export const paymentsGlobalFilterFn: FilterFn<PaymentTransactionDTO> = (
     method.includes(query) ||
     grossAmount.includes(query) ||
     notes.includes(query) ||
-    intentId.includes(query)
+    intentId.includes(query) ||
+    weekend.includes(query)
   )
 }

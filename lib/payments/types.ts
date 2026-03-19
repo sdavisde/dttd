@@ -11,7 +11,11 @@ export type PaymentType = 'fee' | 'donation' | 'other'
 /**
  * Target type values matching the payment_transaction.target_type column.
  */
-export type TargetType = 'candidate' | 'weekend_roster' | null
+export type TargetType =
+  | 'candidate'
+  | 'weekend_roster'
+  | 'weekend_group_member'
+  | null
 
 /**
  * Payment method values matching the payment_transaction.payment_method column.

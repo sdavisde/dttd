@@ -175,6 +175,13 @@ export type RawPaymentTransaction = PaymentTransactionRow & {
   } | null
 }
 
+/**
+ * Raw payment row with joined weekend data from getAllPayments query.
+ */
+export type PaymentTransactionWithWeekend = PaymentTransactionRow & {
+  weekends: { title: string | null; type: string } | null
+}
+
 // ============================================================================
 // DTOs (Data Transfer Objects)
 // ============================================================================
@@ -201,4 +208,7 @@ export type PaymentTransactionDTO = {
   // Derived payer info
   payer_name: string | null
   payer_email: string | null
+  // Joined weekend info
+  weekend_title: string | null
+  weekend_type: 'MENS' | 'WOMENS' | null
 }
