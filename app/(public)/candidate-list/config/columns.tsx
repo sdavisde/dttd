@@ -36,7 +36,8 @@ function formatEmergencyContact(candidate: HydratedCandidate): string | null {
 }
 
 function getName(c: HydratedCandidate): string | null {
-  return !isNil(c.candidate_info?.first_name) && !isNil(c.candidate_info?.last_name)
+  return !isNil(c.candidate_info?.first_name) &&
+    !isNil(c.candidate_info?.last_name)
     ? `${c.candidate_info?.first_name} ${c.candidate_info?.last_name}`
     : (c.candidate_sponsorship_info?.candidate_name ?? null)
 }
@@ -63,6 +64,7 @@ function getPaymentStatus(c: HydratedCandidate): string {
 // ---------------------------------------------------------------------------
 
 export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
+  // -- Candidate columns --
   {
     id: 'name',
     accessorFn: getName,
@@ -107,6 +109,59 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
     },
   },
   {
+    id: 'church',
+    accessorFn: (c) => c.candidate_info?.church ?? null,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Candidate Church" />
+    ),
+    cell: ({ getValue }) => getValue<string | null>() ?? '-',
+    meta: {
+      requiredPermission: Permission.READ_CANDIDATE_CHURCH,
+      filterType: 'select',
+      showOnMobile: true,
+      mobileLabel: 'Candidate Church',
+      mobilePriority: 'secondary',
+    },
+  },
+  {
+    id: 'age',
+    accessorFn: (c) => {
+      const age = calculateAge(c.candidate_info?.date_of_birth)
+      return age !== null ? String(age) : null
+    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Age" />
+    ),
+    cell: ({ getValue }) => getValue<string | null>() ?? '-',
+    sortingFn: (rowA, rowB) => {
+      const rawA = parseInt(rowA.getValue('age') as string, 10)
+      const a = Number.isNaN(rawA) ? 0 : rawA
+      const rawB = parseInt(rowB.getValue('age') as string, 10)
+      const b = Number.isNaN(rawB) ? 0 : rawB
+      return a - b
+    },
+    meta: {
+      requiredPermission: Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
+      showOnMobile: false,
+      mobileLabel: 'Age',
+      mobilePriority: 'detail',
+    },
+  },
+  {
+    id: 'maritalStatus',
+    accessorFn: (c) => c.candidate_info?.marital_status ?? null,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Marital Status" />
+    ),
+    cell: ({ getValue }) => getValue<string | null>() ?? '-',
+    meta: {
+      requiredPermission: Permission.READ_CANDIDATE_MARITAL_STATUS,
+      showOnMobile: false,
+      mobileLabel: 'Marital Status',
+      mobilePriority: 'detail',
+    },
+  },
+  {
     id: 'shirtSize',
     accessorFn: (c) => c.candidate_info?.shirt_size ?? null,
     header: ({ column }) => (
@@ -134,6 +189,21 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
       mobilePriority: 'detail',
     },
   },
+  {
+    id: 'medicalConditions',
+    accessorFn: (c) => c.candidate_info?.medical_conditions ?? null,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Medical Conditions" />
+    ),
+    cell: ({ getValue }) => getValue<string | null>() ?? '-',
+    meta: {
+      requiredPermission: Permission.READ_CANDIDATE_MEDICAL_INFO,
+      showOnMobile: false,
+      mobileLabel: 'Medical Conditions',
+      mobilePriority: 'detail',
+    },
+  },
+  // -- Sponsor columns --
   {
     id: 'sponsor',
     accessorFn: (c) => c.candidate_sponsorship_info?.sponsor_name ?? null,
@@ -190,73 +260,7 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
       mobilePriority: 'detail',
     },
   },
-  {
-    id: 'age',
-    accessorFn: (c) => {
-      const age = calculateAge(c.candidate_info?.date_of_birth)
-      return age !== null ? String(age) : null
-    },
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Age" />
-    ),
-    cell: ({ getValue }) => getValue<string | null>() ?? '-',
-    sortingFn: (rowA, rowB) => {
-      const rawA = parseInt(rowA.getValue('age') as string, 10)
-      const a = Number.isNaN(rawA) ? 0 : rawA
-      const rawB = parseInt(rowB.getValue('age') as string, 10)
-      const b = Number.isNaN(rawB) ? 0 : rawB
-      return a - b
-    },
-    meta: {
-      requiredPermission: Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
-      showOnMobile: false,
-      mobileLabel: 'Age',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'maritalStatus',
-    accessorFn: (c) => c.candidate_info?.marital_status ?? null,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Marital Status" />
-    ),
-    cell: ({ getValue }) => getValue<string | null>() ?? '-',
-    meta: {
-      requiredPermission: Permission.READ_CANDIDATE_MARITAL_STATUS,
-      showOnMobile: false,
-      mobileLabel: 'Marital Status',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'medicalConditions',
-    accessorFn: (c) => c.candidate_info?.medical_conditions ?? null,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Medical Conditions" />
-    ),
-    cell: ({ getValue }) => getValue<string | null>() ?? '-',
-    meta: {
-      requiredPermission: Permission.READ_CANDIDATE_MEDICAL_INFO,
-      showOnMobile: false,
-      mobileLabel: 'Medical Conditions',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'church',
-    accessorFn: (c) => c.candidate_info?.church ?? null,
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Church" />
-    ),
-    cell: ({ getValue }) => getValue<string | null>() ?? '-',
-    meta: {
-      requiredPermission: Permission.READ_CANDIDATE_CHURCH,
-      filterType: 'select',
-      showOnMobile: true,
-      mobileLabel: 'Church',
-      mobilePriority: 'secondary',
-    },
-  },
+  // -- Status columns --
   {
     id: 'payment',
     accessorFn: getPaymentStatus,
@@ -349,6 +353,7 @@ export type CandidateColumnConfig<T = string | null> = {
 }
 
 export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
+  // -- Candidate columns --
   {
     id: 'name',
     header: 'Name',
@@ -373,6 +378,33 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     requiredPermission: Permission.READ_CANDIDATE_CONTACT_INFO,
   },
   {
+    id: 'church',
+    header: 'Candidate Church',
+    accessor: (c) => c.candidate_info?.church ?? null,
+    showOnMobile: true,
+    minWidth: '150px',
+    requiredPermission: Permission.READ_CANDIDATE_CHURCH,
+  },
+  {
+    id: 'age',
+    header: 'Age',
+    accessor: (c) => {
+      const age = calculateAge(c.candidate_info?.date_of_birth)
+      return age !== null ? String(age) : null
+    },
+    showOnMobile: false,
+    minWidth: '60px',
+    requiredPermission: Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
+  },
+  {
+    id: 'maritalStatus',
+    header: 'Marital Status',
+    accessor: (c) => c.candidate_info?.marital_status ?? null,
+    showOnMobile: false,
+    minWidth: '120px',
+    requiredPermission: Permission.READ_CANDIDATE_MARITAL_STATUS,
+  },
+  {
     id: 'shirtSize',
     header: 'T-shirt Size',
     accessor: (c) => c.candidate_info?.shirt_size ?? null,
@@ -388,6 +420,15 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     minWidth: '200px',
     requiredPermission: Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
   },
+  {
+    id: 'medicalConditions',
+    header: 'Medical Conditions',
+    accessor: (c) => c.candidate_info?.medical_conditions ?? null,
+    showOnMobile: false,
+    minWidth: '200px',
+    requiredPermission: Permission.READ_CANDIDATE_MEDICAL_INFO,
+  },
+  // -- Sponsor columns --
   {
     id: 'sponsor',
     header: 'Sponsor',
@@ -420,41 +461,7 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     minWidth: '150px',
     requiredPermission: Permission.READ_CANDIDATE_SPONSOR_INFO,
   },
-  {
-    id: 'age',
-    header: 'Age',
-    accessor: (c) => {
-      const age = calculateAge(c.candidate_info?.date_of_birth)
-      return age !== null ? String(age) : null
-    },
-    showOnMobile: false,
-    minWidth: '60px',
-    requiredPermission: Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
-  },
-  {
-    id: 'maritalStatus',
-    header: 'Marital Status',
-    accessor: (c) => c.candidate_info?.marital_status ?? null,
-    showOnMobile: false,
-    minWidth: '120px',
-    requiredPermission: Permission.READ_CANDIDATE_MARITAL_STATUS,
-  },
-  {
-    id: 'medicalConditions',
-    header: 'Medical Conditions',
-    accessor: (c) => c.candidate_info?.medical_conditions ?? null,
-    showOnMobile: false,
-    minWidth: '200px',
-    requiredPermission: Permission.READ_CANDIDATE_MEDICAL_INFO,
-  },
-  {
-    id: 'church',
-    header: 'Church',
-    accessor: (c) => c.candidate_info?.church ?? null,
-    showOnMobile: true,
-    minWidth: '150px',
-    requiredPermission: Permission.READ_CANDIDATE_CHURCH,
-  },
+  // -- Status columns --
   {
     id: 'payment',
     header: 'Payment',
