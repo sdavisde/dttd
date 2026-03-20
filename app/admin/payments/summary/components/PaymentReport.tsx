@@ -127,6 +127,7 @@ function CollectionProgressCard({
   getReceived,
   getPaidCount,
   getExpectedCount,
+  getExtraPaymentsCount,
 }: {
   title: string
   weekends: ActiveWeekendMetrics[]
@@ -134,10 +135,15 @@ function CollectionProgressCard({
   getReceived: (w: ActiveWeekendMetrics) => number
   getPaidCount: (w: ActiveWeekendMetrics) => number
   getExpectedCount: (w: ActiveWeekendMetrics) => number
+  getExtraPaymentsCount: (w: ActiveWeekendMetrics) => number
 }) {
   const totalExpected = weekends.reduce((s, w) => s + getExpected(w), 0)
   const totalReceived = weekends.reduce((s, w) => s + getReceived(w), 0)
   const pct = totalExpected > 0 ? (totalReceived / totalExpected) * 100 : 0
+  const totalExtraPayments = weekends.reduce(
+    (s, w) => s + getExtraPaymentsCount(w),
+    0
+  )
 
   return (
     <Card>
@@ -162,33 +168,47 @@ function CollectionProgressCard({
           {weekends.map((w) => {
             const paid = getPaidCount(w)
             const expected = getExpectedCount(w)
-            const wPct =
-              expected > 0 ? (getReceived(w) / getExpected(w)) * 100 : 0
+            const extra = getExtraPaymentsCount(w)
+            const wPct = expected > 0 ? (paid / expected) * 100 : 0
             return (
-              <div
-                key={w.weekendType}
-                className="flex items-center justify-between text-xs"
-              >
-                <span className="text-muted-foreground">{w.weekendLabel}</span>
-                <span>
-                  <span
-                    className={cn(
-                      'font-medium',
-                      paid >= expected
-                        ? 'text-green-600'
-                        : 'text-muted-foreground'
-                    )}
-                  >
-                    {paid}/{expected} paid
+              <div key={w.weekendType} className="space-y-0.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {w.weekendLabel}
                   </span>
-                  <span className="text-muted-foreground ml-2">
-                    ({Math.round(wPct)}%)
+                  <span>
+                    <span
+                      className={cn(
+                        'font-medium',
+                        paid >= expected
+                          ? 'text-green-600'
+                          : 'text-muted-foreground'
+                      )}
+                    >
+                      {paid}/{expected} paid
+                    </span>
+                    <span className="text-muted-foreground ml-2">
+                      ({Math.round(wPct)}%)
+                    </span>
                   </span>
-                </span>
+                </div>
+                {extra > 0 && (
+                  <p className="text-xs text-amber-600">
+                    +{extra} payment{extra !== 1 ? 's' : ''} from inactive
+                    members
+                  </p>
+                )}
               </div>
             )
           })}
         </div>
+
+        {totalExtraPayments > 0 && (
+          <p className="text-xs text-amber-600 border-t pt-2">
+            {totalExtraPayments} payment{totalExtraPayments !== 1 ? 's' : ''}{' '}
+            received from removed or rejected members. Consider issuing refunds.
+          </p>
+        )}
       </CardContent>
     </Card>
   )
@@ -263,6 +283,7 @@ function ActiveWeekendDashboard({
         getReceived={(w) => w.teamReceivedTotal}
         getPaidCount={(w) => w.teamPaidCount}
         getExpectedCount={(w) => w.teamExpectedCount}
+        getExtraPaymentsCount={(w) => w.teamExtraPaymentsCount}
       />
       <CollectionProgressCard
         title="Candidate Fee Collection"
@@ -271,6 +292,7 @@ function ActiveWeekendDashboard({
         getReceived={(w) => w.candidateReceivedTotal}
         getPaidCount={(w) => w.candidatePaidCount}
         getExpectedCount={(w) => w.candidateExpectedCount}
+        getExtraPaymentsCount={(w) => w.candidateExtraPaymentsCount}
       />
       <OverallFinancialCard financials={financials} />
     </div>

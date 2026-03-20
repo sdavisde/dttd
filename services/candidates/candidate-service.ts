@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { isNil, sumBy } from 'lodash'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, isErr, ok, unwrapOr } from '@/lib/results'
 import { notifyCandidatePaymentReceived } from '@/services/notifications/notification-service'
 import * as CandidateRepository from './repository'
@@ -218,4 +218,13 @@ export async function getCandidateCountByWeekend(
   weekendId: string
 ): Promise<Result<string, number>> {
   return CandidateRepository.getCandidateCountByWeekend(weekendId)
+}
+
+/**
+ * Gets the IDs of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateIdsByWeekend(
+  weekendId: string
+): Promise<Result<string, string[]>> {
+  return CandidateRepository.getCandidateIdsByWeekend(weekendId)
 }

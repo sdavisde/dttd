@@ -319,6 +319,10 @@ export type ActiveWeekendMetrics = {
   candidatePaidCount: number
   candidateExpectedTotal: number
   candidateReceivedTotal: number
+  /** Number of extra payments from non-active candidates (rejected/removed) */
+  candidateExtraPaymentsCount: number
+  /** Number of extra payments from non-active team members (dropped) */
+  teamExtraPaymentsCount: number
 }
 
 export type ActiveWeekendFinancials = {
@@ -341,6 +345,7 @@ export type ActiveWeekendFinancials = {
  * @param teamFee - Team Stripe fee per person in dollars (cash price = this - $10)
  * @param candidateFee - Candidate Stripe fee per person in dollars (cash price = this - $10)
  * @param activeTeamTargetIds - Set of valid team payment target IDs (active roster + group member IDs)
+ * @param activeCandidateTargetIds - Set of valid candidate IDs (non-rejected)
  */
 export function computeActiveWeekendFinancials(
   payments: PaymentTransactionDTO[],
@@ -349,7 +354,8 @@ export function computeActiveWeekendFinancials(
   candidateCounts: Record<string, number>,
   teamFee: number,
   candidateFee: number,
-  activeTeamTargetIds: Set<string>
+  activeTeamTargetIds: Set<string>,
+  activeCandidateTargetIds: Set<string>
 ): ActiveWeekendFinancials {
   const activeWeekendIdSet = new Set(Object.values(weekendIds))
   const activePayments = payments.filter(
@@ -396,9 +402,29 @@ export function computeActiveWeekendFinancials(
         )
         .map((p) => p.target_id)
     )
-    const uniqueCandidatePayers = new Set(
-      candidatePayments.map((p) => p.target_id)
+    // Count unique candidate payers, filtering to active candidates only
+    const allUniqueCandidatePayers = new Set(
+      candidatePayments
+        .filter((p) => !isNil(p.target_id))
+        .map((p) => p.target_id)
     )
+    const activeCandidatePayers = new Set(
+      candidatePayments
+        .filter(
+          (p) =>
+            !isNil(p.target_id) && activeCandidateTargetIds.has(p.target_id)
+        )
+        .map((p) => p.target_id)
+    )
+    const candidateExtraPaymentsCount =
+      allUniqueCandidatePayers.size - activeCandidatePayers.size
+
+    // Count extra team payments from non-active members
+    const allUniqueTeamPayers = new Set(
+      teamPayments.filter((p) => !isNil(p.target_id)).map((p) => p.target_id)
+    )
+    const teamExtraPaymentsCount =
+      allUniqueTeamPayers.size - uniqueTeamPayers.size
 
     weekendMetrics.push({
       weekendType: type,
@@ -411,12 +437,14 @@ export function computeActiveWeekendFinancials(
         0
       ),
       candidateExpectedCount,
-      candidatePaidCount: uniqueCandidatePayers.size,
+      candidatePaidCount: activeCandidatePayers.size,
       candidateExpectedTotal: candidateExpectedCount * candidateCashPrice,
       candidateReceivedTotal: candidatePayments.reduce(
         (sum, p) => sum + p.gross_amount,
         0
       ),
+      candidateExtraPaymentsCount,
+      teamExtraPaymentsCount,
     })
   }
 

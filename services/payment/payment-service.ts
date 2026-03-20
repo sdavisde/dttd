@@ -6,7 +6,10 @@ import { err, isErr, isOk, ok, unwrapOr } from '@/lib/results'
 import * as PaymentRepository from './repository'
 import * as WeekendRepository from '@/services/weekend/repository'
 import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
-import { getCandidateCountByWeekend } from '@/services/candidates/actions'
+import {
+  getCandidateCountByWeekend,
+  getCandidateIdsByWeekend,
+} from '@/services/candidates/actions'
 import {
   computeActiveWeekendFinancials,
   type ActiveWeekendFinancials,
@@ -310,6 +313,8 @@ export async function getActiveWeekendFinancials(
     womensRoster,
     mensCandidateCount,
     womensCandidateCount,
+    mensCandidateIds,
+    womensCandidateIds,
     groupMembersResult,
     teamFeeResult,
     candidateFeeResult,
@@ -318,6 +323,8 @@ export async function getActiveWeekendFinancials(
     WeekendRepository.findWeekendRoster(womensWeekend.id),
     getCandidateCountByWeekend(mensWeekend.id),
     getCandidateCountByWeekend(womensWeekend.id),
+    getCandidateIdsByWeekend(mensWeekend.id),
+    getCandidateIdsByWeekend(womensWeekend.id),
     !isNil(groupId)
       ? GroupMemberRepository.findGroupMembersByGroupId(groupId)
       : Promise.resolve(null),
@@ -354,6 +361,12 @@ export async function getActiveWeekendFinancials(
     }
   }
 
+  // Build set of active candidate IDs so paid counts only reflect active candidates
+  const activeCandidateTargetIds = new Set<string>([
+    ...unwrapOr(mensCandidateIds, []),
+    ...unwrapOr(womensCandidateIds, []),
+  ])
+
   const teamFee =
     isOk(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
       ? teamFeeResult.data.unitAmount / 100
@@ -371,7 +384,8 @@ export async function getActiveWeekendFinancials(
       candidateCounts,
       teamFee,
       candidateFee,
-      activeTeamTargetIds
+      activeTeamTargetIds,
+      activeCandidateTargetIds
     )
   )
 }

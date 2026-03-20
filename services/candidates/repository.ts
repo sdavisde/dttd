@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { fromSupabase, err, ok } from '@/lib/results'
 import { Tables } from '@/database.types'
 import { isSupabaseError } from '@/lib/supabase/utils'
@@ -65,6 +65,27 @@ export async function findCandidateById(
   }
 
   return ok(data)
+}
+
+/**
+ * Gets the IDs of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateIdsByWeekend(
+  weekendId: string
+): Promise<Result<string, string[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('candidates')
+    .select('id')
+    .eq('weekend_id', weekendId)
+    .neq('status', 'rejected')
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok((data ?? []).map((c) => c.id))
 }
 
 /**
