@@ -5,6 +5,7 @@ import { Permission } from '@/lib/security'
 import { PaymentRecord } from '@/lib/payments/types'
 import * as PaymentService from './payment-service'
 import type { PaymentTransactionDTO } from './types'
+import type { Weekend } from '@/lib/weekend/types'
 import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
 import { isErr, ok } from '@/lib/results'
 
@@ -63,4 +64,18 @@ export async function getTeamFee() {
  */
 export async function getCandidateFee() {
   return await PaymentService.getCandidateFee()
+}
+
+/**
+ * Computes financial health metrics for the active weekend group.
+ * Requires READ_PAYMENTS permission.
+ */
+export async function getActiveWeekendFinancials(
+  payments: PaymentTransactionDTO[],
+  activeWeekends: Record<'MENS' | 'WOMENS', Weekend>
+) {
+  return await PaymentService.getActiveWeekendFinancials(
+    payments,
+    activeWeekends
+  )
 }

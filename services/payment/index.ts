@@ -31,3 +31,5 @@ export {
   hasPaymentForTarget,
   backfillStripeData,
 } from './payment-service'
+
+export type { ActiveWeekendFinancials } from '@/lib/payments/compute-totals'

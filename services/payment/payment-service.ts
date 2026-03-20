@@ -2,10 +2,18 @@ import 'server-only'
 
 import { stripe } from '@/lib/stripe'
 import type { Result } from '@/lib/results'
-import { err, isErr, ok, Results } from '@/lib/results'
+import { err, isErr, isOk, ok, unwrapOr } from '@/lib/results'
 import * as PaymentRepository from './repository'
+import * as WeekendRepository from '@/services/weekend/repository'
+import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
+import { getCandidateCountByWeekend } from '@/services/candidates/actions'
+import {
+  computeActiveWeekendFinancials,
+  type ActiveWeekendFinancials,
+} from '@/lib/payments/compute-totals'
 import type Stripe from 'stripe'
 import { isNil } from 'lodash'
+import type { Weekend } from '@/lib/weekend/types'
 import type {
   PriceInfo,
   ServiceOptions,
@@ -277,5 +285,93 @@ export async function backfillStripeData(
       balance_transaction_id: validatedData.balance_transaction_id ?? undefined,
     },
     options
+  )
+}
+
+// ============================================================================
+// Active Weekend Financial Health
+// ============================================================================
+
+/**
+ * Computes financial health metrics for the active weekend group.
+ * Fetches roster counts, candidate counts, group members, and fee prices,
+ * then computes expected vs received totals per weekend.
+ */
+export async function getActiveWeekendFinancials(
+  payments: PaymentTransactionDTO[],
+  activeWeekends: Record<'MENS' | 'WOMENS', Weekend>
+): Promise<Result<string, ActiveWeekendFinancials>> {
+  const mensWeekend = activeWeekends.MENS
+  const womensWeekend = activeWeekends.WOMENS
+  const groupId = mensWeekend.groupId
+
+  const [
+    mensRoster,
+    womensRoster,
+    mensCandidateCount,
+    womensCandidateCount,
+    groupMembersResult,
+    teamFeeResult,
+    candidateFeeResult,
+  ] = await Promise.all([
+    WeekendRepository.findWeekendRoster(mensWeekend.id),
+    WeekendRepository.findWeekendRoster(womensWeekend.id),
+    getCandidateCountByWeekend(mensWeekend.id),
+    getCandidateCountByWeekend(womensWeekend.id),
+    !isNil(groupId)
+      ? GroupMemberRepository.findGroupMembersByGroupId(groupId)
+      : Promise.resolve(null),
+    getTeamFee(),
+    getCandidateFee(),
+  ])
+
+  // findWeekendRoster excludes dropped members by default
+  const activeMensRoster = unwrapOr(mensRoster, [])
+  const activeWomensRoster = unwrapOr(womensRoster, [])
+
+  const rosterCounts: Record<string, number> = {
+    [mensWeekend.id]: activeMensRoster.length,
+    [womensWeekend.id]: activeWomensRoster.length,
+  }
+
+  const candidateCounts: Record<string, number> = {
+    [mensWeekend.id]: unwrapOr(mensCandidateCount, 0),
+    [womensWeekend.id]: unwrapOr(womensCandidateCount, 0),
+  }
+
+  // Build set of active team target IDs (group member IDs for active roster users)
+  // so paid counts only reflect active (non-dropped) members
+  const activeUserIds = new Set([
+    ...activeMensRoster.map((m) => m.user_id).filter(Boolean),
+    ...activeWomensRoster.map((m) => m.user_id).filter(Boolean),
+  ])
+  const activeTeamTargetIds = new Set<string>()
+  if (groupMembersResult !== null && isOk(groupMembersResult)) {
+    for (const gm of groupMembersResult.data) {
+      if (activeUserIds.has(gm.user_id)) {
+        activeTeamTargetIds.add(gm.id)
+      }
+    }
+  }
+
+  const teamFee =
+    isOk(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
+      ? teamFeeResult.data.unitAmount / 100
+      : 0
+  const candidateFee =
+    isOk(candidateFeeResult) && !isNil(candidateFeeResult.data.unitAmount)
+      ? candidateFeeResult.data.unitAmount / 100
+      : 0
+
+  return ok(
+    computeActiveWeekendFinancials(
+      payments,
+      { MENS: mensWeekend.id, WOMENS: womensWeekend.id },
+      rosterCounts,
+      candidateCounts,
+      teamFee,
+      candidateFee,
+      activeTeamTargetIds
+    )
   )
 }

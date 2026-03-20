@@ -517,7 +517,8 @@ export async function getWeekendById(
 export async function getWeekendRoster(
   weekendId: string
 ): Promise<Result<string, Array<WeekendRosterMember>>> {
-  const result = await WeekendRepository.findWeekendRoster(weekendId)
+  const result =
+    await WeekendRepository.findWeekendRosterIncludingDropped(weekendId)
 
   if (isErr(result)) {
     return result

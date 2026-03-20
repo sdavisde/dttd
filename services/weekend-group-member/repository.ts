@@ -2,10 +2,14 @@ import 'server-only'
 
 import { isNil } from 'lodash'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
-import type { RawGroupMember, RawFormCompletion, RawMedicalProfile } from './types'
+import type {
+  RawGroupMember,
+  RawFormCompletion,
+  RawMedicalProfile,
+} from './types'
 
 /**
  * Upserts a weekend_group_members row for a given group and user.
@@ -29,6 +33,26 @@ export async function upsertGroupMember(
   }
 
   return ok(undefined)
+}
+
+/**
+ * Fetches all group members for a given group.
+ */
+export async function findGroupMembersByGroupId(
+  groupId: string
+): Promise<Result<string, RawGroupMember[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_group_members')
+    .select('*')
+    .eq('group_id', groupId)
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to fetch group members: ${error.message}`)
+  }
+
+  return ok(data ?? [])
 }
 
 /**

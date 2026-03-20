@@ -1,18 +1,16 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { fromSupabase, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import type { Tables } from '@/database.types'
 import type {
   WeekendStatusValue,
   WeekendUpdateInput,
-  RawWeekendRecord} from '@/lib/weekend/types';
-import {
-  WeekendStatus,
-  WeekendType
+  RawWeekendRecord,
 } from '@/lib/weekend/types'
+import { WeekendStatus, WeekendType } from '@/lib/weekend/types'
 import { logger } from '@/lib/logger'
 import { isEmpty, isNil } from 'lodash'
 
@@ -267,6 +265,25 @@ export async function deleteWeekendsByGroupId(
  * Note: Payments are fetched separately in the service layer.
  */
 export async function findWeekendRoster(
+  weekendId: string
+): Promise<Result<string, RawWeekendRosterDB[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select(WeekendRosterQuery)
+    .eq('weekend_id', weekendId)
+    .neq('status', 'drop')
+    .order('cha_role', { ascending: true })
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok((data ?? []) as RawWeekendRosterDB[])
+}
+
+export async function findWeekendRosterIncludingDropped(
   weekendId: string
 ): Promise<Result<string, RawWeekendRosterDB[]>> {
   const supabase = await createClient()

@@ -1,4 +1,5 @@
 import type { PaymentTransactionDTO } from '@/services/payment'
+import { isNil } from 'lodash'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -335,10 +336,11 @@ export type ActiveWeekendFinancials = {
  *
  * @param payments - All payments (will be filtered to active weekend IDs)
  * @param weekendIds - Map of weekend type to weekend ID for the active group
- * @param rosterCounts - Map of weekend ID to number of roster members
+ * @param rosterCounts - Map of weekend ID to number of active (non-dropped) roster members
  * @param candidateCounts - Map of weekend ID to number of non-rejected candidates
  * @param teamFee - Team Stripe fee per person in dollars (cash price = this - $10)
  * @param candidateFee - Candidate Stripe fee per person in dollars (cash price = this - $10)
+ * @param activeTeamTargetIds - Set of valid team payment target IDs (active roster + group member IDs)
  */
 export function computeActiveWeekendFinancials(
   payments: PaymentTransactionDTO[],
@@ -346,7 +348,8 @@ export function computeActiveWeekendFinancials(
   rosterCounts: Record<string, number>,
   candidateCounts: Record<string, number>,
   teamFee: number,
-  candidateFee: number
+  candidateFee: number,
+  activeTeamTargetIds: Set<string>
 ): ActiveWeekendFinancials {
   const activeWeekendIdSet = new Set(Object.values(weekendIds))
   const activePayments = payments.filter(
@@ -384,8 +387,15 @@ export function computeActiveWeekendFinancials(
     const teamExpectedCount = rosterCounts[weekendId] ?? 0
     const candidateExpectedCount = candidateCounts[weekendId] ?? 0
 
-    // Count unique payers (by target_id) to get "paid" counts
-    const uniqueTeamPayers = new Set(teamPayments.map((p) => p.target_id))
+    // Count unique payers (by target_id) to get "paid" counts.
+    // Only count payers whose target_id is in the active set (excludes dropped roster members).
+    const uniqueTeamPayers = new Set(
+      teamPayments
+        .filter(
+          (p) => !isNil(p.target_id) && activeTeamTargetIds.has(p.target_id)
+        )
+        .map((p) => p.target_id)
+    )
     const uniqueCandidatePayers = new Set(
       candidatePayments.map((p) => p.target_id)
     )
