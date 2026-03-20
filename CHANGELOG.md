@@ -1,3 +1,9 @@
+## [1.26.0](https://github.com/sdavisde/dttd/compare/v1.25.1...v1.26.0) (2026-03-20)
+
+### Features
+
+- redesign payments page to be more helpful for treasurer ([48b78fa](https://github.com/sdavisde/dttd/commit/48b78fab01a48760d6def5a23397f7fb77e4e5a3))
+
 ## [1.25.1](https://github.com/sdavisde/dttd/compare/v1.25.0...v1.25.1) (2026-03-20)
 
 ### Bug Fixes
