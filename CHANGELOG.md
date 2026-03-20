@@ -1,3 +1,9 @@
+## [1.25.1](https://github.com/sdavisde/dttd/compare/v1.25.0...v1.25.1) (2026-03-20)
+
+### Bug Fixes
+
+- show correct data on payments page ([6313015](https://github.com/sdavisde/dttd/commit/6313015e960359ea9929e891f946802858001e23))
+
 ## [1.25.0](https://github.com/sdavisde/dttd/compare/v1.24.0...v1.25.0) (2026-03-19)
 
 ### Features
