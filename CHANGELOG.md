@@ -1,3 +1,9 @@
+## [1.26.2](https://github.com/sdavisde/dttd/compare/v1.26.1...v1.26.2) (2026-03-20)
+
+### Bug Fixes
+
+- **payments:** correct paid counts and percentages in collection cards ([70a6602](https://github.com/sdavisde/dttd/commit/70a66027aeb17e8f470f61c6764c2500d45059ec))
+
 ## [1.26.1](https://github.com/sdavisde/dttd/compare/v1.26.0...v1.26.1) (2026-03-20)
 
 ### Bug Fixes
