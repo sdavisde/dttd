@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 import { ok, isErr, isOk } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import { getPayoutTransactions } from '../stripe-service'
-import type { WebhookHandler} from './types';
+import type { WebhookHandler } from './types'
 import { WebhookErrorCodes } from './types'
 import { webhookErr } from '../webhook-context'
 import * as DepositService from '@/services/deposit/deposit-service'
@@ -58,8 +58,8 @@ export const payoutPaidHandler: WebhookHandler<Stripe.PayoutPaidEvent> = {
         const backfillResult = await PaymentService.backfillStripeData(
           transaction.paymentIntentId,
           {
-            net_amount: transaction.netAmount,
-            stripe_fee: transaction.stripeFee,
+            net_amount: transaction.netAmount / 100,
+            stripe_fee: transaction.stripeFee / 100,
             charge_id: transaction.chargeId,
             balance_transaction_id: transaction.balanceTransactionId,
           },
@@ -89,9 +89,10 @@ export const payoutPaidHandler: WebhookHandler<Stripe.PayoutPaidEvent> = {
     }
 
     // Calculate arrival date
-    const arrivalDate = payout.arrival_date !== 0
-      ? new Date(payout.arrival_date * 1000).toISOString()
-      : null
+    const arrivalDate =
+      payout.arrival_date !== 0
+        ? new Date(payout.arrival_date * 1000).toISOString()
+        : null
 
     // Create the deposit using DepositService
     // The service will create the deposit and link all payments by payment_intent_id

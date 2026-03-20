@@ -1,6 +1,15 @@
 import type { PaymentTransactionDTO } from '@/services/payment'
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Net amount for a payment: use net_amount if available, otherwise gross (no fees for cash/check). */
+function netOf(p: PaymentTransactionDTO): number {
+  return p.net_amount ?? p.gross_amount
+}
+
+// ---------------------------------------------------------------------------
 // Payment totals (used by PaymentsSummary)
 // ---------------------------------------------------------------------------
 
@@ -28,7 +37,7 @@ export function computePaymentTotals(
 
   for (const p of payments) {
     totals.gross += p.gross_amount
-    totals.net += p.net_amount ?? 0
+    totals.net += netOf(p)
     totals.fees += p.stripe_fee ?? 0
 
     if (p.target_type === 'candidate') {
@@ -63,6 +72,8 @@ export type WeekendBreakdown = {
   totalNet: number
   totalFees: number
   totalCount: number
+  onlineNet: number
+  offlineNet: number
 }
 
 export type WeekendGroup = {
@@ -119,23 +130,32 @@ export function computeWeekendReport(
         totalNet = 0,
         totalFees = 0,
         totalCount = 0
+      let onlineNet = 0,
+        offlineNet = 0
 
       for (const p of typePayments) {
+        const pNet = netOf(p)
         totalGross += p.gross_amount
-        totalNet += p.net_amount ?? 0
+        totalNet += pNet
         totalFees += p.stripe_fee ?? 0
         totalCount++
 
+        if (p.payment_method === 'stripe') {
+          onlineNet += pNet
+        } else {
+          offlineNet += pNet
+        }
+
         if (p.target_type === 'candidate') {
           candidateGross += p.gross_amount
-          candidateNet += p.net_amount ?? 0
+          candidateNet += pNet
           candidateCount++
         } else if (
           p.target_type === 'weekend_roster' ||
           p.target_type === 'weekend_group_member'
         ) {
           teamGross += p.gross_amount
-          teamNet += p.net_amount ?? 0
+          teamNet += pNet
           teamCount++
         } else {
           otherGross += p.gross_amount
@@ -166,6 +186,8 @@ export function computeWeekendReport(
         totalNet,
         totalFees,
         totalCount,
+        onlineNet,
+        offlineNet,
       })
     }
 
@@ -186,6 +208,8 @@ export type ReportGrandTotals = {
   totalNet: number
   totalFees: number
   totalCount: number
+  onlineNet: number
+  offlineNet: number
 }
 
 /** Sum all weekend breakdowns into grand totals. */
@@ -201,6 +225,8 @@ export function computeGrandTotals(groups: WeekendGroup[]): ReportGrandTotals {
     totalNet: 0,
     totalFees: 0,
     totalCount: 0,
+    onlineNet: 0,
+    offlineNet: 0,
   }
 
   for (const group of groups) {
@@ -215,6 +241,8 @@ export function computeGrandTotals(groups: WeekendGroup[]): ReportGrandTotals {
       totals.totalNet += w.totalNet
       totals.totalFees += w.totalFees
       totals.totalCount += w.totalCount
+      totals.onlineNet += w.onlineNet
+      totals.offlineNet += w.offlineNet
     }
   }
 

@@ -98,9 +98,23 @@ function GrandTotalsCards({ totals }: { totals: ReportGrandTotals }) {
           <p className="text-2xl font-bold">
             {formatCurrency(totals.totalNet)}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {formatCurrency(totals.totalFees)} in Stripe fees
-          </p>
+          <div className="mt-1 space-y-0.5 text-xs">
+            <p>
+              <span className="text-muted-foreground">Cash/Check: </span>
+              <span className="font-medium">
+                {formatCurrency(totals.offlineNet)}
+              </span>
+            </p>
+            <p>
+              <span className="text-muted-foreground">Online: </span>
+              <span className="font-medium">
+                {formatCurrency(totals.onlineNet)}
+              </span>
+            </p>
+            <p className="text-muted-foreground">
+              {formatCurrency(totals.totalFees)} in Stripe fees
+            </p>
+          </div>
         </CardContent>
       </Card>
       <Card>
