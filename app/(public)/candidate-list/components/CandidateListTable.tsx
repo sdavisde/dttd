@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import type { HydratedCandidate } from '@/lib/candidates/types'
 import type { User } from '@/lib/users/types'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
@@ -21,19 +20,10 @@ export function CandidateListTable({
     defaultPageSize: 25,
   })
 
-  // Pre-filter: exclude rejected and sponsored candidates
-  const filteredCandidates = useMemo(
-    () =>
-      candidates.filter(
-        (c) => c.status !== 'rejected' && c.status !== 'sponsored'
-      ),
-    [candidates]
-  )
-
   return (
     <DataTable
       columns={candidateColumns}
-      data={filteredCandidates}
+      data={candidates}
       user={user}
       initialSort={[{ id: 'name', desc: false }]}
       globalFilterFn={candidateGlobalFilterFn}
