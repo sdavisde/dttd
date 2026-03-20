@@ -1,3 +1,9 @@
+## [1.26.1](https://github.com/sdavisde/dttd/compare/v1.26.0...v1.26.1) (2026-03-20)
+
+### Bug Fixes
+
+- only show active team members on the payment page ([a5d56c6](https://github.com/sdavisde/dttd/commit/a5d56c6167dc9abc35bc27187d6854aa72ec0f13))
+
 ## [1.26.0](https://github.com/sdavisde/dttd/compare/v1.25.1...v1.26.0) (2026-03-20)
 
 ### Features
