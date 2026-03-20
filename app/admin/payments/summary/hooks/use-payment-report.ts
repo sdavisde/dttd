@@ -1,20 +1,13 @@
 import { useMemo, useState } from 'react'
 import type { PaymentTransactionDTO } from '@/services/payment'
-import {
-  computeWeekendReport,
-  computeGrandTotals,
-} from '@/lib/payments/compute-totals'
-import type {
-  WeekendGroup,
-  ReportGrandTotals,
-} from '@/lib/payments/compute-totals'
+import { computeWeekendReport } from '@/lib/payments/compute-totals'
+import type { WeekendGroup } from '@/lib/payments/compute-totals'
 
 export type UsePaymentReportReturn = {
   weekendGroupOptions: string[]
   selectedGroup: string
   setSelectedGroup: (group: string) => void
   report: WeekendGroup[]
-  grandTotals: ReportGrandTotals
 }
 
 export function usePaymentReport(
@@ -42,13 +35,10 @@ export function usePaymentReport(
     [filteredPayments]
   )
 
-  const grandTotals = useMemo(() => computeGrandTotals(report), [report])
-
   return {
     weekendGroupOptions,
     selectedGroup,
     setSelectedGroup,
     report,
-    grandTotals,
   }
 }
