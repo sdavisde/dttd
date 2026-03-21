@@ -228,3 +228,17 @@ export async function getCandidateIdsByWeekend(
 ): Promise<Result<string, string[]>> {
   return CandidateRepository.getCandidateIdsByWeekend(weekendId)
 }
+
+/**
+ * Gets the IDs and names of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateNamesByWeekend(
+  weekendId: string
+): Promise<
+  Result<
+    string,
+    { id: string; first_name: string | null; last_name: string | null }[]
+  >
+> {
+  return CandidateRepository.getCandidateNamesByWeekend(weekendId)
+}

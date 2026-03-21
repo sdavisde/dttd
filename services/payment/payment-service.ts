@@ -9,10 +9,12 @@ import * as GroupMemberRepository from '@/services/weekend-group-member/reposito
 import {
   getCandidateCountByWeekend,
   getCandidateIdsByWeekend,
+  getCandidateNamesByWeekend,
 } from '@/services/candidates/actions'
 import {
   computeActiveWeekendFinancials,
   type ActiveWeekendFinancials,
+  type PersonInfo,
 } from '@/lib/payments/compute-totals'
 import type Stripe from 'stripe'
 import { isNil } from 'lodash'
@@ -315,6 +317,8 @@ export async function getActiveWeekendFinancials(
     womensCandidateCount,
     mensCandidateIds,
     womensCandidateIds,
+    mensCandidateNames,
+    womensCandidateNames,
     groupMembersResult,
     teamFeeResult,
     candidateFeeResult,
@@ -325,6 +329,8 @@ export async function getActiveWeekendFinancials(
     getCandidateCountByWeekend(womensWeekend.id),
     getCandidateIdsByWeekend(mensWeekend.id),
     getCandidateIdsByWeekend(womensWeekend.id),
+    getCandidateNamesByWeekend(mensWeekend.id),
+    getCandidateNamesByWeekend(womensWeekend.id),
     !isNil(groupId)
       ? GroupMemberRepository.findGroupMembersByGroupId(groupId)
       : Promise.resolve(null),
@@ -376,6 +382,64 @@ export async function getActiveWeekendFinancials(
       ? candidateFeeResult.data.unitAmount / 100
       : 0
 
+  // Build team person info: map group member IDs to user names/roles from roster
+  const groupMembers =
+    groupMembersResult !== null && isOk(groupMembersResult)
+      ? groupMembersResult.data
+      : []
+  // Map user_id -> group_member_id for looking up target IDs
+  const userIdToGroupMemberId = new Map<string, string>()
+  for (const gm of groupMembers) {
+    userIdToGroupMemberId.set(gm.user_id, gm.id)
+  }
+
+  function buildTeamPersonInfo(roster: typeof activeMensRoster): PersonInfo[] {
+    return roster
+      .filter(
+        (m) =>
+          !isNil(m.user_id) &&
+          m.user_id !== '' &&
+          userIdToGroupMemberId.has(m.user_id)
+      )
+      .map((m) => {
+        const fullName = [m.users?.first_name, m.users?.last_name]
+          .filter((s) => !isNil(s) && s !== '')
+          .join(' ')
+        return {
+          targetId: userIdToGroupMemberId.get(m.user_id!)!,
+          name: fullName !== '' ? fullName : 'Unknown',
+          role: m.cha_role ?? null,
+        }
+      })
+  }
+
+  const teamPersonInfo: Record<string, PersonInfo[]> = {
+    [mensWeekend.id]: buildTeamPersonInfo(activeMensRoster),
+    [womensWeekend.id]: buildTeamPersonInfo(activeWomensRoster),
+  }
+
+  // Build candidate person info from candidate names
+  function buildCandidatePersonInfo(
+    namesResult: typeof mensCandidateNames
+  ): PersonInfo[] {
+    if (isErr(namesResult)) return []
+    return namesResult.data.map((c) => {
+      const fullName = [c.first_name, c.last_name]
+        .filter((s) => !isNil(s) && s !== '')
+        .join(' ')
+      return {
+        targetId: c.id,
+        name: fullName !== '' ? fullName : 'Unknown',
+        role: null,
+      }
+    })
+  }
+
+  const candidatePersonInfo: Record<string, PersonInfo[]> = {
+    [mensWeekend.id]: buildCandidatePersonInfo(mensCandidateNames),
+    [womensWeekend.id]: buildCandidatePersonInfo(womensCandidateNames),
+  }
+
   return ok(
     computeActiveWeekendFinancials(
       payments,
@@ -385,7 +449,9 @@ export async function getActiveWeekendFinancials(
       teamFee,
       candidateFee,
       activeTeamTargetIds,
-      activeCandidateTargetIds
+      activeCandidateTargetIds,
+      teamPersonInfo,
+      candidatePersonInfo
     )
   )
 }

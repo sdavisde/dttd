@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { PaymentTransactionDTO } from '@/services/payment'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -27,7 +28,17 @@ import type {
   WeekendGroup,
   ActiveWeekendFinancials,
   ActiveWeekendMetrics,
+  PersonPaymentDetail,
 } from '@/lib/payments/compute-totals'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
+import { Badge } from '@/components/ui/badge'
+import { format } from 'date-fns'
 import { usePaymentReport } from '../hooks/use-payment-report'
 import { isNil } from 'lodash'
 import { cn } from '@/lib/utils'
@@ -117,6 +128,101 @@ function ReportHeader({
 }
 
 // ---------------------------------------------------------------------------
+// Payment Detail Sheet
+// ---------------------------------------------------------------------------
+
+function PaymentDetailSheet({
+  open,
+  onOpenChange,
+  title,
+  weekendLabel,
+  details,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  weekendLabel: string
+  details: PersonPaymentDetail[]
+}) {
+  const paidCount = details.filter((d) => d.paid).length
+  const unpaidCount = details.length - paidCount
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="sm:max-w-md w-full">
+        <SheetHeader>
+          <SheetTitle>
+            {title} — {weekendLabel}
+          </SheetTitle>
+          <SheetDescription>
+            {paidCount} paid · {unpaidCount} unpaid · {details.length} total
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="space-y-2">
+            {details.map((person) => (
+              <div
+                key={person.name}
+                className={cn(
+                  'flex items-center justify-between rounded-lg border p-3',
+                  !person.paid &&
+                    'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950'
+                )}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{person.name}</p>
+                  {person.role !== null && person.role !== '' && (
+                    <p className="text-xs text-muted-foreground">
+                      {person.role}
+                    </p>
+                  )}
+                </div>
+                <div className="ml-3 flex flex-col items-end shrink-0">
+                  {person.paid ? (
+                    <>
+                      <Badge
+                        variant="default"
+                        className="bg-green-600 hover:bg-green-600 text-xs"
+                      >
+                        Paid
+                      </Badge>
+                      <span className="text-xs text-muted-foreground mt-0.5">
+                        {formatCurrency(person.amount)}{' '}
+                        {person.paymentMethod === 'stripe'
+                          ? '(Card)'
+                          : person.paymentMethod === 'cash'
+                            ? '(Cash)'
+                            : person.paymentMethod === 'check'
+                              ? '(Check)'
+                              : ''}
+                      </span>
+                      {person.paidDate !== null && (
+                        <span className="text-[10px] text-muted-foreground">
+                          {format(new Date(person.paidDate), 'MMM d, yyyy')}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <Badge variant="destructive" className="text-xs">
+                      Unpaid
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            ))}
+            {details.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No members found.
+              </p>
+            )}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Active Weekend Dashboard
 // ---------------------------------------------------------------------------
 
@@ -128,6 +234,7 @@ function CollectionProgressCard({
   getPaidCount,
   getExpectedCount,
   getExtraPaymentsCount,
+  getDetails,
 }: {
   title: string
   weekends: ActiveWeekendMetrics[]
@@ -136,6 +243,7 @@ function CollectionProgressCard({
   getPaidCount: (w: ActiveWeekendMetrics) => number
   getExpectedCount: (w: ActiveWeekendMetrics) => number
   getExtraPaymentsCount: (w: ActiveWeekendMetrics) => number
+  getDetails: (w: ActiveWeekendMetrics) => PersonPaymentDetail[]
 }) {
   const totalExpected = weekends.reduce((s, w) => s + getExpected(w), 0)
   const totalReceived = weekends.reduce((s, w) => s + getReceived(w), 0)
@@ -145,72 +253,107 @@ function CollectionProgressCard({
     0
   )
 
+  const [sheetWeekend, setSheetWeekend] = useState<ActiveWeekendMetrics | null>(
+    null
+  )
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <p className="text-2xl font-bold">{formatCurrency(totalReceived)}</p>
-          <p className="text-sm text-muted-foreground">
-            of {formatCurrency(totalExpected)}
+    <>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <p className="text-2xl font-bold">
+              {formatCurrency(totalReceived)}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              of {formatCurrency(totalExpected)}
+            </p>
+          </div>
+          <Progress value={pct} className={cn('h-2.5', progressColor(pct))} />
+          <p className="text-xs text-muted-foreground text-right">
+            {Math.round(pct)}% collected
           </p>
-        </div>
-        <Progress value={pct} className={cn('h-2.5', progressColor(pct))} />
-        <p className="text-xs text-muted-foreground text-right">
-          {Math.round(pct)}% collected
-        </p>
 
-        <div className="space-y-1.5 border-t pt-2">
-          {weekends.map((w) => {
-            const paid = getPaidCount(w)
-            const expected = getExpectedCount(w)
-            const extra = getExtraPaymentsCount(w)
-            const wPct = expected > 0 ? (paid / expected) * 100 : 0
-            return (
-              <div key={w.weekendType} className="space-y-0.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    {w.weekendLabel}
-                  </span>
-                  <span>
-                    <span
-                      className={cn(
-                        'font-medium',
-                        paid >= expected
-                          ? 'text-green-600'
-                          : 'text-muted-foreground'
+          <div className="space-y-1.5 border-t pt-2">
+            {weekends.map((w) => {
+              const paid = getPaidCount(w)
+              const expected = getExpectedCount(w)
+              const extra = getExtraPaymentsCount(w)
+              const wPct = expected > 0 ? (paid / expected) * 100 : 0
+              const details = getDetails(w)
+              return (
+                <div key={w.weekendType} className="space-y-0.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      {w.weekendLabel}
+                    </span>
+                    <span>
+                      {details.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => setSheetWeekend(w)}
+                          className={cn(
+                            'font-medium underline decoration-dotted underline-offset-2 hover:decoration-solid cursor-pointer',
+                            paid >= expected
+                              ? 'text-green-600'
+                              : 'text-muted-foreground'
+                          )}
+                        >
+                          {paid}/{expected} paid
+                        </button>
+                      ) : (
+                        <span
+                          className={cn(
+                            'font-medium',
+                            paid >= expected
+                              ? 'text-green-600'
+                              : 'text-muted-foreground'
+                          )}
+                        >
+                          {paid}/{expected} paid
+                        </span>
                       )}
-                    >
-                      {paid}/{expected} paid
+                      <span className="text-muted-foreground ml-2">
+                        ({Math.round(wPct)}%)
+                      </span>
                     </span>
-                    <span className="text-muted-foreground ml-2">
-                      ({Math.round(wPct)}%)
-                    </span>
-                  </span>
+                  </div>
+                  {extra > 0 && (
+                    <p className="text-xs text-amber-600">
+                      +{extra} payment{extra !== 1 ? 's' : ''} from inactive
+                      members
+                    </p>
+                  )}
                 </div>
-                {extra > 0 && (
-                  <p className="text-xs text-amber-600">
-                    +{extra} payment{extra !== 1 ? 's' : ''} from inactive
-                    members
-                  </p>
-                )}
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
 
-        {totalExtraPayments > 0 && (
-          <p className="text-xs text-amber-600 border-t pt-2">
-            {totalExtraPayments} payment{totalExtraPayments !== 1 ? 's' : ''}{' '}
-            received from removed or rejected members. Consider issuing refunds.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {totalExtraPayments > 0 && (
+            <p className="text-xs text-amber-600 border-t pt-2">
+              {totalExtraPayments} payment
+              {totalExtraPayments !== 1 ? 's' : ''} received from removed or
+              rejected members. Consider issuing refunds.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <PaymentDetailSheet
+        open={sheetWeekend !== null}
+        onOpenChange={(open) => {
+          if (!open) setSheetWeekend(null)
+        }}
+        title={title}
+        weekendLabel={sheetWeekend?.weekendLabel ?? ''}
+        details={sheetWeekend !== null ? getDetails(sheetWeekend) : []}
+      />
+    </>
   )
 }
 
@@ -284,6 +427,7 @@ function ActiveWeekendDashboard({
         getPaidCount={(w) => w.teamPaidCount}
         getExpectedCount={(w) => w.teamExpectedCount}
         getExtraPaymentsCount={(w) => w.teamExtraPaymentsCount}
+        getDetails={(w) => w.teamDetails}
       />
       <CollectionProgressCard
         title="Candidate Fee Collection"
@@ -293,6 +437,7 @@ function ActiveWeekendDashboard({
         getPaidCount={(w) => w.candidatePaidCount}
         getExpectedCount={(w) => w.candidateExpectedCount}
         getExtraPaymentsCount={(w) => w.candidateExtraPaymentsCount}
+        getDetails={(w) => w.candidateDetails}
       />
       <OverallFinancialCard financials={financials} />
     </div>

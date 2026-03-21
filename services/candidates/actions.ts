@@ -43,3 +43,10 @@ export async function getCandidateCountByWeekend(weekendId: string) {
 export async function getCandidateIdsByWeekend(weekendId: string) {
   return CandidateService.getCandidateIdsByWeekend(weekendId)
 }
+
+/**
+ * Gets the IDs and names of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateNamesByWeekend(weekendId: string) {
+  return CandidateService.getCandidateNamesByWeekend(weekendId)
+}

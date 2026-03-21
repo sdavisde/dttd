@@ -308,6 +308,23 @@ export function computeGrandTotals(groups: WeekendGroup[]): ReportGrandTotals {
 // Active weekend financials (used by dashboard widgets)
 // ---------------------------------------------------------------------------
 
+/** Person-level payment detail for drill-down sheets. */
+export type PersonPaymentDetail = {
+  name: string
+  role: string | null
+  paid: boolean
+  amount: number | null
+  paymentMethod: 'stripe' | 'cash' | 'check' | null
+  paidDate: string | null
+}
+
+/** Input type for person info passed into the computation function. */
+export type PersonInfo = {
+  targetId: string
+  name: string
+  role: string | null
+}
+
 export type ActiveWeekendMetrics = {
   weekendType: 'MENS' | 'WOMENS'
   weekendLabel: string
@@ -323,6 +340,10 @@ export type ActiveWeekendMetrics = {
   candidateExtraPaymentsCount: number
   /** Number of extra payments from non-active team members (dropped) */
   teamExtraPaymentsCount: number
+  /** Per-person payment details for team members */
+  teamDetails: PersonPaymentDetail[]
+  /** Per-person payment details for candidates */
+  candidateDetails: PersonPaymentDetail[]
 }
 
 export type ActiveWeekendFinancials = {
@@ -346,6 +367,8 @@ export type ActiveWeekendFinancials = {
  * @param candidateFee - Candidate Stripe fee per person in dollars (cash price = this - $10)
  * @param activeTeamTargetIds - Set of valid team payment target IDs (active roster + group member IDs)
  * @param activeCandidateTargetIds - Set of valid candidate IDs (non-rejected)
+ * @param teamPersonInfo - Map of weekend ID to team member PersonInfo arrays
+ * @param candidatePersonInfo - Map of weekend ID to candidate PersonInfo arrays
  */
 export function computeActiveWeekendFinancials(
   payments: PaymentTransactionDTO[],
@@ -355,7 +378,9 @@ export function computeActiveWeekendFinancials(
   teamFee: number,
   candidateFee: number,
   activeTeamTargetIds: Set<string>,
-  activeCandidateTargetIds: Set<string>
+  activeCandidateTargetIds: Set<string>,
+  teamPersonInfo: Record<string, PersonInfo[]> = {},
+  candidatePersonInfo: Record<string, PersonInfo[]> = {}
 ): ActiveWeekendFinancials {
   const activeWeekendIdSet = new Set(Object.values(weekendIds))
   const activePayments = payments.filter(
@@ -426,6 +451,59 @@ export function computeActiveWeekendFinancials(
     const teamExtraPaymentsCount =
       allUniqueTeamPayers.size - uniqueTeamPayers.size
 
+    // Build per-person details for team members
+    const teamPaymentsByTargetId = new Map<string, PaymentTransactionDTO>()
+    for (const p of teamPayments) {
+      if (!isNil(p.target_id)) {
+        teamPaymentsByTargetId.set(p.target_id, p)
+      }
+    }
+    const teamDetails: PersonPaymentDetail[] = (
+      teamPersonInfo[weekendId] ?? []
+    ).map((person) => {
+      const payment = teamPaymentsByTargetId.get(person.targetId)
+      return {
+        name: person.name,
+        role: person.role,
+        paid: payment !== undefined,
+        amount: payment?.gross_amount ?? null,
+        paymentMethod:
+          (payment?.payment_method as 'stripe' | 'cash' | 'check') ?? null,
+        paidDate: payment?.created_at ?? null,
+      }
+    })
+    // Sort: unpaid first, then alphabetically
+    teamDetails.sort((a, b) => {
+      if (a.paid !== b.paid) return a.paid ? 1 : -1
+      return a.name.localeCompare(b.name)
+    })
+
+    // Build per-person details for candidates
+    const candidatePaymentsByTargetId = new Map<string, PaymentTransactionDTO>()
+    for (const p of candidatePayments) {
+      if (!isNil(p.target_id)) {
+        candidatePaymentsByTargetId.set(p.target_id, p)
+      }
+    }
+    const candidateDetails: PersonPaymentDetail[] = (
+      candidatePersonInfo[weekendId] ?? []
+    ).map((person) => {
+      const payment = candidatePaymentsByTargetId.get(person.targetId)
+      return {
+        name: person.name,
+        role: person.role,
+        paid: payment !== undefined,
+        amount: payment?.gross_amount ?? null,
+        paymentMethod:
+          (payment?.payment_method as 'stripe' | 'cash' | 'check') ?? null,
+        paidDate: payment?.created_at ?? null,
+      }
+    })
+    candidateDetails.sort((a, b) => {
+      if (a.paid !== b.paid) return a.paid ? 1 : -1
+      return a.name.localeCompare(b.name)
+    })
+
     weekendMetrics.push({
       weekendType: type,
       weekendLabel: type === 'MENS' ? "Men's" : "Women's",
@@ -445,6 +523,8 @@ export function computeActiveWeekendFinancials(
       ),
       candidateExtraPaymentsCount,
       teamExtraPaymentsCount,
+      teamDetails,
+      candidateDetails,
     })
   }
 

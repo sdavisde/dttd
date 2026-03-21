@@ -89,6 +89,50 @@ export async function getCandidateIdsByWeekend(
 }
 
 /**
+ * Gets the IDs and names of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateNamesByWeekend(
+  weekendId: string
+): Promise<
+  Result<
+    string,
+    { id: string; first_name: string | null; last_name: string | null }[]
+  >
+> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('candidates')
+    .select('id, candidate_info(first_name, last_name)')
+    .eq('weekend_id', weekendId)
+    .neq('status', 'rejected')
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(
+    (data ?? []).map((c) => ({
+      id: c.id,
+      first_name:
+        (
+          c.candidate_info as unknown as {
+            first_name: string | null
+            last_name: string | null
+          }
+        )?.first_name ?? null,
+      last_name:
+        (
+          c.candidate_info as unknown as {
+            first_name: string | null
+            last_name: string | null
+          }
+        )?.last_name ?? null,
+    }))
+  )
+}
+
+/**
  * Gets the count of non-rejected candidates for a specific weekend.
  */
 export async function getCandidateCountByWeekend(
