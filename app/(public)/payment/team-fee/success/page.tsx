@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 import { stripe } from '@/lib/stripe'
-import { notifyAssistantHeadForTeamPayment } from '@/actions/emails'
+import { notifyAssistantHeadForTeamPayment } from '@/services/notifications'
+import { isNil } from 'lodash'
 
 type SearchParams = Promise<{
   session_id: string
@@ -16,7 +17,7 @@ export default async function TeamFeePaymentSuccessPage({
 }) {
   const { session_id } = await searchParams
 
-  if (!session_id)
+  if (isNil(session_id) || session_id === '')
     throw new Error('Please provide a valid session_id (`cs_test_...`)')
 
   const { status, customer_details, metadata } =

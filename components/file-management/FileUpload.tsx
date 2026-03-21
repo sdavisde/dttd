@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isNil } from 'lodash'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/components/auth/session-provider'
 import { Permission, permissionLock } from '@/lib/security'
@@ -44,7 +45,7 @@ export function FileUpload({
       permissionLock([Permission.FILES_UPLOAD])(user)
 
       const files = event.target.files
-      if (!files || files.length === 0) return
+      if (isNil(files) || files.length === 0) return
 
       const file = files[0]
 
@@ -70,7 +71,7 @@ export function FileUpload({
           upsert: false,
         })
 
-      if (uploadError) {
+      if (!isNil(uploadError)) {
         throw uploadError
       }
 
@@ -85,7 +86,7 @@ export function FileUpload({
     } finally {
       setUploading(false)
       // Reset the file input
-      if (fileInputRef.current) {
+      if (!isNil(fileInputRef.current)) {
         fileInputRef.current.value = ''
       }
     }

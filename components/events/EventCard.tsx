@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Calendar, Edit } from 'lucide-react'
+import { isNil } from 'lodash'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { type Event } from '@/services/events'
@@ -25,7 +26,7 @@ export function EventCard({
   const formattedDateTime = formatDateTime(event.datetime)
 
   const handleClick = () => {
-    if (canEdit && onClick) {
+    if (canEdit && !isNil(onClick)) {
       onClick(event)
     }
   }

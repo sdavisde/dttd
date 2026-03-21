@@ -36,3 +36,10 @@ export async function recordManualCandidatePayment(
 export async function getCandidateCountByWeekend(weekendId: string) {
   return CandidateService.getCandidateCountByWeekend(weekendId)
 }
+
+/**
+ * Gets the IDs of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateIdsByWeekend(weekendId: string) {
+  return CandidateService.getCandidateIdsByWeekend(weekendId)
+}

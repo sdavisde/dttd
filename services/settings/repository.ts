@@ -1,8 +1,10 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
-import { Result, ok, err } from '@/lib/results'
-import { Tables } from '@/database.types'
+import type { Result } from '@/lib/results'
+import { ok, err } from '@/lib/results'
+import type { Tables } from '@/database.types'
 
 type RawSiteSetting = Tables<'site_settings'>
 
@@ -17,7 +19,7 @@ export async function getSettingByKey(
     .eq('key', key)
     .maybeSingle()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 
@@ -34,7 +36,7 @@ export async function getSettingsByKeys(
     .select('*')
     .in('key', keys)
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 
@@ -58,9 +60,9 @@ export async function upsertSetting(
     .select()
     .single()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 
-  return ok(data)
+  return ok(data as RawSiteSetting)
 }

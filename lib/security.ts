@@ -1,4 +1,4 @@
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { Errors } from './error'
 import { CHARole } from './weekend/types'
 import { isNil } from 'lodash'
@@ -10,11 +10,11 @@ import { isNil } from 'lodash'
  */
 export function permissionLock(permissions: Array<Permission>) {
   return (user: User | null): true => {
-    if (!user) {
+    if (isNil(user)) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
 
-    if (!userHasPermission(user, permissions)) {
+    if (userHasPermission(user, permissions) === false) {
       throw new Error(Errors.INSUFFICIENT_PERMISSIONS.toString())
     }
 
@@ -89,12 +89,19 @@ export enum Permission {
   WRITE_SETTINGS = 'WRITE_SETTINGS',
 
   // Candidate-specific read permissions
+  READ_CANDIDATE_CONTACT_INFO = 'READ_CANDIDATE_CONTACT_INFO',
   READ_CANDIDATE_SHIRT_SIZE = 'READ_CANDIDATE_SHIRT_SIZE',
   READ_CANDIDATE_MEDICAL_INFO = 'READ_CANDIDATE_MEDICAL_INFO',
   READ_CANDIDATE_EMERGENCY_CONTACT = 'READ_CANDIDATE_EMERGENCY_CONTACT',
   READ_CANDIDATE_MARITAL_STATUS = 'READ_CANDIDATE_MARITAL_STATUS',
+  READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES = 'READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES',
   READ_CANDIDATE_SPONSOR_INFO = 'READ_CANDIDATE_SPONSOR_INFO',
+  READ_CANDIDATE_CHURCH = 'READ_CANDIDATE_CHURCH',
+  READ_CANDIDATE_PAYMENTS = 'READ_CANDIDATE_PAYMENTS',
   EXPORT_CANDIDATE_LIST = 'EXPORT_CANDIDATE_LIST',
+
+  // Team form submissions
+  READ_TEAM_FORM_INFO = 'READ_TEAM_FORM_INFO',
 }
 
 /**
@@ -113,6 +120,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
     Permission.READ_CANDIDATE_MARITAL_STATUS,
     Permission.READ_CANDIDATE_SPONSOR_INFO,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.BACKUP_RECTOR]: [
     Permission.READ_WRITE_TEAM_PAYMENTS,
@@ -124,6 +132,9 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
     Permission.READ_CANDIDATE_MARITAL_STATUS,
     Permission.READ_CANDIDATE_SPONSOR_INFO,
+    Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
+    Permission.READ_CANDIDATE_CHURCH,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.HEAD]: [
     Permission.READ_WRITE_TEAM_PAYMENTS,
@@ -135,6 +146,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
     Permission.READ_CANDIDATE_MARITAL_STATUS,
     Permission.READ_CANDIDATE_SPONSOR_INFO,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.ASSISTANT_HEAD]: [
     Permission.READ_WRITE_TEAM_PAYMENTS,
@@ -146,12 +158,14 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
     Permission.READ_CANDIDATE_MARITAL_STATUS,
     Permission.READ_CANDIDATE_SPONSOR_INFO,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.ROSTER]: [
-    Permission.READ_WRITE_TEAM_PAYMENTS,
     Permission.WRITE_TEAM_ROSTER,
     Permission.READ_DROPPED_ROSTER,
     Permission.READ_USER_EXPERIENCE,
+    Permission.READ_CANDIDATE_CONTACT_INFO,
+    Permission.READ_CANDIDATE_CHURCH,
     Permission.EXPORT_CANDIDATE_LIST,
   ],
   [CHARole.TECH]: [],
@@ -179,7 +193,10 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
   [CHARole.HEAD_TABLE]: [],
   [CHARole.TABLE]: [],
   [CHARole.HEAD_DORM]: [],
-  [CHARole.DORM]: [],
+  [CHARole.DORM]: [
+    Permission.READ_CANDIDATE_CHURCH,
+    Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES,
+  ],
   [CHARole.HEAD_DINING]: [],
   [CHARole.DINING]: [],
   [CHARole.HEAD_MOBILE]: [],

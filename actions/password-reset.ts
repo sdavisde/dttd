@@ -1,9 +1,12 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok } from '@/lib/results'
+import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
-import { Resend, CreateEmailResponseSuccess } from 'resend'
+import type { CreateEmailResponseSuccess } from 'resend';
+import { Resend } from 'resend'
 import PasswordResetEmail from '@/components/email/PasswordResetEmail'
 import { getUrl } from '@/lib/url'
 
@@ -28,7 +31,7 @@ export async function sendPasswordResetEmail(
       }
     )
 
-    if (resetError) {
+    if (!isNil(resetError)) {
       return err(`Failed to send reset email: ${resetError.message}`)
     }
 
@@ -63,7 +66,7 @@ export async function sendCustomPasswordResetEmail(
       .eq('email', email)
       .single()
 
-    if (!userCheck) {
+    if (isNil(userCheck)) {
       // Don't reveal if email exists or not for security
       logger.info(`Password reset requested for non-existent email: ${email}`)
       return ok({ data: null })
@@ -77,7 +80,7 @@ export async function sendCustomPasswordResetEmail(
       }
     )
 
-    if (resetError) {
+    if (!isNil(resetError)) {
       return err(`Failed to send reset email: ${resetError.message}`)
     }
 
@@ -112,7 +115,7 @@ export async function updatePasswordWithToken(
       data: { session },
     } = await supabase.auth.getSession()
 
-    if (!session) {
+    if (isNil(session)) {
       return err(
         'No active session found. Please request a new password reset.'
       )
@@ -123,7 +126,7 @@ export async function updatePasswordWithToken(
       password: newPassword,
     })
 
-    if (updateError) {
+    if (!isNil(updateError)) {
       return err(`Failed to update password: ${updateError.message}`)
     }
 

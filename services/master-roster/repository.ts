@@ -20,7 +20,8 @@ const GetMasterRosterQuery = `
       id,
       label,
       description,
-      permissions
+      permissions,
+      type
     )
   ),
   users_experience (

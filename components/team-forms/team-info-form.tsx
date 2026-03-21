@@ -15,13 +15,15 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { Address, emptyAddress } from '@/lib/users/validation'
-import {
+import type { Address} from '@/lib/users/validation';
+import { emptyAddress } from '@/lib/users/validation'
+import type {
   BasicInfo,
   MedicalInfo,
   TeamInfoFormValues,
-  TeamInfoSchema,
-  UserExperienceFormValue,
+  UserExperienceFormValue} from './schemas';
+import {
+  TeamInfoSchema
 } from './schemas'
 import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'
@@ -34,11 +36,14 @@ import {
   completeInfoSheet,
   updateRosterMedicalInfo,
 } from '@/actions/team-forms'
-import { updateUserAddress, updateUserBasicInfo } from '@/services/identity/user'
+import {
+  updateUserAddress,
+  updateUserBasicInfo,
+} from '@/services/identity/user'
 
 interface TeamInfoFormProps {
   userId: string
-  rosterId: string
+  groupMemberId: string
   savedAddress: Address | null
   initialBasicInfo: BasicInfo
   initialServiceHistory: Array<UserExperienceFormValue>
@@ -47,7 +52,7 @@ interface TeamInfoFormProps {
 
 export function TeamInfoForm({
   userId,
-  rosterId,
+  groupMemberId,
   savedAddress,
   initialBasicInfo,
   initialServiceHistory,
@@ -104,7 +109,7 @@ export function TeamInfoForm({
 
     // Step 4: Update Medical Info
     const medicalInfoResult = await updateRosterMedicalInfo(
-      rosterId,
+      userId,
       data.medicalInfo
     )
     if (isErr(medicalInfoResult)) {
@@ -114,7 +119,7 @@ export function TeamInfoForm({
     }
 
     // Step 5: Update Info Sheet
-    const infoSheetResult = await completeInfoSheet(rosterId)
+    const infoSheetResult = await completeInfoSheet(groupMemberId)
     if (isErr(infoSheetResult)) {
       toast.error(infoSheetResult.error)
       setIsSubmitting(false)
@@ -122,7 +127,7 @@ export function TeamInfoForm({
     }
 
     toast.success('Information saved successfully!')
-    router.push('/')
+    router.push('/team-forms')
     setIsSubmitting(false)
   }
 

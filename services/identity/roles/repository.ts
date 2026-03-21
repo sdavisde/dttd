@@ -1,8 +1,9 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import { fromSupabase, ok } from '@/lib/results'
-import { Permission } from '@/lib/security'
+import type { Permission } from '@/lib/security'
 
 export const getAllRoles = async () => {
   const supabase = await createClient()
@@ -50,7 +51,7 @@ export const updateUserRoles = async (userId: string, roleIds: string[]) => {
     .delete()
     .eq('user_id', userId)
 
-  if (fromSupabase(deleteResponse).error) {
+  if (!isNil(fromSupabase(deleteResponse).error)) {
     return fromSupabase(deleteResponse)
   }
 
@@ -84,7 +85,7 @@ export const setRoleMembers = async (roleId: string, userIds: string[]) => {
     .delete()
     .eq('role_id', roleId)
 
-  if (fromSupabase(deleteResponse).error) {
+  if (!isNil(fromSupabase(deleteResponse).error)) {
     return fromSupabase(deleteResponse)
   }
 

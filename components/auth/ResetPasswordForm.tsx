@@ -8,6 +8,7 @@ import { Loader2, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import PasswordInput from './PasswordInput'
 import Link from 'next/link'
+import { isNil } from 'lodash'
 
 interface ResetPasswordFormProps {
   searchParams?: { [key: string]: string | string[] | undefined }
@@ -34,7 +35,7 @@ export default function ResetPasswordForm({
           data: { session },
         } = await supabase.auth.getSession()
 
-        if (session) {
+        if (!isNil(session)) {
           setHasValidSession(true)
         } else {
           // Check if we have a hash fragment with tokens (from email link)
@@ -44,19 +45,19 @@ export default function ResetPasswordForm({
           const accessToken = hashParams.get('access_token')
           const refreshToken = hashParams.get('refresh_token')
 
-          if (accessToken && refreshToken) {
+          if (!isNil(accessToken) && !isNil(refreshToken)) {
             // Set the session using the tokens from the URL
             const { data, error } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             })
 
-            if (error) {
+            if (!isNil(error)) {
               console.log(error)
               setError(
                 'Invalid or expired reset link. Please request a new password reset.'
               )
-            } else if (data.session) {
+            } else if (!isNil(data.session)) {
               setHasValidSession(true)
             }
           } else {
@@ -102,7 +103,7 @@ export default function ResetPasswordForm({
         password: password,
       })
 
-      if (updateError) {
+      if (!isNil(updateError)) {
         setError(updateError.message)
       } else {
         setPasswordReset(true)
@@ -201,7 +202,7 @@ export default function ResetPasswordForm({
         <p className="text-gray-600 text-sm">Enter your new password below.</p>
       </div>
 
-      {error && (
+      {!isNil(error) && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -229,7 +230,7 @@ export default function ResetPasswordForm({
       <Button
         type="submit"
         className="w-full mt-4"
-        disabled={loading || !password || !confirmPassword}
+        disabled={loading || password === '' || confirmPassword === ''}
       >
         {loading ? (
           <>

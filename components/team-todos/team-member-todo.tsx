@@ -1,4 +1,4 @@
-import { TeamMemberUser } from '@/lib/users/types'
+import type { TeamMemberUser } from '@/lib/users/types'
 import { getTeamTodoData } from '@/lib/weekend/team/todos.actions'
 import { Typography } from '@/components/ui/typography'
 import { isNil } from 'lodash'
@@ -19,7 +19,7 @@ export async function TeamMemberTodo({ user }: TeamMemberTodoProps) {
     return null
   }
 
-  const { urls, completionState, items, weekendId } = todoData
+  const { urls, completionState, items, groupMemberId } = todoData
   const serializableItems = items.map((item) => ({
     ...item,
     checkCompletion: undefined,
@@ -42,7 +42,7 @@ export async function TeamMemberTodo({ user }: TeamMemberTodoProps) {
           items={serializableItems}
           urls={urls}
           completionState={completionState}
-          weekendId={weekendId}
+          groupMemberId={groupMemberId}
         />
       </div>
     </div>

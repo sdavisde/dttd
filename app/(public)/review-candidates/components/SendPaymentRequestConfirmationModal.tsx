@@ -17,13 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { PaymentRequestEmailPreview } from './PaymentRequestEmailPreview'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { Info } from 'lucide-react'
 import { updateCandidatePaymentOwner } from '@/actions/candidates'
 import * as Results from '@/lib/results'
 import { toast } from 'sonner'
+import { isNil } from 'lodash'
 
 interface SendPaymentRequestConfirmationModalProps {
   isOpen: boolean
@@ -46,7 +47,7 @@ export function SendPaymentRequestConfirmationModal({
 
   // Initialize payment owner when candidate changes
   useEffect(() => {
-    if (candidate?.candidate_sponsorship_info?.payment_owner) {
+    if (!isNil(candidate?.candidate_sponsorship_info?.payment_owner)) {
       setCurrentPaymentOwner(
         candidate.candidate_sponsorship_info.payment_owner as
           | 'candidate'
@@ -55,7 +56,7 @@ export function SendPaymentRequestConfirmationModal({
     }
   }, [candidate])
 
-  if (!candidate?.candidate_sponsorship_info) {
+  if (isNil(candidate?.candidate_sponsorship_info)) {
     return null
   }
 

@@ -1,15 +1,15 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { fromSupabase, Result, err, ok } from '@/lib/results'
-import { Tables } from '@/lib/supabase/database.types'
+import type { Result } from '@/lib/results'
+import { fromSupabase, err, ok } from '@/lib/results'
+import { Tables } from '@/database.types'
 import { isSupabaseError } from '@/lib/supabase/utils'
 
 export const CandidateQuery = `
   *,
   candidate_info(*),
-  candidate_sponsorship_info(*),
-  candidate_payments(*)
+  candidate_sponsorship_info(*)
 `
 
 export const getCandidateById = async (candidateId: string) => {
@@ -68,33 +68,24 @@ export async function findCandidateById(
 }
 
 /**
- * Inserts a manual payment record for a candidate.
+ * Gets the IDs of non-rejected candidates for a specific weekend.
  */
-export async function insertManualCandidatePayment(data: {
-  candidate_id: string
-  payment_amount: number
-  payment_method: 'cash' | 'check'
-  payment_intent_id: string
-  payment_owner: string
-  notes: string | null
-}): Promise<Result<string, Tables<'candidate_payments'>>> {
+export async function getCandidateIdsByWeekend(
+  weekendId: string
+): Promise<Result<string, string[]>> {
   const supabase = await createClient()
 
-  const { data: paymentRecord, error } = await supabase
-    .from('candidate_payments')
-    .insert(data)
-    .select()
-    .single()
+  const { data, error } = await supabase
+    .from('candidates')
+    .select('id')
+    .eq('weekend_id', weekendId)
+    .neq('status', 'rejected')
 
   if (isSupabaseError(error)) {
     return err(error.message)
   }
 
-  if (!paymentRecord) {
-    return err('Failed to insert payment record')
-  }
-
-  return ok(paymentRecord)
+  return ok((data ?? []).map((c) => c.id))
 }
 
 /**

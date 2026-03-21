@@ -7,6 +7,7 @@ import { PanelLeftIcon } from 'lucide-react'
 
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
+import { isNil } from 'lodash'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
@@ -46,7 +47,7 @@ const SidebarContext = React.createContext<SidebarContextProps | null>(null)
 
 function useSidebar() {
   const context = React.useContext(SidebarContext)
-  if (!context) {
+  if (isNil(context)) {
     throw new Error('useSidebar must be used within a SidebarProvider.')
   }
 
@@ -76,7 +77,7 @@ function SidebarProvider({
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === 'function' ? value(open) : value
-      if (setOpenProp) {
+      if (!isNil(setOpenProp)) {
         setOpenProp(openState)
       } else {
         _setOpen(openState)
@@ -522,7 +523,7 @@ function SidebarMenuButton({
     />
   )
 
-  if (!tooltip) {
+  if (isNil(tooltip)) {
     return button
   }
 

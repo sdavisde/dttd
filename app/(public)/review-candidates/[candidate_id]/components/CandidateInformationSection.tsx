@@ -1,7 +1,7 @@
 'use client'
 
 import { Typography } from '@/components/ui/typography'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { EditableField } from '@/components/ui/editable-field'
 import { updateCandidateSponsorshipField } from '@/actions/candidates'
 import { toast } from 'sonner'

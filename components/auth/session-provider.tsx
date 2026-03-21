@@ -10,10 +10,11 @@ import {
 } from 'react'
 import { usePathname } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import { PUBLIC_REGEX_ROUTES, SKIP_REGEX_ROUTES } from '@/proxy'
+import { isNil } from 'lodash'
 
 type Session = {
   user: User | null
@@ -48,7 +49,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
           PUBLIC_REGEX_ROUTES.some((route) => route.test(pathname)) ||
           SKIP_REGEX_ROUTES.some((route) => route.test(pathname))
 
-        if (userResult && isErr(userResult) && !pathIsPublic) {
+        if (!isNil(userResult) && isErr(userResult) && !pathIsPublic) {
           logger.error(
             `Error fetching user at path ${pathname} error: ${userResult.error}`
           )
@@ -72,7 +73,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const value = useMemo(
     () => ({
       user,
-      isAuthenticated: !!user,
+      isAuthenticated: !isNil(user),
       loading: isLoading,
       refreshSession,
     }),
@@ -86,7 +87,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
 export function useSession() {
   const session = useContext(sessionContext)
-  if (!session) {
+  if (isNil(session)) {
     throw new Error('useSession must be used within a SessionProvider')
   }
   return session

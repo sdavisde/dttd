@@ -12,11 +12,13 @@
  * @param defaultPath - The fallback path if validation fails (default: '/home')
  * @returns A safe redirect URL
  */
+import { isNil } from 'lodash'
+
 export function validateRedirectUrl(
   url: string | null | undefined,
   defaultPath: string = '/home'
 ): string {
-  if (!url) {
+  if (isNil(url) || url === '') {
     return defaultPath
   }
 

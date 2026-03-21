@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { WeekendRosterMember } from '@/services/weekend'
+import type { WeekendRosterMember } from '@/services/weekend'
 import {
   getActiveRoster,
   getDroppedRoster,

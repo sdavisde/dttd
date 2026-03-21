@@ -400,7 +400,7 @@ tasks:
         echo "  Secret: ${WEBHOOK_SECRET:0:15}..."
         echo ""
         echo "Starting Stripe webhook listener..."
-        echo "Forwarding to: http://localhost:3000/api/webhooks/complete-checkout"
+        echo "Forwarding to: http://localhost:3000/api/webhooks/stripe"
         echo ""
         echo "Ready! Use 'stripe trigger checkout.session.completed' in another terminal to test."
         echo "Press Ctrl+C to stop."
@@ -409,4 +409,4 @@ tasks:
         # Start the listener with forwarding
         stripe listen \
           --api-key "$STRIPE_KEY" \
-          --forward-to "http://localhost:3000/api/webhooks/complete-checkout"
+          --forward-to "http://localhost:3000/api/webhooks/stripe"

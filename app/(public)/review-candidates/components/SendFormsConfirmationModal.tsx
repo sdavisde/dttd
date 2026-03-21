@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { isNil } from 'lodash'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { CandidateFormsEmailPreview } from './CandidateFormsEmailPreview'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { Info } from 'lucide-react'
@@ -28,7 +29,7 @@ export function SendFormsConfirmationModal({
 }: SendFormsConfirmationModalProps) {
   const [isLoading, setIsLoading] = useState(false)
 
-  if (!candidate?.candidate_sponsorship_info) {
+  if (isNil(candidate?.candidate_sponsorship_info)) {
     return null
   }
 

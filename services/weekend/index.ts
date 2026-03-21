@@ -14,6 +14,7 @@ export {
   getWeekendRoster,
   getAllUsers,
   getWeekendRosterRecord,
+  getRosterSpecialNeeds,
   recordManualPayment,
   getWeekendOptions,
   getWeekendRosterViewData,

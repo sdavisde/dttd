@@ -1,7 +1,8 @@
 import { Typography } from '@/components/ui/typography'
+import type {
+  LeadershipTeamMember} from '@/services/weekend';
 import {
-  getActiveWeekendLeadershipTeam,
-  LeadershipTeamMember,
+  getActiveWeekendLeadershipTeam
 } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 

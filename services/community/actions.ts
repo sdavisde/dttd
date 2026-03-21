@@ -3,7 +3,7 @@
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import * as CommunityService from './community-service'
 import { Permission } from '@/lib/security'
-import { CommunityEncouragement } from './types'
+import type { CommunityEncouragement } from './types'
 
 /**
  * The community encouragement is a global message that is displayed to all members of DTTD.

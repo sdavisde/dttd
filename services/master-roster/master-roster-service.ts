@@ -1,6 +1,7 @@
 import 'server-only'
 
-import { isErr, ok, Result, unwrapOr, safeParse, isOk } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { isErr, ok, unwrapOr, safeParse, isOk } from '@/lib/results'
 import * as MasterRosterRepository from './repository'
 import { addressSchema } from '@/lib/users/validation'
 import { UserExperienceSchema } from '@/lib/users/experience'
@@ -9,8 +10,8 @@ import {
   calculateRectorReadyStatus,
   countDistinctWeekends,
 } from '@/lib/users/experience/calculations'
-import { Tables } from '@/lib/supabase/database.types'
-import {
+import type { Tables } from '@/database.types'
+import type {
   MasterRoster,
   MasterRosterMember,
   ExperienceDistribution,

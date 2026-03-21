@@ -7,13 +7,14 @@ import { permissionLock, userHasPermission, Permission } from '@/lib/security'
 import { isErr } from '@/lib/results'
 import { Errors } from '@/lib/error'
 import { redirect } from 'next/navigation'
+import { isNil } from 'lodash'
 
 export default async function MeetingsPage() {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
 
   try {
-    if (isErr(userResult) || !user) {
+    if (isErr(userResult) || isNil(user)) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
 

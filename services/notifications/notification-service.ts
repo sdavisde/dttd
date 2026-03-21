@@ -1,15 +1,39 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { Resend } from 'resend'
-import { err, isErr, ok, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { err, isErr, ok } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import * as NotificationRepository from './repository'
+// TODO: This should use the candidates service public API instead of direct repository access
 import * as CandidateRepository from '@/services/candidates/repository'
-import { ContactInfo, NotificationRecipient } from './types'
+import type { ContactInfo, NotificationRecipient } from './types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
-import { Tables } from '@/lib/supabase/database.types'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+/**
+ * Gets contact information by ID and transforms to DTO.
+ */
+export async function getContactInformation(
+  contactId: string
+): Promise<Result<string, ContactInfo>> {
+  const result = await NotificationRepository.getContactInformation(contactId)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+
+  return ok({
+    id: data.id,
+    label: data.label ?? contactId,
+    emailAddress: data.email_address ?? '',
+  })
+}
 
 /**
  * Gets contact information for a notification recipient.
@@ -25,7 +49,7 @@ export async function getRecipientContactInfo(
 
   const data = result.data
 
-  if (!data.email_address) {
+  if (isNil(data.email_address)) {
     return err(`Email address not found for recipient: ${recipient}`)
   }
 
@@ -67,7 +91,7 @@ export async function getPreWeekendCoupleEmailAdmin(): Promise<
 
   const data = result.data
 
-  if (!data.email_address) {
+  if (isNil(data.email_address)) {
     return err('Email address not found for preweekend-couple')
   }
 
@@ -145,7 +169,7 @@ async function sendCandidatePaymentEmail(
   const sponsorshipInfo = rawCandidate.candidate_sponsorship_info?.at(0)
 
   const candidateName =
-    candidateInfo?.first_name && candidateInfo?.last_name
+    !isNil(candidateInfo?.first_name) && !isNil(candidateInfo?.last_name)
       ? `${candidateInfo.first_name} ${candidateInfo.last_name}`
       : (sponsorshipInfo?.candidate_name ?? 'Candidate')
 
@@ -158,7 +182,7 @@ async function sendCandidatePaymentEmail(
     ...rawCandidate,
     candidate_info: candidateInfo,
     candidate_sponsorship_info: sponsorshipInfo,
-  }
+  } as HydratedCandidate
 
   const { error } = await resend.emails.send({
     from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
@@ -172,7 +196,7 @@ async function sendCandidatePaymentEmail(
     }),
   })
 
-  if (error) {
+  if (!isNil(error)) {
     logger.error(
       error,
       `Failed to send candidate payment notification email for ${candidateName}`
@@ -192,9 +216,21 @@ async function sendCandidatePaymentEmail(
 export async function updateContactInformation(
   contactId: string,
   emailAddress: string
-): Promise<Result<string, Tables<'contact_information'>>> {
-  return await NotificationRepository.updateContactInformation(
+): Promise<Result<string, ContactInfo>> {
+  const result = await NotificationRepository.updateContactInformation(
     contactId,
     emailAddress
   )
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+
+  return ok({
+    id: data.id,
+    label: data.label ?? contactId,
+    emailAddress: data.email_address ?? '',
+  })
 }

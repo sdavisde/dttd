@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Control, FieldPath } from 'react-hook-form'
+import type { Control, FieldPath } from 'react-hook-form'
 
 interface RolloFieldProps<T extends Record<string, any>> {
   control: Control<T>

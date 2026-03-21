@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
+import { isNil } from 'lodash'
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +10,7 @@ export async function GET(request: NextRequest) {
     const bucket = searchParams.get('bucket') ?? 'files'
     const path = searchParams.get('path')
 
-    if (!path) {
+    if (isNil(path)) {
       return new NextResponse('Missing file path', { status: 400 })
     }
 
@@ -19,15 +21,15 @@ export async function GET(request: NextRequest) {
       .from(bucket)
       .download(path)
 
-    if (downloadError) {
-      logger.error(`Error downloading file: ${downloadError.message}`)
+    if (!isNil(downloadError) || isNil(fileData)) {
+      logger.error(`Error downloading file: ${downloadError?.message}`)
       return new NextResponse('File not found', { status: 404 })
     }
 
     // Get file metadata for proper filename and content type
     const { data: fileInfo } = await supabase.storage
       .from(bucket)
-      .list(path.split('/').slice(0, -1).join('/') || '', {
+      .list(path.split('/').slice(0, -1).join('/'), {
         search: path.split('/').pop(),
       })
 

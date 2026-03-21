@@ -3,6 +3,7 @@
 import { getHydratedCandidate } from '@/actions/candidates'
 import * as Results from '@/lib/results'
 import { logger } from '@/lib/logger'
+import { isNil } from 'lodash'
 import {
   Card,
   CardHeader,
@@ -27,7 +28,7 @@ export default async function SubmittedPage({
 
   const candidate = candidateResult.data
 
-  if (!candidate) {
+  if (isNil(candidate)) {
     logger.error('Candidate not found')
     return <div>Candidate not found</div>
   }

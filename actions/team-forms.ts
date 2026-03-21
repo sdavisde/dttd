@@ -1,175 +1,17 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok, isOk, isErr } from '@/lib/results'
-import { isSupabaseError } from '@/lib/supabase/utils'
+import type { Result } from '@/lib/results'
+import { err, ok, isErr } from '@/lib/results'
 import { isNil, isEmpty } from 'lodash'
-
-/**
- * Marks the Statement of Belief as completed for a given roster record.
- */
-export async function signStatementOfBelief(
-  rosterId: string
-): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('weekend_roster')
-    .update({ completed_statement_of_belief_at: new Date().toISOString() })
-    .eq('id', rosterId)
-
-  if (isSupabaseError(error)) {
-    return err(`Failed to sign Statement of Belief: ${error.message}`)
-  }
-
-  return ok(undefined)
-}
-
-/**
- * Marks the Commitment Form as completed for a given roster record.
- */
-export async function signCommitmentForm(
-  rosterId: string
-): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('weekend_roster')
-    .update({ completed_commitment_form_at: new Date().toISOString() })
-    .eq('id', rosterId)
-
-  if (isSupabaseError(error)) {
-    return err(`Failed to sign Commitment Form: ${error.message}`)
-  }
-
-  return ok(undefined)
-}
-
-/**
- * Submits the Release of Claim form, saving special needs information.
- * If no special needs, saves "None".
- */
-export async function submitReleaseOfClaim(
-  rosterId: string,
-  specialNeeds: string | null
-): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const supabase = await createClient()
-
-  const finalSpecialNeeds =
-    !isNil(specialNeeds) && !isEmpty(specialNeeds.trim())
-      ? specialNeeds.trim()
-      : 'None'
-
-  const { error } = await supabase
-    .from('weekend_roster')
-    .update({
-      special_needs: finalSpecialNeeds,
-      completed_release_of_claim_at: new Date().toISOString(),
-    })
-    .eq('id', rosterId)
-
-  if (isSupabaseError(error)) {
-    return err(`Failed to submit Release of Claim: ${error.message}`)
-  }
-
-  return ok(undefined)
-}
-
-/**
- * Marks the Camp Waiver as completed for a given roster record.
- */
-export async function signCampWaiver(
-  rosterId: string
-): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const supabase = await createClient()
-
-  // Note: assuming column name is completed_camp_waiver
-  const { error } = await supabase
-    .from('weekend_roster')
-    .update({ completed_camp_waiver_at: new Date().toISOString() })
-    .eq('id', rosterId)
-
-  if (isSupabaseError(error)) {
-    return err(`Failed to sign Camp Waiver: ${error.message}`)
-  }
-
-  return ok(undefined)
-}
-
-/**
- * Updates emergency contact and medical information for a roster record.
- */
-export async function updateRosterMedicalInfo(
-  rosterId: string,
-  medicalInfo: {
-    emergency_contact_name: string
-    emergency_contact_phone: string
-    medical_conditions?: string
-  }
-): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('weekend_roster')
-    .update({
-      emergency_contact_name: medicalInfo.emergency_contact_name,
-      emergency_contact_phone: medicalInfo.emergency_contact_phone,
-      medical_conditions:
-        !isNil(medicalInfo.medical_conditions) &&
-        !isEmpty(medicalInfo.medical_conditions.trim())
-          ? medicalInfo.medical_conditions.trim()
-          : null,
-    })
-    .eq('id', rosterId)
-
-  if (isSupabaseError(error)) {
-    return err(`Failed to update medical information: ${error.message}`)
-  }
-
-  return ok(undefined)
-}
-
-export async function completeInfoSheet(
-  rosterId: string
-): Promise<Result<string, void>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
-  }
-
-  const supabase = await createClient()
-
-  // Note: assuming column name is completed_info_sheet
-  const { error } = await supabase
-    .from('weekend_roster')
-    .update({ completed_info_sheet_at: new Date().toISOString() })
-    .eq('id', rosterId)
-
-  if (isSupabaseError(error)) {
-    return err(`Failed to complete Info Sheet: ${error.message}`)
-  }
-
-  return ok(undefined)
-}
+import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
+import {
+  getTeamFormsProgress as serviceGetTeamFormsProgress,
+  hasCompletedAllTeamForms as serviceHasCompletedAllTeamForms,
+} from '@/services/weekend-group-member/weekend-group-member-service'
+import { authorizedAction } from '@/lib/actions/authorized-action'
+import { Permission } from '@/lib/security'
+import { getUserById } from '@/services/identity/user/user-service'
+import { getUserServiceHistory } from '@/actions/user-experience'
 
 export type TeamFormsProgress = {
   steps: {
@@ -186,85 +28,219 @@ export type TeamFormsProgress = {
 }
 
 /**
+ * Marks the Statement of Belief as completed for a given group member.
+ */
+export async function signStatementOfBelief(
+  groupMemberId: string
+): Promise<Result<string, void>> {
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
+  }
+
+  return GroupMemberRepository.upsertFormCompletion(
+    groupMemberId,
+    'statement_of_belief',
+    new Date().toISOString()
+  )
+}
+
+/**
+ * Marks the Commitment Form as completed for a given group member.
+ */
+export async function signCommitmentForm(
+  groupMemberId: string
+): Promise<Result<string, void>> {
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
+  }
+
+  return GroupMemberRepository.upsertFormCompletion(
+    groupMemberId,
+    'commitment_form',
+    new Date().toISOString()
+  )
+}
+
+/**
+ * Submits the Release of Claim form, saving special needs information.
+ * Updates special_needs on all active roster rows for the same group.
+ */
+export async function submitReleaseOfClaim(
+  groupMemberId: string,
+  specialNeeds: string | null
+): Promise<Result<string, void>> {
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
+  }
+
+  // Upsert form completion
+  const formResult = await GroupMemberRepository.upsertFormCompletion(
+    groupMemberId,
+    'release_of_claim',
+    new Date().toISOString()
+  )
+  if (isErr(formResult)) {
+    return formResult
+  }
+
+  // Update special_needs on all active roster rows for this group member
+  const finalSpecialNeeds =
+    !isNil(specialNeeds) && !isEmpty(specialNeeds.trim())
+      ? specialNeeds.trim()
+      : 'None'
+
+  return GroupMemberRepository.updateSpecialNeedsForGroup(
+    groupMemberId,
+    finalSpecialNeeds
+  )
+}
+
+/**
+ * Marks the Camp Waiver as completed for a given group member.
+ */
+export async function signCampWaiver(
+  groupMemberId: string
+): Promise<Result<string, void>> {
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
+  }
+
+  return GroupMemberRepository.upsertFormCompletion(
+    groupMemberId,
+    'camp_waiver',
+    new Date().toISOString()
+  )
+}
+
+/**
+ * Marks the Info Sheet as completed for a given group member.
+ */
+export async function completeInfoSheet(
+  groupMemberId: string
+): Promise<Result<string, void>> {
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
+  }
+
+  return GroupMemberRepository.upsertFormCompletion(
+    groupMemberId,
+    'info_sheet',
+    new Date().toISOString()
+  )
+}
+
+/**
  * Returns granular progress for team forms.
  */
 export async function getTeamFormsProgress(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, TeamFormsProgress>> {
-  if (isNil(rosterId) || isEmpty(rosterId)) {
-    return err('Roster ID is required')
+  if (isNil(groupMemberId) || isEmpty(groupMemberId)) {
+    return err('Group member ID is required')
   }
 
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('weekend_roster')
-    .select(
-      `
-            completed_statement_of_belief_at,
-            completed_commitment_form_at,
-            completed_release_of_claim_at,
-            completed_camp_waiver_at,
-            completed_info_sheet_at
-        `
-    )
-    .eq('id', rosterId)
-    .single()
-
-  if (isSupabaseError(error)) {
-    return err(`Failed to check form completion status: ${error.message}`)
-  }
-
-  if (!data) {
-    return err('Roster record not found')
-  }
-
-  const steps = {
-    statementOfBelief: !isNil(data.completed_statement_of_belief_at),
-    commitmentForm: !isNil(data.completed_commitment_form_at),
-    releaseOfClaim: !isNil(data.completed_release_of_claim_at),
-    campWaiver: !isNil(data.completed_camp_waiver_at),
-    infoSheet: !isNil(data.completed_info_sheet_at),
-  }
-
-  const stepIds = {
-    statementOfBelief: 'statement-of-belief',
-    commitmentForm: 'commitment-form',
-    releaseOfClaim: 'release-of-claim',
-    campWaiver: 'camp-waiver',
-    infoSheet: 'info-sheet',
-  }
-
-  const completedSteps: string[] = []
-  if (steps.statementOfBelief) completedSteps.push(stepIds.statementOfBelief)
-  if (steps.commitmentForm) completedSteps.push(stepIds.commitmentForm)
-  if (steps.releaseOfClaim) completedSteps.push(stepIds.releaseOfClaim)
-  if (steps.campWaiver) completedSteps.push(stepIds.campWaiver)
-  if (steps.infoSheet) completedSteps.push(stepIds.infoSheet)
-
-  // Total steps is 5
-  const totalSteps = 5
-  const completedCount = completedSteps.length
-  const isComplete = completedCount === totalSteps
-
-  return ok({
-    steps,
-    completedSteps,
-    totalSteps,
-    completedCount,
-    isComplete,
-  })
+  return serviceGetTeamFormsProgress(groupMemberId)
 }
 
 /**
  * Checks if a team member has completed all 5 required forms.
  */
 export async function hasCompletedAllTeamForms(
-  rosterId: string
+  groupMemberId: string
 ): Promise<Result<string, boolean>> {
-  const result = await getTeamFormsProgress(rosterId)
+  const result = await getTeamFormsProgress(groupMemberId)
   if (isErr(result)) {
     return err(result.error)
   }
   return ok(result.data.isComplete)
+}
+
+/**
+ * Read-only summary of a team member's info sheet submission.
+ * Excludes medical information (shown separately via the medical column).
+ */
+export type TeamFormSummary = {
+  address: {
+    addressLine1: string
+    addressLine2?: string
+    city: string
+    state: string
+    zip: string
+  } | null
+  churchAffiliation: string | null
+  weekendAttended: string | null
+  essentialsTrainingDate: string | null
+  specialGiftsAndSkills: string[] | null
+  experience: Array<{
+    chaRole: string
+    weekendReference: string
+    rollo: string | null
+  }>
+}
+
+/**
+ * Fetches a read-only summary of a team member's info sheet data.
+ * Permission-gated by READ_TEAM_FORM_INFO.
+ */
+export const getTeamFormSummary = authorizedAction<string, TeamFormSummary>(
+  Permission.READ_TEAM_FORM_INFO,
+  async (userId) => {
+    if (isNil(userId) || isEmpty(userId)) {
+      return err('User ID is required')
+    }
+
+    const [userResult, experienceResult] = await Promise.all([
+      getUserById(userId),
+      getUserServiceHistory(userId),
+    ])
+
+    if (isErr(userResult)) {
+      return err('Failed to fetch user info')
+    }
+
+    const user = userResult.data
+    const experience = isErr(experienceResult)
+      ? []
+      : experienceResult.data.experience.map((r) => ({
+          chaRole: r.cha_role,
+          weekendReference: r.weekend_reference,
+          rollo: r.rollo,
+        }))
+
+    return ok({
+      address: user.address,
+      churchAffiliation: user.communityInformation.churchAffiliation,
+      weekendAttended: user.communityInformation.weekendAttended,
+      essentialsTrainingDate: user.communityInformation.essentialsTrainingDate,
+      specialGiftsAndSkills: user.communityInformation.specialGiftsAndSkills,
+      experience,
+    })
+  }
+)
+
+/**
+ * Updates emergency contact and medical information.
+ * Writes to user_medical_profiles keyed by userId.
+ */
+export async function updateRosterMedicalInfo(
+  userId: string,
+  medicalInfo: {
+    emergency_contact_name: string
+    emergency_contact_phone: string
+    medical_conditions?: string
+  }
+): Promise<Result<string, void>> {
+  if (isNil(userId) || isEmpty(userId)) {
+    return err('User ID is required')
+  }
+
+  return GroupMemberRepository.upsertUserMedicalProfile(userId, {
+    emergency_contact_name: medicalInfo.emergency_contact_name,
+    emergency_contact_phone: medicalInfo.emergency_contact_phone,
+    medical_conditions:
+      !isNil(medicalInfo.medical_conditions) &&
+      !isEmpty(medicalInfo.medical_conditions.trim())
+        ? medicalInfo.medical_conditions.trim()
+        : null,
+  })
 }

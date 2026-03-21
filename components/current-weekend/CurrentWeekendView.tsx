@@ -1,4 +1,5 @@
 import { isErr, isOk, Results } from '@/lib/results'
+import { isNil } from 'lodash'
 import { getActiveWeekends } from '@/services/weekend'
 import { getCandidateCountByWeekend } from '@/services/candidates'
 import { getPrayerWheelUrls } from '@/services/settings'
@@ -34,7 +35,7 @@ export async function CurrentWeekendView() {
     getCandidateCountByWeekend(mensWeekend.id),
     getCandidateCountByWeekend(womensWeekend.id),
     getPrayerWheelUrls(),
-    groupId
+    !isNil(groupId)
       ? getEventsForWeekendGroup(groupId)
       : Promise.resolve(Results.ok([])),
   ])

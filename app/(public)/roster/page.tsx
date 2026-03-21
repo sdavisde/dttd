@@ -1,5 +1,6 @@
 import { getActiveWeekends, Weekend } from '@/services/weekend'
 import { isErr } from '@/lib/results'
+import { isNil } from 'lodash'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -41,7 +42,7 @@ export default async function RosterPage() {
           weekendId={weekend.id}
           user={user}
           headerSlot={
-            weekend.status && <WeekendStatusBadge status={weekend.status} />
+            !isNil(weekend.status) && <WeekendStatusBadge status={weekend.status} />
           }
         />
       </div>

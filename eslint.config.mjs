@@ -20,6 +20,25 @@ const eslintConfig = defineConfig([
     rules: {
       ...tseslint.configs.recommendedTypeChecked.rules,
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          disallowTypeAnnotations: true,
+        },
+      ],
+      '@typescript-eslint/strict-boolean-expressions': [
+        'error',
+        {
+          allowString: false,
+          allowNumber: false,
+          allowNullableObject: false,
+          allowNullableBoolean: false,
+          allowNullableString: false,
+          allowNullableNumber: false,
+          allowAny: false,
+        },
+      ],
     },
     languageOptions: {
       parserOptions: {

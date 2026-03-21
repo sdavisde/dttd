@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight, ArrowDown } from 'lucide-react'
-import { CandidateStatus } from '@/lib/candidates/types'
+import type { CandidateStatus } from '@/lib/candidates/types'
 
 const STATUSES: Array<{
   id: CandidateStatus

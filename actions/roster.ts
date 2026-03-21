@@ -1,13 +1,15 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getActiveWeekends } from '@/services/weekend'
-import { isErr } from '@/lib/results'
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { ok } from '@/lib/results'
+import { isNil } from 'lodash'
 
 /**
- * Checks if the current user is serving as RECTOR on the upcoming weekend
- * that matches their gender
+ * Checks if the current user is serving as RECTOR on any active weekend.
+ * Queries via weekend_group_members → weekend_groups → weekends → weekend_roster,
+ * so cross-weekend volunteers are correctly detected as Rector on any active weekend
+ * without relying on gender inference.
  */
 export async function isUserRectorOnUpcomingWeekend(): Promise<
   Result<string, boolean>
@@ -20,47 +22,48 @@ export async function isUserRectorOnUpcomingWeekend(): Promise<
     error: userError,
   } = await supabase.auth.getUser()
 
-  if (userError || !user) {
+  if (!isNil(userError) || isNil(user)) {
     return ok(false)
   }
 
-  // Get user details including gender
-  const { data: userDetails, error: userDetailsError } = await supabase
-    .from('users')
-    .select('gender')
-    .eq('id', user.id)
-    .single()
+  // Find the active group for this user (via weekend_group_members → weekend_groups → weekends)
+  const { data: activeWeekends } = await supabase
+    .from('weekends')
+    .select('id, group_id')
+    .eq('status', 'ACTIVE')
 
-  if (userDetailsError || !userDetails?.gender) {
+  if (isNil(activeWeekends) || activeWeekends.length === 0) {
     return ok(false)
   }
 
-  // Get active weekends
-  const activeWeekendsResult = await getActiveWeekends()
-  if (isErr(activeWeekendsResult)) {
-    return err(activeWeekendsResult.error)
-  }
+  const activeGroupIds = [
+    ...new Set(
+      activeWeekends.map((w) => w.group_id).filter((id) => !isNil(id))
+    ),
+  ]
 
-  // Get the upcoming weekend that matches user's gender
-  const upcomingWeekend =
-    activeWeekendsResult.data[userDetails.gender as 'MENS' | 'WOMENS']
+  // Check if user has a group_member row in any active group
+  const { data: groupMember } = await supabase
+    .from('weekend_group_members')
+    .select('id')
+    .eq('user_id', user.id)
+    .in('group_id', activeGroupIds)
+    .maybeSingle()
 
-  if (!upcomingWeekend) {
+  if (isNil(groupMember)) {
     return ok(false)
   }
 
-  // Check if user is serving as RECTOR on this weekend
-  const { data: rectorCheck, error: rectorError } = await supabase
+  // Check if the user has cha_role = 'Rector' on any of the active weekend roster rows
+  const activeWeekendIds = activeWeekends.map((w) => w.id)
+
+  const { data: rectorCheck } = await supabase
     .from('weekend_roster')
     .select('id')
-    .eq('weekend_id', upcomingWeekend.id)
     .eq('user_id', user.id)
+    .in('weekend_id', activeWeekendIds)
     .eq('cha_role', 'Rector')
-    .single()
+    .maybeSingle()
 
-  if (rectorError) {
-    return ok(false)
-  }
-
-  return ok(!!rectorCheck)
+  return ok(!isNil(rectorCheck))
 }

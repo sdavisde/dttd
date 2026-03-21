@@ -52,7 +52,7 @@ export function appendQueryParams(
 
   const searchParams = new URLSearchParams()
   for (const [key, value] of filteredParams) {
-    if (value) {
+    if (value !== undefined && value !== null) {
       searchParams.set(key, value)
     }
   }

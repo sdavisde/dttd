@@ -5,8 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
-import { sendSponsorshipNotificationEmail } from '@/actions/emails'
+import { sendSponsorshipNotificationEmail } from '@/services/notifications'
 import * as Results from '@/lib/results'
+import { isNil } from 'lodash'
 import { useSession } from '@/components/auth/session-provider'
 import { createCandidateWithSponsorshipInfo } from '@/actions/candidates'
 import { useWeekends } from '@/hooks/useWeekends'
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -39,6 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { isDevMode } from '@/lib/dev-mode'
+import { SPONSOR_FORM_TEST_DATA } from './sponsor-form.helpers'
 
 /**
  * This should match 1:1 with the candidate_sponsorship_info table
@@ -50,7 +54,13 @@ const sponsorFormSchema = z.object({
   sponsor_name: z.string().min(1, 'Sponsor name is required'),
   sponsor_address: z.string().min(1, 'Address is required'),
   sponsor_email: z.string().optional(),
-  sponsor_phone: z.string().min(1, 'Phone number is required'),
+  sponsor_phone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
   sponsor_church: z.string().min(1, 'Church is required'),
   sponsor_weekend: z.string().min(1, 'Weekend information is required'),
   reunion_group: z.string().min(1, 'Reunion group information is required'),
@@ -115,7 +125,7 @@ export function SponsorForm() {
     try {
       logger.info(`Submitting sponsor form: ${JSON.stringify(data)}`)
 
-      if (!user?.email) {
+      if (isNil(user?.email) || user?.email === '') {
         throw new Error('Current user email not found')
       }
 
@@ -178,6 +188,21 @@ export function SponsorForm() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
+              {isDevMode() && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mb-4"
+                  onClick={() => {
+                    form.reset({
+                      ...SPONSOR_FORM_TEST_DATA,
+                      weekend_id: weekends?.MENS?.id ?? '',
+                    })
+                  }}
+                >
+                  Fill with test data
+                </Button>
+              )}
               <div className="flex flex-col gap-2">
                 <Typography variant="h6">Basic Information</Typography>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -202,7 +227,11 @@ export function SponsorForm() {
                       <FormItem>
                         <FormLabel>Candidate Email</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="candidate@example.com"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -231,22 +260,22 @@ export function SponsorForm() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {weekends?.MENS && (
+                            {!isNil(weekends?.MENS) && (
                               <SelectItem value={weekends.MENS.id}>
                                 Men&apos;s Weekend -{' '}
                                 {weekends.MENS.title ??
                                   `Weekend #${weekends.MENS.number}`}
                               </SelectItem>
                             )}
-                            {weekends?.WOMENS && (
+                            {!isNil(weekends?.WOMENS) && (
                               <SelectItem value={weekends.WOMENS.id}>
                                 Women&apos;s Weekend -{' '}
                                 {weekends.WOMENS.title ??
                                   `Weekend #${weekends.WOMENS.number}`}
                               </SelectItem>
                             )}
-                            {!weekends?.MENS &&
-                              !weekends?.WOMENS &&
+                            {isNil(weekends?.MENS) &&
+                              isNil(weekends?.WOMENS) &&
                               !isLoadingWeekends && (
                                 <SelectItem value="" disabled>
                                   No active weekends available
@@ -286,7 +315,7 @@ export function SponsorForm() {
                       <FormItem>
                         <FormLabel>Sponsor&apos;s Phone #</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <PhoneInput {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

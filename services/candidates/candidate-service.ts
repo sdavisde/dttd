@@ -1,32 +1,40 @@
 import 'server-only'
 
 import { isNil, sumBy } from 'lodash'
-import { err, isErr, ok, Result, unwrapOr } from '@/lib/results'
+import type { Result } from '@/lib/results'
+import { err, isErr, ok, unwrapOr } from '@/lib/results'
 import { notifyCandidatePaymentReceived } from '@/services/notifications/notification-service'
 import * as CandidateRepository from './repository'
-import {
+import type {
   Candidate,
   CandidateStatus,
   RawCandidate,
   EmergencyContact,
 } from './types'
 import { addressSchema } from '@/lib/users/validation'
-import { Tables } from '@/lib/supabase/database.types'
 import { logger } from '@/lib/logger'
+import * as PaymentService from '@/services/payment/payment-service'
+import type { PaymentTransactionRow } from '@/services/payment/types'
 
-function normalizeCandidate(
+async function normalizeCandidate(
   rawCandidate: RawCandidate
-): Result<string, Candidate> {
+): Promise<Result<string, Candidate>> {
   if (isNil(rawCandidate)) {
     return err('Candidate not found')
   }
 
   const candidateInfo = rawCandidate.candidate_info?.at(0)
   const sponsorshipInfo = rawCandidate.candidate_sponsorship_info?.at(0)
-  const payments = rawCandidate.candidate_payments ?? []
+
+  // Fetch payments from payment_transaction table
+  const paymentsResult = await PaymentService.getPaymentForTarget(
+    'candidate',
+    rawCandidate.id
+  )
+  const payments = isErr(paymentsResult) ? [] : paymentsResult.data
 
   // Calculate total amount paid
-  const amountPaid = sumBy(payments, (it) => it.payment_amount ?? 0)
+  const amountPaid = sumBy(payments, (it) => it.gross_amount)
 
   // Build address from candidate_info if available
   const addressData = {
@@ -117,7 +125,7 @@ export async function getCandidateById(
   if (isErr(result)) {
     return result
   }
-  return normalizeCandidate(result.data)
+  return await normalizeCandidate(result.data)
 }
 
 /**
@@ -131,8 +139,11 @@ export async function getAllCandidates(): Promise<
     return result
   }
 
-  const candidates = result.data
-    .map((raw) => unwrapOr(normalizeCandidate(raw), null))
+  const normalizedResults = await Promise.all(
+    result.data.map((raw) => normalizeCandidate(raw))
+  )
+  const candidates = normalizedResults
+    .map((r) => unwrapOr(r, null))
     .filter((c) => !isNil(c))
 
   return ok(candidates)
@@ -140,6 +151,7 @@ export async function getAllCandidates(): Promise<
 
 /**
  * Records a manual (cash/check) payment for a candidate.
+ * Creates a record in the payment_transaction table.
  */
 export async function recordManualCandidatePayment(
   candidateId: string,
@@ -147,7 +159,7 @@ export async function recordManualCandidatePayment(
   paymentMethod: 'cash' | 'check',
   paymentOwner: string,
   notes?: string
-): Promise<Result<string, Tables<'candidate_payments'>>> {
+): Promise<Result<string, PaymentTransactionRow>> {
   // Verify the candidate record exists
   const candidateResult =
     await CandidateRepository.findCandidateById(candidateId)
@@ -160,12 +172,18 @@ export async function recordManualCandidatePayment(
     return err('Candidate not found')
   }
 
-  // Insert the payment record
-  const result = await CandidateRepository.insertManualCandidatePayment({
-    candidate_id: candidateId,
-    payment_amount: paymentAmount,
+  // Generate a manual payment intent ID
+  const paymentIntentId = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
+
+  // Record payment in the payment_transaction table
+  const result = await PaymentService.recordPayment({
+    type: 'fee',
+    target_type: 'candidate',
+    target_id: candidateId,
+    weekend_id: null, // Could be fetched from candidate if needed
+    payment_intent_id: paymentIntentId,
+    gross_amount: paymentAmount,
     payment_method: paymentMethod,
-    payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
     payment_owner: paymentOwner,
     notes: notes ?? null,
   })
@@ -200,4 +218,13 @@ export async function getCandidateCountByWeekend(
   weekendId: string
 ): Promise<Result<string, number>> {
   return CandidateRepository.getCandidateCountByWeekend(weekendId)
+}
+
+/**
+ * Gets the IDs of non-rejected candidates for a specific weekend.
+ */
+export async function getCandidateIdsByWeekend(
+  weekendId: string
+): Promise<Result<string, string[]>> {
+  return CandidateRepository.getCandidateIdsByWeekend(weekendId)
 }

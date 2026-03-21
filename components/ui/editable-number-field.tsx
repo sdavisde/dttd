@@ -3,7 +3,7 @@
 import { Typography } from '@/components/ui/typography'
 import { InlineNumberField } from '@/components/ui/inline-number-field'
 import { isNil } from 'lodash'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { Pencil } from 'lucide-react'
 
 interface EditableNumberFieldProps {
@@ -27,7 +27,7 @@ export function EditableNumberField({
 }: EditableNumberFieldProps) {
   const displayValue = isNil(value)
     ? emptyText
-    : formatDisplay
+    : !isNil(formatDisplay)
       ? formatDisplay(value)
       : value.toString()
 

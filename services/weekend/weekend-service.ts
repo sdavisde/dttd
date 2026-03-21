@@ -2,18 +2,17 @@ import 'server-only'
 
 import { randomUUID } from 'crypto'
 import { isEmpty, isNil, sumBy } from 'lodash'
-import { Result, err, ok, isErr, map, unwrap, unwrapOr } from '@/lib/results'
+import type { Result } from '@/lib/results'
+import { err, ok, isErr, map, unwrap, unwrapOr } from '@/lib/results'
 import { Permission, userHasPermission } from '@/lib/security'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { getWeekendRosterExperienceDistribution } from '@/services/master-roster/master-roster-service'
-import { ExperienceDistribution } from '@/services/master-roster/types'
+import type { ExperienceDistribution } from '@/services/master-roster/types'
 import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
 import { logger } from '@/lib/logger'
-import { Tables } from '@/lib/supabase/database.types'
-import {
+import type { Tables } from '@/database.types'
+import type {
   Weekend,
-  WeekendType,
-  WeekendStatus,
   WeekendStatusValue,
   RawWeekendRecord,
   WeekendGroup,
@@ -23,15 +22,21 @@ import {
   CreateWeekendGroupInput,
   UpdateWeekendGroupInput,
 } from '@/lib/weekend/types'
-import {
+import { WeekendType, WeekendStatus } from '@/lib/weekend/types'
+import type {
   RawWeekendRoster,
+  PaymentRecord,
   WeekendRosterMember,
   WeekendSidebarPayload,
   LeadershipTeamMember,
   LeadershipTeamData,
 } from './types'
+import * as PaymentService from '@/services/payment/payment-service'
+import { getPaymentSummary } from '@/lib/payments/utils'
+import type { PaymentTransactionRow } from '@/services/payment/types'
 import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
+import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
 
 // ============================================================================
 // Helper Functions (Private)
@@ -60,10 +65,12 @@ function toWeekendGroup(weekends: Weekend[]): Result<string, WeekendGroup> {
 
 /**
  * Maps a raw weekend record to a typed weekend.
+ * Requires the weekend_groups(number) join to populate number.
  */
 function normalizeWeekend(weekend: RawWeekendRecord): Weekend {
   return {
     ...weekend,
+    number: weekend.weekend_groups?.number ?? null,
     status: (weekend.status as WeekendStatus) ?? null,
     groupId: weekend.group_id ?? null,
   }
@@ -107,7 +114,6 @@ function prepareInsertPayload(
     type,
     start_date: payload.start_date,
     end_date: payload.end_date,
-    number: payload.number ?? null,
     status: payload.status ?? WeekendStatus.PLANNING,
     title: payload.title ?? null,
   }
@@ -144,17 +150,14 @@ function getWeekendLabel(weekend: Weekend | null): string {
 /**
  * Normalizes a raw weekend roster record into a WeekendRosterMember.
  */
-function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
-  const all_payments = raw.weekend_roster_payments ?? []
-  const total_paid = sumBy(all_payments, (p) => p.payment_amount ?? 0)
-
-  // Check if all 5 team forms have been completed
-  const forms_complete =
-    !isNil(raw.completed_statement_of_belief_at) &&
-    !isNil(raw.completed_commitment_form_at) &&
-    !isNil(raw.completed_release_of_claim_at) &&
-    !isNil(raw.completed_camp_waiver_at) &&
-    !isNil(raw.completed_info_sheet_at)
+function normalizeRosterMember(
+  raw: RawWeekendRoster,
+  baseFee: number,
+  groupMemberId: string | null = null,
+  medicalProfile: WeekendRosterMember['medical_profile'] = null
+): WeekendRosterMember {
+  const all_payments = raw.payments ?? []
+  const total_paid = sumBy(all_payments, (p) => p.gross_amount)
 
   return {
     id: raw.id,
@@ -164,28 +167,16 @@ function normalizeRosterMember(raw: RawWeekendRoster): WeekendRosterMember {
     user_id: raw.user_id,
     created_at: raw.created_at,
     rollo: raw.rollo,
+    special_needs: raw.special_needs,
     users: raw.users,
-    payment_info: raw.weekend_roster_payments?.[0] ?? null,
+    groupMemberId,
+    payment_info: all_payments[0] ?? null,
     total_paid,
     all_payments,
-    forms_complete,
-    emergency_contact_name: raw.emergency_contact_name,
-    emergency_contact_phone: raw.emergency_contact_phone,
-    medical_conditions: filterMedicalConditions(raw.medical_conditions),
+    paymentSummary: getPaymentSummary(all_payments, baseFee),
+    forms_complete: raw.forms_complete,
+    medical_profile: medicalProfile,
   }
-}
-
-function filterMedicalConditions(
-  medical_conditions: string | null
-): string | null {
-  const NONE_SYNONYM_REGEX = /^\s*(?:no|none|n\/a|na)\s*$/i
-  if (
-    isNil(medical_conditions) ||
-    NONE_SYNONYM_REGEX.test(medical_conditions)
-  ) {
-    return null
-  }
-  return medical_conditions
 }
 
 // ============================================================================
@@ -219,7 +210,7 @@ export async function getActiveWeekends(): Promise<
 export async function getWeekendGroup(
   groupId: string
 ): Promise<Result<string, WeekendGroupWithId>> {
-  if (!groupId) {
+  if (groupId === '') {
     return err('group_id is required to fetch a group')
   }
 
@@ -301,7 +292,7 @@ export async function getWeekendGroupsByStatus(
 export async function setActiveWeekendGroup(
   groupId: string
 ): Promise<Result<string, WeekendGroupWithId>> {
-  if (!groupId) {
+  if (groupId === '') {
     return err('group_id is required to set active weekend')
   }
 
@@ -338,7 +329,7 @@ export async function setActiveWeekendGroup(
 export async function createWeekendGroup(
   input: CreateWeekendGroupInput
 ): Promise<Result<string, WeekendGroupWithId>> {
-  if (!input.groupId) {
+  if (isNil(input.groupId)) {
     return err('groupId is required when creating a weekend group')
   }
 
@@ -438,7 +429,7 @@ export async function updateWeekendGroup(
 export async function deleteWeekendGroup(
   groupId: string
 ): Promise<Result<string, { success: boolean }>> {
-  if (!groupId) {
+  if (groupId === '') {
     return err('group_id is required to delete a group')
   }
 
@@ -516,16 +507,18 @@ export async function getWeekendById(
     return err('Weekend not found')
   }
 
-  return ok(result.data)
+  return ok(normalizeWeekend(result.data))
 }
 
 /**
  * Fetches the roster for a weekend with normalized data.
+ * Payments are fetched from the payment_transaction table.
  */
 export async function getWeekendRoster(
   weekendId: string
 ): Promise<Result<string, Array<WeekendRosterMember>>> {
-  const result = await WeekendRepository.findWeekendRoster(weekendId)
+  const result =
+    await WeekendRepository.findWeekendRosterIncludingDropped(weekendId)
 
   if (isErr(result)) {
     return result
@@ -535,7 +528,133 @@ export async function getWeekendRoster(
     return err('No roster found for weekend')
   }
 
-  const normalizedRoster = result.data.map(normalizeRosterMember)
+  const rosterRecords = result.data
+
+  // Resolve group member IDs for all roster records, then fetch payments and forms_complete
+  const groupMemberResults = await Promise.all(
+    rosterRecords.map(async (record) => {
+      const memberResult = await GroupMemberRepository.getGroupMemberByRosterId(
+        record.id
+      )
+      return {
+        rosterId: record.id,
+        groupMemberId: unwrapOr(memberResult, null)?.id ?? null,
+      }
+    })
+  )
+
+  const groupMemberMap = new Map<string, string | null>()
+  for (const { rosterId, groupMemberId } of groupMemberResults) {
+    groupMemberMap.set(rosterId, groupMemberId)
+  }
+
+  // Fetch payments, forms_complete, medical profiles, and team fee in parallel
+  const [
+    paymentsByRoster,
+    formsCompleteByRoster,
+    medicalProfilesByRoster,
+    teamFeeResult,
+  ] = await Promise.all([
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        const groupMemberId = groupMemberMap.get(record.id) ?? null
+        if (isNil(groupMemberId)) {
+          return { rosterId: record.id, payments: [] }
+        }
+        const paymentsResult = await PaymentService.getPaymentForTarget(
+          'weekend_group_member',
+          groupMemberId
+        )
+        return {
+          rosterId: record.id,
+          payments: unwrapOr(paymentsResult, []),
+        }
+      })
+    ),
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        const groupMemberId = groupMemberMap.get(record.id) ?? null
+        if (isNil(groupMemberId)) {
+          return { rosterId: record.id, forms_complete: false }
+        }
+        const completionsResult =
+          await GroupMemberRepository.getFormCompletions(groupMemberId)
+        if (isErr(completionsResult)) {
+          return { rosterId: record.id, forms_complete: false }
+        }
+        return {
+          rosterId: record.id,
+          forms_complete: completionsResult.data.length >= 5,
+        }
+      })
+    ),
+    Promise.all(
+      rosterRecords.map(async (record) => {
+        if (isNil(record.user_id)) {
+          return { rosterId: record.id, medicalProfile: null }
+        }
+        const profileResult = await GroupMemberRepository.getUserMedicalProfile(
+          record.user_id
+        )
+        if (isErr(profileResult) || isNil(profileResult.data)) {
+          return { rosterId: record.id, medicalProfile: null }
+        }
+        const profile = profileResult.data
+        return {
+          rosterId: record.id,
+          medicalProfile: {
+            emergency_contact_name: profile.emergency_contact_name,
+            emergency_contact_phone: profile.emergency_contact_phone,
+            medical_conditions: profile.medical_conditions,
+          },
+        }
+      })
+    ),
+    PaymentService.getTeamFee(),
+  ])
+
+  // Stripe fee in dollars (unitAmount is in cents)
+  const baseFee =
+    !isErr(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
+      ? teamFeeResult.data.unitAmount / 100
+      : 0
+
+  // Build lookup maps
+  const paymentsMap = new Map<string, PaymentRecord[]>()
+  for (const { rosterId, payments } of paymentsByRoster) {
+    paymentsMap.set(rosterId, payments)
+  }
+
+  const formsCompleteMap = new Map<string, boolean>()
+  for (const { rosterId, forms_complete } of formsCompleteByRoster) {
+    formsCompleteMap.set(rosterId, forms_complete)
+  }
+
+  const medicalProfileMap = new Map<
+    string,
+    WeekendRosterMember['medical_profile']
+  >()
+  for (const { rosterId, medicalProfile } of medicalProfilesByRoster) {
+    medicalProfileMap.set(rosterId, medicalProfile)
+  }
+
+  // Combine roster records with their payments, forms_complete, and groupMemberId
+  const rawRosterWithPayments: RawWeekendRoster[] = rosterRecords.map(
+    (record) => ({
+      ...record,
+      payments: paymentsMap.get(record.id) ?? [],
+      forms_complete: formsCompleteMap.get(record.id) ?? false,
+    })
+  )
+
+  const normalizedRoster = rawRosterWithPayments.map((record) =>
+    normalizeRosterMember(
+      record,
+      baseFee,
+      groupMemberMap.get(record.id) ?? null,
+      medicalProfileMap.get(record.id) ?? null
+    )
+  )
   return ok(normalizedRoster)
 }
 
@@ -560,6 +679,7 @@ export async function getAllUsers(): Promise<
 
 /**
  * Adds a user to a weekend roster.
+ * Also upserts a weekend_group_members row so the user can complete forms and pay.
  */
 export async function addUserToWeekendRoster(
   weekendId: string,
@@ -567,13 +687,34 @@ export async function addUserToWeekendRoster(
   role: string,
   rollo?: string
 ): Promise<Result<string, void>> {
-  return WeekendRepository.insertWeekendRosterMember({
+  const rosterResult = await WeekendRepository.insertWeekendRosterMember({
     weekend_id: weekendId,
     user_id: userId,
     status: 'awaiting_payment',
     cha_role: role,
     rollo: rollo ?? null,
   })
+
+  if (isErr(rosterResult)) {
+    return rosterResult
+  }
+
+  // Ensure a weekend_group_members row exists for this user+group.
+  // Uses the weekend's group_id so a cross-weekend user gets one shared member row.
+  const weekendResult = await WeekendRepository.findWeekendById(weekendId)
+  if (isErr(weekendResult) || isNil(weekendResult.data?.group_id)) {
+    // Non-fatal: roster insert succeeded, log and continue
+    logger.warn(
+      { weekendId, userId },
+      'Could not upsert weekend_group_members: weekend or group_id not found'
+    )
+    return ok(undefined)
+  }
+
+  return GroupMemberRepository.upsertGroupMember(
+    weekendResult.data.group_id,
+    userId
+  )
 }
 
 /**
@@ -584,7 +725,7 @@ export async function getWeekendRosterRecord(
   teamUserId: string | null,
   weekendId: string | null
 ): Promise<Result<string, Tables<'weekend_roster'>>> {
-  if (!teamUserId || !weekendId) {
+  if (isNil(teamUserId) || isNil(weekendId)) {
     return err('Team user ID or weekend ID is null')
   }
 
@@ -609,32 +750,29 @@ export async function getWeekendRosterRecord(
 }
 
 /**
- * Records a manual (cash/check) payment for a weekend roster member.
+ * Records a manual (cash/check) payment for a weekend group member.
+ * Creates a record in the payment_transaction table targeting weekend_group_member.
  */
 export async function recordManualPayment(
-  weekendRosterId: string,
+  groupMemberId: string,
   paymentAmount: number,
   paymentMethod: 'cash' | 'check',
+  paymentOwner: string,
   notes?: string
-): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
-  // Verify the weekend roster record exists
-  const rosterResult =
-    await WeekendRepository.findRosterRecordById(weekendRosterId)
+): Promise<Result<string, PaymentTransactionRow>> {
+  // Generate a manual payment intent ID
+  const paymentIntentId = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
-  if (isErr(rosterResult)) {
-    return err(`Failed to find roster record: ${rosterResult.error}`)
-  }
-
-  if (isNil(rosterResult.data)) {
-    return err('Weekend roster record not found')
-  }
-
-  // Insert the payment record
-  const result = await WeekendRepository.insertManualPayment({
-    weekend_roster_id: weekendRosterId,
-    payment_amount: paymentAmount,
+  // Record payment in the payment_transaction table
+  const result = await PaymentService.recordPayment({
+    type: 'fee',
+    target_type: 'weekend_group_member',
+    target_id: groupMemberId,
+    weekend_id: null,
+    payment_intent_id: paymentIntentId,
+    gross_amount: paymentAmount,
     payment_method: paymentMethod,
-    payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+    payment_owner: paymentOwner,
     notes: notes ?? null,
   })
 
@@ -643,14 +781,25 @@ export async function recordManualPayment(
   }
 
   logger.info(
-    `Manual payment recorded: ${paymentMethod} payment of $${paymentAmount} for roster ID ${weekendRosterId}`
+    `Manual payment recorded: ${paymentMethod} payment of $${paymentAmount} for group member ID ${groupMemberId}`
   )
 
   return ok(result.data)
 }
 
 /**
- * Fetches weekend options for dropdowns/selectors.
+ * Fetches the special_needs field for a roster record.
+ */
+export async function getRosterSpecialNeeds(
+  rosterId: string
+): Promise<Result<string, string | null>> {
+  return WeekendRepository.findRosterSpecialNeeds(rosterId)
+}
+
+/**
+ * Fetches weekend group options for dropdowns/selectors.
+ * Returns group IDs — suitable for filtering (e.g. candidate lists)
+ * where gender is selected separately.
  */
 export async function getWeekendOptions(): Promise<
   Result<string, Array<{ id: string; label: string }>>
@@ -658,12 +807,13 @@ export async function getWeekendOptions(): Promise<
   const groupsResult = await getWeekendGroupsByStatus()
   if (isErr(groupsResult)) return err(groupsResult.error)
 
-  const options = groupsResult.data.map((group) => {
-    const mens = group.weekends.MENS
-    const womens = group.weekends.WOMENS
-    const anyWeekend = mens ?? womens ?? null
+  const options = groupsResult.data.flatMap((group) => {
+    // Use group ID (not individual weekend ID) since gender is selected separately
+    const weekend = group.weekends.MENS ?? group.weekends.WOMENS
+    if (isNil(weekend) || isNil(group.groupId)) return []
 
-    return { id: group.groupId, label: getWeekendLabel(anyWeekend) }
+    const label = getWeekendLabel(weekend)
+    return [{ id: group.groupId, label }]
   })
 
   // Return reversed (newest first)
@@ -772,13 +922,13 @@ function sortByLeadershipRole(
 function normalizeLeadershipMember(
   member: WeekendRepository.RawLeadershipRosterMember
 ): LeadershipTeamMember | null {
-  if (!member.users || !member.cha_role) {
+  if (isNil(member.users) || isNil(member.cha_role)) {
     return null
   }
 
-  const fullName =
-    `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim() ??
-    'Unknown'
+  const fullNameRaw =
+    `${member.users.first_name ?? ''} ${member.users.last_name ?? ''}`.trim()
+  const fullName = fullNameRaw !== '' ? fullNameRaw : 'Unknown'
 
   return {
     id: member.id,

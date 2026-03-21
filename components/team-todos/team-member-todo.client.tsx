@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { PartyPopper } from 'lucide-react'
 import { TodoItem } from './todo-item'
-import {
+import type {
   TodoItemConfig,
   TodoCompletionState,
 } from '@/lib/weekend/team/todos.types'
@@ -17,7 +17,7 @@ type TeamMemberTodoListProps = {
   items: Array<Omit<TodoItemConfig, 'checkCompletion' | 'params'>>
   urls: Record<string, string | null>
   completionState: TodoCompletionState
-  weekendId: string
+  groupMemberId: string
 }
 
 /**
@@ -27,7 +27,7 @@ type TeamMemberTodoListProps = {
 function hydrateCompletionState(
   items: TodoItemConfig[],
   serverState: TodoCompletionState,
-  weekendId: string
+  groupMemberId: string
 ): TodoCompletionState {
   if (typeof window === 'undefined') {
     return serverState
@@ -36,8 +36,8 @@ function hydrateCompletionState(
   const hydratedState = { ...serverState }
 
   items.forEach((item) => {
-    if (item.clientSideCompletion) {
-      const isComplete = getTodoCompletion(weekendId, item.id)
+    if (item.clientSideCompletion === true) {
+      const isComplete = getTodoCompletion(groupMemberId, item.id)
       if (isComplete) {
         hydratedState[item.id] = true
       }
@@ -55,7 +55,7 @@ export function TeamMemberTodoClient({
   items,
   urls,
   completionState: serverCompletionState,
-  weekendId,
+  groupMemberId,
 }: TeamMemberTodoListProps) {
   // Track which todos have been clicked this session (for immediate UI updates)
   const [clickedTodos, setClickedTodos] = useState<Record<string, boolean>>({})
@@ -65,14 +65,14 @@ export function TeamMemberTodoClient({
     const hydrated = hydrateCompletionState(
       items,
       serverCompletionState,
-      weekendId
+      groupMemberId
     )
     return { ...hydrated, ...clickedTodos }
-  }, [items, serverCompletionState, weekendId, clickedTodos])
+  }, [items, serverCompletionState, groupMemberId, clickedTodos])
 
   const handleTodoClick = (todoId: string) => {
     // Save to localStorage
-    setTodoCompletion(weekendId, todoId)
+    setTodoCompletion(groupMemberId, todoId)
 
     // Update clicked state for immediate UI feedback
     setClickedTodos((prev) => ({
@@ -102,7 +102,7 @@ export function TeamMemberTodoClient({
           isComplete={completionState[item.id] ?? false}
           tooltip={item.tooltip}
           onLinkClick={
-            item.clientSideCompletion
+            item.clientSideCompletion === true
               ? () => handleTodoClick(item.id)
               : undefined
           }

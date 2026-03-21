@@ -1,7 +1,7 @@
 import 'server-only'
 
-import { Result } from '@/lib/results'
-import { Tables } from '@/lib/supabase/database.types'
+import type { Result } from '@/lib/results'
+import type { Tables } from '@/database.types'
 import * as ContactInformationRepository from './repository'
 
 export async function getContactInformation(

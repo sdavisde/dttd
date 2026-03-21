@@ -1,7 +1,9 @@
 import 'server-only'
-import { Result, err, isErr } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, isErr } from '@/lib/results'
 import { getLoggedInUser } from '@/services/identity/user'
-import { Permission, userHasPermission } from '@/lib/security'
+import type { Permission} from '@/lib/security';
+import { userHasPermission } from '@/lib/security'
 
 /**
  * A wrapper for server actions that ensures the user is authenticated and has the required permission.

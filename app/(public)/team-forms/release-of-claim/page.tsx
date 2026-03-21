@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
+import { getRosterSpecialNeeds } from '@/services/weekend'
 import { ReleaseOfClaimForm } from '@/components/team-forms/release-of-claim-form'
-import { isErr } from '@/lib/results'
+import { isErr, unwrapOr } from '@/lib/results'
 import { isNil } from 'lodash'
 
 export default async function ReleaseOfClaimPage() {
@@ -18,5 +19,20 @@ export default async function ReleaseOfClaimPage() {
     redirect('/')
   }
 
-  return <ReleaseOfClaimForm rosterId={user.teamMemberInfo.id} />
+  // special_needs is shared across all roster rows in the group; any rosterId works
+  const firstRosterId = user.teamMemberInfo.weekendAssignments[0]?.rosterId
+  const specialNeedsResult = !isNil(firstRosterId)
+    ? await getRosterSpecialNeeds(firstRosterId)
+    : null
+
+  return (
+    <ReleaseOfClaimForm
+      groupMemberId={user.teamMemberInfo.groupMemberId}
+      initialSpecialNeeds={
+        !isNil(specialNeedsResult)
+          ? (unwrapOr(specialNeedsResult, null) ?? undefined)
+          : undefined
+      }
+    />
+  )
 }

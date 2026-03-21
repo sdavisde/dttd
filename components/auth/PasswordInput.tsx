@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Eye, EyeOff } from 'lucide-react'
+import { isNil } from 'lodash'
 
 interface PasswordInputProps {
   id: string
@@ -53,7 +54,7 @@ export default function PasswordInput({
           )}
         </Button>
       </div>
-      {helpText && <p className="text-sm text-gray-500">{helpText}</p>}
+      {!isNil(helpText) && <p className="text-sm text-gray-500">{helpText}</p>}
     </div>
   )
 }

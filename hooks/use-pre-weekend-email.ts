@@ -3,43 +3,46 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { updateContactInformation } from '@/services/notifications'
+import {
+  updateContactInformation,
+  type ContactInfo,
+} from '@/services/notifications'
 import { isErr } from '@/lib/results'
-import { Tables } from '@/lib/supabase/database.types'
+import { isNil } from 'lodash'
 
 type UsePreWeekendEmailProps = {
-  contact: Tables<'contact_information'>
+  contact: ContactInfo
 }
 
 type UsePreWeekendEmailReturn = {
   email: string
-  isEditing: boolean
-  isSaving: boolean
-  setEmailAction: (email: string) => void
-  startEditAction: () => void
-  saveAction: () => Promise<void>
-  cancelAction: () => void
+  isEditingEmail: boolean
+  isSavingEmail: boolean
+  setEmail: (email: string) => void
+  startEditEmail: () => void
+  saveEmail: () => Promise<void>
+  cancelEditEmail: () => void
 }
 
 export function usePreWeekendEmail({
   contact,
 }: UsePreWeekendEmailProps): UsePreWeekendEmailReturn {
   const router = useRouter()
-  const [email, setEmail] = useState(contact.email_address ?? '')
+  const [email, setEmail] = useState(contact.emailAddress ?? '')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  const startEdit = () => {
+  const startEditEmail = () => {
     setIsEditing(true)
   }
 
-  const cancel = () => {
-    setEmail(contact.email_address ?? '')
+  const cancelEditEmail = () => {
+    setEmail(contact.emailAddress ?? '')
     setIsEditing(false)
   }
 
-  const save = async () => {
-    if (!email.trim()) {
+  const saveEmail = async () => {
+    if (email.trim() === '') {
       toast.error('Email address cannot be empty')
       return
     }
@@ -51,7 +54,7 @@ export function usePreWeekendEmail({
         emailAddress: email.trim(),
       })
 
-      if (result && isErr(result)) {
+      if (!isNil(result) && isErr(result)) {
         toast.error(result.error)
         return
       }
@@ -70,11 +73,11 @@ export function usePreWeekendEmail({
 
   return {
     email,
-    isEditing,
-    isSaving,
-    setEmailAction: setEmail,
-    startEditAction: startEdit,
-    saveAction: save,
-    cancelAction: cancel,
+    isEditingEmail: isEditing,
+    isSavingEmail: isSaving,
+    setEmail,
+    startEditEmail,
+    saveEmail,
+    cancelEditEmail,
   }
 }

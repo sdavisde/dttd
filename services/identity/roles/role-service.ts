@@ -1,10 +1,11 @@
 import 'server-only'
 
-import { isErr, ok, Result } from '@/lib/results'
+import type { Result } from '@/lib/results';
+import { isErr, ok } from '@/lib/results'
 import * as RoleRepository from './repository'
-import { Tables } from '@/lib/supabase/database.types'
-import { Permission } from '@/lib/security'
-import { Role } from './types'
+import type { Tables } from '@/database.types'
+import type { Permission } from '@/lib/security'
+import type { Role } from './types'
 
 function normalizeRole(rawRole: Tables<'roles'>): Role {
   return {

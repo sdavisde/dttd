@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { isNil } from 'lodash'
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean
@@ -33,7 +34,7 @@ export function DeleteConfirmationDialog({
   confirmText = 'Delete',
   cancelText = 'Cancel',
 }: DeleteConfirmationDialogProps) {
-  const defaultDescription = itemName
+  const defaultDescription = !isNil(itemName)
     ? `Are you sure you want to delete "${itemName}"? This action cannot be undone.`
     : 'Are you sure you want to delete this item? This action cannot be undone.'
 

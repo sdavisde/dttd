@@ -6,8 +6,6 @@ export function formatMemberName(member: {
   firstName?: string | null
   lastName?: string | null
 }): string {
-  return (
-    `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim() ||
-    'Unknown User'
-  )
+  const name = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
+  return name !== '' ? name : 'Unknown User'
 }

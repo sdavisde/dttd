@@ -1,12 +1,13 @@
 import 'server-only'
 
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok } from '@/lib/results'
 import { getLoggedInUser } from '@/services/identity/user'
 import { isErr } from '@/lib/results'
-import { CommunityEncouragement } from './types'
+import type { CommunityEncouragement } from './types'
 import * as CommunityRepository from './repository'
 import { isEmpty, isNil } from 'lodash'
-import { Tables } from '@/lib/supabase/database.types'
+import type { Tables } from '@/database.types'
 
 function normalizeCommunityEncouragement(
   rawEncouragement: Tables<'community_encouragements'>

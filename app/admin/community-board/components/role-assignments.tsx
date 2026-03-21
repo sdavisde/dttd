@@ -2,32 +2,25 @@
 
 import { ClipboardList } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tables } from '@/lib/supabase/database.types'
 import { usePreWeekendEmail } from '@/hooks/use-pre-weekend-email'
-import {
-  useRoleAssignment,
-  type CommunityBoardRole,
-  type AssignableMember,
-} from '@/hooks/use-role-assignment'
+import { useRoleAssignment } from '@/hooks/use-role-assignment'
 import { RoleCard } from './role-card'
 import { PreWeekendRoleCard } from './pre-weekend-role-card'
-import { LeadersCommitteeSection } from './leaders-committee-section'
 import { RoleAssignmentDialog } from './role-assignment-dialog'
 import { AssignmentConfirmationDialog } from './assignment-confirmation-dialog'
-
-// Re-export types for external use
-export type { CommunityBoardRole, AssignableMember }
+import type { BoardRole, BoardMember } from '@/services/community/board'
+import type { ContactInfo } from '@/services/notifications'
 
 type RoleAssignmentsProps = {
-  boardRoles: CommunityBoardRole[]
-  leadersCommitteeRole: CommunityBoardRole | null
-  members: AssignableMember[]
-  preWeekendCoupleContact: Tables<'contact_information'>
+  boardRoles: BoardRole[]
+  committeeRoles: BoardRole[]
+  members: BoardMember[]
+  preWeekendCoupleContact: ContactInfo
 }
 
 export function RoleAssignments({
   boardRoles,
-  leadersCommitteeRole,
+  committeeRoles,
   members,
   preWeekendCoupleContact,
 }: RoleAssignmentsProps) {
@@ -53,6 +46,10 @@ export function RoleAssignments({
                   <PreWeekendRoleCard
                     key={role.id}
                     role={role}
+                    assignedMembers={
+                      roleAssignment.membersByRoleId[role.id] ?? []
+                    }
+                    onAssignClick={() => roleAssignment.openDialog(role)}
                     {...preWeekendEmail}
                   />
                 ) : (
@@ -71,17 +68,14 @@ export function RoleAssignments({
         </Card>
 
         <div className="space-y-6">
-          <LeadersCommitteeSection
-            role={leadersCommitteeRole}
-            members={
-              roleAssignment.membersByRoleId[leadersCommitteeRole?.id ?? ''] ??
-              []
-            }
-            onEditClickAction={() =>
-              leadersCommitteeRole &&
-              roleAssignment.openDialog(leadersCommitteeRole)
-            }
-          />
+          {committeeRoles.map((role) => (
+            <RoleCard
+              key={role.id}
+              role={role}
+              assignedMembers={roleAssignment.membersByRoleId[role.id] ?? []}
+              onAssignClick={() => roleAssignment.openDialog(role)}
+            />
+          ))}
 
           <Card>
             <CardHeader>

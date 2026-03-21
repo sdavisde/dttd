@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { DollarSign, CreditCard, FileText, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { DollarSign, CreditCard, FileText, User } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -19,13 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { WeekendRosterMember, recordManualPayment } from '@/services/weekend'
-import { getTeamFee } from '@/services/payment/actions'
+import type { WeekendRosterMember } from '@/services/weekend'
+import { recordManualPayment } from '@/services/weekend'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { isOk, Results } from '@/lib/results'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
-import { useQuery } from '@tanstack/react-query'
+import { isOk } from '@/lib/results'
+import { isNil } from 'lodash'
 
 type CashCheckPaymentModalProps = {
   open: boolean
@@ -40,40 +39,37 @@ export function CashCheckPaymentModal({
 }: CashCheckPaymentModalProps) {
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentType, setPaymentType] = useState<'cash' | 'check' | null>(null)
+  const [paidBy, setPaidBy] = useState('')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
-    queryKey: ['teamFee'],
-    queryFn: async () => {
-      const result = await getTeamFee()
-      const price = Results.toNullable(result)
-      return price?.unitAmount ? price.unitAmount / 100 : null
-    },
-    staleTime: Infinity,
-  })
+  const users = rosterMember?.users
+  const memberName =
+    !isNil(users?.first_name) && !isNil(users?.last_name)
+      ? `${users!.first_name} ${users!.last_name}`
+      : 'Unknown User'
 
-  if (!rosterMember?.users) {
+  // Initialize paidBy with member name when modal opens
+  useEffect(() => {
+    if (open && !isNil(rosterMember?.users)) {
+      setPaidBy(memberName)
+    }
+  }, [open, rosterMember?.users, memberName])
+
+  if (isNil(rosterMember?.users)) {
     return null
   }
 
-  const { users } = rosterMember
-  const memberName =
-    users?.first_name && users?.last_name
-      ? `${users.first_name} ${users.last_name}`
-      : 'Unknown User'
-
-  const totalFee =
-    paymentType && stripePriceDollars
-      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
-      : null
-  const currentPaid = rosterMember.total_paid ?? 0
-  const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
+  const {
+    totalFee,
+    totalPaid: currentPaid,
+    balance: remainingBalance,
+  } = rosterMember.paymentSummary
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!paymentType) return
+    if (isNil(paymentType)) return
     setIsSubmitting(true)
 
     try {
@@ -81,6 +77,7 @@ export function CashCheckPaymentModal({
         rosterMember.id,
         parseFloat(paymentAmount),
         paymentType,
+        paidBy.trim() !== '' ? paidBy.trim() : memberName,
         notes
       )
 
@@ -92,6 +89,7 @@ export function CashCheckPaymentModal({
         // Reset form and close modal
         setPaymentAmount('')
         setPaymentType(null)
+        setPaidBy('')
         setNotes('')
         onClose()
 
@@ -112,6 +110,7 @@ export function CashCheckPaymentModal({
     // Reset form when closing
     setPaymentAmount('')
     setPaymentType(null)
+    setPaidBy('')
     setNotes('')
     onClose()
   }
@@ -160,16 +159,30 @@ export function CashCheckPaymentModal({
             </Select>
           </div>
 
-          {/* Payment Summary - conditional display */}
+          {/* Paid By */}
+          <div className="space-y-2">
+            <Label htmlFor="paid-by">Paid By</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="paid-by"
+                type="text"
+                value={paidBy}
+                onChange={(e) => setPaidBy(e.target.value)}
+                placeholder="Name of person paying"
+                className="pl-10"
+                disabled={isNil(paymentType)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pre-filled with team member name. Change if someone else is
+              paying.
+            </p>
+          </div>
+
+          {/* Payment Summary */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            {isLoadingPrice ? (
-              <div className="flex items-center justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span className="text-sm text-muted-foreground">
-                  Loading fee...
-                </span>
-              </div>
-            ) : !paymentType ? (
+            {isNil(paymentType) ? (
               <p className="text-sm text-muted-foreground text-center py-2">
                 Select a payment method to see fee details
               </p>
@@ -187,9 +200,7 @@ export function CashCheckPaymentModal({
                   <span>Remaining Balance:</span>
                   <span
                     className={
-                      remainingBalance !== null && remainingBalance > 0
-                        ? 'text-amber-600'
-                        : 'text-green-600'
+                      remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
                     }
                   >
                     ${remainingBalance}
@@ -209,22 +220,21 @@ export function CashCheckPaymentModal({
                   id="payment-amount"
                   type="number"
                   min="0"
-                  max={remainingBalance ?? undefined}
+                  max={remainingBalance}
                   step="0.01"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder="0.00"
                   className="pl-10"
                   required
-                  disabled={!paymentType}
+                  disabled={isNil(paymentType)}
                 />
               </div>
-              {remainingBalance !== null &&
-                parseFloat(paymentAmount) > remainingBalance && (
-                  <p className="text-xs text-amber-600">
-                    Amount exceeds remaining balance
-                  </p>
-                )}
+              {parseFloat(paymentAmount) > remainingBalance && (
+                <p className="text-xs text-amber-600">
+                  Amount exceeds remaining balance
+                </p>
+              )}
             </div>
 
             {/* Notes */}
@@ -242,7 +252,7 @@ export function CashCheckPaymentModal({
                     : 'Optional notes about the payment...'
                 }
                 rows={3}
-                disabled={!paymentType}
+                disabled={isNil(paymentType)}
               />
             </div>
 
@@ -260,7 +270,9 @@ export function CashCheckPaymentModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isSubmitting || !paymentAmount || !paymentType}
+                disabled={
+                  isSubmitting || paymentAmount === '' || isNil(paymentType)
+                }
               >
                 {isSubmitting ? 'Recording...' : 'Record Payment'}
               </Button>

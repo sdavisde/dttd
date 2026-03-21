@@ -12,9 +12,10 @@ import { type Event } from '@/services/events'
 import { createEvent, updateEvent, deleteEvent } from '@/services/events'
 import { type EventTypeValue } from '@/services/events/types'
 import { isErr } from '@/lib/results'
+import { isNil } from 'lodash'
+import type { EventFormData } from '../event-form-schema'
 import {
   eventFormSchema,
-  EventFormData,
   DEFAULT_FORM_VALUES,
   CT_TIMEZONE,
 } from '../event-form-schema'
@@ -25,7 +26,7 @@ interface UseEventFormProps {
 }
 
 export function useEventForm({ event, onClose }: UseEventFormProps) {
-  const isEditing = !!event
+  const isEditing = !isNil(event)
   const router = useRouter()
   const [originalFormData, setOriginalFormData] =
     useState<EventFormData | null>(null)
@@ -42,26 +43,26 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
 
   // Populate form when editing
   useEffect(() => {
-    if (isEditing && event) {
+    if (isEditing && !isNil(event)) {
       const resetData: Partial<EventFormData> = {
         title: event.title ?? '',
         time: '09:00',
         location: event.location ?? '',
         type: event.type ?? null,
-        hasEndDateTime: !!event.endDatetime,
+        hasEndDateTime: !isNil(event.endDatetime),
         endDate: null,
         endTime: null,
-        weekendId: event.weekendId ?? null,
+        weekendGroupId: event.weekendGroupId ?? null,
       }
 
-      if (event.datetime) {
+      if (!isNil(event.datetime)) {
         const utcDate = new Date(event.datetime)
         const ctDate = toZonedTime(utcDate, CT_TIMEZONE)
         resetData.date = ctDate
         resetData.time = format(ctDate, 'HH:mm')
       }
 
-      if (event.endDatetime) {
+      if (!isNil(event.endDatetime)) {
         const utcEndDate = new Date(event.endDatetime)
         const ctEndDate = toZonedTime(utcEndDate, CT_TIMEZONE)
         resetData.endDate = ctEndDate
@@ -86,7 +87,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
       const utcDateTime = fromZonedTime(ctDateTime, CT_TIMEZONE)
 
       let endDatetimeUtc: string | null = null
-      if (data.hasEndDateTime && data.endDate && data.endTime) {
+      if (data.hasEndDateTime && !isNil(data.endDate) && !isNil(data.endTime)) {
         const [endHours, endMinutes] = data.endTime.split(':').map(Number)
         const ctEndDateTime = new Date(data.endDate)
         ctEndDateTime.setHours(endHours, endMinutes, 0, 0)
@@ -99,10 +100,10 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         location: data.location ?? null,
         type: (data.type as EventTypeValue) ?? null,
         end_datetime: endDatetimeUtc,
-        weekend_id: data.weekendId ?? null,
+        weekend_group_id: data.weekendGroupId ?? null,
       }
 
-      if (isEditing && event) {
+      if (isEditing && !isNil(event)) {
         const result = await updateEvent(event.id, eventData)
         if (isErr(result)) {
           throw new Error(result.error)
@@ -128,7 +129,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
   }
 
   const handleDelete = async () => {
-    if (!event || !isEditing) return
+    if (isNil(event) || !isEditing) return
 
     setIsDeleting(true)
     try {
@@ -158,7 +159,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
 
   // Check if form has changes
   const currentFormData = form.watch()
-  const hasChanges = originalFormData
+  const hasChanges = !isNil(originalFormData)
     ? JSON.stringify({
         title: currentFormData.title,
         date: currentFormData.date?.toISOString(),
@@ -168,7 +169,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         hasEndDateTime: currentFormData.hasEndDateTime,
         endDate: currentFormData.endDate?.toISOString(),
         endTime: currentFormData.endTime,
-        weekendId: currentFormData.weekendId,
+        weekendGroupId: currentFormData.weekendGroupId,
       }) !==
       JSON.stringify({
         title: originalFormData.title,
@@ -179,7 +180,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         hasEndDateTime: originalFormData.hasEndDateTime,
         endDate: originalFormData.endDate?.toISOString(),
         endTime: originalFormData.endTime,
-        weekendId: originalFormData.weekendId,
+        weekendGroupId: originalFormData.weekendGroupId,
       })
     : currentFormData.title !== '' ||
       currentFormData.date?.toDateString() !== new Date().toDateString() ||
@@ -187,7 +188,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
       currentFormData.location !== '' ||
       currentFormData.type !== null ||
       currentFormData.hasEndDateTime !== false ||
-      currentFormData.weekendId !== null
+      currentFormData.weekendGroupId !== null
 
   const isFormValid = form.formState.isValid
   const isSaveDisabled =

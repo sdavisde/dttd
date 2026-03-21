@@ -1,10 +1,13 @@
 import 'server-only'
 
-import { Result, err, ok, isErr } from '@/lib/results'
+import { isNil } from 'lodash'
+import type { Result} from '@/lib/results';
+import { err, ok, isErr } from '@/lib/results'
 import { getLoggedInUser } from '@/services/identity/user'
-import {
+import type {
   SiteSetting,
-  PrayerWheelUrls,
+  PrayerWheelUrls} from './types';
+import {
   MENS_PRAYER_WHEEL_URL,
   WOMENS_PRAYER_WHEEL_URL,
 } from './types'
@@ -19,7 +22,7 @@ function normalizeSetting(raw: {
   return {
     key: raw.key,
     value: raw.value,
-    updatedAt: raw.updated_at ? new Date(raw.updated_at) : new Date(),
+    updatedAt: !isNil(raw.updated_at) ? new Date(raw.updated_at) : new Date(),
     updatedBy: raw.updated_by_user_id,
   }
 }

@@ -2,6 +2,7 @@
 
 import { Calendar } from 'lucide-react'
 import { type Event } from '@/services/events'
+import { isNil } from 'lodash'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { EventCard } from './EventCard'
@@ -19,7 +20,7 @@ export function AdminEvents({
   onEventClick,
   isPast = false,
 }: AdminEventsProps) {
-  if (!events || events.length === 0) {
+  if (isNil(events) || events.length === 0) {
     return (
       <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
         <Alert className="h-full flex flex-col">

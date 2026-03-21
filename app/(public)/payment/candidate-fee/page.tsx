@@ -6,7 +6,7 @@ import { getUrl } from '@/lib/url'
 import { Errors } from '@/lib/error'
 import { isEmpty, isNil } from 'lodash'
 import { getCandidateById } from '@/services/candidates'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
+import { getCandidateFee } from '@/services/payment/payment-service'
 
 interface CandidateFeesPaymentPageProps {
   searchParams: Promise<{
@@ -31,7 +31,7 @@ export default async function CandidateFeesPaymentPage({
   const { candidate_id } = await searchParams
 
   const candidateFeePriceId = process.env.CANDIDATE_FEE_PRICE_ID
-  if (!candidateFeePriceId) {
+  if (isNil(candidateFeePriceId) || candidateFeePriceId === '') {
     throw new Error('Missing candidate fee price id')
   }
 
@@ -69,12 +69,18 @@ export default async function CandidateFeesPaymentPage({
   }
 
   // Check if candidate fees have already been paid for this candidate
-  if (candidate.amountPaid >= PAYMENT_CONSTANTS.CANDIDATE_FEE) {
+  const feeResult = await getCandidateFee()
+  const candidateFee =
+    !Results.isErr(feeResult) && !isNil(feeResult.data.unitAmount)
+      ? feeResult.data.unitAmount / 100
+      : 0
+
+  if (candidateFee > 0 && candidate.amountPaid >= candidateFee) {
     logger.info({
       path: '/payment/candidate-fee',
       candidate_id,
       amountPaid: candidate.amountPaid,
-      candidateFee: PAYMENT_CONSTANTS.CANDIDATE_FEE,
+      candidateFee,
       msg: 'Candidate fees already paid',
     })
     redirect(`/home?error=${Errors.CANDIDATE_FEES_ALREADY_PAID}`)
@@ -92,13 +98,19 @@ export default async function CandidateFeesPaymentPage({
     redirect(`/home?error=${Errors.INVALID_PAYMENT_OWNER}`)
   }
 
+  // Determine the actual payer name based on who is paying
+  const payerName =
+    candidate.paymentOwner === 'sponsor' && !isNil(candidate.sponsorInfo)
+      ? candidate.sponsorInfo.name
+      : `${candidate.firstName} ${candidate.lastName}`
+
   return (
     <div className="payment-page">
       <PublicCheckout
         priceId={candidateFeePriceId}
         metadata={{
           candidateId: candidate.id,
-          payment_owner: candidate.paymentOwner,
+          payment_owner: payerName,
         }}
         returnUrl={getUrl(
           '/payment/candidate-fee/success?session_id={CHECKOUT_SESSION_ID}'

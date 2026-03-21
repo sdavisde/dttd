@@ -1,7 +1,7 @@
-import { hasTeamPayment } from '@/actions/payments'
+import { hasTeamPayment } from '@/services/payment'
 import { hasCompletedAllTeamForms } from '@/actions/team-forms'
 import { isOk } from '@/lib/results'
-import { TodoItemConfig } from './todos.types'
+import type { TodoItemConfig } from './todos.types'
 
 /**
  * Configuration for team preparation TODO items.
@@ -13,7 +13,9 @@ export const teamTodoItems: TodoItemConfig[] = [
     label: 'Complete team forms',
     href: '/team-forms',
     checkCompletion: async ({ user }) => {
-      const result = await hasCompletedAllTeamForms(user.teamMemberInfo.id)
+      const result = await hasCompletedAllTeamForms(
+        user.teamMemberInfo.groupMemberId
+      )
       return isOk(result) && result.data
     },
   },
@@ -21,9 +23,8 @@ export const teamTodoItems: TodoItemConfig[] = [
     id: 'team-payment',
     label: 'Pay team fees',
     href: '/payment/team-fee',
-    params: ({ weekend }) => `?weekend_id=${weekend.id}`,
     checkCompletion: async ({ user }) => {
-      const result = await hasTeamPayment(user.teamMemberInfo.id)
+      const result = await hasTeamPayment(user.teamMemberInfo.groupMemberId)
       return isOk(result) && result.data
     },
   },

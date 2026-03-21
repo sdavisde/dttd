@@ -7,6 +7,7 @@ import {
   Users,
   Calendar,
   DollarSign,
+  Landmark,
   TentTree,
   Folder,
   Settings2,
@@ -23,6 +24,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { isNil } from 'lodash'
 
 // Icon mapping for serializable data
 const iconMap: Record<string, LucideIcon> = {
@@ -31,6 +33,7 @@ const iconMap: Record<string, LucideIcon> = {
   Folder,
   Calendar,
   DollarSign,
+  Landmark,
   TentTree,
   Settings2,
   ShieldCheck,
@@ -67,7 +70,7 @@ export function AdminSidebar({
   const transformedData = {
     navMain: data.navMain.map((item) => ({
       ...item,
-      icon: item.icon ? iconMap[item.icon] : undefined,
+      icon: !isNil(item.icon) ? iconMap[item.icon] : undefined,
     })),
   }
 

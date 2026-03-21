@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Weekend } from '@/lib/weekend/types'
+import type { Weekend } from '@/lib/weekend/types'
 import { trimWeekendTypeFromTitle, formatWeekendTitle } from '@/lib/weekend'
 import { Typography } from '@/components/ui/typography'
 

@@ -1,0 +1,289 @@
+'use client'
+
+import type { ReactNode} from 'react';
+import { useCallback, useMemo, useState } from 'react'
+import type {
+  ColumnDef,
+  ColumnFiltersState,
+  FilterFn,
+  Row,
+  SortingState,
+  VisibilityState} from '@tanstack/react-table';
+import {
+  flexRender,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+
+import { cn } from '@/lib/utils'
+import { userHasPermission } from '@/lib/security'
+import type { User } from '@/lib/users/types'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+
+import type { DataTableUrlState } from '@/hooks/use-data-table-url-state'
+import { DataTableMobileCard } from './data-table-mobile-card'
+import { DataTableMobileToolbar } from './data-table-mobile-toolbar'
+import { DataTablePagination } from './data-table-pagination'
+import { DataTableToolbar } from './data-table-toolbar'
+import '@/components/ui/data-table/types'
+import { isEmpty, isNil } from 'lodash'
+
+// Filter function for select-type columns (array includes)
+const arrIncludesFilter: FilterFn<unknown> = (
+  row: Row<unknown>,
+  columnId: string,
+  filterValue: string[]
+) => {
+  const value = String(row.getValue(columnId) ?? '')
+  return filterValue.includes(value)
+}
+
+arrIncludesFilter.autoRemove = (val: unknown) => isNil(val) || isEmpty(val)
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  user: User | null
+  initialSort?: SortingState
+  emptyState?: {
+    noData: ReactNode
+    noResults: ReactNode
+  }
+  globalFilterFn?: FilterFn<TData>
+  urlState?: DataTableUrlState
+  searchPlaceholder?: string
+  onRowClick?: (row: TData) => void
+  columnVisibility?: VisibilityState
+  toolbarChildren?: ReactNode
+}
+
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  user,
+  initialSort,
+  emptyState,
+  globalFilterFn,
+  urlState,
+  searchPlaceholder,
+  onRowClick,
+  columnVisibility: columnVisibilityProp,
+  toolbarChildren,
+}: DataTableProps<TData, TValue>) {
+  // Internal state (used when urlState is not provided)
+  const [internalSorting, setInternalSorting] = useState<SortingState>(
+    initialSort ?? []
+  )
+  const [internalColumnFilters, setInternalColumnFilters] =
+    useState<ColumnFiltersState>([])
+  const [internalGlobalFilter, setInternalGlobalFilter] = useState('')
+  const [internalPagination, setInternalPagination] = useState({
+    pageIndex: 0,
+    pageSize: 25,
+  })
+
+  // Use URL state if provided, otherwise internal state
+  const sorting = urlState?.sorting ?? internalSorting
+  const onSortingChange = urlState?.onSortingChange ?? setInternalSorting
+  const columnFilters = urlState?.columnFilters ?? internalColumnFilters
+  const onColumnFiltersChange =
+    urlState?.onColumnFiltersChange ?? setInternalColumnFilters
+  const globalFilter = urlState?.globalFilter ?? internalGlobalFilter
+  const onGlobalFilterChange =
+    urlState?.onGlobalFilterChange ?? setInternalGlobalFilter
+  const pagination = urlState?.pagination ?? internalPagination
+  const onPaginationChange =
+    urlState?.onPaginationChange ?? setInternalPagination
+
+  const columnVisibility = useMemo<VisibilityState>(() => {
+    const visibility: VisibilityState = {}
+    for (const col of columns) {
+      const colId =
+        'accessorKey' in col
+          ? String(col.accessorKey)
+          : 'id' in col
+            ? col.id
+            : undefined
+      if (isNil(colId)) continue
+
+      const permission = col.meta?.requiredPermission
+      const permissionVisible = isNil(permission)
+        ? true
+        : !isNil(user)
+          ? userHasPermission(user, [permission])
+          : false
+
+      const propVisible = columnVisibilityProp?.[colId] ?? true
+
+      // Only set visibility if either source restricts it
+      if (!permissionVisible || !propVisible) {
+        visibility[colId] = false
+      } else if (!isNil(permission)) {
+        // Preserve explicit true for permission-controlled columns
+        visibility[colId] = true
+      }
+    }
+    return visibility
+  }, [columns, user, columnVisibilityProp])
+
+  // Auto-assign arrIncludesFilter for select-type columns
+  const processedColumns = useMemo(() => {
+    return columns.map((col) => {
+      if (col.meta?.filterType === 'select' && isNil(col.filterFn)) {
+        return { ...col, filterFn: arrIncludesFilter } as ColumnDef<
+          TData,
+          TValue
+        >
+      }
+      return col
+    })
+  }, [columns])
+
+  const table = useReactTable({
+    data,
+    columns: processedColumns,
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+      columnVisibility,
+      pagination,
+    },
+    onSortingChange,
+    onColumnFiltersChange,
+    onGlobalFilterChange,
+    onPaginationChange,
+    autoResetPageIndex: false,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    ...(!isNil(globalFilterFn) ? { globalFilterFn } : {}),
+  })
+
+  // Mobile expanded card state (single-expand)
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null)
+  const handleCardToggle = useCallback((rowId: string) => {
+    setExpandedRowId((prev) => (prev === rowId ? null : rowId))
+  }, [])
+
+  return (
+    <div className="space-y-4">
+      {/* ── Desktop layout ─────────────────────────────────── */}
+      <div className="hidden md:block space-y-4">
+        <DataTableToolbar table={table} placeholder={searchPlaceholder}>
+          {toolbarChildren}
+        </DataTableToolbar>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {data.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    {emptyState?.noData ?? 'No data.'}
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    {emptyState?.noResults ?? 'No results found.'}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                table.getRowModel().rows.map((row, index) => (
+                  <TableRow
+                    key={row.id}
+                    className={cn(
+                      index % 2 === 1 ? 'bg-muted/25' : undefined,
+                      !isNil(onRowClick) && 'cursor-pointer'
+                    )}
+                    onClick={
+                      !isNil(onRowClick) ? () => onRowClick(row.original) : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <DataTablePagination table={table} />
+      </div>
+
+      {/* ── Mobile layout ──────────────────────────────────── */}
+      <div className="md:hidden space-y-3">
+        <DataTableMobileToolbar table={table} placeholder={searchPlaceholder} />
+
+        {data.length === 0 ? (
+          <div className="py-8 text-center">
+            {emptyState?.noData ?? 'No data.'}
+          </div>
+        ) : table.getRowModel().rows.length === 0 ? (
+          <div className="py-8 text-center">
+            {emptyState?.noResults ?? 'No results found.'}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {table.getRowModel().rows.map((row) => (
+              <DataTableMobileCard
+                key={row.id}
+                row={row}
+                expandedRowId={expandedRowId}
+                onToggle={handleCardToggle}
+                onCardClick={onRowClick}
+              />
+            ))}
+          </div>
+        )}
+
+        <DataTablePagination table={table} />
+      </div>
+    </div>
+  )
+}

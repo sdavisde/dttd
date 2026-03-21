@@ -1,6 +1,6 @@
 'use client'
 
-import { FileObject } from '@supabase/storage-js'
+import type { FileObject } from '@supabase/storage-js'
 import { PublicFileTable } from './PublicFileTable'
 import { Typography } from '@/components/ui/typography'
 import { Card, CardContent } from '@/components/ui/card'

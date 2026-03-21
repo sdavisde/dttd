@@ -13,6 +13,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
 import Link from 'next/link'
+import { isNil } from 'lodash'
 
 export function NavMain({
   items,
@@ -33,12 +34,12 @@ export function NavMain({
       <SidebarGroupLabel>Tres Dias</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          if (!item.items || item.items.length === 0) {
+          if (isNil(item.items) || item.items.length === 0) {
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild tooltip={item.title}>
                   <a href={item.url}>
-                    {item.icon && <item.icon />}
+                    {!isNil(item.icon) && <item.icon />}
                     <span>{item.title}</span>
                   </a>
                 </SidebarMenuButton>
@@ -53,7 +54,7 @@ export function NavMain({
                   tooltip={item.title}
                   className="cursor-pointer"
                 >
-                  {item.icon && <item.icon />}
+                  {!isNil(item.icon) && <item.icon />}
                   <span>{item.title}</span>
                 </SidebarMenuButton>
               </Link>

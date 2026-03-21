@@ -2,13 +2,15 @@
 
 import * as React from 'react'
 import { Calendar } from '@/components/ui/calendar'
-import {
+import type {
   Event,
-  EVENT_TYPE_COLORS,
-  EventTypeValue,
+  EventTypeValue} from '@/services/events/types';
+import {
+  EVENT_TYPE_COLORS
 } from '@/services/events/types'
 import { cn } from '@/lib/utils'
 import { format, isSameDay, parseISO } from 'date-fns'
+import { isNil } from 'lodash'
 
 /**
  * Groups events by their date string (YYYY-MM-DD) for efficient calendar lookup
@@ -17,7 +19,7 @@ export function getEventsGroupedByDate(events: Event[]): Map<string, Event[]> {
   const grouped = new Map<string, Event[]>()
 
   for (const event of events) {
-    if (!event.datetime) continue
+    if (isNil(event.datetime)) continue
 
     const dateKey = format(parseISO(event.datetime), 'yyyy-MM-dd')
     const existing = grouped.get(dateKey) ?? []
@@ -53,13 +55,13 @@ export function EventCalendar({
   const handleDayClick = (day: Date) => {
     const dateKey = format(day, 'yyyy-MM-dd')
     const dayEvents = eventsByDate.get(dateKey) ?? []
-    if (dayEvents.length > 0 && onDateClick) {
+    if (dayEvents.length > 0 && !isNil(onDateClick)) {
       onDateClick(day, dayEvents)
     }
   }
 
   const isSelectedDate = (date: Date): boolean => {
-    if (!selectedDate) return false
+    if (isNil(selectedDate)) return false
     return format(date, 'yyyy-MM-dd') === selectedDate
   }
 
@@ -141,7 +143,7 @@ function EventDots({ events, maxDots = 3, selected = false }: EventDotsProps) {
     <div className="flex items-center justify-center gap-0.5 mt-0.5">
       {displayEvents.map((event, index) => (
         <span
-          key={event.id || index}
+          key={event.id}
           className={cn(
             'w-1.5 h-1.5 rounded-full',
             selected ? 'bg-primary-foreground' : getEventDotColor(event.type)
@@ -167,6 +169,6 @@ function EventDots({ events, maxDots = 3, selected = false }: EventDotsProps) {
  * Returns the Tailwind background color class for an event type
  */
 function getEventDotColor(type: EventTypeValue | null): string {
-  if (!type) return EVENT_TYPE_COLORS.other
-  return EVENT_TYPE_COLORS[type] || EVENT_TYPE_COLORS.other
+  if (isNil(type)) return EVENT_TYPE_COLORS.other
+  return EVENT_TYPE_COLORS[type] ?? EVENT_TYPE_COLORS.other
 }

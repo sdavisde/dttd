@@ -6,6 +6,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import { Errors } from '@/lib/error'
 import { Permission, permissionLock, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
+import { isNil } from 'lodash'
 
 export default async function WeekendsPage() {
   const weekendGroupsResult = await getWeekendGroupsByStatus({})
@@ -14,7 +15,7 @@ export default async function WeekendsPage() {
   const user = userResult?.data
 
   try {
-    if (isErr(userResult) || !user) {
+    if (isErr(userResult) || isNil(user)) {
       throw new Error(Errors.NOT_LOGGED_IN.toString())
     }
 

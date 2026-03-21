@@ -1,4 +1,4 @@
-import { TeamMemberUser, User } from './types'
+import type { TeamMemberUser, User } from './types'
 
 /**
  * Helper function to check if a user is on the active weekend roster.

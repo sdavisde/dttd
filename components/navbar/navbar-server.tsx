@@ -5,6 +5,7 @@ import { Permission } from '@/lib/security'
 import { getActiveWeekends } from '@/services/weekend'
 import { isOk } from '@/lib/results'
 import { WeekendType } from '@/lib/weekend/types'
+import { isNil } from 'lodash'
 
 // Icon names that map to lucide-react icons in the client component
 export type NavIconName =
@@ -39,13 +40,15 @@ export type NavElement = {
   featured?: NavFeaturedContent
   // Visual indicator for restricted/special items
   badge?: 'restricted' | 'new'
+  // Only show this item if the user is on an active weekend team
+  requiresTeamMembership?: boolean
 }
 
 async function getNavElements(): Promise<NavElement[]> {
   const supabase = await createClient()
   const { error: bucketsError } = await supabase.storage.listBuckets()
 
-  if (bucketsError) {
+  if (!isNil(bucketsError)) {
     logger.error(`Error fetching buckets: ${bucketsError.message}`)
     return []
   }
@@ -63,10 +66,10 @@ async function getNavElements(): Promise<NavElement[]> {
     const formatDate = (date: Date) =>
       date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
-    const mensDateStr = mensWeekend
+    const mensDateStr = !isNil(mensWeekend)
       ? `Men's: ${formatDate(new Date(mensWeekend.start_date))}`
       : null
-    const womensDateStr = womensWeekend
+    const womensDateStr = !isNil(womensWeekend)
       ? `Women's: ${formatDate(new Date(womensWeekend.start_date))}`
       : null
 
@@ -76,7 +79,7 @@ async function getNavElements(): Promise<NavElement[]> {
 
     featuredContent = {
       title: `DTTD #${mensWeekend.number}`,
-      description: dateDescription || 'View details and sign up',
+      description: dateDescription !== '' ? dateDescription : 'View details and sign up',
       linkText: 'View weekend details',
       linkHref: '/current-weekend',
     }
@@ -114,6 +117,14 @@ async function getNavElements(): Promise<NavElement[]> {
       icon: 'calendar',
       featured: featuredContent,
       children: [
+        {
+          name: 'Team Forms',
+          slug: 'team-forms',
+          permissions_needed: [],
+          description: 'Complete your team forms',
+          icon: 'clipboard-list',
+          requiresTeamMembership: true,
+        },
         {
           name: 'Team Roster',
           slug: 'roster',

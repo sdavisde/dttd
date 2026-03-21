@@ -5,6 +5,7 @@ import { type Event } from '@/services/events'
 import { WeekendEventCard } from './WeekendEventCard'
 import { EmptyEventsState } from './EmptyEventsState'
 import { compareAsc, parseISO, format } from 'date-fns'
+import { isNil } from 'lodash'
 
 interface EventListProps {
   events: Event[]
@@ -25,7 +26,7 @@ export function getEventElementId(eventId: number): string {
 export function scrollToEvent(eventId: number): void {
   const elementId = getEventElementId(eventId)
   const element = document.getElementById(elementId)
-  if (element) {
+  if (!isNil(element)) {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 }
@@ -35,9 +36,9 @@ export function scrollToEvent(eventId: number): void {
  */
 function sortEventsByDate(events: Event[]): Event[] {
   return [...events].sort((a, b) => {
-    if (!a.datetime && !b.datetime) return 0
-    if (!a.datetime) return 1
-    if (!b.datetime) return -1
+    if (isNil(a.datetime) && isNil(b.datetime)) return 0
+    if (isNil(a.datetime)) return 1
+    if (isNil(b.datetime)) return -1
     return compareAsc(parseISO(a.datetime), parseISO(b.datetime))
   })
 }
@@ -46,7 +47,7 @@ function sortEventsByDate(events: Event[]): Event[] {
  * Gets the date string (YYYY-MM-DD) for an event
  */
 function getEventDateKey(event: Event): string | null {
-  if (!event.datetime) return null
+  if (isNil(event.datetime)) return null
   return format(parseISO(event.datetime), 'yyyy-MM-dd')
 }
 
@@ -60,12 +61,12 @@ export const EventList = forwardRef<HTMLDivElement, EventListProps>(
 
     // Scroll to first event on selected date when it changes
     useEffect(() => {
-      if (selectedDate && selectedDate !== hasScrolledRef.current) {
+      if (!isNil(selectedDate) && selectedDate !== hasScrolledRef.current) {
         // Find the first event on the selected date
         const firstEventOnDate = events.find(
           (event) => getEventDateKey(event) === selectedDate
         )
-        if (firstEventOnDate) {
+        if (!isNil(firstEventOnDate)) {
           scrollToEvent(firstEventOnDate.id)
           hasScrolledRef.current = selectedDate
         }

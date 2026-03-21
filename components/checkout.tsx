@@ -6,8 +6,9 @@ import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Typography } from './ui/typography'
 import { logger } from '@/lib/logger'
+import { isNil } from 'lodash'
 
-if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+if (isNil(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)) {
   throw new Error('Missing Stripe publishable key')
 }
 
@@ -32,7 +33,7 @@ export default function Checkout({
 
   // Fetch client secret when user is available
   useEffect(() => {
-    if (loadingUser || !user) return
+    if (loadingUser || isNil(user)) return
 
     let isMounted = true
 
@@ -74,14 +75,14 @@ export default function Checkout({
   // Initialize and cleanup Stripe checkout
   useEffect(() => {
     async function initializeCheckout() {
-      if (!clientSecret) return
+      if (isNil(clientSecret)) return
 
       try {
         const stripe = await stripePromise
-        if (!stripe) return
+        if (isNil(stripe)) return
 
         // Destroy existing checkout instance if it exists
-        if (checkoutRef.current) {
+        if (!isNil(checkoutRef.current)) {
           checkoutRef.current.destroy()
           checkoutRef.current = null
         }
@@ -105,7 +106,7 @@ export default function Checkout({
 
     // Cleanup function: destroy the embedded checkout instance
     return () => {
-      if (checkoutRef.current) {
+      if (!isNil(checkoutRef.current)) {
         checkoutRef.current.destroy()
         checkoutRef.current = null
       }
@@ -113,7 +114,7 @@ export default function Checkout({
   }, [clientSecret])
 
   // Show loading spinner while user is loading or checkout is initializing
-  if (loadingUser || checkoutLoading || (!clientSecret && !error)) {
+  if (loadingUser || checkoutLoading || (isNil(clientSecret) && isNil(error))) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin" />
@@ -122,7 +123,7 @@ export default function Checkout({
   }
 
   // Show error state
-  if (error) {
+  if (!isNil(error)) {
     logger.error(
       `Checkout error - userId: ${user?.id}, email: ${user?.email}, error: ${error}`
     )

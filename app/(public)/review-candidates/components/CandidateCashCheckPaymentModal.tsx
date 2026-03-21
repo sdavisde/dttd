@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { DollarSign, CreditCard, FileText, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { DollarSign, CreditCard, FileText, User } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -19,14 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { recordManualCandidatePayment } from '@/services/candidates/actions'
-import { getCandidateFee } from '@/services/payment/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { isOk, Results } from '@/lib/results'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
-import { useQuery } from '@tanstack/react-query'
+import { isOk } from '@/lib/results'
+import { isNil } from 'lodash'
 
 type CandidateCashCheckPaymentModalProps = {
   open: boolean
@@ -41,43 +39,41 @@ export function CandidateCashCheckPaymentModal({
 }: CandidateCashCheckPaymentModalProps) {
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentType, setPaymentType] = useState<'cash' | 'check' | null>(null)
+  const [paidBy, setPaidBy] = useState('')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  const { data: stripePriceDollars, isLoading: isLoadingPrice } = useQuery({
-    queryKey: ['candidateFee'],
-    queryFn: async () => {
-      const result = await getCandidateFee()
-      const price = Results.toNullable(result)
-      return price?.unitAmount ? price.unitAmount / 100 : null
-    },
-    staleTime: Infinity,
-  })
+  const candidateName =
+    candidate?.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
+  const sponsorName = candidate?.candidate_sponsorship_info?.sponsor_name ?? ''
+  const paymentOwnerType =
+    candidate?.candidate_sponsorship_info?.payment_owner ?? 'candidate'
 
-  if (!candidate) {
+  // Determine the default payer name based on who is supposed to pay
+  const defaultPayerName =
+    paymentOwnerType === 'sponsor' ? sponsorName : candidateName
+
+  // Initialize paidBy with appropriate name when modal opens
+  useEffect(() => {
+    if (open && !isNil(candidate)) {
+      setPaidBy(defaultPayerName)
+    }
+  }, [open, candidate, defaultPayerName])
+
+  if (isNil(candidate)) {
     return null
   }
 
-  const candidateName =
-    candidate.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
-  const paymentOwner =
-    candidate.candidate_sponsorship_info?.payment_owner ?? 'candidate'
-
-  const totalFee =
-    paymentType && stripePriceDollars
-      ? stripePriceDollars - PAYMENT_CONSTANTS.MANUAL_PAYMENT_DISCOUNT
-      : null
-  const currentPaid =
-    candidate.candidate_payments?.reduce(
-      (sum, p) => sum + (p.payment_amount ?? 0),
-      0
-    ) ?? 0
-  const remainingBalance = totalFee !== null ? totalFee - currentPaid : null
+  const {
+    totalFee,
+    totalPaid: currentPaid,
+    balance: remainingBalance,
+  } = candidate.paymentSummary
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!paymentType) return
+    if (isNil(paymentType)) return
     setIsSubmitting(true)
 
     try {
@@ -85,7 +81,7 @@ export function CandidateCashCheckPaymentModal({
         candidate.id,
         parseFloat(paymentAmount),
         paymentType,
-        paymentOwner,
+        paidBy.trim() !== '' ? paidBy.trim() : defaultPayerName,
         notes
       )
 
@@ -97,6 +93,7 @@ export function CandidateCashCheckPaymentModal({
         // Reset form and close modal
         setPaymentAmount('')
         setPaymentType(null)
+        setPaidBy('')
         setNotes('')
         onClose()
 
@@ -117,6 +114,7 @@ export function CandidateCashCheckPaymentModal({
     // Reset form when closing
     setPaymentAmount('')
     setPaymentType(null)
+    setPaidBy('')
     setNotes('')
     onClose()
   }
@@ -167,16 +165,30 @@ export function CandidateCashCheckPaymentModal({
             </Select>
           </div>
 
-          {/* Payment Summary - conditional display */}
+          {/* Paid By */}
+          <div className="space-y-2">
+            <Label htmlFor="paid-by">Paid By</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="paid-by"
+                type="text"
+                value={paidBy}
+                onChange={(e) => setPaidBy(e.target.value)}
+                placeholder="Name of person paying"
+                className="pl-10"
+                disabled={isNil(paymentType)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pre-filled based on payment responsibility. Change if someone else
+              is paying.
+            </p>
+          </div>
+
+          {/* Payment Summary */}
           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-            {isLoadingPrice ? (
-              <div className="flex items-center justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span className="text-sm text-muted-foreground">
-                  Loading fee...
-                </span>
-              </div>
-            ) : !paymentType ? (
+            {isNil(paymentType) ? (
               <p className="text-sm text-muted-foreground text-center py-2">
                 Select a payment method to see fee details
               </p>
@@ -194,9 +206,7 @@ export function CandidateCashCheckPaymentModal({
                   <span>Remaining Balance:</span>
                   <span
                     className={
-                      remainingBalance !== null && remainingBalance > 0
-                        ? 'text-amber-600'
-                        : 'text-green-600'
+                      remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
                     }
                   >
                     ${remainingBalance}
@@ -216,22 +226,15 @@ export function CandidateCashCheckPaymentModal({
                   id="payment-amount"
                   type="number"
                   min="0"
-                  max={remainingBalance ?? undefined}
                   step="0.01"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder="0.00"
                   className="pl-10"
                   required
-                  disabled={!paymentType}
+                  disabled={isNil(paymentType)}
                 />
               </div>
-              {remainingBalance !== null &&
-                parseFloat(paymentAmount) > remainingBalance && (
-                  <p className="text-xs text-amber-600">
-                    Amount exceeds remaining balance
-                  </p>
-                )}
             </div>
 
             {/* Notes */}
@@ -249,7 +252,7 @@ export function CandidateCashCheckPaymentModal({
                     : 'Optional notes about the payment...'
                 }
                 rows={3}
-                disabled={!paymentType}
+                disabled={isNil(paymentType)}
               />
             </div>
 
@@ -267,7 +270,9 @@ export function CandidateCashCheckPaymentModal({
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={isSubmitting || !paymentAmount || !paymentType}
+                disabled={
+                  isSubmitting || paymentAmount === '' || isNil(paymentType)
+                }
               >
                 {isSubmitting ? 'Recording...' : 'Record Payment'}
               </Button>

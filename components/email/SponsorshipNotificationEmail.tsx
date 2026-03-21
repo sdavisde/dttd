@@ -1,4 +1,4 @@
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { getUrl } from '@/lib/url'
 import {
   Body,
@@ -13,6 +13,7 @@ import {
   Button,
 } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
+import { isNil } from 'lodash'
 
 export default function SponsorshipNotificationEmail({
   candidate_sponsorship_info,
@@ -152,7 +153,7 @@ export default function SponsorshipNotificationEmail({
                     'No support plan'}
                 </Text>
 
-                {candidate_sponsorship_info?.prayer_request && (
+                {!isNil(candidate_sponsorship_info?.prayer_request) && (
                   <>
                     <Text className="text-gray-700 mb-3">
                       <strong>Prayer Request:</strong>

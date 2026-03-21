@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PhoneInput } from '@/components/ui/phone-input'
 import {
   Select,
   SelectContent,
@@ -33,7 +34,9 @@ import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
 import { calculateAge } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
-import { Database } from '@/lib/supabase/database.types'
+import { isDevMode } from '@/lib/dev-mode'
+import { CANDIDATE_FORM_TEST_DATA } from './candidate-forms.helpers'
+import type { Database } from '@/database.types'
 
 type CandidateInfo = Database['public']['Tables']['candidate_info']['Row']
 
@@ -62,12 +65,22 @@ const formSchema = z.object({
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   zip: z.string().min(1, 'ZIP code is required'),
-  phone: z.string().min(1, 'Phone number is required'),
+  phone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
   /** Health section */
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z
     .string()
-    .min(1, 'Emergency contact phone is required'),
+    .min(1, 'Emergency contact phone is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
   medicalConditions: z.string().optional(),
   medicalPermission: z.boolean(),
   emergencyContactPermission: z.boolean(),
@@ -172,9 +185,18 @@ export function CandidateForms({
     }
   }
 
+  const fillTestData = () => {
+    form.reset(CANDIDATE_FORM_TEST_DATA)
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {isDevMode() && (
+          <Button type="button" variant="outline" onClick={fillTestData}>
+            Fill with test data
+          </Button>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
@@ -216,7 +238,11 @@ export function CandidateForms({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="you@example.com"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -231,7 +257,9 @@ export function CandidateForms({
                     <FormLabel>Date of Birth</FormLabel>
                     <FormControl>
                       <DatePicker
-                        date={field.value ? new Date(field.value) : undefined}
+                        date={
+                          field.value !== '' ? new Date(field.value) : undefined
+                        }
                         onDateChange={(date) =>
                           field.onChange(date?.toISOString())
                         }
@@ -547,7 +575,7 @@ export function CandidateForms({
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <PhoneInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -585,7 +613,7 @@ export function CandidateForms({
                   <FormItem>
                     <FormLabel>Emergency Contact Phone</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <PhoneInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -615,7 +643,7 @@ export function CandidateForms({
           </CardContent>
         </Card>
 
-        {successMessage && (
+        {successMessage !== '' && (
           <Alert variant="success">
             <AlertTitle>Success</AlertTitle>
             <AlertDescription>{successMessage}</AlertDescription>

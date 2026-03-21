@@ -132,47 +132,6 @@ export type Database = {
           },
         ]
       }
-      candidate_payments: {
-        Row: {
-          candidate_id: string | null
-          created_at: string
-          id: number
-          notes: string | null
-          payment_amount: number | null
-          payment_intent_id: string
-          payment_method: string | null
-          payment_owner: string
-        }
-        Insert: {
-          candidate_id?: string | null
-          created_at?: string
-          id?: number
-          notes?: string | null
-          payment_amount?: number | null
-          payment_intent_id: string
-          payment_method?: string | null
-          payment_owner: string
-        }
-        Update: {
-          candidate_id?: string | null
-          created_at?: string
-          id?: number
-          notes?: string | null
-          payment_amount?: number | null
-          payment_intent_id?: string
-          payment_method?: string | null
-          payment_owner?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'candidate_payments_candidate_id_fkey'
-            columns: ['candidate_id']
-            isOneToOne: false
-            referencedRelation: 'candidates'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       candidate_sponsorship_info: {
         Row: {
           attends_secuela: string | null
@@ -344,29 +303,180 @@ export type Database = {
         }
         Relationships: []
       }
+      deposit_payments: {
+        Row: {
+          created_at: string | null
+          deposit_id: string
+          id: string
+          payment_transaction_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deposit_id: string
+          id?: string
+          payment_transaction_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deposit_id?: string
+          id?: string
+          payment_transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'deposit_payments_deposit_id_fkey'
+            columns: ['deposit_id']
+            isOneToOne: false
+            referencedRelation: 'deposits'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'deposit_payments_payment_transaction_id_fkey'
+            columns: ['payment_transaction_id']
+            isOneToOne: false
+            referencedRelation: 'payment_transaction'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      deposits: {
+        Row: {
+          amount: number
+          arrival_date: string | null
+          created_at: string | null
+          deposit_type: string
+          id: string
+          notes: string | null
+          payout_id: string | null
+          status: string
+          transaction_count: number
+        }
+        Insert: {
+          amount: number
+          arrival_date?: string | null
+          created_at?: string | null
+          deposit_type: string
+          id?: string
+          notes?: string | null
+          payout_id?: string | null
+          status: string
+          transaction_count?: number
+        }
+        Update: {
+          amount?: number
+          arrival_date?: string | null
+          created_at?: string | null
+          deposit_type?: string
+          id?: string
+          notes?: string | null
+          payout_id?: string | null
+          status?: string
+          transaction_count?: number
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
           datetime: string | null
+          end_datetime: string | null
           id: number
           location: string | null
           title: string | null
+          type: Database['public']['Enums']['event_type'] | null
+          weekend_group_id: string | null
         }
         Insert: {
           created_at?: string
           datetime?: string | null
+          end_datetime?: string | null
           id?: number
           location?: string | null
           title?: string | null
+          type?: Database['public']['Enums']['event_type'] | null
+          weekend_group_id?: string | null
         }
         Update: {
           created_at?: string
           datetime?: string | null
+          end_datetime?: string | null
           id?: number
           location?: string | null
           title?: string | null
+          type?: Database['public']['Enums']['event_type'] | null
+          weekend_group_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'events_weekend_group_id_fkey'
+            columns: ['weekend_group_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_groups'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      payment_transaction: {
+        Row: {
+          balance_transaction_id: string | null
+          charge_id: string | null
+          created_at: string | null
+          gross_amount: number
+          id: string
+          net_amount: number | null
+          notes: string | null
+          payment_intent_id: string | null
+          payment_method: string
+          payment_owner: string | null
+          stripe_fee: number | null
+          target_id: string | null
+          target_type: string | null
+          type: string
+          weekend_id: string | null
+        }
+        Insert: {
+          balance_transaction_id?: string | null
+          charge_id?: string | null
+          created_at?: string | null
+          gross_amount: number
+          id?: string
+          net_amount?: number | null
+          notes?: string | null
+          payment_intent_id?: string | null
+          payment_method: string
+          payment_owner?: string | null
+          stripe_fee?: number | null
+          target_id?: string | null
+          target_type?: string | null
+          type: string
+          weekend_id?: string | null
+        }
+        Update: {
+          balance_transaction_id?: string | null
+          charge_id?: string | null
+          created_at?: string | null
+          gross_amount?: number
+          id?: string
+          net_amount?: number | null
+          notes?: string | null
+          payment_intent_id?: string | null
+          payment_method?: string
+          payment_owner?: string | null
+          stripe_fee?: number | null
+          target_id?: string | null
+          target_type?: string | null
+          type?: string
+          weekend_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'payment_transaction_weekend_id_fkey'
+            columns: ['weekend_id']
+            isOneToOne: false
+            referencedRelation: 'weekends'
+            referencedColumns: ['id']
+          },
+        ]
       }
       roles: {
         Row: {
@@ -412,6 +522,70 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      team_form_completions: {
+        Row: {
+          completed_at: string
+          form_type: string
+          id: string
+          weekend_group_member_id: string
+        }
+        Insert: {
+          completed_at: string
+          form_type: string
+          id?: string
+          weekend_group_member_id: string
+        }
+        Update: {
+          completed_at?: string
+          form_type?: string
+          id?: string
+          weekend_group_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'team_form_completions_weekend_group_member_id_fkey'
+            columns: ['weekend_group_member_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_group_members'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      user_medical_profiles: {
+        Row: {
+          created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          medical_conditions: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          medical_conditions?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          medical_conditions?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'user_medical_profiles_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: true
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -539,20 +713,66 @@ export type Database = {
           },
         ]
       }
+      weekend_group_members: {
+        Row: {
+          created_at: string | null
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'weekend_group_members_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_groups'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'weekend_group_members_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      weekend_groups: {
+        Row: {
+          created_at: string | null
+          id: string
+          number: number
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          number: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          number?: number
+        }
+        Relationships: []
+      }
       weekend_roster: {
         Row: {
           additional_cha_role: string | null
           cha_role: string | null
-          completed_camp_waiver_at: string | null
-          completed_commitment_form_at: string | null
-          completed_info_sheet_at: string | null
-          completed_release_of_claim_at: string | null
-          completed_statement_of_belief_at: string | null
           created_at: string
-          emergency_contact_name: string | null
-          emergency_contact_phone: string | null
           id: string
-          medical_conditions: string | null
           rollo: string | null
           special_needs: string | null
           status: string | null
@@ -562,16 +782,8 @@ export type Database = {
         Insert: {
           additional_cha_role?: string | null
           cha_role?: string | null
-          completed_camp_waiver_at?: string | null
-          completed_commitment_form_at?: string | null
-          completed_info_sheet_at?: string | null
-          completed_release_of_claim_at?: string | null
-          completed_statement_of_belief_at?: string | null
           created_at?: string
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
           id?: string
-          medical_conditions?: string | null
           rollo?: string | null
           special_needs?: string | null
           status?: string | null
@@ -581,16 +793,8 @@ export type Database = {
         Update: {
           additional_cha_role?: string | null
           cha_role?: string | null
-          completed_camp_waiver_at?: string | null
-          completed_commitment_form_at?: string | null
-          completed_info_sheet_at?: string | null
-          completed_release_of_claim_at?: string | null
-          completed_statement_of_belief_at?: string | null
           created_at?: string
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
           id?: string
-          medical_conditions?: string | null
           rollo?: string | null
           special_needs?: string | null
           status?: string | null
@@ -614,51 +818,12 @@ export type Database = {
           },
         ]
       }
-      weekend_roster_payments: {
-        Row: {
-          created_at: string
-          id: string
-          notes: string | null
-          payment_amount: number | null
-          payment_intent_id: string
-          payment_method: string | null
-          weekend_roster_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          payment_amount?: number | null
-          payment_intent_id: string
-          payment_method?: string | null
-          weekend_roster_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          payment_amount?: number | null
-          payment_intent_id?: string
-          payment_method?: string | null
-          weekend_roster_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'weekend_roster_payments_weekend_roster_id_fkey'
-            columns: ['weekend_roster_id']
-            isOneToOne: false
-            referencedRelation: 'weekend_roster'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       weekends: {
         Row: {
           created_at: string
           end_date: string
           group_id: string | null
           id: string
-          number: number | null
           start_date: string
           status: string | null
           title: string | null
@@ -669,7 +834,6 @@ export type Database = {
           end_date: string
           group_id?: string | null
           id?: string
-          number?: number | null
           start_date: string
           status?: string | null
           title?: string | null
@@ -680,13 +844,20 @@ export type Database = {
           end_date?: string
           group_id?: string | null
           id?: string
-          number?: number | null
           start_date?: string
           status?: string | null
           title?: string | null
           type?: Database['public']['Enums']['weekend_type']
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'weekends_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_groups'
+            referencedColumns: ['id']
+          },
+        ]
       }
     }
     Views: {
@@ -703,6 +874,13 @@ export type Database = {
         | 'awaiting_payment'
         | 'confirmed'
         | 'rejected'
+      event_type:
+        | 'meeting'
+        | 'weekend'
+        | 'serenade'
+        | 'sendoff'
+        | 'closing'
+        | 'other'
       permissions: 'READ_MEDICAL_HISTORY'
       role_type: 'INDIVIDUAL' | 'COMMITTEE'
       weekend_type: 'MENS' | 'WOMENS'
@@ -843,6 +1021,14 @@ export const Constants = {
         'awaiting_payment',
         'confirmed',
         'rejected',
+      ],
+      event_type: [
+        'meeting',
+        'weekend',
+        'serenade',
+        'sendoff',
+        'closing',
+        'other',
       ],
       permissions: ['READ_MEDICAL_HISTORY'],
       role_type: ['INDIVIDUAL', 'COMMITTEE'],

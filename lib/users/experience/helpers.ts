@@ -1,6 +1,6 @@
-import { UserExperienceFormValue } from '@/components/team-forms/schemas'
+import type { UserExperienceFormValue } from '@/components/team-forms/schemas'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
-import { UserExperience } from './validation'
+import type { UserExperience } from './validation'
 
 /**
  * Normalizes experience records into a flat array of form values

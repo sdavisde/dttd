@@ -3,8 +3,8 @@
 import * as RoleService from './role-service'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
-import { Tables } from '@/lib/supabase/database.types'
-import { Role } from './types'
+import type { Tables } from '@/database.types'
+import type { Role } from './types'
 
 // Read operations - doesn't require authorizedAction since reading roles list is safe
 export const getRoles = async () => {

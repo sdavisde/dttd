@@ -1,5 +1,6 @@
-import { TeamMemberInfo } from '@/lib/weekend/types'
-import { Address } from './validation'
+import type { TeamMemberInfo } from '@/lib/weekend/types'
+import type { Address } from './validation'
+import type { RoleType } from '@/services/identity/roles'
 
 export type CommunityInformation = {
   churchAffiliation: string | null
@@ -39,4 +40,5 @@ export type UserRoleInfo = {
   id: string
   label: string
   permissions: Array<string>
+  type: RoleType
 }

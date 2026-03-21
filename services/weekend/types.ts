@@ -5,9 +5,20 @@
  * Most weekend types are defined in lib/weekend/types.ts and re-exported from index.ts.
  */
 
+import type { Tables } from '@/database.types'
+import type { PaymentSummary } from '@/lib/payments/utils'
+
+/**
+ * Payment record from the payment_transaction table.
+ */
+export type PaymentRecord = Tables<'payment_transaction'>
+
 /**
  * Raw weekend roster record shape from Supabase query with joins.
  * Used internally by the repository layer.
+ *
+ * Note: Payments are fetched separately via PaymentService since payment_transaction
+ * uses a polymorphic target_id without FK constraints.
  */
 export type RawWeekendRoster = {
   id: string
@@ -17,14 +28,7 @@ export type RawWeekendRoster = {
   user_id: string | null
   created_at: string
   rollo: string | null
-  completed_statement_of_belief_at: string | null
-  completed_commitment_form_at: string | null
-  completed_release_of_claim_at: string | null
-  completed_camp_waiver_at: string | null
-  completed_info_sheet_at: string | null
-  emergency_contact_name: string | null
-  emergency_contact_phone: string | null
-  medical_conditions: string | null
+  special_needs: string | null
   users: {
     id: string
     first_name: string | null
@@ -32,15 +36,10 @@ export type RawWeekendRoster = {
     email: string | null
     phone_number: string | null
   } | null
-  weekend_roster_payments: Array<{
-    id: string
-    weekend_roster_id: string
-    payment_amount: number | null
-    payment_intent_id: string | null
-    payment_method: string | null
-    created_at: string
-    notes: string | null
-  }>
+  /** Payments fetched from payment_transaction table */
+  payments: PaymentRecord[]
+  /** Whether all required team forms are complete (fetched via group-member service) */
+  forms_complete: boolean
 }
 
 /**
@@ -55,6 +54,7 @@ export type WeekendRosterMember = {
   user_id: string | null
   created_at: string
   rollo: string | null
+  special_needs: string | null
   users: {
     id: string
     first_name: string | null
@@ -62,31 +62,24 @@ export type WeekendRosterMember = {
     email: string | null
     phone_number: string | null
   } | null
-  payment_info: {
-    id: string
-    payment_amount: number | null
-    payment_intent_id: string | null
-    payment_method: string | null
-  } | null
+  /** The shared weekend_group_member ID for this roster member */
+  groupMemberId: string | null
+  /** First payment record (for backward compatibility) */
+  payment_info: PaymentRecord | null
   /** Total amount paid from all payment records */
   total_paid: number
   /** Array of all payment records for this member */
-  all_payments: Array<{
-    id: string
-    payment_amount: number | null
-    payment_intent_id: string | null
-    payment_method: string | null
-    created_at: string
-    notes: string | null
-  }>
+  all_payments: PaymentRecord[]
+  /** Pre-computed payment summary (fee from Stripe, discount-aware) */
+  paymentSummary: PaymentSummary
   /** Whether all 5 team forms have been completed */
   forms_complete: boolean
-  /** Emergency contact name */
-  emergency_contact_name: string | null
-  /** Emergency contact phone */
-  emergency_contact_phone: string | null
-  /** Medical conditions */
-  medical_conditions: string | null
+  /** Medical profile from user_medical_profiles (populated when permission is granted) */
+  medical_profile: {
+    emergency_contact_name: string | null
+    emergency_contact_phone: string | null
+    medical_conditions: string | null
+  } | null
 }
 
 /**

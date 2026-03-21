@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+import { isNil } from 'lodash'
 
 type SearchParams = Promise<{
   session_id: string
@@ -17,7 +18,7 @@ export default async function CandidateFeePaymentSuccessPage({
 }) {
   const { session_id } = await searchParams
 
-  if (!session_id)
+  if (isNil(session_id) || session_id === '')
     throw new Error('Please provide a valid session_id (`cs_test_...`)')
 
   const { status, customer_details, metadata } =
@@ -25,7 +26,7 @@ export default async function CandidateFeePaymentSuccessPage({
       expand: ['line_items', 'payment_intent'],
     })
 
-  if (!customer_details?.email) {
+  if (isNil(customer_details?.email)) {
     throw new Error('Customer email not found')
   }
 
@@ -36,7 +37,7 @@ export default async function CandidateFeePaymentSuccessPage({
     return redirect('/')
   }
 
-  if (!metadata?.candidateId) {
+  if (isNil(metadata?.candidateId)) {
     logger.error('Candidate ID not found')
     return redirect('/')
   }

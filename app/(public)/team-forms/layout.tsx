@@ -26,7 +26,9 @@ export default async function TeamFormsLayout({
     redirect('/')
   }
 
-  const progressResult = await getTeamFormsProgress(user.teamMemberInfo.id)
+  const progressResult = await getTeamFormsProgress(
+    user.teamMemberInfo.groupMemberId
+  )
 
   let maxReachableStepIndex = 0
 

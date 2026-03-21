@@ -3,7 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Info } from 'lucide-react'
 import { isNil } from 'lodash'
 import { getCandidateListPageData } from '@/actions/candidate-list'
-import { WeekendType } from '@/lib/weekend/types'
+import type { WeekendType } from '@/lib/weekend/types'
 import { WeekendFilterSelector } from '../review-candidates/components/WeekendFilterSelector'
 import { CandidateListTable } from './components/CandidateListTable'
 import { ShareButton } from './components/ShareButton'
@@ -20,6 +20,12 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
   const pageData = await getCandidateListPageData(searchParams)
   const { candidates, weekendOptions, currentWeekendId, user } = pageData
 
+  // Filter out rejected and sponsored candidates so both the table and export
+  // show the same set of active candidates.
+  const activeCandidates = candidates.filter(
+    (c) => c.status !== 'rejected' && c.status !== 'sponsored'
+  )
+
   return (
     <div className="container mx-auto p-4 min-h-[80vh]">
       <div className="my-4">
@@ -33,7 +39,7 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
           </div>
           <div className="flex gap-2">
             <ExportButton
-              candidates={candidates}
+              candidates={activeCandidates}
               user={user}
               weekendName={
                 weekendOptions.find((w) => w.id === currentWeekendId)?.label
@@ -49,7 +55,7 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
         <WeekendFilterSelector weekendOptions={weekendOptions} />
 
         {!isNil(currentWeekendId) ? (
-          <CandidateListTable candidates={candidates} user={user} />
+          <CandidateListTable candidates={activeCandidates} user={user} />
         ) : (
           <Alert>
             <Info className="h-4 w-4" />

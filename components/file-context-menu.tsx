@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { isNil } from 'lodash'
 import {
   DownloadIcon,
   TrashIcon,
@@ -54,7 +55,8 @@ export function FileContextMenu({
   const router = useRouter()
   const { user } = useSession()
 
-  const fullPath = currentPath ? `${currentPath}/${item.name}` : item.name
+  const fullPath =
+    currentPath !== '' ? `${currentPath}/${item.name}` : item.name
 
   const handleDownload = () => {
     if (!item.isFolder) {
@@ -70,7 +72,7 @@ export function FileContextMenu({
     try {
       permissionLock([Permission.FILES_UPLOAD])(user)
 
-      if (!newName.trim() || newName === item.name) {
+      if (newName.trim() === '' || newName === item.name) {
         setError('Please enter a valid new name')
         return
       }
@@ -79,7 +81,7 @@ export function FileContextMenu({
       setError(null)
 
       const supabase = createClient()
-      const newPath = currentPath ? `${currentPath}/${newName}` : newName
+      const newPath = currentPath !== '' ? `${currentPath}/${newName}` : newName
 
       if (item.isFolder) {
         // For folders, we need to move all files within the folder
@@ -87,7 +89,7 @@ export function FileContextMenu({
           .from(bucket)
           .list(fullPath)
 
-        if (listError) throw listError
+        if (!isNil(listError) || isNil(files)) throw listError
 
         // Move each file to the new folder path
         for (const file of files) {
@@ -98,7 +100,7 @@ export function FileContextMenu({
             .from(bucket)
             .move(oldFilePath, newFilePath)
 
-          if (moveError) throw moveError
+          if (!isNil(moveError)) throw moveError
         }
       } else {
         // For files, simple move operation
@@ -106,7 +108,7 @@ export function FileContextMenu({
           .from(bucket)
           .move(fullPath, newPath)
 
-        if (moveError) throw moveError
+        if (!isNil(moveError)) throw moveError
       }
 
       router.refresh()
@@ -137,7 +139,7 @@ export function FileContextMenu({
           .from(bucket)
           .list(fullPath)
 
-        if (listError) throw listError
+        if (!isNil(listError) || isNil(files)) throw listError
 
         // Delete all files in the folder
         const filesToDelete = files.map((file) => `${fullPath}/${file.name}`)
@@ -146,7 +148,7 @@ export function FileContextMenu({
             .from(bucket)
             .remove(filesToDelete)
 
-          if (deleteError) throw deleteError
+          if (!isNil(deleteError)) throw deleteError
         }
       } else {
         // For files, simple delete operation
@@ -154,7 +156,7 @@ export function FileContextMenu({
           .from(bucket)
           .remove([fullPath])
 
-        if (deleteError) throw deleteError
+        if (!isNil(deleteError)) throw deleteError
       }
 
       router.refresh()
@@ -171,7 +173,7 @@ export function FileContextMenu({
   }
 
   // For the context menu, we'll use a simple dropdown positioned at the cursor
-  const menuStyle = anchorEl
+  const menuStyle = !isNil(anchorEl)
     ? {
         position: 'fixed' as const,
         top: anchorEl.getBoundingClientRect().top,
@@ -245,7 +247,7 @@ export function FileContextMenu({
           </DialogHeader>
 
           <div className="space-y-4">
-            {error && (
+            {!isNil(error) && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
@@ -273,7 +275,7 @@ export function FileContextMenu({
             </Button>
             <Button
               onClick={handleRename}
-              disabled={loading || !newName.trim()}
+              disabled={loading || newName.trim() === ''}
             >
               {loading ? 'Renaming...' : 'Rename'}
             </Button>
@@ -293,7 +295,7 @@ export function FileContextMenu({
           </DialogHeader>
 
           <div className="space-y-4">
-            {error && (
+            {!isNil(error) && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>

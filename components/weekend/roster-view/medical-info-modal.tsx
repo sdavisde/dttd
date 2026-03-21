@@ -7,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { WeekendRosterMember } from '@/services/weekend'
+import type { WeekendRosterMember } from '@/services/weekend'
+import { isNil } from 'lodash'
 
 type MedicalInfoModalProps = {
   open: boolean
@@ -20,47 +21,31 @@ export function MedicalInfoModal({
   onClose,
   member,
 }: MedicalInfoModalProps) {
-  if (!member) {
+  if (isNil(member)) {
     return null
   }
 
   const memberName =
-    member.users?.first_name && member.users?.last_name
-      ? `${member.users.first_name} ${member.users.last_name}`
+    !isNil(member.users?.first_name) && !isNil(member.users?.last_name)
+      ? `${member.users!.first_name} ${member.users!.last_name}`
       : 'Team Member'
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Medical Information</DialogTitle>
+          <DialogTitle>Special Needs</DialogTitle>
           <DialogDescription>{memberName}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">
-              Emergency Contact
-            </h4>
-            <div className="rounded-md border p-3 space-y-1">
-              <p className="text-sm">
-                <span className="font-medium">Name:</span>{' '}
-                {member.emergency_contact_name ?? 'Not provided'}
-              </p>
-              <p className="text-sm">
-                <span className="font-medium">Phone:</span>{' '}
-                {member.emergency_contact_phone ?? 'Not provided'}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Medical Conditions
+              Special Needs
             </h4>
             <div className="rounded-md border p-3">
               <p className="text-sm whitespace-pre-wrap">
-                {member.medical_conditions ?? 'None reported'}
+                {member.special_needs ?? 'None reported'}
               </p>
             </div>
           </div>

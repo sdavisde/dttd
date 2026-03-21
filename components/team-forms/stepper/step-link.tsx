@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import Link from 'next/link'
-import { Step } from './types'
+import type { Step } from './types'
 
 export type StepLinkProps = {
   step: Step

@@ -2,7 +2,7 @@
 
 import { Typography } from '@/components/ui/typography'
 import { Separator } from '@/components/ui/separator'
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Info } from 'lucide-react'
 import { InlineTextField } from '@/components/ui/inline-text-field'
@@ -14,10 +14,11 @@ import { EditableDateField } from '@/components/ui/editable-date-field'
 import { updateCandidateInfoField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
-import { Database } from '@/lib/supabase/database.types'
+import type { Database } from '@/database.types'
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
+import { isNil } from 'lodash'
 
 type CandidateInfoUpdate =
   Database['public']['Tables']['candidate_info']['Update']
@@ -121,28 +122,28 @@ function EditableAddressField({
         <div className="space-y-1">
           <InlineTextField
             value={addressLine1}
-            onSave={(value) => onSave('address_line_1', value || null)}
+            onSave={(value) => onSave('address_line_1', isNil(value) || value === '' ? null : value)}
             emptyText="Address Line 1"
           />
           <InlineTextField
             value={addressLine2}
-            onSave={(value) => onSave('address_line_2', value || null)}
+            onSave={(value) => onSave('address_line_2', isNil(value) || value === '' ? null : value)}
             emptyText="Address Line 2"
           />
           <div className="flex gap-1 flex-wrap">
             <InlineTextField
               value={city}
-              onSave={(value) => onSave('city', value || null)}
+              onSave={(value) => onSave('city', isNil(value) || value === '' ? null : value)}
               emptyText="City"
             />
             <InlineTextField
               value={state}
-              onSave={(value) => onSave('state', value || null)}
+              onSave={(value) => onSave('state', isNil(value) || value === '' ? null : value)}
               emptyText="State"
             />
             <InlineTextField
               value={zip}
-              onSave={(value) => onSave('zip', value || null)}
+              onSave={(value) => onSave('zip', isNil(value) || value === '' ? null : value)}
               emptyText="ZIP"
             />
           </div>
@@ -150,7 +151,7 @@ function EditableAddressField({
       ) : (
         <Typography variant="p">
           {addressLine1}
-          {addressLine2 && <>, {addressLine2}</>}
+          {!isNil(addressLine2) && <>, {addressLine2}</>}
           <br />
           {city}, {state} {zip}
         </Typography>
@@ -193,7 +194,7 @@ export function CandidateFormDetailsSection({
   )
 
   // Show message if candidate hasn't completed their forms
-  if (!candidateInfo) {
+  if (isNil(candidateInfo)) {
     return (
       <section>
         <Separator className="my-4" />
@@ -298,7 +299,7 @@ export function CandidateFormDetailsSection({
           canEdit={canEdit}
           onSave={(value) => handleSave('marital_status', value)}
         />
-        {candidateInfo.spouse_name && (
+        {!isNil(candidateInfo.spouse_name) && (
           <EditableField
             label="Spouse Name"
             value={candidateInfo.spouse_name}
@@ -317,7 +318,7 @@ export function CandidateFormDetailsSection({
             canEdit={canEdit}
             onSave={(value) => handleSave('has_spouse_attended_weekend', value)}
           />
-          {(candidateInfo.spouse_weekend_location ?? canEdit) && (
+          {(!isNil(candidateInfo.spouse_weekend_location) || canEdit) && (
             <EditableField
               label="Spouse Weekend Location"
               value={candidateInfo.spouse_weekend_location}
@@ -354,7 +355,7 @@ export function CandidateFormDetailsSection({
       </div>
 
       {/* Reason for Attending */}
-      {(candidateInfo.reason_for_attending ?? canEdit) && (
+      {(!isNil(candidateInfo.reason_for_attending) || canEdit) && (
         <div className="mb-4">
           <EditableTextArea
             label="Reason for Attending"
@@ -366,7 +367,7 @@ export function CandidateFormDetailsSection({
       )}
 
       {/* Medical Conditions */}
-      {(candidateInfo.medical_conditions ?? canEdit) && (
+      {(!isNil(candidateInfo.medical_conditions) || canEdit) && (
         <div className="mb-4">
           <EditableTextArea
             label="Medical Conditions"

@@ -1,4 +1,4 @@
-import { HydratedCandidate } from '@/lib/candidates/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
 import { getUrl } from '@/lib/url'
 import {
   Body,
@@ -13,6 +13,7 @@ import {
   Button,
 } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
+import { isNil } from 'lodash'
 
 interface CandidatePaymentCompletedEmailProps {
   candidate: HydratedCandidate
@@ -28,8 +29,8 @@ export default function CandidatePaymentCompletedEmail({
   paymentOwner,
 }: CandidatePaymentCompletedEmailProps) {
   const candidateName =
-    candidate.candidate_info?.first_name && candidate.candidate_info?.last_name
-      ? `${candidate.candidate_info.first_name} ${candidate.candidate_info.last_name}`
+    !isNil(candidate.candidate_info?.first_name) && !isNil(candidate.candidate_info?.last_name)
+      ? `${candidate.candidate_info!.first_name} ${candidate.candidate_info!.last_name}`
       : (candidate.candidate_sponsorship_info?.candidate_name ??
         'Unknown Candidate')
 

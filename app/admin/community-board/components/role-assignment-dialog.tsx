@@ -13,26 +13,23 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { formatMemberName } from '@/lib/formatting/member-utils'
-import type {
-  CommunityBoardRole,
-  AssignableMember,
-} from '@/hooks/use-role-assignment'
+import type { BoardRole, BoardMember } from '@/services/community/board'
 
 type RoleAssignmentDialogProps = {
   open: boolean
-  role: CommunityBoardRole | null
-  members: AssignableMember[]
-  filteredMembers: AssignableMember[]
+  role: BoardRole | null
+  members: BoardMember[]
+  filteredMembers: BoardMember[]
   search: string
-  onSearchChangeAction: (value: string) => void
+  onSearchChange: (value: string) => void
   isSaving: boolean
-  onCloseAction: () => void
+  onClose: () => void
   // For INDIVIDUAL roles
-  onAssignAction: (member: AssignableMember) => void
+  onAssign: (member: BoardMember) => void
   // For COMMITTEE roles
   selectedMembers: string[]
-  onToggleMemberAction: (memberId: string) => void
-  onSaveCommitteeAction: () => void
+  onToggleMember: (memberId: string) => void
+  onSaveCommittee: () => void
 }
 
 export function RoleAssignmentDialog({
@@ -40,18 +37,18 @@ export function RoleAssignmentDialog({
   role,
   filteredMembers,
   search,
-  onSearchChangeAction,
+  onSearchChange,
   isSaving,
-  onCloseAction,
-  onAssignAction,
+  onClose,
+  onAssign,
   selectedMembers,
-  onToggleMemberAction,
-  onSaveCommitteeAction,
+  onToggleMember,
+  onSaveCommittee,
 }: RoleAssignmentDialogProps) {
   const isCommittee = role?.type === 'COMMITTEE'
 
   return (
-    <Dialog open={open} onOpenChange={onCloseAction}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
@@ -70,7 +67,7 @@ export function RoleAssignmentDialog({
           <Input
             placeholder="Search by name or email..."
             value={search}
-            onChange={(event) => onSearchChangeAction(event.target.value)}
+            onChange={(event) => onSearchChange(event.target.value)}
           />
 
           <div className="max-h-72 overflow-y-auto space-y-1">
@@ -82,14 +79,14 @@ export function RoleAssignmentDialog({
               <CommitteeMemberList
                 members={filteredMembers}
                 selectedMembers={selectedMembers}
-                onToggleMember={onToggleMemberAction}
+                onToggleMember={onToggleMember}
                 isSaving={isSaving}
               />
             ) : (
               <IndividualMemberList
                 members={filteredMembers}
                 activeRoleId={role?.id ?? ''}
-                onAssign={onAssignAction}
+                onAssign={onAssign}
                 isSaving={isSaving}
               />
             )}
@@ -97,14 +94,10 @@ export function RoleAssignmentDialog({
 
           {isCommittee && (
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={onCloseAction}
-                disabled={isSaving}
-              >
+              <Button variant="outline" onClick={onClose} disabled={isSaving}>
                 Cancel
               </Button>
-              <Button onClick={onSaveCommitteeAction} disabled={isSaving}>
+              <Button onClick={onSaveCommittee} disabled={isSaving}>
                 {isSaving ? 'Saving...' : 'Save Members'}
               </Button>
             </DialogFooter>
@@ -116,7 +109,7 @@ export function RoleAssignmentDialog({
 }
 
 type CommitteeMemberListProps = {
-  members: AssignableMember[]
+  members: BoardMember[]
   selectedMembers: string[]
   onToggleMember: (memberId: string) => void
   isSaving: boolean
@@ -154,9 +147,9 @@ function CommitteeMemberList({
 }
 
 type IndividualMemberListProps = {
-  members: AssignableMember[]
+  members: BoardMember[]
   activeRoleId: string
-  onAssign: (member: AssignableMember) => void
+  onAssign: (member: BoardMember) => void
   isSaving: boolean
 }
 

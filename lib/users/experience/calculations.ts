@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { groupBy, orderBy, uniq } from 'lodash'
+import { groupBy, isNil, orderBy, uniq } from 'lodash'
 import { CHARole } from '@/lib/weekend/types'
 import type {
   ExperienceLevel,
@@ -9,7 +9,7 @@ import type {
   GroupedExperience,
   UserExperienceRecord,
 } from '@/services/master-roster/types'
-import { UserExperience } from './validation'
+import type { UserExperience } from './validation'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 const DTTD_COMMUNITY = 'DTTD'
@@ -112,7 +112,7 @@ export function groupExperienceByCommunity(
   const dttd = result.find((g) => g.community === 'DTTD')
   const others = result.filter((g) => g.community !== 'DTTD')
 
-  return dttd ? [dttd, ...others] : others
+  return !isNil(dttd) ? [dttd, ...others] : others
 }
 
 /**

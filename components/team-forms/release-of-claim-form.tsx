@@ -56,18 +56,26 @@ const releaseOfClaimSchema = z
 type ReleaseOfClaimFormValues = z.infer<typeof releaseOfClaimSchema>
 
 interface ReleaseOfClaimFormProps {
-  rosterId: string
+  groupMemberId: string
+  initialSpecialNeeds?: string
 }
 
-export function ReleaseOfClaimForm({ rosterId }: ReleaseOfClaimFormProps) {
+export function ReleaseOfClaimForm({
+  groupMemberId,
+  initialSpecialNeeds,
+}: ReleaseOfClaimFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const hasExistingNeeds =
+    !isEmpty(initialSpecialNeeds) && initialSpecialNeeds !== 'None'
 
   const form = useForm<ReleaseOfClaimFormValues>({
     resolver: zodResolver(releaseOfClaimSchema),
     defaultValues: {
+      has_special_needs: hasExistingNeeds ? 'yes' : undefined,
       signature: '',
-      special_needs_description: '',
+      special_needs_description: hasExistingNeeds ? initialSpecialNeeds : '',
     },
   })
 
@@ -82,7 +90,10 @@ export function ReleaseOfClaimForm({ rosterId }: ReleaseOfClaimFormProps) {
 
     const specialNeeds =
       data.has_special_needs === 'yes' ? data.special_needs_description : null
-    const result = await submitReleaseOfClaim(rosterId, specialNeeds ?? null)
+    const result = await submitReleaseOfClaim(
+      groupMemberId,
+      specialNeeds ?? null
+    )
 
     if (isErr(result)) {
       toast.error(result.error)

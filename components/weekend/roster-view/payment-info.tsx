@@ -3,8 +3,7 @@
 import { Info, Plus } from 'lucide-react'
 import { PaymentInfoModal } from './payment-info-modal'
 import { CashCheckPaymentModal } from './cash-check-payment-modal'
-import { PAYMENT_CONSTANTS } from '@/lib/constants/payments'
-import { WeekendRosterMember } from '@/services/weekend'
+import type { WeekendRosterMember } from '@/services/weekend'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -41,7 +40,8 @@ export const PaymentInfo = ({ member, isEditable }: PaymentInfoProps) => {
     setSelectedCashCheckMember(null)
   }
 
-  const { paid, balance, display, isPaidInFull } = formatPaymentSummary(member)
+  const { totalPaid } = member.paymentSummary
+  const display = `$${totalPaid.toFixed(0)}`
   const hasPayments = member.all_payments.length > 0
 
   return (
@@ -59,7 +59,7 @@ export const PaymentInfo = ({ member, isEditable }: PaymentInfoProps) => {
           <span
             className={cn(
               'text-sm font-medium',
-              paid > 0 ? 'text-green-600' : 'text-muted-foreground'
+              totalPaid > 0 ? 'text-green-600' : 'text-muted-foreground'
             )}
           >
             {display}
@@ -100,18 +100,4 @@ export const PaymentInfo = ({ member, isEditable }: PaymentInfoProps) => {
       />
     </div>
   )
-}
-
-// Format payment summary for display
-function formatPaymentSummary(member: WeekendRosterMember) {
-  const totalFee = PAYMENT_CONSTANTS.TEAM_FEE
-  const paid = member.total_paid ?? 0
-  const balance = totalFee - paid
-
-  return {
-    paid,
-    balance,
-    display: `$${paid.toFixed(0)}`,
-    isPaidInFull: balance <= 0,
-  }
 }

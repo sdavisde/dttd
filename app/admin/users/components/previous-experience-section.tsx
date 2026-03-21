@@ -1,8 +1,10 @@
+import type {
+  UserExperience} from '@/lib/users/experience';
 import {
-  groupExperienceByCommunity,
-  UserExperience,
+  groupExperienceByCommunity
 } from '@/lib/users/experience'
 import { Badge } from '@/components/ui/badge'
+import { isNil } from 'lodash'
 
 type PreviousExperienceSectionProps = {
   experience: UserExperience[]
@@ -55,7 +57,7 @@ export function PreviousExperienceSection({
                     </span>
                   </div>
 
-                  {record.rollo && (
+                  {!isNil(record.rollo) && (
                     <div className="mt-1">
                       <Badge
                         variant="secondary"

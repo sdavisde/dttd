@@ -2,15 +2,17 @@
 
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
-import { User } from '@/lib/users/types'
-import {
+import type { User } from '@/lib/users/types'
+import type {
   WeekendStatusValue,
   WeekendGroupWithId,
   CreateWeekendGroupInput,
   UpdateWeekendGroupInput,
 } from '@/lib/weekend/types'
-import { WeekendSidebarPayload } from './types'
+import type { WeekendSidebarPayload } from './types'
 import * as WeekendService from './weekend-service'
+import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
+import { err, isErr } from '@/lib/results'
 
 // Re-export types for convenience
 export type { WeekendRosterViewData } from './weekend-service'
@@ -73,24 +75,41 @@ export async function getWeekendRosterRecord(
 
 /**
  * Records a manual (cash/check) payment.
+ * Bridges from weekendRosterId to groupMemberId internally.
  * Public - no auth per user request.
  */
 export async function recordManualPayment(
   weekendRosterId: string,
   paymentAmount: number,
   paymentMethod: 'cash' | 'check',
+  paymentOwner: string,
   notes?: string
 ) {
+  const groupMemberResult = await getGroupMemberByRosterId(weekendRosterId)
+  if (isErr(groupMemberResult)) {
+    return err(
+      `Failed to find group member for roster: ${groupMemberResult.error}`
+    )
+  }
   return WeekendService.recordManualPayment(
-    weekendRosterId,
+    groupMemberResult.data.id,
     paymentAmount,
     paymentMethod,
+    paymentOwner,
     notes
   )
 }
 
 /**
- * Fetches weekend options for dropdowns.
+ * Fetches the special_needs field for a roster record.
+ * Public - used by team form pages for pre-fill.
+ */
+export async function getRosterSpecialNeeds(rosterId: string) {
+  return WeekendService.getRosterSpecialNeeds(rosterId)
+}
+
+/**
+ * Fetches weekend group options for dropdowns.
  * Public - no auth per user request.
  */
 export async function getWeekendOptions() {

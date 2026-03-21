@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { isNil } from 'lodash'
 import {
   FolderIcon,
   FileIcon,
@@ -50,14 +51,14 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
   }
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes) return '-'
+    if (isNil(bytes)) return '-'
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(1024))
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`
   }
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return '-'
+    if (isNil(dateString)) return '-'
     return new Date(dateString).toLocaleDateString()
   }
 
@@ -91,7 +92,7 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
               <div className="flex-1 min-w-0">
                 {item.isFolder ? (
                   <Link
-                    href={`/admin/files/${currentPath ? `${currentPath}/${item.name}` : item.name}`}
+                    href={`/admin/files/${currentPath !== '' ? `${currentPath}/${item.name}` : item.name}`}
                     className="block hover:text-primary"
                   >
                     <div className="font-medium truncate">{item.name}</div>
@@ -118,7 +119,7 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
                     className="h-8 w-8 p-0"
                   >
                     <a
-                      href={`/api/files/download?bucket=${currentBucket}&path=${currentPath ? `${currentPath}/${item.name}` : item.name}`}
+                      href={`/api/files/download?bucket=${currentBucket}&path=${currentPath !== '' ? `${currentPath}/${item.name}` : item.name}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Download file"
@@ -149,7 +150,7 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
 
       <FileContextMenu
         anchorEl={
-          contextMenu
+          !isNil(contextMenu)
             ? ({
                 getBoundingClientRect: () => ({
                   top: contextMenu.mouseY,

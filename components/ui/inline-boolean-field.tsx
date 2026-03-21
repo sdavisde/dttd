@@ -33,7 +33,7 @@ export function InlineBooleanField({
 
   function handleClickOutside(event: MouseEvent) {
     if (
-      containerRef.current &&
+      !isNil(containerRef.current) &&
       !containerRef.current.contains(event.target as Node)
     ) {
       setIsEditing(false)
@@ -105,7 +105,7 @@ export function InlineBooleanField({
     )
   }
 
-  const displayValue = isNil(value) ? emptyText : value ? trueLabel : falseLabel
+  const displayValue = isNil(value) ? emptyText : value === true ? trueLabel : falseLabel
   const isEmpty = isNil(value)
 
   return (

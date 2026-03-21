@@ -5,13 +5,14 @@ import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
 import { isErr } from '@/lib/results'
 import Files from './components/Files'
+import { isNil } from 'lodash'
 
 export default async function FilesPage() {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
 
   try {
-    if (isErr(userResult) || !user) {
+    if (isErr(userResult) || isNil(user)) {
       throw new Error('User not found')
     }
   } catch (error) {

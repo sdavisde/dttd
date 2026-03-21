@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useSession } from '@/components/auth/session-provider'
 import { useToastListener } from '@/components/toastbox'
 import { permissionLock } from '@/lib/security'
-import { NavElement } from './navbar-server'
+import type { NavElement } from './navbar-server'
 import { NavLogo } from './nav-logo'
 import { DesktopNavItem } from './desktop-nav-item'
 import { UserMenu } from './user-menu'
@@ -20,8 +20,13 @@ export function Navbar({ navElements }: NavbarClientProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const { isAuthenticated, user } = useSession()
 
-  // Filter nav elements based on user permissions
+  // Filter nav elements based on user permissions and team membership
   const filterNavElement = (item: NavElement): NavElement | null => {
+    // Check if this item requires team membership
+    if (item.requiresTeamMembership === true && isNil(user?.teamMemberInfo)) {
+      return null
+    }
+
     // Check if user has permission for this item
     if (item.permissions_needed.length > 0) {
       try {
@@ -32,7 +37,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
     }
 
     // Filter children if they exist
-    if (item.children) {
+    if (!isNil(item.children)) {
       const filteredChildren = item.children
         .map(filterNavElement)
         .filter((child) => !isNil(child))
@@ -76,7 +81,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
                   item={item}
                   align="left"
                   isActive={activeMenu === item.name}
-                  onMouseEnter={() => item.children && setActiveMenu(item.name)}
+                  onMouseEnter={() => !isNil(item.children) && setActiveMenu(item.name)}
                   onMouseLeave={() => setActiveMenu(null)}
                 />
               ))}
@@ -94,7 +99,7 @@ export function Navbar({ navElements }: NavbarClientProps) {
                   item={item}
                   align="right"
                   isActive={activeMenu === item.name}
-                  onMouseEnter={() => item.children && setActiveMenu(item.name)}
+                  onMouseEnter={() => !isNil(item.children) && setActiveMenu(item.name)}
                   onMouseLeave={() => setActiveMenu(null)}
                 />
               ))}

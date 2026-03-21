@@ -1,7 +1,7 @@
 'use server'
 
-import { Address } from '@/lib/users/validation'
-import { BasicInfo } from '@/components/team-forms/schemas'
+import type { Address } from '@/lib/users/validation'
+import type { BasicInfo } from '@/components/team-forms/schemas'
 import * as UserService from './user-service'
 import { findImpersonatingUser } from '@/services/identity/impersonation/impersonation-service'
 

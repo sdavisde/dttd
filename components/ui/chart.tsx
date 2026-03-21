@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
 
 import { cn } from '@/lib/utils'
+import { isNil } from 'lodash'
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const
@@ -27,7 +28,7 @@ const ChartContext = React.createContext<ChartContextProps | null>(null)
 function useChart() {
   const context = React.useContext(ChartContext)
 
-  if (!context) {
+  if (isNil(context)) {
     throw new Error('useChart must be used within a <ChartContainer />')
   }
 
@@ -71,10 +72,10 @@ function ChartContainer({
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color
+    ([, config]) => !isNil(config.theme) || !isNil(config.color)
   )
 
-  if (!colorConfig.length) {
+  if (colorConfig.length === 0) {
     return null
   }
 
@@ -90,7 +91,7 @@ ${colorConfig
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    return !isNil(color) ? `  --color-${key}: ${color};` : null
   })
   .join('\n')}
 }
@@ -129,27 +130,27 @@ function ChartTooltipContent({
   const { config } = useChart()
 
   const tooltipLabel = React.useMemo(() => {
-    if (hideLabel || !payload?.length) {
+    if (hideLabel === true || (payload?.length ?? 0) === 0) {
       return null
     }
 
-    const [item] = payload
+    const [item] = payload ?? []
     const key = `${labelKey ?? item?.dataKey ?? item?.name ?? 'value'}`
     const itemConfig = getPayloadConfigFromPayload(config, item, key)
     const value =
-      !labelKey && typeof label === 'string'
+      isNil(labelKey) && typeof label === 'string'
         ? (config[label as keyof typeof config]?.label ?? label)
         : itemConfig?.label
 
-    if (labelFormatter) {
+    if (!isNil(labelFormatter)) {
       return (
         <div className={cn('font-medium', labelClassName)}>
-          {labelFormatter(value, payload)}
+          {labelFormatter(value, payload ?? [])}
         </div>
       )
     }
 
-    if (!value) {
+    if (isNil(value)) {
       return null
     }
 
@@ -164,11 +165,11 @@ function ChartTooltipContent({
     labelKey,
   ])
 
-  if (!active || !payload?.length) {
+  if (active !== true || (payload?.length ?? 0) === 0) {
     return null
   }
 
-  const nestLabel = payload.length === 1 && indicator !== 'dot'
+  const nestLabel = (payload?.length ?? 0) === 1 && indicator !== 'dot'
 
   return (
     <div
@@ -179,7 +180,7 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload
+        {(payload ?? [])
           .filter((item) => item.type !== 'none')
           .map((item, index) => {
             const key = `${nameKey ?? item.name ?? item.dataKey ?? 'value'}`
@@ -194,11 +195,13 @@ function ChartTooltipContent({
                   indicator === 'dot' && 'items-center'
                 )}
               >
-                {formatter && item?.value !== undefined && item.name ? (
+                {!isNil(formatter) &&
+                item?.value !== undefined &&
+                !isNil(item.name) ? (
                   formatter(item.value, item.name, item, index, item.payload)
                 ) : (
                   <>
-                    {itemConfig?.icon ? (
+                    {!isNil(itemConfig?.icon) ? (
                       <itemConfig.icon />
                     ) : (
                       !hideIndicator && (
@@ -234,7 +237,7 @@ function ChartTooltipContent({
                           {itemConfig?.label ?? item.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {!isNil(item.value) && (
                         <span className="text-foreground font-mono font-medium tabular-nums">
                           {item.value.toLocaleString()}
                         </span>
@@ -265,7 +268,7 @@ function ChartLegendContent({
   }) {
   const { config } = useChart()
 
-  if (!payload?.length) {
+  if ((payload?.length ?? 0) === 0) {
     return null
   }
 
@@ -277,7 +280,7 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload
+      {(payload ?? [])
         .filter((item) => item.type !== 'none')
         .map((item) => {
           const key = `${nameKey ?? item.dataKey ?? 'value'}`
@@ -290,7 +293,7 @@ function ChartLegendContent({
                 '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
               )}
             >
-              {itemConfig?.icon && !hideIcon ? (
+              {!isNil(itemConfig?.icon) && hideIcon !== true ? (
                 <itemConfig.icon />
               ) : (
                 <div
@@ -333,7 +336,7 @@ function getPayloadConfigFromPayload(
   ) {
     configLabelKey = payload[key as keyof typeof payload] as string
   } else if (
-    payloadPayload &&
+    !isNil(payloadPayload) &&
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
   ) {

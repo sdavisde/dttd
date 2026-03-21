@@ -1,9 +1,10 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import { err, fromSupabase, ok } from '@/lib/results'
-import { Address } from '@/lib/users/validation'
-import { BasicInfo } from '@/components/team-forms/schemas'
+import type { Address } from '@/lib/users/validation'
+import type { BasicInfo } from '@/components/team-forms/schemas'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 export const GetUserInfoQuery = `
@@ -26,14 +27,32 @@ export const JoinUserRolesOnUserId = `
       id,
       label,
       description,
-      permissions
+      permissions,
+      type
     )
   )
 `
 
 export const JoinWeekendRosterOnUserId = `
-  weekend_roster:weekend_roster!user_id(
-    id, user_id, weekend_id, cha_role, status, weekends(type, status)
+  weekend_group_members!user_id(
+    id,
+    group_id,
+    weekend_groups!group_id(
+      number,
+      weekends!group_id(
+        id,
+        type,
+        status,
+        weekend_roster(
+          id,
+          cha_role,
+          rollo,
+          additional_cha_role,
+          status,
+          weekend_id
+        )
+      )
+    )
   )
 `
 
@@ -65,7 +84,7 @@ export const updateUserRoles = async (userId: string, roleIds: string[]) => {
     .from('user_roles')
     .delete()
     .eq('user_id', userId)
-  if (fromSupabase(response).error) {
+  if (!isNil(fromSupabase(response).error)) {
     return err('Failed to delete user roles')
   }
 
@@ -95,7 +114,7 @@ export const deleteUser = async (userId: string) => {
     .delete()
     .eq('user_id', userId)
 
-  if (fromSupabase(deleteRolesResponse).error) {
+  if (!isNil(fromSupabase(deleteRolesResponse).error)) {
     return err('Failed to delete user roles')
   }
 
@@ -105,7 +124,7 @@ export const deleteUser = async (userId: string) => {
     .delete()
     .eq('user_id', userId)
 
-  if (fromSupabase(deleteRosterResponse).error) {
+  if (!isNil(fromSupabase(deleteRosterResponse).error)) {
     return err('Failed to delete weekend roster')
   }
 
@@ -139,7 +158,7 @@ export const updateUserBasicInfo = async (userId: string, data: BasicInfo) => {
     .update({
       church_affiliation: data.church_affiliation,
       weekend_attended: weekendAttendedStr,
-      essentials_training_date: data.essentials_training_date
+      essentials_training_date: !isNil(data.essentials_training_date)
         ? data.essentials_training_date.toISOString()
         : null,
       special_gifts_and_skills: data.special_gifts_and_skills ?? null,

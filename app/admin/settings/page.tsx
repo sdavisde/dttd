@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { ContactInformationTable } from './components/ContactInformationTable'
 import { PrayerWheelSettings } from './components/PrayerWheelSettings'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
 import { getPrayerWheelUrls } from '@/services/settings'
 import { isErr, Results } from '@/lib/results'
+import { isNil } from 'lodash'
 
 async function getContactInformation() {
   const supabase = await createClient()
@@ -14,7 +14,7 @@ async function getContactInformation() {
     .select('*')
     .order('label')
 
-  if (error) {
+  if (!isNil(error)) {
     console.error('Error fetching contact information:', error)
     return []
   }
@@ -41,14 +41,6 @@ export default async function SettingsPage() {
           <Typography variant="muted" className="mb-4">
             Manage system settings and configurations.
           </Typography>
-
-          <div className="mb-4">
-            <Typography variant="h4">DTTD Email Addresses</Typography>
-            <Typography variant="muted" className="mb-4">
-              Manage contact information used throughout the system.
-            </Typography>
-            <ContactInformationTable contactInformation={contactInformation} />
-          </div>
 
           <div className="mb-4">
             <Typography variant="h4">Prayer Wheel Links</Typography>

@@ -1,9 +1,11 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Result, err, ok } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, ok } from '@/lib/results'
+import type {
+  UserExperience} from '@/lib/users/experience';
 import {
-  UserExperience,
   calculateExperienceLevel,
   calculateRectorReadyStatus,
   groupExperienceByCommunity,
@@ -12,8 +14,8 @@ import {
 } from '@/lib/users/experience'
 import z from 'zod'
 import { isNil } from 'lodash'
-import { UserExperienceFormValue } from '@/components/team-forms/schemas'
-import { UserServiceHistory } from '@/services/master-roster/types'
+import type { UserExperienceFormValue } from '@/components/team-forms/schemas'
+import type { UserServiceHistory } from '@/services/master-roster/types'
 import { WeekendReference } from '@/lib/weekend/weekend-reference'
 
 /**
@@ -40,7 +42,6 @@ export async function getUserServiceHistory(
         updated_at,
         weekends (
           id,
-          number,
           type,
           start_date,
           title
@@ -50,7 +51,7 @@ export async function getUserServiceHistory(
       .eq('user_id', userId)
       .order('created_at', { ascending: true })
 
-    if (error) {
+    if (!isNil(error)) {
       return err(`Failed to fetch user experience: ${error.message}`)
     }
 
@@ -136,12 +137,12 @@ export async function upsertUserExperience(
       updated_at: new Date().toISOString(),
       // Ensure weekend_id is null for external
       weekend_id: null,
-      ...(entry.id ? { id: entry.id } : {}),
+      ...(!isNil(entry.id) ? { id: entry.id } : {}),
     }
 
     const { error } = await supabase.from('users_experience').upsert([payload]) // Upsert on ID (primary key)
 
-    if (error) {
+    if (!isNil(error)) {
       console.error('Error saving experience:', error)
       // Check for specific unique violation if constraint name differs
       return err(`Failed to save experience: ${error.message}`)
@@ -168,7 +169,7 @@ export async function deleteUserExperience(
       .delete()
       .eq('id', experienceId)
 
-    if (error) {
+    if (!isNil(error)) {
       console.error('Error deleting experience:', error)
       return err(`Failed to delete experience: ${error.message}`)
     }

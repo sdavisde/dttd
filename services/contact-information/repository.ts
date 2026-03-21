@@ -1,8 +1,10 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
-import { Result, ok, err } from '@/lib/results'
-import { Tables } from '@/lib/supabase/database.types'
+import type { Result} from '@/lib/results';
+import { ok, err } from '@/lib/results'
+import type { Tables } from '@/database.types'
 
 export async function getContactInformation(
   contactId: string
@@ -15,11 +17,11 @@ export async function getContactInformation(
     .eq('id', contactId)
     .single()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(`Failed to fetch contact information: ${error.message}`)
   }
 
-  if (!data) {
+  if (isNil(data)) {
     return err(`Contact information not found for id: ${contactId}`)
   }
 
@@ -39,11 +41,11 @@ export async function updateContactInformation(
     .select()
     .single()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(`Failed to update contact information: ${error.message}`)
   }
 
-  if (!data) {
+  if (isNil(data)) {
     return err(`Contact information not found for id: ${contactId}`)
   }
 

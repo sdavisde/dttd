@@ -4,6 +4,10 @@ import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import { PaymentRecord } from '@/lib/payments/types'
 import * as PaymentService from './payment-service'
+import type { PaymentTransactionDTO } from './types'
+import type { Weekend } from '@/lib/weekend/types'
+import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
+import { isErr, ok } from '@/lib/results'
 
 /**
  * Retrieves a Stripe price by its ID.
@@ -14,18 +18,30 @@ export async function getPrice(priceId: string) {
 }
 
 /**
- * Checks if a team member has made any payment for the given weekend roster.
- * This is a public action used during the payment flow.
+ * Checks if a team member has made any payment.
+ * Accepts either a rosterId (bridges to groupMemberId) or a groupMemberId directly.
+ * This is a public action used during the payment flow and homepage TODO check.
  */
-export async function hasTeamPayment(weekendRosterId: string) {
-  return await PaymentService.hasTeamPayment(weekendRosterId)
+export async function hasTeamPayment(rosterOrGroupMemberId: string) {
+  // Try to resolve as a rosterId first (bridge for pre-task-4 callers passing teamMemberInfo.id)
+  const groupMemberResult = await getGroupMemberByRosterId(
+    rosterOrGroupMemberId
+  )
+  const groupMemberId = isErr(groupMemberResult)
+    ? rosterOrGroupMemberId // fall back: assume it's already a groupMemberId
+    : groupMemberResult.data.id
+
+  return await PaymentService.hasPaymentForTarget(
+    'weekend_group_member',
+    groupMemberId
+  )
 }
 
 /**
- * Retrieves all payment records (team fees and candidate fees).
+ * Retrieves all payment records from the new payment_transaction table.
  * Requires READ_PAYMENTS permission.
  */
-export const getAllPayments = authorizedAction<void, PaymentRecord[]>(
+export const getAllPayments = authorizedAction<void, PaymentTransactionDTO[]>(
   Permission.READ_PAYMENTS,
   async () => {
     return await PaymentService.getAllPayments()
@@ -48,4 +64,18 @@ export async function getTeamFee() {
  */
 export async function getCandidateFee() {
   return await PaymentService.getCandidateFee()
+}
+
+/**
+ * Computes financial health metrics for the active weekend group.
+ * Requires READ_PAYMENTS permission.
+ */
+export async function getActiveWeekendFinancials(
+  payments: PaymentTransactionDTO[],
+  activeWeekends: Record<'MENS' | 'WOMENS', Weekend>
+) {
+  return await PaymentService.getActiveWeekendFinancials(
+    payments,
+    activeWeekends
+  )
 }

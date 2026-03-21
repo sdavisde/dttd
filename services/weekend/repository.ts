@@ -1,23 +1,23 @@
 import 'server-only'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { fromSupabase, Result, err, ok } from '@/lib/results'
+import type { Result } from '@/lib/results'
+import { fromSupabase, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
-import { Tables } from '@/lib/supabase/database.types'
-import {
-  Weekend,
-  WeekendStatus,
+import type { Tables } from '@/database.types'
+import type {
   WeekendStatusValue,
-  WeekendType,
   WeekendUpdateInput,
   RawWeekendRecord,
 } from '@/lib/weekend/types'
-import { RawWeekendRoster } from './types'
+import { WeekendStatus, WeekendType } from '@/lib/weekend/types'
 import { logger } from '@/lib/logger'
 import { isEmpty, isNil } from 'lodash'
 
 /**
- * Query constant for weekend roster with all related data.
+ * Query constant for weekend roster with user data.
+ * Note: Payments are fetched separately since payment_transaction uses
+ * polymorphic target_id without FK constraints (no Supabase joins possible).
  */
 export const WeekendRosterQuery = `
   id,
@@ -27,25 +27,37 @@ export const WeekendRosterQuery = `
   user_id,
   created_at,
   rollo,
-  completed_statement_of_belief_at,
-  completed_commitment_form_at,
-  completed_release_of_claim_at,
-  completed_camp_waiver_at,
-  completed_info_sheet_at,
-  emergency_contact_name,
-  emergency_contact_phone,
-  medical_conditions,
+  special_needs,
   users (
     id,
     first_name,
     last_name,
     email,
     phone_number
-  ),
-  weekend_roster_payments (
-    id, weekend_roster_id, payment_amount, payment_intent_id, payment_method, created_at, notes
   )
 `
+
+/**
+ * Raw weekend roster record from DB (without payments).
+ * Payments are fetched separately via payment_transaction table.
+ */
+export type RawWeekendRosterDB = {
+  id: string
+  cha_role: string | null
+  status: string | null
+  weekend_id: string | null
+  user_id: string | null
+  created_at: string
+  rollo: string | null
+  special_needs: string | null
+  users: {
+    id: string
+    first_name: string | null
+    last_name: string | null
+    email: string | null
+    phone_number: string | null
+  } | null
+}
 
 /**
  * Fetches all weekends with ACTIVE status.
@@ -57,7 +69,7 @@ export async function findActiveWeekends(): Promise<
 
   const { data, error } = await supabase
     .from('weekends')
-    .select('*')
+    .select('*, weekend_groups(number)')
     .eq('status', WeekendStatus.ACTIVE)
 
   if (isSupabaseError(error)) {
@@ -77,7 +89,7 @@ export async function findWeekendsByGroupId(
 
   const { data, error } = await supabase
     .from('weekends')
-    .select('*')
+    .select('*, weekend_groups(number)')
     .eq('group_id', groupId)
     .order('type', { ascending: true })
 
@@ -95,9 +107,9 @@ export async function findWeekendsByStatuses(
   statuses?: WeekendStatusValue[]
 ): Promise<Result<string, RawWeekendRecord[]>> {
   const supabase = await createClient()
-  let query = supabase.from('weekends').select('*')
+  let query = supabase.from('weekends').select('*, weekend_groups(number)')
 
-  if (statuses && statuses.length > 0) {
+  if (!isNil(statuses) && statuses.length > 0) {
     query = query.in('status', statuses)
   }
 
@@ -113,16 +125,16 @@ export async function findWeekendsByStatuses(
 }
 
 /**
- * Fetches a single weekend by ID.
+ * Fetches a single weekend by ID, joining weekend_groups to restore the number field.
  */
 export async function findWeekendById(
   id: string
-): Promise<Result<string, Weekend | null>> {
+): Promise<Result<string, RawWeekendRecord | null>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('weekends')
-    .select('*')
+    .select('*, weekend_groups(number)')
     .eq('id', id)
     .single()
 
@@ -130,7 +142,7 @@ export async function findWeekendById(
     return err(error.message)
   }
 
-  return ok(data as Weekend | null)
+  return ok(data as RawWeekendRecord | null)
 }
 
 /**
@@ -142,7 +154,6 @@ export async function insertWeekendGroup(
     type: WeekendType
     start_date: string
     end_date: string
-    number: number | null
     status: WeekendStatusValue
     title: string | null
   }>
@@ -152,7 +163,7 @@ export async function insertWeekendGroup(
   const { data, error } = await supabase
     .from('weekends')
     .insert(payloads)
-    .select('*')
+    .select('*, weekend_groups(number)')
 
   if (isSupabaseError(error)) {
     return err(error.message)
@@ -176,7 +187,7 @@ export async function updateWeekendByGroupAndType(
     .update(payload)
     .eq('group_id', groupId)
     .eq('type', type)
-    .select('*')
+    .select('*, weekend_groups(number)')
     .single()
 
   if (isSupabaseError(error)) {
@@ -250,11 +261,31 @@ export async function deleteWeekendsByGroupId(
 }
 
 /**
- * Fetches the roster for a specific weekend with all related data.
+ * Fetches the roster for a specific weekend with user data.
+ * Note: Payments are fetched separately in the service layer.
  */
 export async function findWeekendRoster(
   weekendId: string
-): Promise<Result<string, RawWeekendRoster[]>> {
+): Promise<Result<string, RawWeekendRosterDB[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select(WeekendRosterQuery)
+    .eq('weekend_id', weekendId)
+    .neq('status', 'drop')
+    .order('cha_role', { ascending: true })
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok((data ?? []) as RawWeekendRosterDB[])
+}
+
+export async function findWeekendRosterIncludingDropped(
+  weekendId: string
+): Promise<Result<string, RawWeekendRosterDB[]>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -267,7 +298,7 @@ export async function findWeekendRoster(
     return err(error.message)
   }
 
-  return ok((data ?? []) as RawWeekendRoster[])
+  return ok((data ?? []) as RawWeekendRosterDB[])
 }
 
 /**
@@ -294,7 +325,7 @@ export async function findWeekendRosterRecord(
     .eq('weekend_id', weekendId)
     .single()
 
-  if (error) {
+  if (!isNil(error)) {
     return err(error.message)
   }
 
@@ -323,6 +354,27 @@ export async function insertWeekendRosterMember(data: {
 }
 
 /**
+ * Fetches the special_needs field for a roster record by ID.
+ */
+export async function findRosterSpecialNeeds(
+  id: string
+): Promise<Result<string, string | null>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select('special_needs')
+    .eq('id', id)
+    .single()
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data?.special_needs ?? null)
+}
+
+/**
  * Fetches a roster record by ID to verify it exists.
  */
 export async function findRosterRecordById(
@@ -341,35 +393,6 @@ export async function findRosterRecordById(
   }
 
   return ok(data)
-}
-
-/**
- * Inserts a manual payment record.
- */
-export async function insertManualPayment(data: {
-  weekend_roster_id: string
-  payment_amount: number
-  payment_method: 'cash' | 'check'
-  payment_intent_id: string
-  notes: string | null
-}): Promise<Result<string, Tables<'weekend_roster_payments'>>> {
-  const supabase = await createClient()
-
-  const { data: paymentRecord, error } = await supabase
-    .from('weekend_roster_payments')
-    .insert(data)
-    .select()
-    .single()
-
-  if (isSupabaseError(error)) {
-    return err(error.message)
-  }
-
-  if (!paymentRecord) {
-    return err('Failed to record payment')
-  }
-
-  return ok(paymentRecord)
 }
 
 /**
@@ -482,7 +505,7 @@ export async function findActiveWeekendLeadershipRoster(
   const womensLeadership: RawLeadershipRosterMember[] = []
 
   for (const member of roster) {
-    if (!member.weekend_id) continue
+    if (isNil(member.weekend_id)) continue
 
     const weekendType = weekendTypeMap.get(member.weekend_id)
     if (weekendType === WeekendType.MENS) {

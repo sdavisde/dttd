@@ -8,14 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import type {
+  ChartConfig} from '@/components/ui/chart';
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { Badge } from '@/components/ui/badge'
-import { ExperienceDistribution } from '@/services/master-roster/types'
+import type { ExperienceDistribution } from '@/services/master-roster/types'
 import { isNil } from 'lodash'
 
 type ExperienceDistributionChartProps = {
@@ -105,7 +106,7 @@ export function ExperienceDistributionChart({
                     <Cell fill="var(--border)" />
                     <Label
                       content={({ viewBox }) => {
-                        if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                        if (!isNil(viewBox) && 'cx' in viewBox && 'cy' in viewBox) {
                           return (
                             <text
                               x={viewBox.cx}
@@ -228,7 +229,7 @@ export function ExperienceDistributionChart({
                   ))}
                   <Label
                     content={({ viewBox }) => {
-                      if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      if (!isNil(viewBox) && 'cx' in viewBox && 'cy' in viewBox) {
                         return (
                           <text
                             x={viewBox.cx}

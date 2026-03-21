@@ -32,10 +32,10 @@ export function InlineDateField({
   const [isOpen, setIsOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  const dateValue = value ? new Date(value) : undefined
+  const dateValue = !isNil(value) ? new Date(value) : undefined
 
   async function handleSelect(selectedDate: Date | undefined) {
-    if (!selectedDate) return
+    if (isNil(selectedDate)) return
 
     const isoString = selectedDate.toISOString().split('T')[0]
     if (isoString !== value) {
@@ -49,7 +49,7 @@ export function InlineDateField({
     setIsOpen(false)
   }
 
-  const displayValue = dateValue ? format(dateValue, 'PPP') : ''
+  const displayValue = !isNil(dateValue) ? format(dateValue, 'PPP') : ''
   const isEmpty = isNil(value)
 
   return (

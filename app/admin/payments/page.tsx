@@ -1,17 +1,18 @@
 import { Permission, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getAllPayments } from '@/actions/payments'
+import { getAllPayments } from '@/services/payment'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Payments } from './components/Payments'
+import { isNil } from 'lodash'
 
 export default async function PaymentsPage() {
   const userResult = await getLoggedInUser()
   const user = userResult?.data
 
   try {
-    if (isErr(userResult) || !user) {
+    if (isErr(userResult) || isNil(user)) {
       throw new Error('User not found')
     }
   } catch (error) {
@@ -23,7 +24,7 @@ export default async function PaymentsPage() {
     redirect('/admin')
   }
 
-  // Fetch payments data
+  // Fetch payments data from the new payment service
   const paymentsResult = await getAllPayments()
 
   if (isErr(paymentsResult)) {

@@ -12,11 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { WeekendGroupWithId, WeekendStatus } from '@/lib/weekend/types'
+import type { WeekendGroupWithId} from '@/lib/weekend/types';
+import { WeekendStatus } from '@/lib/weekend/types'
 import { getGroupStatus } from '@/lib/weekend'
 import { setActiveWeekendGroup } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
+import { isNil } from 'lodash'
 
 interface SetActiveWeekendButtonProps {
   weekendGroups: WeekendGroupWithId[]
@@ -106,7 +108,7 @@ export function SetActiveWeekendButton({
             >
               <div className="flex flex-col">
                 <span className="font-medium">{formatGroupTitle(group)}</span>
-                {status && (
+                {!isNil(status) && (
                   <span className="text-xs text-muted-foreground capitalize">
                     {status.toLowerCase()}
                   </span>

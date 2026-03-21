@@ -33,7 +33,7 @@ export function EditableTextArea({
       {canEdit ? (
         <InlineTextArea
           value={value ?? null}
-          onSave={(newValue) => onSave(newValue || null)}
+          onSave={(newValue) => onSave(newValue !== '' ? newValue : null)}
           emptyText={emptyText}
           rows={rows}
         />

@@ -1,12 +1,13 @@
-import { HydratedCandidate } from '@/lib/candidates/types'
-import { User } from '@/lib/users/types'
+import type { HydratedCandidate } from '@/lib/candidates/types'
+import type { User } from '@/lib/users/types'
 import { CANDIDATE_COLUMNS, getDesktopColumns } from '../config/columns'
+import { isNil } from 'lodash'
 
 /**
  * Escape CSV field values to handle special characters and line breaks
  */
 function escapeCsvField(value: string | null | undefined): string {
-  if (!value) return ''
+  if (isNil(value) || value === '') return ''
   const stringValue = String(value)
   // Escape double quotes and wrap in quotes if needed
   if (
@@ -73,6 +74,6 @@ export function downloadCandidateListCsv(
 export function generateCsvFilename(weekendName?: string): string {
   const now = new Date()
   const dateString = now.toISOString().split('T')[0] // YYYY-MM-DD
-  const baseName = weekendName ? `${weekendName}-candidates` : 'candidates'
+  const baseName = !isNil(weekendName) ? `${weekendName}-candidates` : 'candidates'
   return `${baseName}-${dateString}.csv`
 }

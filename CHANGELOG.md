@@ -1,3 +1,185 @@
+## [1.26.2](https://github.com/sdavisde/dttd/compare/v1.26.1...v1.26.2) (2026-03-20)
+
+### Bug Fixes
+
+- **payments:** correct paid counts and percentages in collection cards ([70a6602](https://github.com/sdavisde/dttd/commit/70a66027aeb17e8f470f61c6764c2500d45059ec))
+
+## [1.26.1](https://github.com/sdavisde/dttd/compare/v1.26.0...v1.26.1) (2026-03-20)
+
+### Bug Fixes
+
+- only show active team members on the payment page ([a5d56c6](https://github.com/sdavisde/dttd/commit/a5d56c6167dc9abc35bc27187d6854aa72ec0f13))
+
+## [1.26.0](https://github.com/sdavisde/dttd/compare/v1.25.1...v1.26.0) (2026-03-20)
+
+### Features
+
+- redesign payments page to be more helpful for treasurer ([48b78fa](https://github.com/sdavisde/dttd/commit/48b78fab01a48760d6def5a23397f7fb77e4e5a3))
+
+## [1.25.1](https://github.com/sdavisde/dttd/compare/v1.25.0...v1.25.1) (2026-03-20)
+
+### Bug Fixes
+
+- show correct data on payments page ([6313015](https://github.com/sdavisde/dttd/commit/6313015e960359ea9929e891f946802858001e23))
+
+## [1.25.0](https://github.com/sdavisde/dttd/compare/v1.24.0...v1.25.0) (2026-03-19)
+
+### Features
+
+- **payments:** add weekend column, summary totals, and report page ([9d78143](https://github.com/sdavisde/dttd/commit/9d78143527a40fbc1be38a8d0e8a2097d2b1418d))
+
+## [1.24.0](https://github.com/sdavisde/dttd/compare/v1.23.1...v1.24.0) (2026-03-19)
+
+### Features
+
+- **forms:** add dev-mode "Fill with test data" buttons to candidate and sponsor forms ([d5da267](https://github.com/sdavisde/dttd/commit/d5da267b9b3dee03c594d4077af83fc14e1bb34d))
+
+## [1.23.1](https://github.com/sdavisde/dttd/compare/v1.23.0...v1.23.1) (2026-03-15)
+
+### Bug Fixes
+
+- tie events to weekend groups instead of individual weekends ([565ecfc](https://github.com/sdavisde/dttd/commit/565ecfc5c44448bbd614dcb65bf6fa03b8760063))
+- use individual weekend IDs instead of group IDs for events ([466b259](https://github.com/sdavisde/dttd/commit/466b259284e1a1ec4f0e5a9f660cf54bb1afe51c))
+
+## [1.23.0](https://github.com/sdavisde/dttd/compare/v1.22.0...v1.23.0) (2026-03-15)
+
+### Features
+
+- **weekend:** add team form info column and modal to roster table ([8fc86ce](https://github.com/sdavisde/dttd/commit/8fc86ce6e8d9e6caa9afc4d06d58bbc1a35ed42d))
+
+### Bug Fixes
+
+- show medical columns with permissions ([fefa5bb](https://github.com/sdavisde/dttd/commit/fefa5bb465ee455ae1f3848fb49b9b5ff1b9dc16))
+
+## [1.22.0](https://github.com/sdavisde/dttd/compare/v1.21.0...v1.22.0) (2026-03-13)
+
+### Features
+
+- **ui:** use PhoneInput component for all phone number form fields ([5f3a13e](https://github.com/sdavisde/dttd/commit/5f3a13e24645046328c83e65d3eda11a1b353c8b))
+
+### Bug Fixes
+
+- add null guards for Supabase storage responses and fix type casts ([4c07cd3](https://github.com/sdavisde/dttd/commit/4c07cd355daf63c27a5c868050fc34814106386e))
+- fix implicit null checks ([e9fb295](https://github.com/sdavisde/dttd/commit/e9fb295527676b35463cda8aa1fb48bd01a27675))
+- type imports are sorted ([cb7ea44](https://github.com/sdavisde/dttd/commit/cb7ea44247d2ae50b297ab4d6c194ba43ed9800e))
+
+## [1.21.0](https://github.com/sdavisde/dttd/compare/v1.20.0...v1.21.0) (2026-03-12)
+
+### Features
+
+- form completion and medical info service rework ([9fa9e13](https://github.com/sdavisde/dttd/commit/9fa9e138bd9b8b82d6958c65e0b6a4f03d5c66af))
+- multi-weekend volunteer experience — task 4.0 ([7590e53](https://github.com/sdavisde/dttd/commit/7590e5368c495de8b1dc692b67ef2c061d12b5ef))
+- payment rework — target weekend_group_member ([ea4c264](https://github.com/sdavisde/dttd/commit/ea4c2646b62dfd1bfe97ff874554f08eba59294a))
+- schema foundation migrations for multi-weekend volunteer support ([47f05ae](https://github.com/sdavisde/dttd/commit/47f05aeff849ec7306fddb7754bc12f088e03a56))
+- **volunteer:** rework TeamMemberInfo for multi-weekend support ([39863fe](https://github.com/sdavisde/dttd/commit/39863fef7ba83e74766319b28c5ae4bb0b829381))
+
+### Bug Fixes
+
+- **db:** add admin policy for user_medical_profiles to support impersonation ([1242f4d](https://github.com/sdavisde/dttd/commit/1242f4d51cfc8eda6045a72ea8b2d655a2562675))
+- post-migration bugs in payment and info-sheet flows ([af33b70](https://github.com/sdavisde/dttd/commit/af33b70c26d45fd4348ddabf782a1692aea25d2a))
+- update migration script to ensure fields aren't missed ([dd206b7](https://github.com/sdavisde/dttd/commit/dd206b732464c4a537ca3fbb0179922612c3f780))
+
+## [1.20.0](https://github.com/sdavisde/dttd/compare/v1.19.0...v1.20.0) (2026-03-07)
+
+### Features
+
+- improve form UX with phone formatting, gender toggle, and email validation ([b90c753](https://github.com/sdavisde/dttd/commit/b90c753a3c2f19d2166775bbe637bc079148638d))
+
+## [1.19.0](https://github.com/sdavisde/dttd/compare/v1.18.1...v1.19.0) (2026-02-20)
+
+### Features
+
+- allow editing team forms ([6840c12](https://github.com/sdavisde/dttd/commit/6840c12907bdcd9ebbff23cfd145f4c8e53c1179))
+
+## [1.18.1](https://github.com/sdavisde/dttd/compare/v1.18.0...v1.18.1) (2026-02-20)
+
+### Bug Fixes
+
+- format options correctly ([05c6d40](https://github.com/sdavisde/dttd/commit/05c6d4018ab8f52066d7f58aa7e0fca75f01a163))
+
+## [1.18.0](https://github.com/sdavisde/dttd/compare/v1.17.1...v1.18.0) (2026-02-20)
+
+### Features
+
+- remove deprecated db tables ([386fe27](https://github.com/sdavisde/dttd/commit/386fe2750c3bca3327fcb9a23dba8c78dd368b3d))
+
+### Bug Fixes
+
+- update seed data for candidate payments ([34e00fe](https://github.com/sdavisde/dttd/commit/34e00fee390001cbdfeea180ab8bc97ad66fe6e6))
+
+## [1.17.1](https://github.com/sdavisde/dttd/compare/v1.17.0...v1.17.1) (2026-02-14)
+
+### Bug Fixes
+
+- fix FK relation between events and weekends ([4ea2fc9](https://github.com/sdavisde/dttd/commit/4ea2fc9d6185ae6bbb6f15462bd1ae19486a63a9))
+
+## [1.17.0](https://github.com/sdavisde/dttd/compare/v1.16.0...v1.17.0) (2026-02-10)
+
+### Features
+
+- add filter state to columns ([798aa3f](https://github.com/sdavisde/dttd/commit/798aa3f4a0dda893fcbf27392c77414c40068aa8))
+- add onRowClick, columnVisibility, toolbarChildren to DataTable ([3b9e1ac](https://github.com/sdavisde/dttd/commit/3b9e1acc4e055192287bf555a2ae005f5c13862c))
+- add TanStack Table core infrastructure and shared components ([d34581f](https://github.com/sdavisde/dttd/commit/d34581f127c225dbb427d6126ddaf002a2ebc723))
+- add useDataTableUrlState hook for URL-synced table state ([42deca8](https://github.com/sdavisde/dttd/commit/42deca8006c90ab1411fcf14de2cd71aa0565065))
+- improve mobile data table experience ([1096f31](https://github.com/sdavisde/dttd/commit/1096f317ae95768cc36b291b2a3db5aa5a93559e))
+- migrate candidate list to TanStack Table with URL state ([a263fe6](https://github.com/sdavisde/dttd/commit/a263fe67bda989b0f9c891fcbeeebd9e61cb984c))
+- migrate Candidate Review table to DataTable ([b75e7ea](https://github.com/sdavisde/dttd/commit/b75e7ea9f745fd1bac0da301b3cfefeac7510211))
+- refactor remaining tables ([f1cab12](https://github.com/sdavisde/dttd/commit/f1cab1230019612234496a3c83f65af0de2a6732))
+
+### Bug Fixes
+
+- remove contact info table from settings page ([873fb56](https://github.com/sdavisde/dttd/commit/873fb56998d11f6f9a41cd6ed871a1a9a411d425))
+
+## [1.16.0](https://github.com/sdavisde/dttd/compare/v1.15.0...v1.16.0) (2026-02-09)
+
+### ⚠ BREAKING CHANGES
+
+- update stripe webhook route in order to make a single route more
+
+### Features
+
+- add deposit service ([3a2ffb6](https://github.com/sdavisde/dttd/commit/3a2ffb648a6fef0e75f528bb9a7304a4ad185bcb))
+- add new payment transaction tables and migrate old data to them ([b5c3522](https://github.com/sdavisde/dttd/commit/b5c35226b00a6ff1d1acae5d24d9de040cd7bba8))
+- update payment page to pull new attributes ([7479d4c](https://github.com/sdavisde/dttd/commit/7479d4cba1c14578c4130cab726f24801bef2860))
+- update payment service to use the new generic payment tables ([8927cd1](https://github.com/sdavisde/dttd/commit/8927cd19ec8c991301dbfc294807aad057011ae4))
+- update stripe webhook route in order to make a single route more ([afb5531](https://github.com/sdavisde/dttd/commit/afb5531d7eeac3ba003bafd43b1d0ea0c5ca85b8))
+
+### Bug Fixes
+
+- make logs easier to read ([30bbb18](https://github.com/sdavisde/dttd/commit/30bbb18fe4f21b106df7da229a774de0f25c5f77))
+- tie payment owner to manual payments and fix payment owner not ([f734347](https://github.com/sdavisde/dttd/commit/f7343475564bfcbdb79057ea856eb29bc32e4a3d))
+
+## [1.15.0](https://github.com/sdavisde/dttd/compare/v1.14.1...v1.15.0) (2026-02-07)
+
+### Features
+
+- add balance_transaction_id, charge_id, net_amount, deposited_at, ([272aeb6](https://github.com/sdavisde/dttd/commit/272aeb676032ac97da900511040ddd028c72bac0))
+- add payout.paid event handling ([64a422d](https://github.com/sdavisde/dttd/commit/64a422d38bc78010fd9991c3a58921068b665a98))
+
+### Bug Fixes
+
+- add candidate payments to candidate list locked under ([495fb1d](https://github.com/sdavisde/dttd/commit/495fb1d9c2d7006e7ebae403caed517f6a4eab31))
+- show candidate payments on the payments page ([66081d6](https://github.com/sdavisde/dttd/commit/66081d6aa55fd2b8fc64c26a55d5df380e576bc8))
+
+## [1.14.1](https://github.com/sdavisde/dttd/compare/v1.14.0...v1.14.1) (2026-02-06)
+
+### Bug Fixes
+
+- add icon for community borad ([1ed4a05](https://github.com/sdavisde/dttd/commit/1ed4a0596527c3b15c768a1f4405f2c532c80536))
+- fix seed file ([0543d70](https://github.com/sdavisde/dttd/commit/0543d70ba02fd4f98a3128c6c798a5c3929c6363))
+- further restrict columns ([48bba41](https://github.com/sdavisde/dttd/commit/48bba41221b4b255eb105366112124c3b1a0e921))
+
+## [1.14.0](https://github.com/sdavisde/dttd/compare/v1.13.1...v1.14.0) (2026-02-04)
+
+### Features
+
+- small board page UI update and refactor to use services pattern ([773b1db](https://github.com/sdavisde/dttd/commit/773b1dbde8938b2eeba9048d0e50ab27ec65c65a))
+
+### Bug Fixes
+
+- apply migrations correctly ([f70811a](https://github.com/sdavisde/dttd/commit/f70811affb9ffb2bb392ea5ca1b2723b30bc224d))
+- remove nested database.types ([e91a0ef](https://github.com/sdavisde/dttd/commit/e91a0efe41b849130f7d3fbd727be5df32e1c01c))
+
 ## [1.13.1](https://github.com/sdavisde/dttd/compare/v1.13.0...v1.13.1) (2026-02-03)
 
 ### Bug Fixes

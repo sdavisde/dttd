@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { isNil } from 'lodash'
 import { Permission, permissionLock } from '@/lib/security'
 import { logger } from '@/lib/logger'
-import { FileObject } from '@supabase/storage-js'
+import type { FileObject } from '@supabase/storage-js'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -46,14 +47,14 @@ export function DeleteFileButton({
         .from('files')
         .remove([`${folderName}/${file.name}`])
 
-      if (error) {
+      if (!isNil(error)) {
         logger.error(`Error deleting file: ${error.message}`)
         toast.error('Failed to delete file')
         return
       }
 
       // Call onDelete callback to update local state for responsive UI
-      if (onDelete) {
+      if (!isNil(onDelete)) {
         onDelete(file)
       } else {
         // Fallback - reload page if no callback provided

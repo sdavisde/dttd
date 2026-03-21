@@ -39,7 +39,11 @@ export const MedicalInfoSchema = z.object({
     .min(1, 'Emergency contact name is required'),
   emergency_contact_phone: z
     .string()
-    .min(1, 'Emergency contact phone is required'),
+    .min(1, 'Emergency contact phone is required')
+    .refine(
+      (v) => v.replace(/\D/g, '').length === 10,
+      'Please enter a valid 10-digit phone number'
+    ),
   medical_conditions: z.string().optional(),
 })
 

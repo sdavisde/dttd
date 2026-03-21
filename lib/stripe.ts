@@ -1,8 +1,9 @@
 import 'server-only'
 
 import Stripe from 'stripe'
+import { isNil } from 'lodash'
 
-if (!process.env.STRIPE_SECRET_KEY) {
+if (isNil(process.env.STRIPE_SECRET_KEY)) {
   throw new Error('Missing Stripe secret key')
 }
 

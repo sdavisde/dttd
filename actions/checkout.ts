@@ -1,6 +1,7 @@
 'use server'
 
 import { stripe } from '@/lib/stripe'
+import { isNil } from 'lodash'
 
 /**
  * Begins a checkout session for a given price id
@@ -35,7 +36,7 @@ export async function beginCheckout(
     return_url: returnUrl,
   })
 
-  if (!session.client_secret) {
+  if (isNil(session.client_secret)) {
     throw new Error(
       'Failed to create checkout session - no client secret defined'
     )

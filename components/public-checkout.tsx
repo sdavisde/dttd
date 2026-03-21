@@ -7,7 +7,7 @@ import { Typography } from './ui/typography'
 import { logger } from '@/lib/logger'
 import { omitBy, isNil } from 'lodash'
 
-if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+if (isNil(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)) {
   throw new Error('Missing Stripe publishable key')
 }
 
@@ -70,14 +70,14 @@ export default function PublicCheckout({
   // Initialize and cleanup Stripe checkout
   useEffect(() => {
     async function initializeCheckout() {
-      if (!clientSecret) return
+      if (isNil(clientSecret)) return
 
       try {
         const stripe = await stripePromise
-        if (!stripe) return
+        if (isNil(stripe)) return
 
         // Destroy existing checkout instance if it exists
-        if (checkoutRef.current) {
+        if (!isNil(checkoutRef.current)) {
           checkoutRef.current.destroy()
           checkoutRef.current = null
         }
@@ -101,7 +101,7 @@ export default function PublicCheckout({
 
     // Cleanup function: destroy the embedded checkout instance
     return () => {
-      if (checkoutRef.current) {
+      if (!isNil(checkoutRef.current)) {
         checkoutRef.current.destroy()
         checkoutRef.current = null
       }
@@ -109,7 +109,7 @@ export default function PublicCheckout({
   }, [clientSecret])
 
   // Show loading spinner while checkout is initializing
-  if (checkoutLoading || (!clientSecret && !error)) {
+  if (checkoutLoading || (isNil(clientSecret) && isNil(error))) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin" />
@@ -118,7 +118,7 @@ export default function PublicCheckout({
   }
 
   // Show error state
-  if (error) {
+  if (!isNil(error)) {
     logger.error(`PublicCheckout error: ${error}`)
     return (
       <div className="h-screen w-screen flex items-center justify-center">

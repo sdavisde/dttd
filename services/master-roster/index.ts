@@ -2,7 +2,7 @@
 
 import * as MasterRosterService from './master-roster-service'
 
-export type { ExperienceDistribution } from './types'
+export type { ExperienceDistribution, MasterRosterMember } from './types'
 
 /**
  * @returns the master roster with all user information in the community.

@@ -4,7 +4,7 @@ import { Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
-import { WeekendGroupWithId } from '@/lib/weekend/types'
+import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendCard } from './WeekendCard'
 import { WeekendStatusBadge } from '@/components/weekend/WeekendStatusBadge'
 import { getGroupStatus } from '@/lib/weekend'
@@ -37,7 +37,7 @@ export function WeekendGroupContainer({
         <Typography variant="h5" className="font-semibold text-center">
           {groupTitle}
         </Typography>
-        {canEdit && (
+        {canEdit === true && (
           <Button
             variant="ghost"
             size="icon"

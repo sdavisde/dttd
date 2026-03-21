@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { isNil } from 'lodash'
 import {
   Sheet,
   SheetContent,
@@ -32,7 +33,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { WeekendGroupWithId } from '@/lib/weekend/types'
+import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { cn, setDatetimeToMidnight } from '@/lib/utils'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import {
@@ -41,8 +42,9 @@ import {
 } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
+import type {
+  DateRange} from '@/lib/weekend/scheduling';
 import {
-  DateRange,
   addDays,
   buildMonthOptions,
   formatDateForApi,
@@ -178,7 +180,7 @@ export function WeekendSidebar({
   }
 
   const handleDeleteConfirm = async () => {
-    if (!weekendGroup) {
+    if (isNil(weekendGroup)) {
       return
     }
 
@@ -228,7 +230,7 @@ export function WeekendSidebar({
             >
               <SheetHeader className="px-4 pb-0">
                 <SheetTitle>
-                  {weekendGroup ? 'Edit Weekends' : 'Add Weekends'}
+                  {!isNil(weekendGroup) ? 'Edit Weekends' : 'Add Weekends'}
                 </SheetTitle>
                 <SheetDescription>
                   Configure the weekend details. Womens dates automatically
@@ -378,7 +380,7 @@ export function WeekendSidebar({
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         isDeleting={isDeleting}
-        itemName={form.getValues('title') || 'Weekends'}
+        itemName={form.getValues('title') !== '' ? form.getValues('title') : 'Weekends'}
         title="Delete Weekends"
         description="This will remove both the mens and womens weekends. This action cannot be undone."
       />

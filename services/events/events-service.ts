@@ -1,8 +1,9 @@
 import 'server-only'
 
 import { isNil } from 'lodash'
-import { Result, err, ok, isErr } from '@/lib/results'
-import {
+import type { Result } from '@/lib/results'
+import { err, ok, isErr } from '@/lib/results'
+import type {
   Event,
   RawEventRecord,
   EventCreateInput,
@@ -24,7 +25,7 @@ function normalizeEvent(raw: RawEventRecord): Event {
     datetime: raw.datetime,
     location: raw.location,
     endDatetime: raw.end_datetime ?? null,
-    weekendId: raw.weekend_id ?? null,
+    weekendGroupId: raw.weekend_group_id ?? null,
     type: raw.type ?? null,
     createdAt: raw.created_at,
   }
@@ -109,34 +110,19 @@ export async function getUpcomingEventsForPeriod(
 }
 
 /**
- * Fetches all events for a weekend group (both men's and women's weekends).
- * @param groupId - The group_id that links men's and women's weekends together
+ * Fetches all events for a weekend group.
+ * @param groupId - The weekend group ID
  */
 export async function getEventsForWeekendGroup(
   groupId: string
 ): Promise<Result<string, Event[]>> {
-  // First, get the weekend IDs for this group
-  const weekendIdsResult =
-    await EventsRepository.findWeekendIdsByGroupId(groupId)
+  const result = await EventsRepository.findEventsByGroupId(groupId)
 
-  if (isErr(weekendIdsResult)) {
-    return err(`Failed to get weekends for group: ${weekendIdsResult.error}`)
+  if (isErr(result)) {
+    return err(`Failed to get events for weekend group: ${result.error}`)
   }
 
-  if (weekendIdsResult.data.length === 0) {
-    return ok([])
-  }
-
-  // Now get all events associated with these weekends
-  const eventsResult = await EventsRepository.findEventsByWeekendIds(
-    weekendIdsResult.data
-  )
-
-  if (isErr(eventsResult)) {
-    return err(`Failed to get events for weekend group: ${eventsResult.error}`)
-  }
-
-  return ok(eventsResult.data.map(normalizeEvent))
+  return ok(result.data.map(normalizeEvent))
 }
 
 /**

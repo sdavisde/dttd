@@ -2,14 +2,17 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { isNil, union } from 'lodash'
-import { err, isErr, ok, Result, Results, unwrapOr } from '@/lib/results'
+import type { Result} from '@/lib/results';
+import { err, isErr, ok, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
-import { User, UserRoleInfo } from '@/lib/users/types'
-import { CHARole, WeekendStatus } from '@/lib/weekend/types'
-import { Address, addressSchema } from '@/lib/users/validation'
-import { BasicInfo } from '@/components/team-forms/schemas'
-import { RawUser } from './types'
+import type { User, UserRoleInfo } from '@/lib/users/types'
+import { WeekendStatus } from '@/lib/weekend/types'
+import type { Address} from '@/lib/users/validation';
+import { addressSchema } from '@/lib/users/validation'
+import type { BasicInfo } from '@/components/team-forms/schemas'
+import type { RawUser } from './types'
 import { getPermissionsForCHARole } from '@/lib/security'
+import type { TeamMemberInfo , CHARole, WeekendAssignment} from '@/lib/weekend/types'
 
 function normalizeUser(rawUser: RawUser): Result<string, User> {
   if (isNil(rawUser)) {
@@ -25,19 +28,54 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       id: userRole.roles.id,
       label: userRole.roles.label,
       permissions: userRole.roles.permissions ?? [],
+      type: userRole.roles.type,
     })) ?? []
 
-  const teamMemberInfo =
-    rawUser.weekend_roster?.find((member: any) => {
-      if (isNil(member.weekends)) {
-        return false
-      }
-      return member.weekends.status === WeekendStatus.ACTIVE
+  // Find the active group membership: a weekend_group_members row where at least one
+  // of its weekends has status === ACTIVE.
+  const activeGroupMember =
+    rawUser.weekend_group_members?.find((member) => {
+      const weekends = member.weekend_groups?.weekends ?? []
+      return weekends.some((w) => w.status === WeekendStatus.ACTIVE)
     }) ?? null
 
+  let teamMemberInfo: TeamMemberInfo | null = null
+
+  if (!isNil(activeGroupMember)) {
+    const activeWeekends = (
+      activeGroupMember.weekend_groups?.weekends ?? []
+    ).filter((w) => w.status === WeekendStatus.ACTIVE)
+
+    // Exclude dropped roster rows — they are admin-only concern
+    const weekendAssignments: WeekendAssignment[] = activeWeekends.flatMap(
+      (w) =>
+        (w.weekend_roster ?? [])
+          .filter((r) => r.status !== 'drop')
+          .map((r) => ({
+            rosterId: r.id,
+            weekendId: r.weekend_id,
+            weekendType: w.type,
+            chaRole: r.cha_role,
+            rollo: r.rollo,
+            additionalChaRole: r.additional_cha_role,
+          }))
+    )
+
+    // Only set teamMemberInfo if the user has at least one active (non-dropped) assignment
+    if (weekendAssignments.length > 0) {
+      teamMemberInfo = {
+        groupMemberId: activeGroupMember.id,
+        groupId: activeGroupMember.group_id,
+        groupNumber: activeGroupMember.weekend_groups?.number ?? null,
+        weekendAssignments,
+      }
+    }
+  }
+
   const rolePermissions = roles.flatMap((role) => role.permissions)
-  const chaRolePermissions = getPermissionsForCHARole(
-    teamMemberInfo?.cha_role as CHARole | null
+  // Union CHA role permissions across all weekend assignments
+  const chaRolePermissions = (teamMemberInfo?.weekendAssignments ?? []).flatMap(
+    (a) => getPermissionsForCHARole(a.chaRole as CHARole | null)
   )
   const allPermissions = union(rolePermissions, chaRolePermissions)
   const permissions = new Set(allPermissions)

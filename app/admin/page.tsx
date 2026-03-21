@@ -17,6 +17,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import { redirect } from 'next/navigation'
 import * as Results from '@/lib/results'
 import { getFilteredNavData } from '@/lib/admin/navigation'
+import { isNil } from 'lodash'
 
 const iconMap: Record<string, LucideIcon> = {
   TentTree,
@@ -31,7 +32,7 @@ const iconMap: Record<string, LucideIcon> = {
 export default async function Page() {
   const userResult = await getLoggedInUser()
 
-  if (Results.isErr(userResult) || !userResult.data) {
+  if (Results.isErr(userResult) || isNil(userResult.data)) {
     redirect('/')
   }
 
@@ -61,7 +62,7 @@ export default async function Page() {
                 <Card className="hover:bg-muted/50 transition-colors w-full">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      {Icon && <Icon className="h-5 w-5" />}
+                      {!isNil(Icon) && <Icon className="h-5 w-5" />}
                       {link.title}
                     </CardTitle>
                   </CardHeader>

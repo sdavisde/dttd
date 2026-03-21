@@ -6,6 +6,7 @@ import {
   EVENT_TYPE_LABELS,
 } from '@/services/events/types'
 import { cn, formatDateTime } from '@/lib/utils'
+import { isNil } from 'lodash'
 
 interface WeekendEventCardProps {
   event: Event
@@ -25,10 +26,10 @@ export function WeekendEventCard({
   selected = false,
 }: WeekendEventCardProps) {
   const formattedDateTime = formatDateTime(event.datetime)
-  const borderColor = event.type
+  const borderColor = !isNil(event.type)
     ? EVENT_TYPE_BORDER_COLORS[event.type]
     : EVENT_TYPE_BORDER_COLORS.other
-  const typeLabel = event.type ? EVENT_TYPE_LABELS[event.type] : null
+  const typeLabel = !isNil(event.type) ? EVENT_TYPE_LABELS[event.type] : null
 
   return (
     <Card
@@ -47,7 +48,7 @@ export function WeekendEventCard({
             <h3 className="font-semibold text-base leading-tight">
               {event.title ?? 'Untitled Event'}
             </h3>
-            {typeLabel && (
+            {!isNil(typeLabel) && (
               <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full whitespace-nowrap">
                 {typeLabel}
               </span>
@@ -70,7 +71,7 @@ export function WeekendEventCard({
           )}
 
           {/* Location */}
-          {event.location && (
+          {!isNil(event.location) && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 flex-shrink-0" />
               <span>{event.location}</span>

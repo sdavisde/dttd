@@ -25,7 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Control, FieldPath } from 'react-hook-form'
+import type { Control, FieldPath } from 'react-hook-form'
 
 interface ChaRoleFieldProps<T extends Record<string, any>> {
   control: Control<T>
@@ -63,7 +63,7 @@ export function ChaRoleField<T extends Record<string, any>>({
                   aria-expanded={comboboxOpen}
                   className="w-full justify-between"
                 >
-                  {field.value ? field.value : placeholder}
+                  {field.value !== '' ? field.value : placeholder}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>

@@ -1,16 +1,54 @@
-import { Tables } from '@/lib/supabase/database.types'
+import type { Tables } from '@/database.types'
 
+/**
+ * A volunteer's assignment to one specific weekend within the group.
+ * Represents one active (non-dropped) weekend_roster row.
+ * Drop status rows are excluded — they are only visible in the admin roster view.
+ *
+ * Weekend-specific data lives here (role, rollo).
+ * Group-level data (forms, payment) lives on TeamMemberInfo.
+ */
+export type WeekendAssignment = {
+  /** weekend_roster.id */
+  rosterId: string
+  /** The weekend_id this assignment belongs to */
+  weekendId: string | null
+  /** MENS or WOMENS */
+  weekendType: string | null
+  /** The CHA role assigned for this weekend */
+  chaRole: string | null
+  /** The rollo talk assigned for this weekend (if applicable) */
+  rollo: string | null
+  /** Additional CHA role (if any) */
+  additionalChaRole: string | null
+}
+
+/**
+ * Group-scoped team membership for the currently active weekend group.
+ *
+ * Key principle: forms and team fee payment belong to the GROUP MEMBER (once per
+ * group), while role/rollo assignments are per-weekend and live on WeekendAssignment.
+ *
+ * A single-weekend volunteer has one WeekendAssignment; a volunteer serving on
+ * both Men's and Women's weekends in the same group has two.
+ * If all of a user's roster rows are dropped, teamMemberInfo will be null.
+ */
 export type TeamMemberInfo = {
-  id: string
-  cha_role: string | null
-  status: string | null
-  weekend_id: string | null
+  /** weekend_group_members.id — the hub for team forms and team fee payment */
+  groupMemberId: string
+  /** The weekend_groups.id this membership belongs to */
+  groupId: string
+  /** The weekend group number (e.g. 11 for "DTTD #11") */
+  groupNumber: number | null
+  /** Active (non-dropped) roster assignments for this volunteer in the group. */
+  weekendAssignments: WeekendAssignment[]
 }
 
 export type Weekend = {
   id: string
   start_date: string
   end_date: string
+  /** Weekend number, sourced from weekend_groups.number via join. Null until Task 3 join is added. */
   number: number | null
   status: WeekendStatusValue | null
   title: string | null
@@ -33,7 +71,10 @@ export enum WeekendStatus {
 
 export type WeekendStatusValue = `${WeekendStatus}`
 
-export type RawWeekendRecord = Tables<'weekends'>
+export type RawWeekendRecord = Tables<'weekends'> & {
+  /** Joined from weekend_groups to restore the group number field. */
+  weekend_groups: { number: number | null } | null
+}
 
 export type WeekendGroup = Record<WeekendType, Weekend>
 
@@ -45,7 +86,6 @@ export type WeekendGroupWithId = {
 export type WeekendWriteInput = {
   start_date: string
   end_date: string
-  number?: number | null
   status?: WeekendStatusValue | null
   title?: string | null
 }

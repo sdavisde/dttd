@@ -3,7 +3,7 @@
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import * as SettingsService from './settings-service'
 import { Permission } from '@/lib/security'
-import { SiteSetting } from './types'
+import type { SiteSetting } from './types'
 
 /**
  * Get the prayer wheel URLs for men's and women's weekends.

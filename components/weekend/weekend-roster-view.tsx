@@ -16,7 +16,7 @@ import { isNil } from 'lodash'
 import { WeekendStatus } from '@/lib/weekend/types'
 import { getWeekendRosterViewData } from '@/services/weekend'
 import { Permission, userHasPermission } from '@/lib/security'
-import { User } from '@/lib/users/types'
+import type { User } from '@/lib/users/types'
 import { formatDateOnly } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 import { Results } from '@/lib/results'
@@ -55,6 +55,15 @@ export async function WeekendRosterView({
   const canViewExperienceDistribution = userHasPermission(user, [
     Permission.READ_USER_EXPERIENCE,
   ])
+  const canViewEmergencyContact = userHasPermission(user, [
+    Permission.READ_CANDIDATE_EMERGENCY_CONTACT,
+  ])
+  const canViewSpecialNeeds = userHasPermission(user, [
+    Permission.READ_CANDIDATE_MEDICAL_INFO,
+  ])
+  const canViewTeamFormInfo = userHasPermission(user, [
+    Permission.READ_TEAM_FORM_INFO,
+  ])
 
   // Check if weekend is editable
   const isWeekendEditable =
@@ -78,7 +87,7 @@ export async function WeekendRosterView({
                 {weekendTitle}
               </Typography>
               {headerSlot}
-              {!headerSlot && weekend.status && (
+              {isNil(headerSlot) && !isNil(weekend.status) && (
                 <WeekendStatusBadge status={weekend.status} />
               )}
             </div>
@@ -91,7 +100,7 @@ export async function WeekendRosterView({
               <span>-</span>
               <Datetime dateTime={endDate} />
             </Typography>
-            {weekend.groupId && (
+            {!isNil(weekend.groupId) && (
               <Button asChild variant="outline" size="sm" className="mt-3">
                 <Link
                   href={`/candidate-list?weekend=${weekend.groupId}&weekendType=${weekend.type}`}
@@ -132,6 +141,9 @@ export async function WeekendRosterView({
           roster={roster}
           isEditable={canEditRoster && isWeekendEditable}
           includePaymentInformation={canViewPaymentInfo}
+          includeEmergencyContact={canViewEmergencyContact}
+          includeSpecialNeeds={canViewSpecialNeeds}
+          includeTeamFormInfo={canViewTeamFormInfo}
         />
       </div>
 

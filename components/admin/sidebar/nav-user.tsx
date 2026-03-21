@@ -11,12 +11,13 @@ import {
 import { useSession } from '@/components/auth/session-provider'
 import { canImpersonate } from '@/lib/security'
 import { ImpersonationDialog } from './impersonation-dialog'
+import { isNil } from 'lodash'
 
 export function NavUser() {
   const { user, loading } = useSession()
   const [impersonationOpen, setImpersonationOpen] = useState(false)
 
-  if (loading || !user) {
+  if (loading || isNil(user)) {
     return <></>
   }
 

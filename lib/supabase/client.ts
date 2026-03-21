@@ -1,17 +1,18 @@
 // client only
 
 import { createBrowserClient } from '@supabase/ssr'
+import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
-import { Database } from '@/lib/supabase/database.types'
+import type { Database } from '@/database.types'
 
 export function createClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (isNil(process.env.NEXT_PUBLIC_SUPABASE_URL)) {
     logger.error(
       'Trying to create client-side supabase client but NEXT_PUBLIC_SUPABASE_URL is not set'
     )
     throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set')
   }
-  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+  if (isNil(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)) {
     logger.error(
       'Trying to create client-side supabase client but NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set'
     )

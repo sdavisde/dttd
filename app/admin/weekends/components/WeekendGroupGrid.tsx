@@ -1,7 +1,7 @@
 'use client'
 
 import { CalendarDays } from 'lucide-react'
-import { WeekendGroupWithId } from '@/lib/weekend/types'
+import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
 import { WeekendGroupContainer } from './WeekendGroupContainer'
@@ -19,7 +19,7 @@ export function WeekendGroupGrid({
   handleGroupEdit,
   isPast = false,
 }: WeekendGroupGridProps) {
-  if (!groups || groups.length === 0) {
+  if (groups.length === 0) {
     return (
       <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
         <Alert className="h-full flex flex-col">
