@@ -59,7 +59,7 @@ export function RoleAssignments({
                     assignedMembers={
                       roleAssignment.membersByRoleId[role.id] ?? []
                     }
-                    onAssignAction={() => roleAssignment.openDialog(role)}
+                    onAssignClick={() => roleAssignment.openDialog(role)}
                   />
                 )
               )}
