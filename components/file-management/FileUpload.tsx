@@ -12,6 +12,14 @@ import { toast } from 'sonner'
 
 type FileUploadProps = {
   folder: string
+  buttonText?: string
+  buttonVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link'
 }
 
 const ALLOWED_FILE_TYPES = [
@@ -22,7 +30,11 @@ const ALLOWED_FILE_TYPES = [
   'image/webp',
 ]
 
-export function FileUpload({ folder }: FileUploadProps) {
+export function FileUpload({
+  folder,
+  buttonText = 'Upload File',
+  buttonVariant = 'ghost',
+}: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -93,7 +105,7 @@ export function FileUpload({ folder }: FileUploadProps) {
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
         size="sm"
-        variant="ghost"
+        variant={buttonVariant}
         className="flex items-center gap-2"
       >
         {uploading ? (
@@ -101,7 +113,7 @@ export function FileUpload({ folder }: FileUploadProps) {
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        Upload File
+        {buttonText}
       </Button>
     </>
   )

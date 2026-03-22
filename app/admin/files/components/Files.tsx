@@ -99,11 +99,13 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
               </TableHeader>
               <TableBody>
                 {bucket.folders.length === 0 ? (
-                  <div className="p-4 text-center">
-                    <Typography variant="muted" className="italic">
-                      No folders available
-                    </Typography>
-                  </div>
+                  <TableRow>
+                    <TableCell colSpan={2} className="p-4 text-center">
+                      <Typography variant="muted" className="italic">
+                        No folders available
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   bucket.folders.map((folder) => (
                     <TableRow key={folder.slug}>

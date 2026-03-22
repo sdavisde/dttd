@@ -1,40 +1,39 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Typography } from '@/components/ui/typography'
 import { getCommunityBoardData } from '@/services/community/board'
+import { getMeetingMinutesPage } from '@/lib/files'
 import { isErr } from '@/lib/results'
-import { ExternalLink, Upload } from 'lucide-react'
+import type { PagedMeetingMinuteFiles } from '@/lib/files/types'
 import { RoleAssignments } from './components/role-assignments'
-
-const meetingMinutes = [
-  {
-    date: '01/06/2026',
-    location: 'Milam County Cowboy Church',
-    pdfLabel: 'January 2026 Minutes',
-  },
-  {
-    date: '12/02/2025',
-    location: 'DTTD Fellowship Hall',
-    pdfLabel: 'December 2025 Minutes',
-  },
-]
+import { MeetingMinutes } from './components/meeting-minutes'
 
 export default async function CommunityBoardPage() {
-  const result = await getCommunityBoardData()
+  const [result, meetingMinutesResult] = await Promise.all([
+    getCommunityBoardData(),
+    getMeetingMinutesPage(1, 10),
+  ])
 
   if (isErr(result)) {
     throw new Error(result.error)
   }
 
+  const meetingMinutesPageSize = 10
+  let meetingMinutesLoadError: string | null = null
+  let meetingMinutesInitialPageData: PagedMeetingMinuteFiles
+
+  if (isErr(meetingMinutesResult)) {
+    meetingMinutesLoadError = meetingMinutesResult.error
+    meetingMinutesInitialPageData = {
+      page: 1,
+      pageSize: meetingMinutesPageSize,
+      sortField: 'created_at',
+      sortDirection: 'desc',
+      currentPageItems: [],
+      nextPageItems: [],
+    }
+  } else {
+    meetingMinutesInitialPageData = meetingMinutesResult.data
+  }
   const { boardRoles, committeeRoles, members, preWeekendCoupleContact } =
     result.data
 
@@ -64,47 +63,10 @@ export default async function CommunityBoardPage() {
           preWeekendCoupleContact={preWeekendCoupleContact}
         />
 
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle>Board Meeting Minutes</CardTitle>
-              <Typography variant="muted">
-                Meeting minutes are visible to everyone.
-              </Typography>
-            </div>
-            <Button className="gap-2" variant="outline" size="sm">
-              <Upload className="h-4 w-4" />
-              Add Minutes
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>PDF</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {meetingMinutes.map((minute) => (
-                  <TableRow key={`${minute.date}-${minute.location}`}>
-                    <TableCell>{minute.date}</TableCell>
-                    <TableCell>{minute.location}</TableCell>
-                    <TableCell>
-                      <Button variant="link" size="sm" asChild>
-                        <a href="#" target="_blank" rel="noreferrer">
-                          {minute.pdfLabel}
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <MeetingMinutes
+          initialPageData={meetingMinutesInitialPageData}
+          loadError={meetingMinutesLoadError}
+        />
       </div>
     </>
   )
