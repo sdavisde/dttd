@@ -111,24 +111,21 @@ export async function getCandidateNamesByWeekend(
     return err(error.message)
   }
 
+  type CandidateInfoRow = {
+    first_name: string | null
+    last_name: string | null
+  }
+
   return ok(
-    (data ?? []).map((c) => ({
-      id: c.id,
-      first_name:
-        (
-          c.candidate_info as unknown as {
-            first_name: string | null
-            last_name: string | null
-          }
-        )?.first_name ?? null,
-      last_name:
-        (
-          c.candidate_info as unknown as {
-            first_name: string | null
-            last_name: string | null
-          }
-        )?.last_name ?? null,
-    }))
+    (data ?? []).map((c) => {
+      // candidate_info is returned as an array (one-to-many relationship in Supabase)
+      const info = (c.candidate_info as unknown as CandidateInfoRow[])?.[0]
+      return {
+        id: c.id,
+        first_name: info?.first_name ?? null,
+        last_name: info?.last_name ?? null,
+      }
+    })
   )
 }
 
