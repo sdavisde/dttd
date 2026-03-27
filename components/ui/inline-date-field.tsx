@@ -1,16 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { format } from 'date-fns'
-import { Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNil } from 'lodash'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { DateInput } from '@/components/ui/date-input'
 
 interface InlineDateFieldProps {
   value: string | null // ISO date string
@@ -29,12 +22,12 @@ export function InlineDateField({
   startYear = 1920,
   endYear = new Date().getFullYear(),
 }: InlineDateFieldProps) {
-  const [isOpen, setIsOpen] = React.useState(false)
+  const [isEditing, setIsEditing] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const dateValue = !isNil(value) ? new Date(value) : undefined
 
-  async function handleSelect(selectedDate: Date | undefined) {
+  async function handleDateChange(selectedDate: Date | undefined) {
     if (isNil(selectedDate)) return
 
     const isoString = selectedDate.toISOString().split('T')[0]
@@ -46,40 +39,43 @@ export function InlineDateField({
         setIsSubmitting(false)
       }
     }
-    setIsOpen(false)
+    setIsEditing(false)
   }
 
-  const displayValue = !isNil(dateValue) ? format(dateValue, 'PPP') : ''
-  const isEmpty = isNil(value)
+  if (!isEditing) {
+    const displayValue = !isNil(dateValue)
+      ? dateValue.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : ''
+    const isEmpty = isNil(value)
+
+    return (
+      <span
+        onClick={() => !isSubmitting && setIsEditing(true)}
+        className={cn(
+          'inline-flex items-center gap-1 cursor-pointer rounded-md px-2 py-1 transition-colors',
+          'hover:bg-muted',
+          isEmpty && 'text-muted-foreground',
+          isSubmitting && 'opacity-50 cursor-not-allowed',
+          className
+        )}
+      >
+        {isEmpty ? emptyText : displayValue}
+      </span>
+    )
+  }
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <span
-          className={cn(
-            'inline-flex items-center gap-1 cursor-pointer rounded-md px-2 py-1 transition-colors',
-            'hover:bg-muted',
-            isEmpty && 'text-muted-foreground',
-            isSubmitting && 'opacity-50 cursor-not-allowed',
-            className
-          )}
-        >
-          <CalendarIcon className="h-4 w-4" />
-          {isEmpty ? emptyText : displayValue}
-        </span>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={dateValue}
-          onSelect={handleSelect}
-          disabled={isSubmitting}
-          captionLayout="dropdown"
-          startMonth={new Date(startYear, 0)}
-          endMonth={new Date(endYear, 11)}
-          defaultMonth={dateValue ?? new Date(endYear - 30, 0)}
-        />
-      </PopoverContent>
-    </Popover>
+    <DateInput
+      date={dateValue}
+      onDateChange={handleDateChange}
+      disabled={isSubmitting}
+      minDate={new Date(startYear, 0, 1)}
+      maxDate={new Date(endYear, 11, 31)}
+      className={cn('w-[160px]', className)}
+    />
   )
 }
