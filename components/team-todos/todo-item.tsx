@@ -31,10 +31,10 @@ export function TodoItem({
   isComplete,
   tooltip,
   onLinkClick,
-  alwaysClickable,
+  alwaysClickable = false,
 }: TodoItemProps) {
   const CheckIcon = isComplete ? CheckSquare : Square
-  const isClickable = !isNil(href) && (!isComplete || alwaysClickable === true)
+  const isClickable = !isNil(href) && (!isComplete || alwaysClickable)
 
   const content = (
     <div
@@ -80,7 +80,7 @@ export function TodoItem({
       href={href}
       className={cn(
         'block hover:bg-muted/50 rounded-md -mx-2 px-2 transition-colors',
-        isComplete && alwaysClickable !== true && 'pointer-events-none'
+        isComplete && !alwaysClickable && 'pointer-events-none'
       )}
       onClick={onLinkClick}
     >
