@@ -1,3 +1,9 @@
+## [1.27.1](https://github.com/sdavisde/dttd/compare/v1.27.0...v1.27.1) (2026-03-27)
+
+### Bug Fixes
+
+- allow review job description link to remain clickable after completion ([e165d8a](https://github.com/sdavisde/dttd/commit/e165d8af4183ec053559827db203f4481bd2a07f))
+
 ## [1.27.0](https://github.com/sdavisde/dttd/compare/v1.26.2...v1.27.0) (2026-03-27)
 
 ### Features
