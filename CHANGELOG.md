@@ -1,3 +1,10 @@
+## [1.27.0](https://github.com/sdavisde/dttd/compare/v1.26.2...v1.27.0) (2026-03-27)
+
+### Features
+
+- add candidate address to candidate list page ([a600928](https://github.com/sdavisde/dttd/commit/a600928c93edb7c271bd321e00e9efa05299c37b))
+- **ui:** add DateInput component with blur validation ([f53dd09](https://github.com/sdavisde/dttd/commit/f53dd097a7091001aa6e5cdf6fb666698699eef0))
+
 ## [1.26.2](https://github.com/sdavisde/dttd/compare/v1.26.1...v1.26.2) (2026-03-20)
 
 ### Bug Fixes
