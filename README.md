@@ -105,3 +105,4 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) e
 - [ ] Next, need to show some indicator on the payments page that a payment was deposited
 - [ ] Create delete user action
 - [ ] Add user account actions dropdown menu
+- [ ] Help rectors choose people: create master roster page that can be arbitrarily filtered, or maybe where users can build their own queries? With templates / examples

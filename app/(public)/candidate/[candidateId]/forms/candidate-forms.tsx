@@ -261,7 +261,7 @@ export function CandidateForms({
                           field.value !== '' ? new Date(field.value) : undefined
                         }
                         onDateChange={(date) =>
-                          field.onChange(date?.toISOString())
+                          field.onChange(date?.toISOString() ?? '')
                         }
                         className="w-full"
                         startMonth={new Date(new Date().getFullYear() - 100, 0)}

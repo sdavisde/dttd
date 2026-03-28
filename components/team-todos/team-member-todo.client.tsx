@@ -106,6 +106,7 @@ export function TeamMemberTodoClient({
               ? () => handleTodoClick(item.id)
               : undefined
           }
+          alwaysClickable={item.clientSideCompletion === true}
         />
       ))}
     </>

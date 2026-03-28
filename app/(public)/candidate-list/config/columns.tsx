@@ -5,7 +5,7 @@ import type { HydratedCandidate } from '@/lib/candidates/types'
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
-import { isNil } from 'lodash'
+import { isEmpty, isNil } from 'lodash'
 import '@/components/ui/data-table/types'
 
 // ---------------------------------------------------------------------------
@@ -47,6 +47,34 @@ function getEmail(c: HydratedCandidate): string | null {
     c.candidate_sponsorship_info?.candidate_email ??
     null
   )
+}
+
+function getAddressParts(c: HydratedCandidate): {
+  street: string
+  cityStateZip: string
+} | null {
+  const address = c.candidate_info
+
+  if (isNil(address) || address.address_line_1 === '') {
+    return null
+  }
+
+  const street = !isEmpty(address.address_line_2)
+    ? `${address.address_line_1}, ${address.address_line_2}`
+    : address.address_line_1
+
+  const cityStateZip = `${address.city}, ${address.state} ${address.zip}`
+
+  return {
+    street,
+    cityStateZip,
+  }
+}
+
+function formatAddress(c: HydratedCandidate): string | null {
+  const addressParts = getAddressParts(c)
+  if (isNil(addressParts)) return null
+  return `${addressParts.street}, ${addressParts.cityStateZip}`
 }
 
 function getPaymentStatusDisplay(c: HydratedCandidate): string {
@@ -102,6 +130,31 @@ export const candidateColumns: ColumnDef<HydratedCandidate>[] = [
       requiredPermission: Permission.READ_CANDIDATE_CONTACT_INFO,
       showOnMobile: true,
       mobileLabel: 'Phone',
+      mobilePriority: 'detail',
+    },
+  },
+  {
+    id: 'address',
+    accessorFn: formatAddress,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Address" />
+    ),
+    cell: ({ row }) => {
+      const addressParts = getAddressParts(row.original)
+
+      if (isNil(addressParts)) return '-'
+
+      return (
+        <div>
+          <div>{addressParts.street}</div>
+          <div>{addressParts.cityStateZip}</div>
+        </div>
+      )
+    },
+    meta: {
+      requiredPermission: Permission.READ_CANDIDATE_ADDRESS,
+      showOnMobile: true,
+      mobileLabel: 'Address',
       mobilePriority: 'detail',
     },
   },
@@ -373,6 +426,14 @@ export const CANDIDATE_COLUMNS: CandidateColumnConfig[] = [
     showOnMobile: true,
     minWidth: '130px',
     requiredPermission: Permission.READ_CANDIDATE_CONTACT_INFO,
+  },
+  {
+    id: 'address',
+    header: 'Address',
+    accessor: formatAddress,
+    showOnMobile: true,
+    minWidth: '240px',
+    requiredPermission: Permission.READ_CANDIDATE_ADDRESS,
   },
   {
     id: 'church',
