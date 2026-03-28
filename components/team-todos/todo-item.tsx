@@ -21,6 +21,8 @@ type TodoItemProps = {
   tooltip?: string
   /** Callback when link is clicked */
   onLinkClick?: () => void
+  /** If true, the link remains clickable even when complete */
+  alwaysClickable?: boolean
 }
 
 export function TodoItem({
@@ -29,9 +31,10 @@ export function TodoItem({
   isComplete,
   tooltip,
   onLinkClick,
+  alwaysClickable = false,
 }: TodoItemProps) {
   const CheckIcon = isComplete ? CheckSquare : Square
-  const isClickable = !isNil(href) && !isComplete
+  const isClickable = !isNil(href) && (!isComplete || alwaysClickable)
 
   const content = (
     <div
@@ -77,7 +80,7 @@ export function TodoItem({
       href={href}
       className={cn(
         'block hover:bg-muted/50 rounded-md -mx-2 px-2 transition-colors',
-        isComplete && 'pointer-events-none'
+        isComplete && !alwaysClickable && 'pointer-events-none'
       )}
       onClick={onLinkClick}
     >
