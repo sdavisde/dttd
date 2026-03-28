@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Result, isErr } from '@/lib/results'
+import { isErr, type Result } from '@/lib/results'
 
 export type ServerPaginationSortDirection = 'asc' | 'desc'
 
@@ -137,7 +137,7 @@ export function useServerPagination<T, SortField extends string>({
     try {
       const bundle = await fetchPageBundle(1, nextSortField, nextSortDirection)
 
-      if (!bundle) return
+      if (bundle === null) return
 
       setSortField(nextSortField)
       setSortDirection(nextSortDirection)
@@ -160,13 +160,13 @@ export function useServerPagination<T, SortField extends string>({
 
       if (typeof targetItems === 'undefined') {
         targetBundle = await fetchPageBundle(targetPage)
-        if (!targetBundle) return
+        if (targetBundle === null) return
 
         applyBundle(targetBundle)
         targetItems = targetBundle.currentPageItems
       }
 
-      if (!targetItems || targetItems.length === 0) {
+      if (targetItems === undefined || targetItems.length === 0) {
         setLastPage((prev) =>
           prev === null ? targetPage - 1 : Math.min(prev, targetPage - 1)
         )
@@ -179,9 +179,13 @@ export function useServerPagination<T, SortField extends string>({
         typeof pageCache[targetPage + 1] !== 'undefined'
       const canHaveFollowingPage = lastPage === null || targetPage < lastPage
 
-      if (!hasFollowingPageCached && canHaveFollowingPage && !targetBundle) {
+      if (
+        !hasFollowingPageCached &&
+        canHaveFollowingPage &&
+        targetBundle === null
+      ) {
         const prefetchBundle = await fetchPageBundle(targetPage)
-        if (prefetchBundle) {
+        if (prefetchBundle !== null) {
           applyBundle(prefetchBundle)
         }
       }

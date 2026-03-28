@@ -1,41 +1,44 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
 import { getCommunityBoardData } from '@/services/community/board'
-import { getMeetingMinutesPage } from '@/lib/files'
+import { getMeetingMinutesPage } from '@/services/files/file-service'
 import { isErr } from '@/lib/results'
 import type { PagedMeetingMinuteFiles } from '@/lib/files/types'
 import { RoleAssignments } from './components/role-assignments'
 import { MeetingMinutes } from './components/meeting-minutes'
 
+const MEETING_MINUTES_PAGE_SIZE = 10
+
+function createEmptyMeetingMinutesPageData(): PagedMeetingMinuteFiles {
+  return {
+    page: 1,
+    pageSize: MEETING_MINUTES_PAGE_SIZE,
+    sortField: 'created_at',
+    sortDirection: 'desc',
+    currentPageItems: [],
+    nextPageItems: [],
+  }
+}
+
 export default async function CommunityBoardPage() {
-  const [result, meetingMinutesResult] = await Promise.all([
+  const [communityBoardResult, meetingMinutesPageResult] = await Promise.all([
     getCommunityBoardData(),
-    getMeetingMinutesPage(1, 10),
+    getMeetingMinutesPage(1, MEETING_MINUTES_PAGE_SIZE),
   ])
 
-  if (isErr(result)) {
-    throw new Error(result.error)
+  if (isErr(communityBoardResult)) {
+    throw new Error(communityBoardResult.error)
   }
 
-  const meetingMinutesPageSize = 10
-  let meetingMinutesLoadError: string | null = null
-  let meetingMinutesInitialPageData: PagedMeetingMinuteFiles
+  const meetingMinutesLoadError = isErr(meetingMinutesPageResult)
+    ? meetingMinutesPageResult.error
+    : null
+  const meetingMinutesInitialPageData = isErr(meetingMinutesPageResult)
+    ? createEmptyMeetingMinutesPageData()
+    : meetingMinutesPageResult.data
 
-  if (isErr(meetingMinutesResult)) {
-    meetingMinutesLoadError = meetingMinutesResult.error
-    meetingMinutesInitialPageData = {
-      page: 1,
-      pageSize: meetingMinutesPageSize,
-      sortField: 'created_at',
-      sortDirection: 'desc',
-      currentPageItems: [],
-      nextPageItems: [],
-    }
-  } else {
-    meetingMinutesInitialPageData = meetingMinutesResult.data
-  }
   const { boardRoles, committeeRoles, members, preWeekendCoupleContact } =
-    result.data
+    communityBoardResult.data
 
   return (
     <>

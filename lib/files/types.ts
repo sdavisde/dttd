@@ -1,4 +1,4 @@
-import { FileObject } from '@supabase/storage-js'
+import type { FileObject } from '@supabase/storage-js'
 
 export type StorageSortField = 'name' | 'created_at'
 export type StorageSortDirection = 'asc' | 'desc'

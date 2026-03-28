@@ -1,34 +1,19 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/navigation'
-import { useSession } from '@/components/auth/session-provider'
-import { Permission, permissionLock } from '@/lib/security'
-import { Button } from '@/components/ui/button'
+import { Button, type ButtonProps } from '@/components/ui/button'
+import { ALLOWED_FILE_TYPES } from '@/lib/files/constants'
+import { uploadFileAction } from '@/services/files/actions'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 type FileUploadProps = {
   folder: string
   buttonText?: string
-  buttonVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost'
-    | 'link'
+  buttonVariant?: ButtonProps['variant']
 }
-
-const ALLOWED_FILE_TYPES = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-]
 
 export function FileUpload({
   folder,
@@ -38,12 +23,9 @@ export function FileUpload({
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const { user } = useSession()
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      permissionLock([Permission.FILES_UPLOAD])(user)
-
       const files = event.target.files
       if (isNil(files) || files.length === 0) return
 
@@ -63,16 +45,14 @@ export function FileUpload({
 
       setUploading(true)
 
-      const supabase = createClient()
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(`${folder}/${file.name}`, file, {
-          cacheControl: '3600',
-          upsert: false,
-        })
+      const formData = new FormData()
+      formData.set('folder', folder)
+      formData.set('file', file)
 
-      if (!isNil(uploadError)) {
-        throw uploadError
+      const result = await uploadFileAction(formData)
+
+      if (result.error !== undefined) {
+        throw new Error(result.error)
       }
 
       toast.success(`File "${file.name}" uploaded successfully`)

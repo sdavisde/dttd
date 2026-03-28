@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useSession } from '@/components/auth/session-provider'
-import { Permission, permissionLock } from '@/lib/security'
-import { MEETING_MINUTES_FOLDER } from '@/lib/files/constants'
+import {
+  ALLOWED_FILE_TYPES,
+  MEETING_MINUTES_FOLDER,
+} from '@/lib/files/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,16 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { uploadFileAction } from '@/services/files/actions'
 import { Upload, Loader2, FileText, X } from 'lucide-react'
 import { toast } from 'sonner'
-
-const ALLOWED_FILE_TYPES = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-]
 
 export function MeetingMinutesUpload() {
   const [uploading, setUploading] = useState(false)
@@ -34,12 +27,11 @@ export function MeetingMinutesUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const { user } = useSession()
 
   const resetState = () => {
     setLocation('')
     setSelectedFile(null)
-    if (fileInputRef.current) {
+    if (fileInputRef.current !== null) {
       fileInputRef.current.value = ''
     }
   }
@@ -53,13 +45,13 @@ export function MeetingMinutesUpload() {
 
   const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
-    if (!files || files.length === 0) return
+    if (files === null || files.length === 0) return
 
     const file = files[0]
 
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
       toast.error('Only PDF and image files are allowed')
-      if (fileInputRef.current) {
+      if (fileInputRef.current !== null) {
         fileInputRef.current.value = ''
       }
       return
@@ -70,36 +62,30 @@ export function MeetingMinutesUpload() {
 
   const handleClearFile = () => {
     setSelectedFile(null)
-    if (fileInputRef.current) {
+    if (fileInputRef.current !== null) {
       fileInputRef.current.value = ''
     }
   }
 
   const handleUpload = async () => {
-    if (!selectedFile) return
+    if (selectedFile === null) return
 
     try {
-      permissionLock([Permission.FILES_UPLOAD])(user)
-
       setUploading(true)
 
-      const supabase = createClient()
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(
-          `${MEETING_MINUTES_FOLDER}/${selectedFile.name}`,
-          selectedFile,
-          {
-            cacheControl: '3600',
-            upsert: false,
-            metadata: location.trim()
-              ? { location: location.trim() }
-              : undefined,
-          }
-        )
+      const formData = new FormData()
+      formData.set('folder', MEETING_MINUTES_FOLDER)
+      formData.set('file', selectedFile)
 
-      if (uploadError) {
-        throw uploadError
+      const trimmedLocation = location.trim()
+      if (trimmedLocation !== '') {
+        formData.set('metadata', JSON.stringify({ location: trimmedLocation }))
+      }
+
+      const result = await uploadFileAction(formData)
+
+      if (result.error !== undefined) {
+        throw new Error(result.error)
       }
 
       toast.success(`File "${selectedFile.name}" uploaded successfully`)
@@ -135,7 +121,7 @@ export function MeetingMinutesUpload() {
         >
           <div className="space-y-2">
             <Label>File</Label>
-            {selectedFile ? (
+            {selectedFile !== null ? (
               <div className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
                 <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="truncate flex-1">{selectedFile.name}</span>
@@ -160,7 +146,11 @@ export function MeetingMinutesUpload() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => {
+                    if (fileInputRef.current !== null) {
+                      fileInputRef.current.click()
+                    }
+                  }}
                   className="w-full"
                 >
                   <Upload className="h-4 w-4 mr-2" />
@@ -181,7 +171,7 @@ export function MeetingMinutesUpload() {
           </div>
           <Button
             type="submit"
-            disabled={!selectedFile || uploading}
+            disabled={selectedFile === null || uploading}
             className="w-full"
           >
             {uploading ? (

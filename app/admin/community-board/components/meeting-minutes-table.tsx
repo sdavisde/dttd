@@ -1,8 +1,8 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { FileObject } from '@supabase/storage-js'
-import {
+import type { FileObject } from '@supabase/storage-js'
+import type {
   MeetingMinuteFile,
   PagedMeetingMinuteFiles,
   StorageSortField,
@@ -90,7 +90,7 @@ export function MeetingMinutesTable({
       .from('files')
       .download(`${MEETING_MINUTES_FOLDER}/${file.name}`)
 
-    if (error) {
+    if (error !== null) {
       logger.error(`Error downloading file: ${error.message}`)
       toast.error('Failed to download file')
       return
@@ -121,7 +121,7 @@ export function MeetingMinutesTable({
 
   return (
     <>
-      {error && (
+      {error !== null && error !== '' && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -175,7 +175,9 @@ export function MeetingMinutesTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {file.created_at
+                    {file.created_at !== undefined &&
+                    file.created_at !== null &&
+                    file.created_at !== ''
                       ? new Date(file.created_at).toLocaleDateString()
                       : '-'}
                   </TableCell>
@@ -280,11 +282,15 @@ export function MeetingMinutesTable({
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
               <div>
-                {file.created_at
+                {file.created_at !== undefined &&
+                file.created_at !== null &&
+                file.created_at !== ''
                   ? new Date(file.created_at).toLocaleDateString()
                   : '-'}
               </div>
-              {file.location && <div>{file.location}</div>}
+              {file.location !== undefined &&
+                file.location !== null &&
+                file.location !== '' && <div>{file.location}</div>}
             </div>
           </div>
         ))}
