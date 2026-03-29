@@ -1,3 +1,10 @@
+## [1.27.2](https://github.com/sdavisde/dttd/compare/v1.27.1...v1.27.2) (2026-03-29)
+
+### Bug Fixes
+
+- address pr comments ([f60609e](https://github.com/sdavisde/dttd/commit/f60609eec06676f0eb97317c5654f13ba3cd042b))
+- align Supabase seed data and storage bucket setup ([4260b69](https://github.com/sdavisde/dttd/commit/4260b6966c4c9557499e228fd753ac2d3543b9ba))
+
 ## [1.27.1](https://github.com/sdavisde/dttd/compare/v1.27.0...v1.27.1) (2026-03-27)
 
 ### Bug Fixes
