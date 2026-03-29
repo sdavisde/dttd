@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle } from 'lucide-react'
-import { PagedMeetingMinuteFiles } from '@/lib/files/types'
+import type { PagedMeetingMinuteFiles } from '@/lib/files/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
@@ -29,7 +29,7 @@ export function MeetingMinutes({
         <MeetingMinutesUpload />
       </CardHeader>
       <CardContent>
-        {loadError && (
+        {loadError !== null && loadError !== undefined && loadError !== '' && (
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Unable to load meeting minutes</AlertTitle>
