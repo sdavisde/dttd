@@ -53,6 +53,20 @@ export async function uploadFile(
   return supabase.storage.from(bucket).upload(path, file, options)
 }
 
+export async function getPublicUrl(bucket: string, path: string) {
+  const supabase = await createClient()
+  return supabase.storage.from(bucket).getPublicUrl(path)
+}
+
+export async function createSignedUrl(
+  bucket: string,
+  path: string,
+  expiresIn: number
+) {
+  const supabase = await createClient()
+  return supabase.storage.from(bucket).createSignedUrl(path, expiresIn)
+}
+
 export function filterPlaceholderFiles(files: FileObject[] | null | undefined) {
   return (files ?? []).filter((file) => file.name !== '.placeholder')
 }

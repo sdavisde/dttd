@@ -3,8 +3,11 @@
 import { useEffect, useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { FileObject } from '@supabase/storage-js'
-import { createClient } from '@/lib/supabase/client'
-import { logger } from '@/lib/logger'
+import { isOk } from '@/lib/results'
+import {
+  getFilePublicUrlAction,
+  getFileDownloadUrlAction,
+} from '@/services/files/actions'
 import { Button } from '@/components/ui/button'
 import { DataTable, DataTableColumnHeader } from '@/components/ui/data-table'
 import { DeleteFileButton } from './DeleteFileButton'
@@ -32,11 +35,12 @@ export function SortableFileTable({
   }, [initialFiles])
 
   const handlePreview = async (file: FileObject) => {
-    const supabase = createClient()
-    const { data } = supabase.storage
-      .from('files')
-      .getPublicUrl(`${folderName}/${file.name}`)
-    window.open(data.publicUrl, '_blank')
+    const result = await getFilePublicUrlAction(folderName, file.name)
+    if (isOk(result)) {
+      window.open(result.data.publicUrl, '_blank')
+    } else {
+      toast.error('Failed to preview file')
+    }
   }
 
   const handleRowClick = (file: FileObject) => {
@@ -56,23 +60,15 @@ export function SortableFileTable({
   }
 
   const handleDownload = async (file: FileObject) => {
-    const supabase = createClient()
-    const { data, error } = await supabase.storage
-      .from('files')
-      .download(`${folderName}/${file.name}`)
-
-    if (error !== null) {
-      logger.error(`Error downloading file: ${error.message}`)
+    const result = await getFileDownloadUrlAction(folderName, file.name)
+    if (isOk(result)) {
+      const a = document.createElement('a')
+      a.href = result.data.downloadUrl
+      a.download = file.name
+      a.click()
+    } else {
       toast.error('Failed to download file')
-      return
     }
-
-    const url = window.URL.createObjectURL(data)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = file.name
-    a.click()
-    window.URL.revokeObjectURL(url)
   }
 
   const columns: ColumnDef<FileObject>[] = [

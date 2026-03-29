@@ -1,15 +1,18 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import type { FileObject } from '@supabase/storage-js'
 import type {
   MeetingMinuteFile,
   PagedMeetingMinuteFiles,
   StorageSortField,
 } from '@/lib/files/types'
-import { getMeetingMinutesPageAction } from '@/services/files/actions'
+import {
+  getMeetingMinutesPageAction,
+  getFilePublicUrlAction,
+  getFileDownloadUrlAction,
+} from '@/services/files/actions'
 import { MEETING_MINUTES_FOLDER } from '@/lib/files/constants'
-import { logger } from '@/lib/logger'
+import { isOk } from '@/lib/results'
 import { useServerPagination } from '@/hooks/use-server-pagination'
 import {
   Table,
@@ -74,34 +77,31 @@ export function MeetingMinutesTable({
     )
   }
 
-  const handlePreview = (file: MeetingMinuteFile) => {
-    const supabase = createClient()
-
-    const { data: publicUrlData } = supabase.storage
-      .from('files')
-      .getPublicUrl(`${MEETING_MINUTES_FOLDER}/${file.name}`)
-
-    window.open(publicUrlData.publicUrl, '_blank')
+  const handlePreview = async (file: MeetingMinuteFile) => {
+    const result = await getFilePublicUrlAction(
+      MEETING_MINUTES_FOLDER,
+      file.name
+    )
+    if (isOk(result)) {
+      window.open(result.data.publicUrl, '_blank')
+    } else {
+      toast.error('Failed to preview file')
+    }
   }
 
   const handleDownload = async (file: MeetingMinuteFile) => {
-    const supabase = createClient()
-    const { data, error } = await supabase.storage
-      .from('files')
-      .download(`${MEETING_MINUTES_FOLDER}/${file.name}`)
-
-    if (error !== null) {
-      logger.error(`Error downloading file: ${error.message}`)
+    const result = await getFileDownloadUrlAction(
+      MEETING_MINUTES_FOLDER,
+      file.name
+    )
+    if (isOk(result)) {
+      const a = document.createElement('a')
+      a.href = result.data.downloadUrl
+      a.download = file.name
+      a.click()
+    } else {
       toast.error('Failed to download file')
-      return
     }
-
-    const url = window.URL.createObjectURL(data)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = file.name
-    a.click()
-    window.URL.revokeObjectURL(url)
   }
 
   const handleDeleteFile = (deletedFile: FileObject) => {

@@ -256,6 +256,35 @@ export async function uploadFile({
   return ok({ fileName: file.name })
 }
 
+export async function getFilePublicUrl(
+  folder: string,
+  fileName: string
+): Promise<Result<string, { publicUrl: string }>> {
+  const { data } = await FileRepository.getPublicUrl(
+    'files',
+    `${folder}/${fileName}`
+  )
+  return ok({ publicUrl: data.publicUrl })
+}
+
+export async function getFileDownloadUrl(
+  folder: string,
+  fileName: string,
+  expiresIn: number = 60
+): Promise<Result<string, { downloadUrl: string }>> {
+  const { data, error } = await FileRepository.createSignedUrl(
+    'files',
+    `${folder}/${fileName}`,
+    expiresIn
+  )
+
+  if (!isNil(error) || isNil(data)) {
+    return err(`Failed to create download URL: ${error?.message}`)
+  }
+
+  return ok({ downloadUrl: data.signedUrl })
+}
+
 export async function getFileFolders(isAdmin: boolean = false) {
   try {
     const { data, error } = await FileRepository.listFiles('files', '')
