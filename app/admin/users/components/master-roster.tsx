@@ -48,7 +48,6 @@ export default function MasterRoster({
   const router = useRouter()
 
   const urlState = useDataTableUrlState({ defaultPageSize: 25 })
-
   const handleMemberClick = (member: MasterRosterMember) => {
     setSelectedMember(member)
     setIsModalOpen(true)

@@ -1,42 +1,44 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Typography } from '@/components/ui/typography'
 import { getCommunityBoardData } from '@/services/community/board'
+import { getMeetingMinutesPage } from '@/services/files/file-service'
 import { isErr } from '@/lib/results'
-import { ExternalLink, Upload } from 'lucide-react'
+import type { PagedMeetingMinuteFiles } from '@/lib/files/types'
 import { RoleAssignments } from './components/role-assignments'
+import { MeetingMinutes } from './components/meeting-minutes'
 
-const meetingMinutes = [
-  {
-    date: '01/06/2026',
-    location: 'Milam County Cowboy Church',
-    pdfLabel: 'January 2026 Minutes',
-  },
-  {
-    date: '12/02/2025',
-    location: 'DTTD Fellowship Hall',
-    pdfLabel: 'December 2025 Minutes',
-  },
-]
+const MEETING_MINUTES_PAGE_SIZE = 10
+
+function createEmptyMeetingMinutesPageData(): PagedMeetingMinuteFiles {
+  return {
+    page: 1,
+    pageSize: MEETING_MINUTES_PAGE_SIZE,
+    sortField: 'created_at',
+    sortDirection: 'desc',
+    currentPageItems: [],
+    nextPageItems: [],
+  }
+}
 
 export default async function CommunityBoardPage() {
-  const result = await getCommunityBoardData()
+  const [communityBoardResult, meetingMinutesPageResult] = await Promise.all([
+    getCommunityBoardData(),
+    getMeetingMinutesPage(1, MEETING_MINUTES_PAGE_SIZE),
+  ])
 
-  if (isErr(result)) {
-    throw new Error(result.error)
+  if (isErr(communityBoardResult)) {
+    throw new Error(communityBoardResult.error)
   }
 
+  const meetingMinutesLoadError = isErr(meetingMinutesPageResult)
+    ? meetingMinutesPageResult.error
+    : null
+  const meetingMinutesInitialPageData = isErr(meetingMinutesPageResult)
+    ? createEmptyMeetingMinutesPageData()
+    : meetingMinutesPageResult.data
+
   const { boardRoles, committeeRoles, members, preWeekendCoupleContact } =
-    result.data
+    communityBoardResult.data
 
   return (
     <>
@@ -64,47 +66,10 @@ export default async function CommunityBoardPage() {
           preWeekendCoupleContact={preWeekendCoupleContact}
         />
 
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle>Board Meeting Minutes</CardTitle>
-              <Typography variant="muted">
-                Meeting minutes are visible to everyone.
-              </Typography>
-            </div>
-            <Button className="gap-2" variant="outline" size="sm">
-              <Upload className="h-4 w-4" />
-              Add Minutes
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>PDF</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {meetingMinutes.map((minute) => (
-                  <TableRow key={`${minute.date}-${minute.location}`}>
-                    <TableCell>{minute.date}</TableCell>
-                    <TableCell>{minute.location}</TableCell>
-                    <TableCell>
-                      <Button variant="link" size="sm" asChild>
-                        <a href="#" target="_blank" rel="noreferrer">
-                          {minute.pdfLabel}
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <MeetingMinutes
+          initialPageData={meetingMinutesInitialPageData}
+          loadError={meetingMinutesLoadError}
+        />
       </div>
     </>
   )

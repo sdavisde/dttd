@@ -260,8 +260,8 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
       pendingMember,
       currentHolders: pendingHolders,
       isSaving,
-      onCancel: closeConfirmation,
-      onConfirm: confirmAssignment,
+      onCancelAction: closeConfirmation,
+      onConfirmAction: confirmAssignment,
     },
 
     // Actions

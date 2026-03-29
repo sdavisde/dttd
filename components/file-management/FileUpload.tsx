@@ -1,37 +1,31 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/navigation'
-import { useSession } from '@/components/auth/session-provider'
-import { Permission, permissionLock } from '@/lib/security'
-import { Button } from '@/components/ui/button'
+import { Button, type ButtonProps } from '@/components/ui/button'
+import { ALLOWED_FILE_TYPES } from '@/lib/files/constants'
+import { uploadFileAction } from '@/services/files/actions'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 type FileUploadProps = {
   folder: string
+  buttonText?: string
+  buttonVariant?: ButtonProps['variant']
 }
 
-const ALLOWED_FILE_TYPES = [
-  'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-]
-
-export function FileUpload({ folder }: FileUploadProps) {
+export function FileUpload({
+  folder,
+  buttonText = 'Upload File',
+  buttonVariant = 'ghost',
+}: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const { user } = useSession()
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      permissionLock([Permission.FILES_UPLOAD])(user)
-
       const files = event.target.files
       if (isNil(files) || files.length === 0) return
 
@@ -51,16 +45,14 @@ export function FileUpload({ folder }: FileUploadProps) {
 
       setUploading(true)
 
-      const supabase = createClient()
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(`${folder}/${file.name}`, file, {
-          cacheControl: '3600',
-          upsert: false,
-        })
+      const formData = new FormData()
+      formData.set('folder', folder)
+      formData.set('file', file)
 
-      if (!isNil(uploadError)) {
-        throw uploadError
+      const result = await uploadFileAction(formData)
+
+      if (result.error !== undefined) {
+        throw new Error(result.error)
       }
 
       toast.success(`File "${file.name}" uploaded successfully`)
@@ -93,7 +85,7 @@ export function FileUpload({ folder }: FileUploadProps) {
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
         size="sm"
-        variant="ghost"
+        variant={buttonVariant}
         className="flex items-center gap-2"
       >
         {uploading ? (
@@ -101,7 +93,7 @@ export function FileUpload({ folder }: FileUploadProps) {
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        Upload File
+        {buttonText}
       </Button>
     </>
   )
