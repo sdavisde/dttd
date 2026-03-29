@@ -31,6 +31,17 @@ export async function getMeetingMinutesPageAction({
   )
 }
 
+export async function getFilePublicUrlAction(folder: string, fileName: string) {
+  return FileService.getFilePublicUrl(folder, fileName)
+}
+
+export async function getFileDownloadUrlAction(
+  folder: string,
+  fileName: string
+) {
+  return FileService.getFileDownloadUrl(folder, fileName)
+}
+
 export const uploadFileAction = authorizedAction<
   FormData,
   { fileName: string }
