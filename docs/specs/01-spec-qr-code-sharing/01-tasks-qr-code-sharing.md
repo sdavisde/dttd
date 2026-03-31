@@ -15,7 +15,7 @@
 - [x] 1.2 Add `QrCode` icon to the `iconMap` in `components/admin/sidebar/index.tsx` and `app/admin/page.tsx`
 - [x] 1.3 Create `app/admin/qr-codes/page.tsx` server component with AdminBreadcrumbs and empty content area
 
-### [ ] 2.0 Build the curated public pages config and searchable page selector
+### [x] 2.0 Build the curated public pages config and searchable page selector
 
 #### 2.0 Proof Artifact(s)
 
@@ -23,8 +23,8 @@
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Create `lib/admin/qr-pages-config.ts` with curated list of public pages (display name, path, icon name)
-- [ ] 2.2 Create `app/admin/qr-codes/qr-code-generator.tsx` client component with searchable combobox (Command + Popover) for page selection
+- [x] 2.1 Create `lib/admin/qr-pages-config.ts` with curated list of public pages (display name, path, icon name)
+- [x] 2.2 Create `app/admin/qr-codes/qr-code-generator.tsx` client component with searchable combobox (Command + Popover) for page selection
 
 ### [ ] 3.0 Generate and display QR code with copy and download actions
 

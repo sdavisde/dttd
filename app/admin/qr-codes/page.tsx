@@ -1,4 +1,5 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { QrCodeGenerator } from '@/app/admin/qr-codes/qr-code-generator'
 
 export default function Page() {
   return (
@@ -8,7 +9,7 @@ export default function Page() {
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
       <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
-        {/* QR code generator will be added here */}
+        <QrCodeGenerator />
       </div>
     </>
   )
