@@ -1,50 +1,64 @@
 import { isNil } from 'lodash'
-import { CheckCircle } from 'lucide-react'
-import { isErr, Results } from '@/lib/results'
-import { getLoggedInUser } from '@/services/identity/user'
-import { markSecuelaAttendance } from '@/services/weekend-group-member'
+import { Heart, LogIn, UserPlus, ArrowRight } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default async function SecuelaSignInPage() {
-  const userResult = await getLoggedInUser()
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (isErr(userResult)) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] p-4">
-        <p className="text-muted-foreground">
-          Something went wrong. Please try again later.
-        </p>
-      </div>
-    )
-  }
-
-  const user = userResult.data
-  const result = await markSecuelaAttendance(user.id)
-
-  const groupNumber = Results.unwrapOr(
-    Results.map(result, (r) => r.groupNumber),
-    null
-  )
-  const weekendLabel = !isNil(groupNumber)
-    ? `DTTD #${groupNumber}`
-    : 'the upcoming weekend'
+  const isLoggedIn = !isNil(user)
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh] p-4">
-      <div className="flex flex-col items-center gap-6 max-w-md text-center">
-        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-          <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
-        </div>
-
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Thank you for signing up to serve on {weekendLabel}!
-          </h1>
-          <p className="text-muted-foreground">
-            We are so grateful for your willingness to serve. You will receive
-            more information as the weekend approaches.
-          </p>
-        </div>
-      </div>
+    <div className="container max-w-sm mx-auto py-8 px-4">
+      <Card className="shadow-lg">
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Heart className="w-8 h-8 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">Secuela Sign-Up</CardTitle>
+          <CardDescription className="text-base">
+            Thank you for your willingness to serve on the upcoming weekend!
+            {isLoggedIn
+              ? ' Tap the button below to confirm your attendance.'
+              : ' Sign in or create an account to confirm your attendance.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {isLoggedIn ? (
+            <Button asChild size="lg" className="w-full">
+              <a href="/secuela-confirm">
+                <ArrowRight className="mr-2 h-4 w-4" />
+                Confirm Attendance
+              </a>
+            </Button>
+          ) : (
+            <>
+              <Button asChild size="lg" className="w-full">
+                <a href="/login?redirectTo=%2Fsecuela-signin">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </a>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full">
+                <a href="/join?redirectTo=%2Fsecuela-signin">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Create Account
+                </a>
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
