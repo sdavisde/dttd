@@ -71,6 +71,14 @@ export const adminNavItems: AdminNavElement[] = [
       'Upload, organize, and manage files for weekends and documentation.',
     permissions_needed: [],
   },
+  {
+    title: 'QR Codes',
+    url: '/admin/qr-codes',
+    icon: 'QrCode',
+    description:
+      'Generate QR codes for public pages to use on printed handouts.',
+    permissions_needed: [],
+  },
 ]
 
 /**
@@ -115,7 +123,10 @@ export function getFilteredNavData(
 ) {
   const navMain = adminNavItems.map((item) => ({
     ...item,
-    items: item.url === '/admin/files' && !isNil(fileFolders) ? fileFolders : undefined,
+    items:
+      item.url === '/admin/files' && !isNil(fileFolders)
+        ? fileFolders
+        : undefined,
   }))
 
   return {

@@ -10,6 +10,7 @@ import {
   Landmark,
   TentTree,
   Folder,
+  QrCode,
   Settings2,
   ShieldCheck,
 } from 'lucide-react'
@@ -35,6 +36,7 @@ const iconMap: Record<string, LucideIcon> = {
   DollarSign,
   Landmark,
   TentTree,
+  QrCode,
   Settings2,
   ShieldCheck,
 }

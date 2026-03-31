@@ -5,6 +5,7 @@ import {
   Calendar,
   DollarSign,
   Folder,
+  QrCode,
   Settings2,
   ShieldCheck,
   TentTree,
@@ -25,6 +26,7 @@ const iconMap: Record<string, LucideIcon> = {
   DollarSign,
   Users,
   Folder,
+  QrCode,
   Settings2,
   ShieldCheck,
 }
