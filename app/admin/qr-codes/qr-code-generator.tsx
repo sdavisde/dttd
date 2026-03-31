@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   BookOpen,
   Check,
   ChevronsUpDown,
   ClipboardList,
   ClipboardPen,
+  Copy,
   CreditCard,
   DollarSign,
+  Download,
   FileCheck,
   FilePen,
   FileSignature,
@@ -21,6 +23,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
+import QRCode from 'qrcode'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -38,6 +41,7 @@ import {
 import { cn } from '@/lib/utils'
 import { qrPages } from '@/lib/admin/qr-pages-config'
 import { isNil } from 'lodash'
+import { toast } from 'sonner'
 
 const iconMap: Record<string, LucideIcon> = {
   Heart,
@@ -57,11 +61,67 @@ const iconMap: Record<string, LucideIcon> = {
   LogIn,
 }
 
+/** High-resolution size for print-quality output */
+const QR_SIZE = 1024
+
 export function QrCodeGenerator() {
   const [open, setOpen] = useState(false)
   const [selectedPath, setSelectedPath] = useState('')
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const selectedPage = qrPages.find((page) => page.path === selectedPath)
+
+  const generateQrCode = useCallback(async (path: string) => {
+    const canvas = canvasRef.current
+    if (isNil(canvas)) return
+
+    const url = `${window.location.origin}${path}`
+    await QRCode.toCanvas(canvas, url, {
+      width: QR_SIZE,
+      margin: 2,
+      color: { dark: '#000000', light: '#ffffff' },
+    })
+  }, [])
+
+  useEffect(() => {
+    if (selectedPath !== '') {
+      void generateQrCode(selectedPath)
+    }
+  }, [selectedPath, generateQrCode])
+
+  const getCanvasBlob = useCallback(async (): Promise<Blob | null> => {
+    const canvas = canvasRef.current
+    if (isNil(canvas)) return null
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), 'image/png')
+    })
+  }, [])
+
+  const handleCopy = useCallback(async () => {
+    const blob = await getCanvasBlob()
+    if (isNil(blob)) return
+
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    toast.success('QR code copied to clipboard')
+  }, [getCanvasBlob])
+
+  const handleDownload = useCallback(async () => {
+    const blob = await getCanvasBlob()
+    if (isNil(blob) || isNil(selectedPage)) return
+
+    const slug = selectedPage.label
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `qr-${slug}.png`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('QR code downloaded')
+  }, [getCanvasBlob, selectedPage])
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -116,6 +176,25 @@ export function QrCodeGenerator() {
           </Command>
         </PopoverContent>
       </Popover>
+
+      {selectedPath !== '' && (
+        <div className="flex flex-col items-center gap-4">
+          <canvas
+            ref={canvasRef}
+            className="max-w-64 rounded-lg border bg-white p-2"
+          />
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleCopy}>
+              <Copy />
+              Copy
+            </Button>
+            <Button variant="outline" onClick={handleDownload}>
+              <Download />
+              Download
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

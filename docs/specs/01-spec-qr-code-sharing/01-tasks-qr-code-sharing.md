@@ -26,7 +26,7 @@
 - [x] 2.1 Create `lib/admin/qr-pages-config.ts` with curated list of public pages (display name, path, icon name)
 - [x] 2.2 Create `app/admin/qr-codes/qr-code-generator.tsx` client component with searchable combobox (Command + Popover) for page selection
 
-### [ ] 3.0 Generate and display QR code with copy and download actions
+### [x] 3.0 Generate and display QR code with copy and download actions
 
 #### 3.0 Proof Artifact(s)
 
@@ -35,5 +35,5 @@
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Install a QR code generation library (`qrcode` npm package)
-- [ ] 3.2 Add QR code rendering, copy-to-clipboard, and download functionality to the generator component
+- [x] 3.1 Install a QR code generation library (`qrcode` npm package)
+- [x] 3.2 Add QR code rendering, copy-to-clipboard, and download functionality to the generator component
