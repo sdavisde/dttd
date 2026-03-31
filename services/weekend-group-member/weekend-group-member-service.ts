@@ -1,6 +1,6 @@
 import 'server-only'
 
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok, isErr } from '@/lib/results'
 import { REQUIRED_FORMS } from '@/lib/weekend/team/required-forms.config'
 import type { TeamFormsProgress } from '@/actions/team-forms'
@@ -72,4 +72,12 @@ export async function hasCompletedAllTeamForms(
  */
 export async function getUserMedicalProfile(userId: string) {
   return Repository.getUserMedicalProfile(userId)
+}
+
+/**
+ * Marks the current user as attending Secuela for the active weekend group.
+ * Creates a weekend_group_members record if one doesn't exist yet.
+ */
+export async function markSecuelaAttendance(userId: string) {
+  return Repository.markSecuelaAttendance(userId)
 }

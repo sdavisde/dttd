@@ -3,7 +3,7 @@ import 'server-only'
 import { isNil } from 'lodash'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
-import { err, ok } from '@/lib/results'
+import { err, ok, isErr } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import type {
   RawGroupMember,
@@ -294,6 +294,65 @@ export async function getUserMedicalProfile(
   }
 
   return ok(data as RawMedicalProfile | null)
+}
+
+/**
+ * Finds or creates a weekend_group_members row for the active weekend group,
+ * then sets attends_secuela = true.
+ */
+export async function markSecuelaAttendance(
+  userId: string
+): Promise<
+  Result<string, { groupMemberId: string; groupNumber: number | null }>
+> {
+  const supabase = await createClient()
+
+  // Find the active weekend group
+  const { data: activeWeekend, error: weekendError } = await supabase
+    .from('weekends')
+    .select('group_id, weekend_groups(number)')
+    .eq('status', 'ACTIVE')
+    .limit(1)
+    .maybeSingle()
+
+  if (isSupabaseError(weekendError) || isNil(activeWeekend?.group_id)) {
+    return err('No active weekend found')
+  }
+
+  const groupId = activeWeekend.group_id
+
+  // Upsert the group member row
+  const upsertResult = await upsertGroupMember(groupId, userId)
+  if (isErr(upsertResult)) {
+    return err(upsertResult.error)
+  }
+
+  // Fetch the group member to get the ID, then set attends_secuela
+  const { data: member, error: memberError } = await supabase
+    .from('weekend_group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .single()
+
+  if (isSupabaseError(memberError) || isNil(member)) {
+    return err('Failed to find group member after upsert')
+  }
+
+  const { error: updateError } = await supabase
+    .from('weekend_group_members')
+    .update({ attends_secuela: true })
+    .eq('id', member.id)
+
+  if (isSupabaseError(updateError)) {
+    return err('Failed to mark secuela attendance')
+  }
+
+  const groupNumber =
+    (activeWeekend.weekend_groups as { number: number | null } | null)
+      ?.number ?? null
+
+  return ok({ groupMemberId: member.id, groupNumber })
 }
 
 /**

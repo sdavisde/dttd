@@ -715,18 +715,21 @@ export type Database = {
       }
       weekend_group_members: {
         Row: {
+          attends_secuela: boolean
           created_at: string | null
           group_id: string
           id: string
           user_id: string
         }
         Insert: {
+          attends_secuela?: boolean
           created_at?: string | null
           group_id: string
           id?: string
           user_id: string
         }
         Update: {
+          attends_secuela?: boolean
           created_at?: string | null
           group_id?: string
           id?: string
