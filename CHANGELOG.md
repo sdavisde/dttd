@@ -1,3 +1,17 @@
+## [1.28.0](https://github.com/sdavisde/dttd/compare/v1.27.2...v1.28.0) (2026-04-01)
+
+### Features
+
+- add curated public pages config and searchable page selector ([4613748](https://github.com/sdavisde/dttd/commit/4613748b782f1513d2d4eb58738d4fb33ea45580))
+- add landing page for secuela ([cf6ee61](https://github.com/sdavisde/dttd/commit/cf6ee61d9065e7647206a54e34454a3057723836))
+- add QR code generation with copy and download actions ([50dd821](https://github.com/sdavisde/dttd/commit/50dd821c52a266cf299d4436ea5941c92d715309))
+- add QR Codes page to admin navigation and create page shell ([23ebab2](https://github.com/sdavisde/dttd/commit/23ebab2de0a9c66fa1a9d51575f2f06535f188db))
+- add secuela check page ([95e6442](https://github.com/sdavisde/dttd/commit/95e6442c245bc82d5de458f00fd3e8e9cc011a2a))
+
+### Bug Fixes
+
+- make design of QR page easier ([d0eaf0e](https://github.com/sdavisde/dttd/commit/d0eaf0ecad9a07b72361928961b37c464da6153d))
+
 ## [1.27.2](https://github.com/sdavisde/dttd/compare/v1.27.1...v1.27.2) (2026-03-29)
 
 ### Bug Fixes
