@@ -2,25 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  BookOpen,
   Check,
   ChevronsUpDown,
-  ClipboardList,
-  ClipboardPen,
   Copy,
-  CreditCard,
-  DollarSign,
   Download,
-  FileCheck,
-  FilePen,
-  FileSignature,
-  FileText,
-  Folder,
   Heart,
   LogIn,
+  QrCode,
   TentTree,
-  UserCheck,
-  Users,
   type LucideIcon,
 } from 'lucide-react'
 import QRCode from 'qrcode'
@@ -45,19 +34,7 @@ import { toast } from 'sonner'
 
 const iconMap: Record<string, LucideIcon> = {
   Heart,
-  ClipboardList,
-  UserCheck,
-  Users,
   TentTree,
-  FileText,
-  FileSignature,
-  FilePen,
-  BookOpen,
-  FileCheck,
-  ClipboardPen,
-  DollarSign,
-  CreditCard,
-  Folder,
   LogIn,
 }
 
@@ -177,11 +154,20 @@ export function QrCodeGenerator() {
         </PopoverContent>
       </Popover>
 
-      {selectedPath !== '' && (
+      {selectedPath === '' ? (
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <div className="rounded-full bg-muted p-4">
+            <QrCode className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Select a page above to generate a QR code
+          </p>
+        </div>
+      ) : (
         <div className="flex flex-col items-center gap-4">
           <canvas
             ref={canvasRef}
-            className="max-w-64 rounded-lg border bg-white p-2"
+            className="max-h-64 max-w-64 rounded-lg border bg-white p-2"
           />
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleCopy}>
