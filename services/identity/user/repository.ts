@@ -145,6 +145,30 @@ export const removeUserRole = async (userId: string) => {
   return fromSupabase(response)
 }
 
+export const updateUserContactInfo = async (
+  userId: string,
+  data: {
+    first_name: string | null
+    last_name: string | null
+    phone_number: string | null
+    email: string
+    gender: string | null
+  }
+) => {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('users')
+    .update({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      phone_number: data.phone_number,
+      email: data.email,
+      gender: data.gender,
+    })
+    .eq('id', userId)
+  return fromSupabase(response)
+}
+
 export const updateUserBasicInfo = async (userId: string, data: BasicInfo) => {
   const supabase = await createClient()
 

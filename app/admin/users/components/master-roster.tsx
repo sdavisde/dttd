@@ -33,12 +33,14 @@ interface MasterRosterProps {
   masterRoster: MasterRosterType
   roles: Array<{ id: string; label: string; permissions: string[] }>
   canViewExperience: boolean
+  canEdit: boolean
 }
 
 export default function MasterRoster({
   masterRoster,
   roles,
   canViewExperience,
+  canEdit,
 }: MasterRosterProps) {
   const [selectedMember, setSelectedMember] =
     useState<MasterRosterMember | null>(null)
@@ -132,6 +134,7 @@ export default function MasterRoster({
         roles={roles}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        canEdit={canEdit}
       />
 
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>

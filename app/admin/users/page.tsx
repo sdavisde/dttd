@@ -39,6 +39,7 @@ export default async function MasterRosterPage() {
   const canViewExperience = userHasPermission(user, [
     Permission.READ_USER_EXPERIENCE,
   ])
+  const canEdit = userHasPermission(user, [Permission.FULL_ACCESS])
 
   return (
     <>
@@ -51,6 +52,7 @@ export default async function MasterRosterPage() {
           masterRoster={masterRosterResult.data}
           roles={rolesResult.data}
           canViewExperience={canViewExperience}
+          canEdit={canEdit}
         />
       </div>
     </>

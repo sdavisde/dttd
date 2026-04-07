@@ -5,6 +5,19 @@ import type { BasicInfo } from '@/components/team-forms/schemas'
 import * as UserService from './user-service'
 import { findImpersonatingUser } from '@/services/identity/impersonation/impersonation-service'
 
+export const updateUserContactInfo = async (
+  userId: string,
+  data: {
+    first_name: string | null
+    last_name: string | null
+    phone_number: string | null
+    email: string
+    gender: string | null
+  }
+) => {
+  return await UserService.updateUserContactInfo(userId, data)
+}
+
 export const updateUserAddress = async (userId: string, address: Address) => {
   return await UserService.updateUserAddress(userId, address)
 }

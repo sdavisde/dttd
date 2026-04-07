@@ -2,17 +2,21 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { isNil, union } from 'lodash'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, isErr, ok, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
 import type { User, UserRoleInfo } from '@/lib/users/types'
 import { WeekendStatus } from '@/lib/weekend/types'
-import type { Address} from '@/lib/users/validation';
+import type { Address } from '@/lib/users/validation'
 import { addressSchema } from '@/lib/users/validation'
 import type { BasicInfo } from '@/components/team-forms/schemas'
 import type { RawUser } from './types'
 import { getPermissionsForCHARole } from '@/lib/security'
-import type { TeamMemberInfo , CHARole, WeekendAssignment} from '@/lib/weekend/types'
+import type {
+  TeamMemberInfo,
+  CHARole,
+  WeekendAssignment,
+} from '@/lib/weekend/types'
 
 function normalizeUser(rawUser: RawUser): Result<string, User> {
   if (isNil(rawUser)) {
@@ -151,6 +155,13 @@ export async function getUsers(): Promise<Result<string, Array<User>>> {
     .filter((u) => !isNil(u))
 
   return ok(users)
+}
+
+export async function updateUserContactInfo(
+  userId: string,
+  data: Parameters<typeof UserRepository.updateUserContactInfo>[1]
+) {
+  return await UserRepository.updateUserContactInfo(userId, data)
 }
 
 export async function updateUserAddress(userId: string, address: Address) {
