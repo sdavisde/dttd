@@ -1,3 +1,9 @@
+## [1.29.1](https://github.com/sdavisde/dttd/compare/v1.29.0...v1.29.1) (2026-04-07)
+
+### Bug Fixes
+
+- ensure users experience is recorded when a weekend is finished ([eb00841](https://github.com/sdavisde/dttd/commit/eb008415132e837927451d7aebb2d9aa9998ec32))
+
 ## [1.29.0](https://github.com/sdavisde/dttd/compare/v1.28.0...v1.29.0) (2026-04-07)
 
 ### Features
