@@ -1,3 +1,15 @@
+## [1.30.0](https://github.com/sdavisde/dttd/compare/v1.29.1...v1.30.0) (2026-04-07)
+
+### Features
+
+- force user to confirm before finishing weekend ([9d01eac](https://github.com/sdavisde/dttd/commit/9d01eacad100398106864f95433572d546e710ee))
+
+### Bug Fixes
+
+- replace raw error toasts with user-friendly messages ([fd9656c](https://github.com/sdavisde/dttd/commit/fd9656c5b3e43c52743b9ba51acf7c18f8228c34))
+- RLS improvement for weekend_groups ([e65212f](https://github.com/sdavisde/dttd/commit/e65212f3c943670dc40ba090fbfc053d44660801))
+- **weekend:** resolve FK constraint error when creating weekend groups ([3a22f2c](https://github.com/sdavisde/dttd/commit/3a22f2cfdb19ab2a243df7ecac127fa1fbdb272f))
+
 ## [1.29.1](https://github.com/sdavisde/dttd/compare/v1.29.0...v1.29.1) (2026-04-07)
 
 ### Bug Fixes
