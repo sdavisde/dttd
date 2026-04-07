@@ -1,3 +1,9 @@
+## [1.29.0](https://github.com/sdavisde/dttd/compare/v1.28.0...v1.29.0) (2026-04-07)
+
+### Features
+
+- allow editing users in the master roster ([9eed052](https://github.com/sdavisde/dttd/commit/9eed0528b57d8c30940cbaa0977fe9c9d03316d2))
+
 ## [1.28.0](https://github.com/sdavisde/dttd/compare/v1.27.2...v1.28.0) (2026-04-01)
 
 ### Features
