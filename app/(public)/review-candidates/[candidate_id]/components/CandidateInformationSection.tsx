@@ -6,6 +6,7 @@ import { EditableField } from '@/components/ui/editable-field'
 import { updateCandidateSponsorshipField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { useCallback } from 'react'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/navigation'
@@ -31,7 +32,9 @@ export function CandidateInformationSection({
       })
 
       if (Results.isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to save changes. Please try again.', {
+          error: result.error,
+        })
         throw new Error(result.error)
       }
 

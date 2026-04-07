@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Plus } from 'lucide-react'
 import { RolesSidebar } from './RolesSidebar'
-import type { Role } from '@/services/identity/roles';
+import type { Role } from '@/services/identity/roles'
 import { deleteRole } from '@/services/identity/roles'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { Typography } from '@/components/ui/typography'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import { getRolesColumns, rolesGlobalFilterFn } from '../config/columns'
 import { isNil } from 'lodash'
@@ -54,7 +55,9 @@ export default function Roles({ roles, readOnly }: RolesProps) {
     try {
       const result = await deleteRole(roleToDelete.id)
       if (isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to delete role. Please try again.', {
+          error: result.error,
+        })
         return
       }
 
@@ -63,9 +66,7 @@ export default function Roles({ roles, readOnly }: RolesProps) {
       setDeleteConfirmOpen(false)
       setRoleToDelete(null)
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to delete role'
-      toast.error(errorMessage)
+      toastError('Unable to delete role. Please try again.', { error })
     } finally {
       setIsDeleting(false)
     }

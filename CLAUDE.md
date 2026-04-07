@@ -72,10 +72,18 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
 3. **Result Pattern**: Server actions return `Result<Error, T>` types for consistent error handling
    - Use Result helpers (`Results.unwrapOr()`, `Results.map()`, `Results.match()`, `Results.andThen()`, etc) for result manipulation wherever they simplify the code
    - Prefer `Results.unwrapOr(result, defaultValue)` over `isOk(result) ? result.data : defaultValue`
-4. **Null checks**: Use `isNil()` from lodash for null/undefined checks instead of manual `=== null || === undefined` comparisons
-5. **Authentication Middleware**: Supabase auth handled in `middleware.ts` with route protection
-6. **Component Co-location**: Feature-specific components are organized under their respective domain folders
-7. **Separation of Concerns**: Clear separation between public and admin functionality through route grouping
+4. **Error Toasts**: Never show raw server/database errors to users. Use `toastError()` from `@/lib/toast-error` which logs the raw error via pino and shows a friendly message:
+   ```tsx
+   // Bad: toast.error(result.error)
+   // Good:
+   toastError('Unable to save changes. Please try again.', {
+     error: result.error,
+   })
+   ```
+5. **Null checks**: Use `isNil()` from lodash for null/undefined checks instead of manual `=== null || === undefined` comparisons
+6. **Authentication Middleware**: Supabase auth handled in `middleware.ts` with route protection
+7. **Component Co-location**: Feature-specific components are organized under their respective domain folders
+8. **Separation of Concerns**: Clear separation between public and admin functionality through route grouping
 
 ### Database Architecture
 

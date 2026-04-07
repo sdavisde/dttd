@@ -6,6 +6,7 @@ import { EditableTextArea } from '@/components/ui/editable-text-area'
 import { updateCandidateSponsorshipField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -39,7 +40,9 @@ export function CandidateAssessmentSection({
       })
 
       if (Results.isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to save assessment. Please try again.', {
+          error: result.error,
+        })
         throw new Error(result.error)
       }
 

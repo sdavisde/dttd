@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation'
 import { isEmpty, isNil } from 'lodash'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import { useSession } from '@/components/auth/session-provider'
 
 type ImpersonationDialogProps = {
@@ -61,7 +62,9 @@ export function ImpersonationDialog({
   const handleSelectUser = async (userId: string) => {
     const result = await impersonateUser({ userId })
     if (Results.isErr(result)) {
-      toast.error(result.error)
+      toastError('Unable to impersonate user. Please try again.', {
+        error: result.error,
+      })
     }
     onOpenChange(false)
     refreshSession()

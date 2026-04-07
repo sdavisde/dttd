@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 
 import { type Event } from '@/services/events'
 import { createEvent, updateEvent, deleteEvent } from '@/services/events'
@@ -119,10 +120,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
       router.refresh()
       handleClose()
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'An unexpected error occurred'
-      )
-      console.error('Error saving event:', error)
+      toastError('Unable to save event. Please try again.', { error })
     } finally {
       setIsSubmitting(false)
     }
@@ -142,9 +140,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
       router.refresh()
       handleClose()
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to delete event'
-      )
+      toastError('Unable to delete event. Please try again.', { error })
     } finally {
       setIsDeleting(false)
     }

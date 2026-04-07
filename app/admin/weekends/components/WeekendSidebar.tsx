@@ -42,8 +42,8 @@ import {
 } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
-import type {
-  DateRange} from '@/lib/weekend/scheduling';
+import { toastError } from '@/lib/toast-error'
+import type { DateRange } from '@/lib/weekend/scheduling'
 import {
   addDays,
   buildMonthOptions,
@@ -161,11 +161,11 @@ export function WeekendSidebar({
     const result = await saveWeekendGroupFromSidebar(payload)
 
     if (isErr(result)) {
-      toast.error(
-        isEditing ? 'Failed to update weekends' : 'Failed to create weekends',
-        {
-          description: result.error,
-        }
+      toastError(
+        isEditing
+          ? 'Failed to update weekends. Please try again.'
+          : 'Failed to create weekends. Please try again.',
+        { error: result.error }
       )
       return
     }
@@ -189,8 +189,8 @@ export function WeekendSidebar({
       const result = await deleteWeekendGroup({ groupId: weekendGroup.groupId })
 
       if (isErr(result)) {
-        toast.error('Failed to delete weekends', {
-          description: result.error,
+        toastError('Failed to delete weekends. Please try again.', {
+          error: result.error,
         })
         return
       }
@@ -380,7 +380,9 @@ export function WeekendSidebar({
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         isDeleting={isDeleting}
-        itemName={form.getValues('title') !== '' ? form.getValues('title') : 'Weekends'}
+        itemName={
+          form.getValues('title') !== '' ? form.getValues('title') : 'Weekends'
+        }
         title="Delete Weekends"
         description="This will remove both the mens and womens weekends. This action cannot be undone."
       />

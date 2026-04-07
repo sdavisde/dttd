@@ -61,13 +61,10 @@ export function DeleteFileButton({
         window.location.reload()
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'An error occurred while deleting the file'
-      toast.error(errorMessage)
+      toast.error('Failed to delete file')
       logger.error(
-        `Error deleting file: ${err instanceof Error ? err.message : String(err)}`
+        { error: err instanceof Error ? err.message : String(err) },
+        'Error deleting file'
       )
     } finally {
       setIsDeleting(false)

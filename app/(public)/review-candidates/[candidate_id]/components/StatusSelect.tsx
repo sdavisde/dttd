@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -46,7 +47,9 @@ export function StatusSelect({
       })
 
       if (Results.isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to update status. Please try again.', {
+          error: result.error,
+        })
         return
       }
 

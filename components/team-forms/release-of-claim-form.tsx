@@ -26,7 +26,7 @@ import {
 import { Typography } from '@/components/ui/typography'
 import { submitReleaseOfClaim } from '@/actions/team-forms'
 import { isErr } from '@/lib/results'
-import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import { isEmpty } from 'lodash'
 
 const releaseOfClaimSchema = z
@@ -96,7 +96,9 @@ export function ReleaseOfClaimForm({
     )
 
     if (isErr(result)) {
-      toast.error(result.error)
+      toastError('Unable to save release of claim form. Please try again.', {
+        error: result.error,
+      })
       setIsSubmitting(false)
       return
     }

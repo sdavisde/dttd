@@ -8,6 +8,7 @@ import {
   type ContactInfo,
 } from '@/services/notifications'
 import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { isNil } from 'lodash'
 
 type UsePreWeekendEmailProps = {
@@ -55,7 +56,9 @@ export function usePreWeekendEmail({
       })
 
       if (!isNil(result) && isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to update email address. Please try again.', {
+          error: result.error,
+        })
         return
       }
 
@@ -63,9 +66,7 @@ export function usePreWeekendEmail({
       setIsEditing(false)
       router.refresh()
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to update email'
-      toast.error(message)
+      toastError('Unable to update email address. Please try again.', { error })
     } finally {
       setIsSaving(false)
     }

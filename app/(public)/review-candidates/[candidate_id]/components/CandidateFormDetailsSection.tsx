@@ -14,6 +14,7 @@ import { EditableDateField } from '@/components/ui/editable-date-field'
 import { updateCandidateInfoField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import type { Database } from '@/database.types'
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -122,28 +123,44 @@ function EditableAddressField({
         <div className="space-y-1">
           <InlineTextField
             value={addressLine1}
-            onSave={(value) => onSave('address_line_1', isNil(value) || value === '' ? null : value)}
+            onSave={(value) =>
+              onSave(
+                'address_line_1',
+                isNil(value) || value === '' ? null : value
+              )
+            }
             emptyText="Address Line 1"
           />
           <InlineTextField
             value={addressLine2}
-            onSave={(value) => onSave('address_line_2', isNil(value) || value === '' ? null : value)}
+            onSave={(value) =>
+              onSave(
+                'address_line_2',
+                isNil(value) || value === '' ? null : value
+              )
+            }
             emptyText="Address Line 2"
           />
           <div className="flex gap-1 flex-wrap">
             <InlineTextField
               value={city}
-              onSave={(value) => onSave('city', isNil(value) || value === '' ? null : value)}
+              onSave={(value) =>
+                onSave('city', isNil(value) || value === '' ? null : value)
+              }
               emptyText="City"
             />
             <InlineTextField
               value={state}
-              onSave={(value) => onSave('state', isNil(value) || value === '' ? null : value)}
+              onSave={(value) =>
+                onSave('state', isNil(value) || value === '' ? null : value)
+              }
               emptyText="State"
             />
             <InlineTextField
               value={zip}
-              onSave={(value) => onSave('zip', isNil(value) || value === '' ? null : value)}
+              onSave={(value) =>
+                onSave('zip', isNil(value) || value === '' ? null : value)
+              }
               emptyText="ZIP"
             />
           </div>
@@ -183,7 +200,9 @@ export function CandidateFormDetailsSection({
       })
 
       if (Results.isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to save form details. Please try again.', {
+          error: result.error,
+        })
         throw new Error(result.error)
       }
 

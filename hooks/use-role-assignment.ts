@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { updateUserRoles, setRoleMembers } from '@/services/identity/roles'
 import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { formatMemberName } from '@/lib/formatting/member-utils'
 import type { BoardRole, BoardMember } from '@/services/community/board'
 
@@ -103,7 +104,9 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
       })
 
       if (!isNil(result) && isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to update role members. Please try again.', {
+          error: result.error,
+        })
         return
       }
 
@@ -111,9 +114,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
       setDialogOpen(false)
       router.refresh()
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to update members'
-      toast.error(message)
+      toastError('Unable to update role members. Please try again.', { error })
     } finally {
       setIsSaving(false)
     }
@@ -178,7 +179,9 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
         })
 
         if (!isNil(result) && isErr(result)) {
-          toast.error(result.error)
+          toastError('Unable to assign role. Please try again.', {
+            error: result.error,
+          })
           return
         }
 
@@ -188,9 +191,7 @@ export function useRoleAssignment({ members }: UseRoleAssignmentProps) {
         closeConfirmation()
         router.refresh()
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Failed to assign role'
-        toast.error(message)
+        toastError('Unable to assign role. Please try again.', { error })
       } finally {
         setIsSaving(false)
       }

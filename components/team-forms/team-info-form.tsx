@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { Form } from '@/components/ui/form'
 import {
   CardContent,
@@ -15,16 +16,15 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import type { Address} from '@/lib/users/validation';
+import type { Address } from '@/lib/users/validation'
 import { emptyAddress } from '@/lib/users/validation'
 import type {
   BasicInfo,
   MedicalInfo,
   TeamInfoFormValues,
-  UserExperienceFormValue} from './schemas';
-import {
-  TeamInfoSchema
+  UserExperienceFormValue,
 } from './schemas'
+import { TeamInfoSchema } from './schemas'
 import { upsertUserExperience } from '@/actions/user-experience'
 import { AddressSection } from './address-section'
 import { BasicInfoSection } from './basic-info-section'
@@ -77,7 +77,9 @@ export function TeamInfoForm({
     // Step 1: Update Address
     const addressResult = await updateUserAddress(userId, data.address)
     if (isErr(addressResult)) {
-      toast.error(addressResult.error)
+      toastError('Unable to save address. Please try again.', {
+        error: addressResult.error,
+      })
       setIsSubmitting(false)
       return
     }
@@ -85,7 +87,9 @@ export function TeamInfoForm({
     // Step 2: Update Basic Info
     const basicInfoResult = await updateUserBasicInfo(userId, data.basicInfo)
     if (isErr(basicInfoResult)) {
-      toast.error(basicInfoResult.error)
+      toastError('Unable to save basic information. Please try again.', {
+        error: basicInfoResult.error,
+      })
       setIsSubmitting(false)
       return
     }
@@ -98,8 +102,9 @@ export function TeamInfoForm({
         if (isNil(item.id)) {
           const result = await upsertUserExperience(userId, item)
           if (isErr(result)) {
-            console.error('Failed to upsert experience', item, result.error)
-            toast.error(result.error)
+            toastError('Unable to save experience. Please try again.', {
+              error: result.error,
+            })
             setIsSubmitting(false)
             return
           }
@@ -113,7 +118,9 @@ export function TeamInfoForm({
       data.medicalInfo
     )
     if (isErr(medicalInfoResult)) {
-      toast.error(medicalInfoResult.error)
+      toastError('Unable to save medical information. Please try again.', {
+        error: medicalInfoResult.error,
+      })
       setIsSubmitting(false)
       return
     }
@@ -121,7 +128,9 @@ export function TeamInfoForm({
     // Step 5: Update Info Sheet
     const infoSheetResult = await completeInfoSheet(groupMemberId)
     if (isErr(infoSheetResult)) {
-      toast.error(infoSheetResult.error)
+      toastError('Unable to save info sheet. Please try again.', {
+        error: infoSheetResult.error,
+      })
       setIsSubmitting(false)
       return
     }

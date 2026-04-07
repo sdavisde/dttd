@@ -25,6 +25,7 @@ import type { TeamInfoFormValues } from './schemas'
 import { deleteUserExperience } from '@/actions/user-experience'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import { isNil } from 'lodash'
 import { UserExperienceField } from './user-experience-field'
 
@@ -38,7 +39,9 @@ export function ExperienceSection() {
   const handleDelete = async (experienceId: string, index: number) => {
     const result = await deleteUserExperience(experienceId)
     if (isErr(result)) {
-      toast.error(result.error)
+      toastError('Unable to delete experience. Please try again.', {
+        error: result.error,
+      })
     } else {
       toast.success('Experience deleted.')
       remove(index)

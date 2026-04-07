@@ -28,6 +28,7 @@ import { getGroupStatus } from '@/lib/weekend'
 import { setActiveWeekendGroup } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import { isNil } from 'lodash'
 
 interface SetActiveWeekendButtonProps {
@@ -71,8 +72,8 @@ export function SetActiveWeekendButton({
       const result = await setActiveWeekendGroup({ groupId })
 
       if (isErr(result)) {
-        toast.error('Failed to set active weekend', {
-          description: result.error,
+        toastError('Failed to set active weekend. Please try again.', {
+          error: result.error,
         })
         return
       }

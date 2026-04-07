@@ -21,6 +21,7 @@ import {
   type PrayerWheelUrls,
 } from '@/services/settings'
 import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 
 interface PrayerWheelSettingsProps {
   prayerWheelUrls: PrayerWheelUrls
@@ -63,7 +64,9 @@ export function PrayerWheelSettings({
 
     const result = await updateSetting({ key: SETTING_KEYS[name], value })
     if (isErr(result)) {
-      toast.error(`Failed to save: ${result.error}`)
+      toastError('Unable to save prayer wheel URL. Please try again.', {
+        error: result.error,
+      })
       return
     }
     toast.success('Saved.')

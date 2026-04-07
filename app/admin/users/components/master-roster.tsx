@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
@@ -75,7 +76,9 @@ export default function MasterRoster({
 
     const res = await deleteUser(userToDelete.id)
     if (!isNil(res.error)) {
-      toast.error(res.error)
+      toastError('Unable to delete user. Please try again.', {
+        error: res.error,
+      })
       return
     }
 

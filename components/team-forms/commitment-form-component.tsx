@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { signCommitmentForm } from '@/actions/team-forms'
 import { isErr } from '@/lib/results'
-import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import {
   Form,
   FormControl,
@@ -82,7 +82,9 @@ export function CommitmentFormComponent({
     const result = await signCommitmentForm(groupMemberId)
 
     if (isErr(result)) {
-      toast.error(result.error)
+      toastError('Unable to save commitment form. Please try again.', {
+        error: result.error,
+      })
       setIsSubmitting(false)
       return
     }

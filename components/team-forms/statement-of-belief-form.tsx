@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { signStatementOfBelief } from '@/actions/team-forms'
 import { isErr } from '@/lib/results'
-import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import {
   Form,
   FormControl,
@@ -60,7 +60,9 @@ export function StatementOfBeliefForm({
     const result = await signStatementOfBelief(groupMemberId)
 
     if (isErr(result)) {
-      toast.error(result.error)
+      toastError('Unable to save statement of belief. Please try again.', {
+        error: result.error,
+      })
       setIsSubmitting(false)
       return
     }

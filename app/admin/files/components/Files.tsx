@@ -19,6 +19,7 @@ import { CreateFolderSidebar } from '@/components/file-management/CreateFolderSi
 import { deleteFolder } from '@/actions/file-management'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import { useRouter } from 'next/navigation'
 
 type Bucket = {
@@ -53,7 +54,9 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
   const handleDeleteFolder = async (bucketName: string, folderName: string) => {
     const res = await deleteFolder(bucketName, folderName)
     if (isErr(res)) {
-      toast.error(res.error)
+      toastError('Unable to delete folder. Please try again.', {
+        error: res.error,
+      })
     } else {
       toast.success(`Folder ${folderName} deleted successfully`)
       router.refresh()

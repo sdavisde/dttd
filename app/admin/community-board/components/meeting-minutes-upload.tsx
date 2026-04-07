@@ -19,6 +19,7 @@ import {
 import { uploadFileAction } from '@/services/files/actions'
 import { Upload, Loader2, FileText, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 
 export function MeetingMinutesUpload() {
   const [uploading, setUploading] = useState(false)
@@ -92,9 +93,9 @@ export function MeetingMinutesUpload() {
       handleOpenChange(false)
       router.refresh()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'An error occurred while uploading'
-      )
+      toastError('Failed to upload meeting minutes. Please try again.', {
+        error: err,
+      })
     } finally {
       setUploading(false)
     }

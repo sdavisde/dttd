@@ -8,6 +8,7 @@ import { ALLOWED_FILE_TYPES } from '@/lib/files/constants'
 import { uploadFileAction } from '@/services/files/actions'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 
 type FileUploadProps = {
   folder: string
@@ -60,9 +61,7 @@ export function FileUpload({
       // Refresh the page to show the new file
       router.refresh()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'An error occurred while uploading'
-      )
+      toastError('Failed to upload file. Please try again.', { error: err })
     } finally {
       setUploading(false)
       // Reset the file input

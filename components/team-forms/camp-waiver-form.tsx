@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
 import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import {
   Form,
   FormControl,
@@ -61,7 +61,9 @@ export function CampWaiverForm({
     const result = await signCampWaiver(groupMemberId)
 
     if (isErr(result)) {
-      toast.error(result.error)
+      toastError('Unable to save waiver form. Please try again.', {
+        error: result.error,
+      })
       setIsSubmitting(false)
       return
     }

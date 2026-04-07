@@ -7,6 +7,7 @@ import { EditableField } from '@/components/ui/editable-field'
 import { updateCandidateSponsorshipField } from '@/actions/candidates'
 import { toast } from 'sonner'
 import * as Results from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import type { Database } from '@/database.types'
 import { useCallback } from 'react'
 
@@ -54,7 +55,9 @@ export function SponsorInformationSection({
       })
 
       if (Results.isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to save sponsor information. Please try again.', {
+          error: result.error,
+        })
         throw new Error(result.error)
       }
 
