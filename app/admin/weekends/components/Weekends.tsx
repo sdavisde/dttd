@@ -124,6 +124,15 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
   )
   const pastGroups = useMemo(() => sortByDateDescending(past), [past])
 
+  const nextGroupNumber = useMemo(() => {
+    const maxNumber = weekendGroups.reduce((max, group) => {
+      const num =
+        group.weekends.MENS?.number ?? group.weekends.WOMENS?.number ?? 0
+      return Math.max(max, num)
+    }, 0)
+    return maxNumber + 1
+  }, [weekendGroups])
+
   // All non-FINISHED groups are eligible for "Set Active"
   const activatableGroups = weekendGroups.filter(
     (g) => getGroupStatus(g) !== WeekendStatus.FINISHED
@@ -208,6 +217,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
         weekendGroup={selectedGroup}
+        nextGroupNumber={nextGroupNumber}
       />
     </div>
   )

@@ -146,6 +146,47 @@ export async function findWeekendById(
 }
 
 /**
+ * Inserts a new weekend_groups parent record.
+ * Must be called before inserting weekends that reference this group_id.
+ */
+export async function insertWeekendGroupRecord(
+  id: string,
+  number: number
+): Promise<Result<string, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('weekend_groups').insert({ id, number })
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(undefined)
+}
+
+/**
+ * Fetches the highest weekend group number.
+ * Used to auto-assign the next number when creating a new group.
+ */
+export async function findMaxWeekendGroupNumber(): Promise<
+  Result<string, number>
+> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_groups')
+    .select('number')
+    .order('number', { ascending: false })
+    .limit(1)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data?.[0]?.number ?? 0)
+}
+
+/**
  * Inserts a new weekend group (MENS + WOMENS records).
  */
 export async function insertWeekendGroup(

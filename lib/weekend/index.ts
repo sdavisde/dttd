@@ -2,6 +2,7 @@ import { isNil } from 'lodash'
 import { capitalize } from '@/lib/utils'
 import type { Weekend, WeekendGroupWithId, WeekendStatusValue } from './types'
 import type { TeamMemberInfo } from './types'
+import { COMMUNITY_NAME } from './constants'
 
 export const genderMatchesWeekend = (
   gender: string | null,
@@ -49,10 +50,12 @@ export function formatTeamMemberTitle(teamMemberInfo: TeamMemberInfo): string {
   if (weekendAssignments.length === 1) {
     const type = weekendAssignments[0].weekendType
     const typeLabel = !isNil(type) ? capitalize(type.toLowerCase()) : null
-    return !isNil(typeLabel) ? `${typeLabel} DTTD${numberStr}` : `DTTD${numberStr}`
+    return !isNil(typeLabel)
+      ? `${typeLabel} ${COMMUNITY_NAME}${numberStr}`
+      : `${COMMUNITY_NAME}${numberStr}`
   }
 
-  return `DTTD${numberStr}`
+  return `${COMMUNITY_NAME}${numberStr}`
 }
 
 /**

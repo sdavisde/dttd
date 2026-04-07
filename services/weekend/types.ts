@@ -87,7 +87,6 @@ export type WeekendRosterMember = {
  */
 export type WeekendSidebarPayload = {
   groupId?: string | null
-  title?: string
   mensStart: string
   mensEnd: string
   womensStart: string

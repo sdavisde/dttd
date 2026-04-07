@@ -15,7 +15,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -25,14 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form } from '@/components/ui/form'
 import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { cn, setDatetimeToMidnight } from '@/lib/utils'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
@@ -43,6 +35,8 @@ import {
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 import { toastError } from '@/lib/toast-error'
+import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import { COMMUNITY_NAME } from '@/lib/weekend/constants'
 import type { DateRange } from '@/lib/weekend/scheduling'
 import {
   addDays,
@@ -51,13 +45,11 @@ import {
   formatDateLabel,
   generateWeekendOptionsForMonth,
   getMonthKey,
-  getWeekendTitle,
   getMensWeekendDateRange,
   isSameDay,
 } from '@/lib/weekend/scheduling'
 
 const weekendFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
   mensStartDate: z.date(),
   mensEndDate: z.date(),
   selectedMonth: z.string(),
@@ -69,6 +61,7 @@ interface WeekendSidebarProps {
   isOpen: boolean
   onClose: () => void
   weekendGroup: WeekendGroupWithId | null
+  nextGroupNumber: number
 }
 
 function computeDefaultValues(
@@ -76,7 +69,6 @@ function computeDefaultValues(
 ): WeekendFormValues {
   const initial = getMensWeekendDateRange(weekendGroup)
   return {
-    title: getWeekendTitle(weekendGroup?.weekends.MENS ?? null) ?? '',
     mensStartDate: initial.range.start,
     mensEndDate: initial.range.end,
     selectedMonth: getMonthKey(initial.range.start),
@@ -87,9 +79,15 @@ export function WeekendSidebar({
   isOpen,
   onClose,
   weekendGroup,
+  nextGroupNumber,
 }: WeekendSidebarProps) {
   const router = useRouter()
   const isEditing = Boolean(weekendGroup)
+
+  const weekendLabel = useMemo(() => {
+    const number = weekendGroup?.weekends.MENS?.number ?? nextGroupNumber
+    return new WeekendReference(COMMUNITY_NAME, number).toString()
+  }, [weekendGroup, nextGroupNumber])
 
   // Form state managed by React Hook Form
   const form = useForm<WeekendFormValues>({
@@ -151,7 +149,6 @@ export function WeekendSidebar({
   const onSubmit = async (data: WeekendFormValues) => {
     const payload = {
       groupId: weekendGroup?.groupId ?? null,
-      title: data.title,
       mensStart: formatDateForApi(data.mensStartDate),
       mensEnd: formatDateForApi(data.mensEndDate),
       womensStart: formatDateForApi(womensRange.start),
@@ -230,32 +227,19 @@ export function WeekendSidebar({
             >
               <SheetHeader className="px-4 pb-0">
                 <SheetTitle>
-                  {!isNil(weekendGroup) ? 'Edit Weekends' : 'Add Weekends'}
+                  {isEditing
+                    ? `Edit ${weekendLabel}`
+                    : `Creating ${weekendLabel}`}
                 </SheetTitle>
                 <SheetDescription>
-                  Configure the weekend details. Womens dates automatically
-                  follow the mens weekend by one week.
+                  {isEditing
+                    ? 'Update the weekend dates below.'
+                    : 'Choose the dates for the mens weekend. Womens dates automatically follow by one week.'}
                 </SheetDescription>
               </SheetHeader>
 
               <div className="space-y-6 px-4 flex-1">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3 pt-2">
-                      <FormLabel>Weekend Title</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="ex: DTTD #11" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Separator />
-
-                <div className="space-y-4">
+                <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-semibold">Mens</h3>
                     <Button
@@ -380,10 +364,8 @@ export function WeekendSidebar({
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         isDeleting={isDeleting}
-        itemName={
-          form.getValues('title') !== '' ? form.getValues('title') : 'Weekends'
-        }
-        title="Delete Weekends"
+        itemName={weekendLabel}
+        title={`Delete ${weekendLabel}`}
         description="This will remove both the mens and womens weekends. This action cannot be undone."
       />
     </>

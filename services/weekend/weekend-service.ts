@@ -9,6 +9,7 @@ import type { User } from '@/lib/users/types'
 import { getWeekendRosterExperienceDistribution } from '@/services/master-roster/master-roster-service'
 import type { ExperienceDistribution } from '@/services/master-roster/types'
 import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
+import { COMMUNITY_NAME } from '@/lib/weekend/constants'
 import { logger } from '@/lib/logger'
 import type { Tables } from '@/database.types'
 import type {
@@ -121,14 +122,15 @@ function prepareInsertPayload(
 }
 
 /**
- * Normalizes the sidebar title by trimming whitespace.
+ * Resolves the next group number by auto-incrementing from the highest existing number.
+ * Defaults to 1 if no groups exist yet.
  */
-function normalizeSidebarTitle(title?: string | null): string | null {
-  if (isNil(title)) {
-    return null
+async function resolveNextGroupNumber(): Promise<Result<string, number>> {
+  const maxResult = await WeekendRepository.findMaxWeekendGroupNumber()
+  if (isErr(maxResult)) {
+    return maxResult
   }
-  const trimmed = title.trim()
-  return isEmpty(trimmed) ? null : trimmed
+  return ok(maxResult.data + 1)
 }
 
 /**
@@ -335,7 +337,10 @@ export async function transitionWeekendGroupToFinished(
       continue
     }
 
-    const weekendRef = new WeekendReference('DTTD', groupNumber).toString()
+    const weekendRef = new WeekendReference(
+      COMMUNITY_NAME,
+      groupNumber
+    ).toString()
 
     // Primary role
     if (!isNil(record.cha_role)) {
@@ -540,10 +545,39 @@ export async function createWeekendGroup(
     return err(womensValidation.error)
   }
 
+  // Determine group number by auto-incrementing
+  const groupNumber = await resolveNextGroupNumber()
+  if (isErr(groupNumber)) {
+    return groupNumber
+  }
+
+  // Auto-generate titles if not provided
+  const groupTitle = new WeekendReference(
+    COMMUNITY_NAME,
+    groupNumber.data
+  ).toString()
+  const mensInput = {
+    ...input.mens,
+    title: input.mens.title ?? `Mens ${groupTitle}`,
+  }
+  const womensInput = {
+    ...input.womens,
+    title: input.womens.title ?? `Womens ${groupTitle}`,
+  }
+
+  // Create the weekend_groups parent record first (FK dependency)
+  const groupResult = await WeekendRepository.insertWeekendGroupRecord(
+    input.groupId,
+    groupNumber.data
+  )
+  if (isErr(groupResult)) {
+    return groupResult
+  }
+
   // Prepare and insert payloads
   const insertPayload = [
-    prepareInsertPayload(input.groupId, WeekendType.MENS, input.mens),
-    prepareInsertPayload(input.groupId, WeekendType.WOMENS, input.womens),
+    prepareInsertPayload(input.groupId, WeekendType.MENS, mensInput),
+    prepareInsertPayload(input.groupId, WeekendType.WOMENS, womensInput),
   ]
 
   const result = await WeekendRepository.insertWeekendGroup(insertPayload)
@@ -644,46 +678,32 @@ export async function deleteWeekendGroup(
 export async function saveWeekendGroupFromSidebar(
   payload: WeekendSidebarPayload
 ): Promise<Result<string, WeekendGroupWithId>> {
-  const sharedTitle = normalizeSidebarTitle(payload.title)
-
-  const mensCreate: WeekendWriteInput = {
-    start_date: payload.mensStart,
-    end_date: payload.mensEnd,
-    title: `Mens ${sharedTitle}`,
-  }
-
-  const womensCreate: WeekendWriteInput = {
-    start_date: payload.womensStart,
-    end_date: payload.womensEnd,
-    title: `Womens ${sharedTitle}`,
-  }
-
-  // If no groupId, create a new group
+  // If no groupId, create a new group (title auto-generated from group number)
   if (isNil(payload.groupId)) {
     const groupId = randomUUID()
     return createWeekendGroup({
       groupId,
-      mens: mensCreate,
-      womens: womensCreate,
+      mens: {
+        start_date: payload.mensStart,
+        end_date: payload.mensEnd,
+      },
+      womens: {
+        start_date: payload.womensStart,
+        end_date: payload.womensEnd,
+      },
     })
   }
 
-  // Otherwise, update existing group
-  const mensUpdate: WeekendUpdateInput = {
-    start_date: payload.mensStart,
-    end_date: payload.mensEnd,
-    title: sharedTitle,
-  }
-
-  const womensUpdate: WeekendUpdateInput = {
-    start_date: payload.womensStart,
-    end_date: payload.womensEnd,
-    title: sharedTitle,
-  }
-
+  // Otherwise, update existing group (dates only)
   return updateWeekendGroup(payload.groupId, {
-    mens: mensUpdate,
-    womens: womensUpdate,
+    mens: {
+      start_date: payload.mensStart,
+      end_date: payload.mensEnd,
+    },
+    womens: {
+      start_date: payload.womensStart,
+      end_date: payload.womensEnd,
+    },
   })
 }
 
