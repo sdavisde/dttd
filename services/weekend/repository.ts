@@ -447,6 +447,193 @@ export type RawLeadershipRosterMember = {
   } | null
 }
 
+// ============================================================================
+// Experience Transition Queries
+// ============================================================================
+
+/**
+ * Raw roster record shape for experience transition.
+ * Includes additional_cha_role and weekend metadata needed to build experience records.
+ */
+export type RawRosterForExperience = {
+  user_id: string
+  cha_role: string | null
+  additional_cha_role: string | null
+  rollo: string | null
+  weekend_id: string
+  weekend_type: string
+  group_number: number | null
+}
+
+/**
+ * Fetches all non-dropped roster members for a weekend group (both MENS and WOMENS).
+ * Joins weekends and weekend_groups to get type and group number.
+ */
+export async function findActiveRosterByGroupId(
+  groupId: string
+): Promise<Result<string, RawRosterForExperience[]>> {
+  const supabase = await createClient()
+
+  // First get the weekend IDs and metadata for this group
+  const { data: weekends, error: weekendError } = await supabase
+    .from('weekends')
+    .select('id, type, weekend_groups(number)')
+    .eq('group_id', groupId)
+
+  if (isSupabaseError(weekendError)) {
+    return err(weekendError.message)
+  }
+
+  if (isNil(weekends) || isEmpty(weekends)) {
+    return ok([])
+  }
+
+  const weekendIds = weekends.map((w) => w.id)
+  const weekendMeta = new Map(
+    weekends.map((w) => [
+      w.id,
+      {
+        type: w.type,
+        number: w.weekend_groups?.number ?? null,
+      },
+    ])
+  )
+
+  // Fetch all non-dropped roster members for these weekends
+  const { data: roster, error: rosterError } = await supabase
+    .from('weekend_roster')
+    .select('user_id, cha_role, additional_cha_role, rollo, weekend_id')
+    .in('weekend_id', weekendIds)
+    .neq('status', 'drop')
+
+  if (isSupabaseError(rosterError)) {
+    return err(rosterError.message)
+  }
+
+  const results: RawRosterForExperience[] = (roster ?? [])
+    .filter((r) => !isNil(r.user_id) && !isNil(r.weekend_id))
+    .map((r) => {
+      const meta = weekendMeta.get(r.weekend_id!)
+      return {
+        user_id: r.user_id!,
+        cha_role: r.cha_role,
+        additional_cha_role: r.additional_cha_role,
+        rollo: r.rollo,
+        weekend_id: r.weekend_id!,
+        weekend_type: meta?.type ?? 'MENS',
+        group_number: meta?.number ?? null,
+      }
+    })
+
+  return ok(results)
+}
+
+/**
+ * Fetches existing users_experience records for weekends in a group.
+ * Used for deduplication to avoid inserting duplicate experience records.
+ */
+export async function findExistingExperienceForWeekends(
+  weekendIds: string[]
+): Promise<
+  Result<
+    string,
+    Array<{ user_id: string; cha_role: string; weekend_id: string | null }>
+  >
+> {
+  if (isEmpty(weekendIds)) {
+    return ok([])
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('users_experience')
+    .select('user_id, cha_role, weekend_id')
+    .in('weekend_id', weekendIds)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data ?? [])
+}
+
+/**
+ * Bulk inserts users_experience records.
+ */
+export async function insertUserExperienceRecords(
+  records: Array<{
+    user_id: string
+    cha_role: string
+    weekend_id: string | null
+    weekend_reference: string
+    rollo: string | null
+  }>
+): Promise<Result<string, number>> {
+  if (isEmpty(records)) {
+    return ok(0)
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('users_experience')
+    .insert(records)
+    .select('id')
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data?.length ?? 0)
+}
+
+/**
+ * Fetches weekend IDs for a given group.
+ */
+export async function findWeekendIdsByGroupId(
+  groupId: string
+): Promise<Result<string, string[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .select('id')
+    .eq('group_id', groupId)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok((data ?? []).map((w) => w.id))
+}
+
+/**
+ * Finds the group_id of currently ACTIVE weekends (if any).
+ * Returns the first group_id found, or null if no active weekends exist.
+ */
+export async function findActiveGroupId(): Promise<
+  Result<string, string | null>
+> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .select('group_id')
+    .eq('status', WeekendStatus.ACTIVE)
+    .limit(1)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data?.[0]?.group_id ?? null)
+}
+
+// ============================================================================
+// Leadership Team Queries
+// ============================================================================
+
 /**
  * Result of fetching leadership roster members, grouped by weekend type.
  */

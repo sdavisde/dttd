@@ -5,6 +5,8 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import type { WeekendGroupWithId } from '@/lib/weekend/types'
+import { WeekendStatus } from '@/lib/weekend/types'
+import { getGroupStatus } from '@/lib/weekend'
 import { WeekendGroupGrid } from './WeekendGroupGrid'
 import { WeekendSidebar } from './WeekendSidebar'
 import { SetActiveWeekendButton } from './SetActiveWeekendButton'
@@ -122,6 +124,11 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
   )
   const pastGroups = useMemo(() => sortByDateDescending(past), [past])
 
+  // All non-FINISHED groups are eligible for "Set Active"
+  const activatableGroups = weekendGroups.filter(
+    (g) => getGroupStatus(g) !== WeekendStatus.FINISHED
+  )
+
   const handleCloseSidebar = () => {
     setIsSidebarOpen(false)
     setSelectedGroup(null)
@@ -160,7 +167,7 @@ export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
         </Typography>
         {canEdit && (
           <div className="flex items-center gap-2">
-            <SetActiveWeekendButton weekendGroups={upcomingGroups} />
+            <SetActiveWeekendButton weekendGroups={activatableGroups} />
             <Button
               onClick={handleAddWeekendGroup}
               size="sm"

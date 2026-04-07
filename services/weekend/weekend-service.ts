@@ -23,6 +23,7 @@ import type {
   UpdateWeekendGroupInput,
 } from '@/lib/weekend/types'
 import { WeekendType, WeekendStatus } from '@/lib/weekend/types'
+import { WeekendReference } from '@/lib/weekend/weekend-reference'
 import type {
   RawWeekendRoster,
   PaymentRecord,
@@ -287,7 +288,175 @@ export async function getWeekendGroupsByStatus(
 }
 
 /**
+ * Transitions a finished weekend group's roster into users_experience records.
+ * Deduplicates across MENS/WOMENS weekends — same user+role = one record.
+ * Creates separate records for additional_cha_role.
+ * Idempotent: skips records that already exist.
+ */
+export async function transitionWeekendGroupToFinished(
+  groupId: string
+): Promise<Result<string, { created: number; skipped: number }>> {
+  // 1. Fetch all active (non-dropped) roster members for this group
+  const rosterResult =
+    await WeekendRepository.findActiveRosterByGroupId(groupId)
+
+  if (isErr(rosterResult)) {
+    logger.error(
+      { groupId, error: rosterResult.error },
+      'Failed to fetch roster for experience transition'
+    )
+    return rosterResult
+  }
+
+  const rosterRecords = rosterResult.data
+  if (isEmpty(rosterRecords)) {
+    logger.info({ groupId }, 'No active roster members to transition')
+    return ok({ created: 0, skipped: 0 })
+  }
+
+  // 2. Build experience records (primary + additional roles)
+  type ExperienceRecord = {
+    user_id: string
+    cha_role: string
+    weekend_id: string
+    weekend_reference: string
+    rollo: string | null
+  }
+
+  const experienceMap = new Map<string, ExperienceRecord>()
+
+  for (const record of rosterRecords) {
+    const groupNumber = record.group_number
+    if (isNil(groupNumber)) {
+      logger.warn(
+        { groupId, user_id: record.user_id },
+        'Skipping roster record with no group number'
+      )
+      continue
+    }
+
+    const weekendRef = new WeekendReference('DTTD', groupNumber).toString()
+
+    // Primary role
+    if (!isNil(record.cha_role)) {
+      const key = `${record.user_id}::${record.cha_role}::${weekendRef}`
+      const existing = experienceMap.get(key)
+
+      if (isNil(existing)) {
+        experienceMap.set(key, {
+          user_id: record.user_id,
+          cha_role: record.cha_role,
+          weekend_id: record.weekend_id,
+          weekend_reference: weekendRef,
+          rollo: record.rollo,
+        })
+      } else if (isNil(existing.rollo) && !isNil(record.rollo)) {
+        // Prefer the record that has a rollo
+        existing.rollo = record.rollo
+      }
+    }
+
+    // Additional role (separate experience record, no rollo)
+    if (!isNil(record.additional_cha_role)) {
+      const key = `${record.user_id}::${record.additional_cha_role}::${weekendRef}`
+      if (!experienceMap.has(key)) {
+        experienceMap.set(key, {
+          user_id: record.user_id,
+          cha_role: record.additional_cha_role,
+          weekend_id: record.weekend_id,
+          weekend_reference: weekendRef,
+          rollo: null,
+        })
+      }
+    }
+  }
+
+  const experienceRecords = Array.from(experienceMap.values())
+
+  if (isEmpty(experienceRecords)) {
+    logger.info({ groupId }, 'No valid experience records to create')
+    return ok({ created: 0, skipped: 0 })
+  }
+
+  // 3. Check for existing experience records (idempotency guard)
+  const weekendIdsResult =
+    await WeekendRepository.findWeekendIdsByGroupId(groupId)
+
+  if (isErr(weekendIdsResult)) {
+    logger.error(
+      { groupId, error: weekendIdsResult.error },
+      'Failed to fetch weekend IDs for dedup check'
+    )
+    return weekendIdsResult
+  }
+
+  const existingResult =
+    await WeekendRepository.findExistingExperienceForWeekends(
+      weekendIdsResult.data
+    )
+
+  if (isErr(existingResult)) {
+    logger.error(
+      { groupId, error: existingResult.error },
+      'Failed to fetch existing experience records'
+    )
+    return existingResult
+  }
+
+  const existingKeys = new Set(
+    existingResult.data.map(
+      (e) => `${e.user_id}::${e.cha_role}::${e.weekend_id}`
+    )
+  )
+
+  // Filter out records that already exist
+  // Check against all weekend IDs in the group (a record may reference either MENS or WOMENS weekend_id)
+  const weekendIds = weekendIdsResult.data
+  const newRecords = experienceRecords.filter((c) => {
+    return !weekendIds.some((wid) =>
+      existingKeys.has(`${c.user_id}::${c.cha_role}::${wid}`)
+    )
+  })
+
+  const skipped = experienceRecords.length - newRecords.length
+
+  if (isEmpty(newRecords)) {
+    logger.info(
+      { groupId, skipped },
+      'All experience records already exist — nothing to insert'
+    )
+    return ok({ created: 0, skipped })
+  }
+
+  // 4. Bulk insert
+  const insertResult =
+    await WeekendRepository.insertUserExperienceRecords(newRecords)
+
+  if (isErr(insertResult)) {
+    logger.error(
+      { groupId, error: insertResult.error, recordCount: newRecords.length },
+      'Failed to insert experience records'
+    )
+    return insertResult
+  }
+
+  logger.info(
+    {
+      groupId,
+      created: insertResult.data,
+      skipped,
+      totalRosterMembers: rosterRecords.length,
+    },
+    'Experience transition completed'
+  )
+
+  return ok({ created: insertResult.data, skipped })
+}
+
+/**
  * Sets a weekend group as active, marking the previous active group as finished.
+ * When finishing a previous group, automatically creates users_experience records
+ * for all non-dropped roster members.
  */
 export async function setActiveWeekendGroup(
   groupId: string
@@ -296,7 +465,11 @@ export async function setActiveWeekendGroup(
     return err('group_id is required to set active weekend')
   }
 
-  // 1. Find all currently ACTIVE weekends and update them to FINISHED
+  // 1. Find the currently active group ID before we finish it
+  const activeGroupResult = await WeekendRepository.findActiveGroupId()
+  const previousGroupId = unwrapOr(activeGroupResult, null)
+
+  // 2. Find all currently ACTIVE weekends and update them to FINISHED
   const finishResult =
     await WeekendRepository.updateWeekendStatusByCurrentStatus(
       WeekendStatus.ACTIVE,
@@ -309,7 +482,30 @@ export async function setActiveWeekendGroup(
     )
   }
 
-  // 2. Update the selected weekend group to ACTIVE
+  // 3. Transition the finished group's roster to experience records
+  if (!isNil(previousGroupId)) {
+    const transitionResult =
+      await transitionWeekendGroupToFinished(previousGroupId)
+
+    if (isErr(transitionResult)) {
+      // Log but don't block — the status change already happened
+      logger.error(
+        { previousGroupId, error: transitionResult.error },
+        'Experience transition failed for finished weekend group'
+      )
+    } else {
+      logger.info(
+        {
+          previousGroupId,
+          created: transitionResult.data.created,
+          skipped: transitionResult.data.skipped,
+        },
+        'Experience records created for finished weekend group'
+      )
+    }
+  }
+
+  // 4. Update the selected weekend group to ACTIVE
   const activateResult = await WeekendRepository.updateWeekendStatusByGroupId(
     groupId,
     WeekendStatus.ACTIVE
@@ -319,7 +515,7 @@ export async function setActiveWeekendGroup(
     return err(`Failed to set weekend group as active: ${activateResult.error}`)
   }
 
-  // 3. Return the updated group
+  // 5. Return the updated group
   return getWeekendGroup(groupId)
 }
 
