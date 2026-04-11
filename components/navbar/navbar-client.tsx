@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useSession } from '@/components/auth/session-provider'
 import { useToastListener } from '@/components/toastbox'
-import { permissionLock } from '@/lib/security'
+import { permissionLock, Permission, userHasPermission } from '@/lib/security'
+import { isUserRector } from '@/lib/users'
 import type { NavElement } from './navbar-server'
 import { NavLogo } from './nav-logo'
 import { DesktopNavItem } from './desktop-nav-item'
@@ -25,6 +26,17 @@ export function Navbar({ navElements }: NavbarClientProps) {
     // Check if this item requires team membership
     if (item.requiresTeamMembership === true && isNil(user?.teamMemberInfo)) {
       return null
+    }
+
+    // Check if this item requires Rector role (or FULL_ACCESS)
+    if (item.requiresRector === true) {
+      if (
+        isNil(user) ||
+        (!isUserRector(user) &&
+          !userHasPermission(user, [Permission.FULL_ACCESS]))
+      ) {
+        return null
+      }
     }
 
     // Check if user has permission for this item
@@ -81,7 +93,9 @@ export function Navbar({ navElements }: NavbarClientProps) {
                   item={item}
                   align="left"
                   isActive={activeMenu === item.name}
-                  onMouseEnter={() => !isNil(item.children) && setActiveMenu(item.name)}
+                  onMouseEnter={() =>
+                    !isNil(item.children) && setActiveMenu(item.name)
+                  }
                   onMouseLeave={() => setActiveMenu(null)}
                 />
               ))}
@@ -99,7 +113,9 @@ export function Navbar({ navElements }: NavbarClientProps) {
                   item={item}
                   align="right"
                   isActive={activeMenu === item.name}
-                  onMouseEnter={() => !isNil(item.children) && setActiveMenu(item.name)}
+                  onMouseEnter={() =>
+                    !isNil(item.children) && setActiveMenu(item.name)
+                  }
                   onMouseLeave={() => setActiveMenu(null)}
                 />
               ))}

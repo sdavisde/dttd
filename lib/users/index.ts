@@ -1,4 +1,6 @@
 import type { TeamMemberUser, User } from './types'
+import { CHARole } from '@/lib/weekend/types'
+import { isNil } from 'lodash'
 
 /**
  * Helper function to check if a user is on the active weekend roster.
@@ -13,4 +15,14 @@ import type { TeamMemberUser, User } from './types'
  */
 export function isUserOnActiveTeam(user: User): user is TeamMemberUser {
   return user.teamMemberInfo !== null
+}
+
+/**
+ * Checks if a user is a Rector on an active weekend.
+ */
+export function isUserRector(user: User): boolean {
+  if (isNil(user.teamMemberInfo)) return false
+  return user.teamMemberInfo.weekendAssignments.some(
+    (a) => a.chaRole === CHARole.RECTOR
+  )
 }

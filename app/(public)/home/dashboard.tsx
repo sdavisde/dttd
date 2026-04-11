@@ -13,7 +13,8 @@ import { isNil } from 'lodash'
 import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'
-import { isUserOnActiveTeam } from '@/lib/users'
+import { isUserOnActiveTeam, isUserRector } from '@/lib/users'
+import { userHasPermission, Permission } from '@/lib/security'
 import { TeamMemberTodo, TeamMemberTodoLoading } from '@/components/team-todos'
 import { CommunityEncouragement } from '@/components/community-encouragement/CommunityEncouragement'
 import { CHARole, WeekendType } from '@/lib/weekend/types'
@@ -94,16 +95,18 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
 }
 
 function RectorBanner({ user }: { user: User }) {
-  if (isNil(user.teamMemberInfo)) return null
+  const isRector = isUserRector(user)
+  const isFullAccess = userHasPermission(user, [Permission.FULL_ACCESS])
 
-  const rectorAssignment = user.teamMemberInfo.weekendAssignments.find(
+  if (!isRector && !isFullAccess) return null
+
+  const rectorAssignment = user.teamMemberInfo?.weekendAssignments.find(
     (a) => a.chaRole === CHARole.RECTOR
   )
-  if (isNil(rectorAssignment)) return null
 
-  const groupNumber = user.teamMemberInfo.groupNumber
+  const groupNumber = user.teamMemberInfo?.groupNumber
   const weekendLabel =
-    rectorAssignment.weekendType === WeekendType.MENS ? "Men's" : "Women's"
+    rectorAssignment?.weekendType === WeekendType.MENS ? "Men's" : "Women's"
 
   return (
     <div className="mt-2">
@@ -115,11 +118,13 @@ function RectorBanner({ user }: { user: User }) {
         <Shield className="w-8 h-8 text-primary shrink-0" />
         <div className="flex flex-col items-start gap-1 text-left">
           <span className="text-lg font-semibold">
-            You&apos;re the Rector for DTTD #{groupNumber} {weekendLabel}{' '}
-            Weekend
+            {isRector
+              ? `You're the Rector for DTTD #${groupNumber} ${weekendLabel} Weekend`
+              : 'Roster Builder'}
           </span>
           <span className="text-sm text-muted-foreground">
-            Build Your Roster &rarr;
+            {isRector ? 'Build Your Roster' : 'Manage weekend team rosters'}{' '}
+            &rarr;
           </span>
         </div>
       </Button>
