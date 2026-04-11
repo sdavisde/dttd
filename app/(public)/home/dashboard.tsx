@@ -14,7 +14,6 @@ import { Typography } from '@/components/ui/typography'
 import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'
 import { isUserOnActiveTeam, isUserRector } from '@/lib/users'
-import { userHasPermission, Permission } from '@/lib/security'
 import { TeamMemberTodo, TeamMemberTodoLoading } from '@/components/team-todos'
 import { CommunityEncouragement } from '@/components/community-encouragement/CommunityEncouragement'
 import { CHARole, WeekendType } from '@/lib/weekend/types'
@@ -96,9 +95,8 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
 
 function RectorBanner({ user }: { user: User }) {
   const isRector = isUserRector(user)
-  const isFullAccess = userHasPermission(user, [Permission.FULL_ACCESS])
 
-  if (!isRector && !isFullAccess) return null
+  if (!isRector) return null
 
   const rectorAssignment = user.teamMemberInfo?.weekendAssignments.find(
     (a) => a.chaRole === CHARole.RECTOR
@@ -118,13 +116,11 @@ function RectorBanner({ user }: { user: User }) {
         <Shield className="w-8 h-8 text-primary shrink-0" />
         <div className="flex flex-col items-start gap-1 text-left">
           <span className="text-lg font-semibold">
-            {isRector
-              ? `You're the Rector for DTTD #${groupNumber} ${weekendLabel} Weekend`
-              : 'Roster Builder'}
+            You&apos;re the Rector for DTTD #{groupNumber} {weekendLabel}{' '}
+            Weekend
           </span>
           <span className="text-sm text-muted-foreground">
-            {isRector ? 'Build Your Roster' : 'Manage weekend team rosters'}{' '}
-            &rarr;
+            Build Your Roster &rarr;
           </span>
         </div>
       </Button>

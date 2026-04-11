@@ -42,8 +42,6 @@ export type NavElement = {
   badge?: 'restricted' | 'new'
   // Only show this item if the user is on an active weekend team
   requiresTeamMembership?: boolean
-  // Only show this item if the user is a Rector on an active weekend (or FULL_ACCESS)
-  requiresRector?: boolean
 }
 
 async function getNavElements(): Promise<NavElement[]> {
@@ -145,11 +143,10 @@ async function getNavElements(): Promise<NavElement[]> {
         {
           name: 'Roster Builder',
           slug: 'roster-builder',
-          permissions_needed: [],
+          permissions_needed: [Permission.WRITE_TEAM_ROSTER],
           description: 'Build and manage the weekend team roster',
           icon: 'shield',
           badge: 'restricted',
-          requiresRector: true,
         },
         {
           name: 'Review Candidates',
