@@ -45,7 +45,7 @@ Build the server action that fetches all community members with their experience
 
 ---
 
-### [ ] 3.0 Roster Builder Page — Kanban Board with Real Data
+### [x] 3.0 Roster Builder Page — Kanban Board with Real Data
 
 Replace the mock-data prototype with the real data layer. Wire up the server page component (auth + rector check + data fetching), adapt the existing `design-a-kanban-drawer.tsx` client component to accept real data as props, and implement the roster template with add/remove slot functionality. This is the core UI deliverable.
 
@@ -59,7 +59,12 @@ Replace the mock-data prototype with the real data layer. Wire up the server pag
 
 #### 3.0 Tasks
 
-TBD
+- [x] 3.1 Create the default roster template constant (`roster-template.ts`) — array of `{ category, role, rollo?, required }` objects matching the mock data categories
+- [x] 3.2 Create the server page component (`page.tsx`) — auth check, rector verification, data fetching (community data + draft roster + weekend info), pass props to client component
+- [x] 3.3 Adapt the kanban board client component to accept real data props — replace mock imports with typed props, map `RosterBuilderCommunityMember` to slot display, distinguish draft vs finalized slots visually
+- [x] 3.4 Wire up server actions for assign (addDraftRosterMember) and remove (removeDraftRosterMember) with optimistic UI updates
+- [x] 3.5 Implement "Add Position" button at bottom of each category column with CHA role dropdown
+- [x] 3.6 Verify `yarn lint` and `npx tsc --noEmit` pass with zero errors
 
 ---
 
