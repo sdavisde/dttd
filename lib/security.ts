@@ -62,6 +62,7 @@ export enum Permission {
   READ_DROPPED_ROSTER = 'READ_DROPPED_ROSTER',
   // READ_TEAM_ROSTER = 'READ_TEAM_ROSTER', everyone should be able to read team rosters
   WRITE_TEAM_ROSTER = 'WRITE_TEAM_ROSTER',
+  READ_TEAM_ROSTER_BUILDER = 'READ_TEAM_ROSTER_BUILDER',
   READ_WRITE_TEAM_PAYMENTS = 'READ_WRITE_TEAM_PAYMENTS',
 
   READ_WEEKENDS = 'READ_WEEKENDS',
@@ -114,6 +115,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
   [CHARole.RECTOR]: [
     Permission.READ_WRITE_TEAM_PAYMENTS,
     Permission.WRITE_TEAM_ROSTER,
+    Permission.READ_TEAM_ROSTER_BUILDER,
     Permission.READ_DROPPED_ROSTER,
     Permission.READ_USER_EXPERIENCE,
     Permission.READ_CANDIDATE_ADDRESS,

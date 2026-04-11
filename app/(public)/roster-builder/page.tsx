@@ -27,7 +27,7 @@ export default async function RosterBuilderPage({
 
   const user = userResult.data
 
-  if (!userHasPermission(user, [Permission.WRITE_TEAM_ROSTER])) {
+  if (!userHasPermission(user, [Permission.READ_TEAM_ROSTER_BUILDER])) {
     return (
       <div className="container mx-auto px-4 pt-12 pb-8 text-center">
         <h1 className="text-xl font-bold text-foreground mb-2">

@@ -143,7 +143,7 @@ async function getNavElements(): Promise<NavElement[]> {
         {
           name: 'Roster Builder',
           slug: 'roster-builder',
-          permissions_needed: [Permission.WRITE_TEAM_ROSTER],
+          permissions_needed: [Permission.READ_TEAM_ROSTER_BUILDER],
           description: 'Build and manage the weekend team roster',
           icon: 'shield',
           badge: 'restricted',
