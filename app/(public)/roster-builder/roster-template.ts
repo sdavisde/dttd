@@ -30,6 +30,7 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
       { role: CHARole.BACKUP_RECTOR, required: true },
       { role: CHARole.HEAD, required: true },
       { role: CHARole.ASSISTANT_HEAD, required: true },
+      { role: CHARole.ROVER, required: false },
     ],
   },
   {
@@ -83,11 +84,16 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
     ],
   },
   {
-    name: 'Prayer & Chapel',
+    name: 'Prayer',
     slots: [
       { role: CHARole.HEAD_PRAYER, required: true },
       { role: CHARole.PRAYER, required: true },
       { role: CHARole.PRAYER, required: true },
+    ],
+  },
+  {
+    name: 'Chapel',
+    slots: [
       { role: CHARole.HEAD_CHAPEL, required: true },
       { role: CHARole.CHAPEL, required: true },
       { role: CHARole.CHAPEL, required: true },
@@ -119,10 +125,15 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
     ],
   },
   {
-    name: 'Table & Dorm',
+    name: 'Table',
     slots: [
       { role: CHARole.HEAD_TABLE, required: true },
       { role: CHARole.TABLE, required: true },
+    ],
+  },
+  {
+    name: 'Dorm',
+    slots: [
       { role: CHARole.HEAD_DORM, required: true },
       { role: CHARole.DORM, required: true },
       { role: CHARole.DORM, required: false },
@@ -135,11 +146,10 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
       { role: CHARole.DINING, required: true },
       { role: CHARole.DINING, required: true },
       { role: CHARole.MEAT, required: true },
-      { role: CHARole.SMOKER, required: true },
     ],
   },
   {
-    name: 'Support',
+    name: 'Mobile',
     slots: [
       { role: CHARole.HEAD_MOBILE, required: true },
       { role: CHARole.MOBILE, required: true },
@@ -148,7 +158,7 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
       { role: CHARole.ROSTER, required: true },
       { role: CHARole.GOPHER, required: true },
       { role: CHARole.MEDIC, required: true },
-      { role: CHARole.ROVER, required: false },
+      { role: CHARole.SMOKER, required: true },
     ],
   },
 ]

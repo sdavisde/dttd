@@ -75,12 +75,20 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     badge:
       'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   },
-  'Prayer & Chapel': {
+  Prayer: {
     header:
       'bg-pink-50 border-pink-200 dark:bg-pink-950/40 dark:border-pink-800',
     border: 'border-pink-200 dark:border-pink-800',
     dot: 'bg-pink-500',
     badge: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+  },
+  Chapel: {
+    header:
+      'bg-fuchsia-50 border-fuchsia-200 dark:bg-fuchsia-950/40 dark:border-fuchsia-800',
+    border: 'border-fuchsia-200 dark:border-fuchsia-800',
+    dot: 'bg-fuchsia-500',
+    badge:
+      'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-200',
   },
   Music: {
     header:
@@ -103,13 +111,20 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     dot: 'bg-rose-500',
     badge: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
   },
-  'Table & Dorm': {
+  Table: {
     header:
       'bg-orange-50 border-orange-200 dark:bg-orange-950/40 dark:border-orange-800',
     border: 'border-orange-200 dark:border-orange-800',
     dot: 'bg-orange-500',
     badge:
       'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  },
+  Dorm: {
+    header:
+      'bg-lime-50 border-lime-200 dark:bg-lime-950/40 dark:border-lime-800',
+    border: 'border-lime-200 dark:border-lime-800',
+    dot: 'bg-lime-500',
+    badge: 'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
   },
   'Dining & Food': {
     header:
@@ -119,7 +134,7 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     badge:
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   },
-  Support: {
+  Mobile: {
     header:
       'bg-teal-50 border-teal-200 dark:bg-teal-950/40 dark:border-teal-800',
     border: 'border-teal-200 dark:border-teal-800',
