@@ -1,3 +1,9 @@
+## [1.31.1](https://github.com/sdavisde/dttd/compare/v1.31.0...v1.31.1) (2026-04-11)
+
+### Bug Fixes
+
+- **roster-builder:** restrict nav and homepage links to Rectors and full-access users ([be284a2](https://github.com/sdavisde/dttd/commit/be284a2d1c6752da6b30a753b5b55ba5a418a277))
+
 ## [1.31.0](https://github.com/sdavisde/dttd/compare/v1.30.0...v1.31.0) (2026-04-11)
 
 ### Features
