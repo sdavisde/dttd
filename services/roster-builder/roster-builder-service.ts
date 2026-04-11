@@ -173,7 +173,7 @@ export async function addDraftRosterMember(
   chaRole: string,
   createdBy: string,
   rollo?: string
-): Promise<Result<string, void>> {
+): Promise<Result<string, string>> {
   return RosterBuilderRepository.insertDraft({
     weekend_id: weekendId,
     user_id: userId,

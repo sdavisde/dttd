@@ -11,8 +11,8 @@ import { RosterBuilderBoard } from './roster-builder-board'
 import { WeekendPicker } from './weekend-picker'
 
 function weekendTitle(weekend: Weekend): string {
-  const label = weekend.type === WeekendType.MENS ? "Men's" : "Women's"
-  return `DTTD #${weekend.number ?? '?'} — ${label} Weekend`
+  const label = weekend.type === WeekendType.MENS ? 'Mens' : 'Womens'
+  return `DTTD #${weekend.number ?? '?'} ${label} Roster`
 }
 
 export default async function RosterBuilderPage({

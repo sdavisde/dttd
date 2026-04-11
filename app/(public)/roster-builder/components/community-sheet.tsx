@@ -565,7 +565,7 @@ export function CommunitySheet({
         </div>
 
         {/* Member list */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="px-5 py-4 space-y-3">
             {filteredMembers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">

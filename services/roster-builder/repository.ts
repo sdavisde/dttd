@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { err, ok } from '@/lib/results'
@@ -37,22 +38,28 @@ export async function insertDraft(data: {
   cha_role: string
   rollo?: string | null
   created_by: string
-}): Promise<Result<string, void>> {
+}): Promise<Result<string, string>> {
   const supabase = await createClient()
 
-  const { error } = await supabase.from('draft_weekend_roster').insert({
-    weekend_id: data.weekend_id,
-    user_id: data.user_id,
-    cha_role: data.cha_role,
-    rollo: data.rollo ?? null,
-    created_by: data.created_by,
-  })
+  const { data: row, error } = await supabase
+    .from('draft_weekend_roster')
+    .insert({
+      weekend_id: data.weekend_id,
+      user_id: data.user_id,
+      cha_role: data.cha_role,
+      rollo: data.rollo ?? null,
+      created_by: data.created_by,
+    })
+    .select('id')
+    .single()
 
-  if (isSupabaseError(error)) {
-    return err(`Failed to insert draft roster entry: ${error.message}`)
+  if (isSupabaseError(error) || isNil(row)) {
+    return err(
+      `Failed to insert draft roster entry: ${error?.message ?? 'no row returned'}`
+    )
   }
 
-  return ok(undefined)
+  return ok(row.id)
 }
 
 /**

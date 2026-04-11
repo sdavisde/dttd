@@ -167,18 +167,13 @@ export function ExperienceBadge({
   weekendsServed: number
 }) {
   const exp = getExperienceLabel(level)
-  const colorMap: Record<string, string> = {
-    amber:
-      'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700',
-    blue: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700',
-    green:
-      'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700',
-  }
-  const cls =
-    colorMap[exp.color] ?? 'bg-muted text-muted-foreground border-border'
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${cls}`}
+      className="inline-flex items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-semibold"
+      style={{
+        backgroundColor: `var(--experience-level-${level})`,
+        color: `var(--experience-level-${level}-fg)`,
+      }}
     >
       {exp.label} · {weekendsServed}w
     </span>

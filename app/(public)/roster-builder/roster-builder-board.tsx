@@ -127,6 +127,28 @@ export function RosterBuilderBoard({
           toastError('Unable to assign member. Please try again.', {
             error: result.error,
           })
+        } else {
+          // Replace temp draftId with real one from the database
+          const realDraftId = result.data
+          setCategories((prev) =>
+            prev.map((cat) => ({
+              ...cat,
+              slots: cat.slots.map((s) =>
+                s.id === slotId &&
+                s.assignment.type === 'draft' &&
+                s.assignment.draftId === tempDraftId
+                  ? {
+                      ...s,
+                      assignment: {
+                        type: 'draft' as const,
+                        draftId: realDraftId,
+                        member,
+                      },
+                    }
+                  : s
+              ),
+            }))
+          )
         }
       })
     },
@@ -351,18 +373,17 @@ export function RosterBuilderBoard({
   return (
     <div className="flex min-h-screen flex-col bg-muted/30 dark:bg-background">
       {/* Page header */}
-      <header className="border-b bg-card px-6 py-5 shadow-sm">
-        <div className="mx-auto max-w-screen-2xl">
-          <div className="mb-4 flex items-center gap-3">
+      <header className="border-b bg-card px-6 py-3 shadow-sm">
+        <div className="mx-auto max-w-screen-2xl flex items-center gap-6">
+          <div className="flex items-center gap-3 shrink-0">
             <Users className="h-5 w-5 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">
-              Roster Builder
-            </h1>
-            <Badge variant="outline" className="text-sm">
+            <h1 className="text-lg font-bold text-foreground">
               {weekendTitle}
-            </Badge>
+            </h1>
           </div>
-          <StatsHeader categories={categories} />
+          <div className="ml-auto">
+            <StatsHeader categories={categories} />
+          </div>
         </div>
       </header>
 
