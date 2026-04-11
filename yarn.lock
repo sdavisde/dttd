@@ -1665,7 +1665,7 @@
   dependencies:
     "@radix-ui/react-visually-hidden" "1.2.3"
 
-"@radix-ui/react-accordion@1.2.12":
+"@radix-ui/react-accordion@1.2.12", "@radix-ui/react-accordion@^1.2.12":
   version "1.2.12"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-accordion/-/react-accordion-1.2.12.tgz#1fd70d4ef36018012b9e03324ff186de7a29c13f"
   integrity sha512-T4nygeh9YE9dLRPhAHSeOZi7HBXo+0kYIPJXayZfvWOWA0+n3dESrZbjfDPUABkUNym6Hd+f2IR113To8D2GPA==
@@ -2092,7 +2092,7 @@
     "@radix-ui/react-use-callback-ref" "1.1.1"
     "@radix-ui/react-use-controllable-state" "1.2.2"
 
-"@radix-ui/react-scroll-area@1.2.10":
+"@radix-ui/react-scroll-area@1.2.10", "@radix-ui/react-scroll-area@^1.2.10":
   version "1.2.10"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-scroll-area/-/react-scroll-area-1.2.10.tgz#e4fd3b4a79bb77bec1a52f0c8f26d8f3f1ca4b22"
   integrity sha512-tAXIa1g3sM5CGpVT0uIbUx/U3Gs5N8T52IICuCtObaos1S8fzsrPXG5WObkQN3S6NVl6wKgPhAIiBGbWnvc97A==
