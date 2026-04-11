@@ -160,4 +160,5 @@ export enum Rollo {
   CCIA = 'CCIA',
   REUNION_GROUP = 'Reunion Group',
   FOURTH_DAY = 'Fourth Day',
+  SILENT = 'Silent',
 }

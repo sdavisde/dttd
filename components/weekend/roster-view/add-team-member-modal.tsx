@@ -33,7 +33,7 @@ import {
 import { ChaRoleField } from '@/components/weekend/cha-role-field'
 import { RolloField } from '@/components/weekend/rollo-field'
 import type { Tables } from '@/database.types'
-import type { SubmitHandler} from 'react-hook-form';
+import type { SubmitHandler } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -232,9 +232,6 @@ export function AddTeamMemberModal({
                 control={form.control}
                 name="rollo"
                 selectedRole={selectedRole}
-                placeholder="Select a rollo or SILENT"
-                silentLabel="SILENT"
-                description="What Rollo is this team member going to do? Select SILENT if they are not doing a Rollo."
               />
 
               {!isNil(form.formState.errors.root) && (

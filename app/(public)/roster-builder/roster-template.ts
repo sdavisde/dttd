@@ -34,35 +34,18 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
     ],
   },
   {
-    name: 'Rollistas',
+    name: 'Table Leaders',
     slots: [
       { role: CHARole.HEAD_ROLLISTA, required: true },
       { role: CHARole.TABLE_LEADER, rollo: Rollo.IDEALS, required: true },
-      { role: CHARole.TABLE_LEADER, rollo: Rollo.GRACE, required: true },
       { role: CHARole.TABLE_LEADER, rollo: Rollo.CHURCH, required: true },
-      { role: CHARole.TABLE_LEADER, rollo: Rollo.HOLY_SPIRIT, required: true },
       { role: CHARole.TABLE_LEADER, rollo: Rollo.PIETY, required: true },
       { role: CHARole.TABLE_LEADER, rollo: Rollo.STUDY, required: true },
-      {
-        role: CHARole.TABLE_LEADER,
-        rollo: Rollo.SACRED_MOMENTS_OF_GRACE,
-        required: true,
-      },
       { role: CHARole.TABLE_LEADER, rollo: Rollo.ACTION, required: true },
-      {
-        role: CHARole.TABLE_LEADER,
-        rollo: Rollo.OBSTACLES_TO_GRACE,
-        required: true,
-      },
       { role: CHARole.TABLE_LEADER, rollo: Rollo.LEADERS, required: true },
       {
         role: CHARole.TABLE_LEADER,
         rollo: Rollo.ENVIRONMENTS,
-        required: true,
-      },
-      {
-        role: CHARole.TABLE_LEADER,
-        rollo: Rollo.LIFE_IN_GRACE,
         required: true,
       },
       { role: CHARole.TABLE_LEADER, rollo: Rollo.CCIA, required: true },
@@ -71,7 +54,9 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
         rollo: Rollo.REUNION_GROUP,
         required: true,
       },
-      { role: CHARole.TABLE_LEADER, rollo: Rollo.FOURTH_DAY, required: true },
+      { role: CHARole.TABLE_LEADER, rollo: Rollo.SILENT, required: true },
+      { role: CHARole.TABLE_LEADER, rollo: Rollo.SILENT, required: true },
+      { role: CHARole.TABLE_LEADER, rollo: Rollo.SILENT, required: true },
     ],
   },
   {

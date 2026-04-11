@@ -24,7 +24,6 @@ interface RolloFieldProps<T extends Record<string, any>> {
   selectedRole: string
   label?: string
   placeholder?: string
-  silentLabel?: string
   description?: string
 }
 
@@ -34,7 +33,6 @@ export function RolloField<T extends Record<string, any>>({
   selectedRole,
   label = 'Rollo',
   placeholder = 'Select a rollo or Silent',
-  silentLabel = 'Silent',
   description = 'What Rollo is this team member going to do? Select Silent if they are not doing a Rollo.',
 }: RolloFieldProps<T>) {
   const shouldShowField = [
@@ -61,7 +59,6 @@ export function RolloField<T extends Record<string, any>>({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value={silentLabel}>{silentLabel}</SelectItem>
               {Object.values(Rollo).map((rollo) => (
                 <SelectItem key={rollo} value={rollo}>
                   {rollo}
