@@ -55,11 +55,15 @@ import {
 
 export function FilledSlotCard({
   slot,
+  accentColor,
+  accentDraftColor,
   onRemove,
   onFinalize,
   onDrop,
 }: {
   slot: RosterSlot
+  accentColor: string
+  accentDraftColor: string
   onRemove: () => void
   onFinalize?: () => void
   onDrop?: () => void
@@ -71,10 +75,10 @@ export function FilledSlotCard({
 
   return (
     <div
-      className={`group relative rounded-lg p-4 shadow-sm transition-all hover:shadow-md ${
+      className={`group relative rounded-lg border border-l-4 p-4 shadow-sm transition-all hover:shadow-md ${
         isDraft
-          ? 'border-2 border-dashed border-primary/40 bg-primary/5 dark:bg-primary/10'
-          : 'border bg-card'
+          ? `${accentDraftColor} bg-muted/30 dark:bg-muted/10`
+          : `${accentColor} bg-card`
       }`}
     >
       {/* Top-right actions */}
@@ -114,35 +118,29 @@ export function FilledSlotCard({
         )}
       </div>
 
-      {/* Draft indicator */}
-      {isDraft && (
-        <span className="absolute left-2 top-2 text-xs font-medium text-primary">
-          Draft
-        </span>
-      )}
-
-      {/* Role label */}
-      <p
-        className={`mb-1.5 truncate pr-6 text-xs font-medium uppercase tracking-wide text-muted-foreground ${isDraft ? 'mt-3' : ''}`}
-      >
-        {slotLabel(slot)}
-      </p>
+      {/* Role label + draft badge */}
+      <div className="mb-1.5 flex items-start gap-2 pr-6">
+        <p className="text-xs font-semibold text-muted-foreground leading-snug">
+          {slotLabel(slot)}
+        </p>
+        {isDraft && (
+          <span className="shrink-0 rounded-full border border-muted-foreground/20 px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground">
+            Draft
+          </span>
+        )}
+      </div>
 
       {/* Member name */}
-      <p className="text-base font-semibold leading-tight text-foreground truncate">
+      <p className="text-sm font-semibold leading-tight text-foreground truncate">
         {fullName(member)}
       </p>
 
-      {/* Experience badge */}
-      <div className="mt-2">
+      {/* Experience badge + indicator icons — combined row */}
+      <div className="mt-2 flex items-center gap-2">
         <ExperienceBadge
           level={member.experienceLevel}
           weekendsServed={member.weekendsServed}
         />
-      </div>
-
-      {/* Indicator icons */}
-      <div className="mt-2 flex items-center gap-2">
         {member.attendsSecuela && (
           <span
             title="Attends Secuela"
@@ -245,7 +243,7 @@ export function EmptySlotCard({
               : 'border-muted-foreground/15 dark:border-muted-foreground/10'
           }`}
         >
-          <p className="text-sm font-medium text-muted-foreground leading-snug">
+          <p className="text-sm font-medium text-muted-foreground leading-snug break-words">
             {slotLabel(slot)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground/60">

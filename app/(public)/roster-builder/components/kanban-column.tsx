@@ -106,33 +106,40 @@ export function KanbanColumn({
       </div>
 
       {/* Slots */}
-      <div
-        className="flex flex-col gap-2 overflow-y-auto p-3"
-        style={{ maxHeight: '560px' }}
-      >
-        {visibleSlots.map((slot) =>
-          slot.assignment.type !== 'empty' ? (
-            <FilledSlotCard
-              key={slot.id}
-              slot={slot}
-              onRemove={() => onRemove(slot.id)}
-              onFinalize={() => onFinalize(slot.id)}
-              onDrop={() => onDrop(slot.id)}
-            />
-          ) : (
-            <EmptySlotCard
-              key={slot.id}
-              slot={slot}
-              availableMembers={availableMembers}
-              onAssign={(m) => onAssign(slot.id, m)}
-            />
-          )
-        )}
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t from-card via-card/60 to-transparent" />
+        <div
+          className="flex flex-col gap-2 overflow-y-auto px-3 pt-3 pb-6"
+          style={{ maxHeight: '560px' }}
+        >
+          {visibleSlots.map((slot) =>
+            slot.assignment.type !== 'empty' ? (
+              <FilledSlotCard
+                key={slot.id}
+                slot={slot}
+                accentColor={colors.accent}
+                accentDraftColor={colors.accentDraft}
+                onRemove={() => onRemove(slot.id)}
+                onFinalize={() => onFinalize(slot.id)}
+                onDrop={() => onDrop(slot.id)}
+              />
+            ) : (
+              <EmptySlotCard
+                key={slot.id}
+                slot={slot}
+                availableMembers={availableMembers}
+                onAssign={(m) => onAssign(slot.id, m)}
+              />
+            )
+          )}
+        </div>
+      </div>
 
-        {/* Add Position button */}
+      {/* Add Position button */}
+      <div className="border-t px-3 py-2">
         <Popover open={addOpen} onOpenChange={setAddOpen}>
           <PopoverTrigger asChild>
-            <button className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-muted-foreground/20 px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary">
+            <button className="flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-primary">
               <Plus className="h-3.5 w-3.5" />
               Add Position
             </button>

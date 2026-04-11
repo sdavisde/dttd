@@ -50,6 +50,8 @@ export type CategoryColorSet = {
   border: string
   dot: string
   badge: string
+  accent: string
+  accentDraft: string
 }
 
 const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
@@ -59,6 +61,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     border: 'border-amber-200 dark:border-amber-800',
     dot: 'bg-amber-500',
     badge: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    accent: 'border-l-amber-400 dark:border-l-amber-500',
+    accentDraft: 'border-l-amber-300 dark:border-l-amber-700',
   },
   Rollistas: {
     header:
@@ -66,6 +70,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     border: 'border-blue-200 dark:border-blue-800',
     dot: 'bg-blue-500',
     badge: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    accent: 'border-l-blue-400 dark:border-l-blue-500',
+    accentDraft: 'border-l-blue-300 dark:border-l-blue-700',
   },
   Spiritual: {
     header:
@@ -74,6 +80,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     dot: 'bg-purple-500',
     badge:
       'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    accent: 'border-l-purple-400 dark:border-l-purple-500',
+    accentDraft: 'border-l-purple-300 dark:border-l-purple-700',
   },
   Prayer: {
     header:
@@ -81,14 +89,18 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     border: 'border-pink-200 dark:border-pink-800',
     dot: 'bg-pink-500',
     badge: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+    accent: 'border-l-pink-400 dark:border-l-pink-500',
+    accentDraft: 'border-l-pink-300 dark:border-l-pink-700',
   },
   Chapel: {
     header:
-      'bg-fuchsia-50 border-fuchsia-200 dark:bg-fuchsia-950/40 dark:border-fuchsia-800',
-    border: 'border-fuchsia-200 dark:border-fuchsia-800',
-    dot: 'bg-fuchsia-500',
+      'bg-indigo-50 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800',
+    border: 'border-indigo-200 dark:border-indigo-800',
+    dot: 'bg-indigo-500',
     badge:
-      'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-200',
+      'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+    accent: 'border-l-indigo-400 dark:border-l-indigo-500',
+    accentDraft: 'border-l-indigo-300 dark:border-l-indigo-700',
   },
   Music: {
     header:
@@ -96,6 +108,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     border: 'border-green-200 dark:border-green-800',
     dot: 'bg-green-500',
     badge: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    accent: 'border-l-green-400 dark:border-l-green-500',
+    accentDraft: 'border-l-green-300 dark:border-l-green-700',
   },
   Tech: {
     header:
@@ -103,6 +117,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     border: 'border-slate-200 dark:border-slate-700',
     dot: 'bg-slate-500',
     badge: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
+    accent: 'border-l-slate-400 dark:border-l-slate-500',
+    accentDraft: 'border-l-slate-300 dark:border-l-slate-600',
   },
   Palanca: {
     header:
@@ -110,6 +126,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     border: 'border-rose-200 dark:border-rose-800',
     dot: 'bg-rose-500',
     badge: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
+    accent: 'border-l-rose-400 dark:border-l-rose-500',
+    accentDraft: 'border-l-rose-300 dark:border-l-rose-700',
   },
   Table: {
     header:
@@ -118,13 +136,18 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     dot: 'bg-orange-500',
     badge:
       'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    accent: 'border-l-orange-400 dark:border-l-orange-500',
+    accentDraft: 'border-l-orange-300 dark:border-l-orange-700',
   },
   Dorm: {
     header:
-      'bg-lime-50 border-lime-200 dark:bg-lime-950/40 dark:border-lime-800',
-    border: 'border-lime-200 dark:border-lime-800',
-    dot: 'bg-lime-500',
-    badge: 'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
+      'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800',
+    border: 'border-emerald-200 dark:border-emerald-800',
+    dot: 'bg-emerald-500',
+    badge:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+    accent: 'border-l-emerald-400 dark:border-l-emerald-500',
+    accentDraft: 'border-l-emerald-300 dark:border-l-emerald-700',
   },
   'Dining & Food': {
     header:
@@ -133,6 +156,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     dot: 'bg-yellow-500',
     badge:
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    accent: 'border-l-yellow-400 dark:border-l-yellow-500',
+    accentDraft: 'border-l-yellow-300 dark:border-l-yellow-700',
   },
   Mobile: {
     header:
@@ -140,6 +165,8 @@ const CATEGORY_COLORS: Record<string, CategoryColorSet> = {
     border: 'border-teal-200 dark:border-teal-800',
     dot: 'bg-teal-500',
     badge: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
+    accent: 'border-l-teal-400 dark:border-l-teal-500',
+    accentDraft: 'border-l-teal-300 dark:border-l-teal-700',
   },
 }
 
@@ -150,6 +177,8 @@ export function getCategoryColors(name: string): CategoryColorSet {
       border: 'border-border',
       dot: 'bg-muted-foreground',
       badge: 'bg-muted text-muted-foreground',
+      accent: 'border-l-muted-foreground',
+      accentDraft: 'border-l-muted-foreground/50',
     }
   )
 }

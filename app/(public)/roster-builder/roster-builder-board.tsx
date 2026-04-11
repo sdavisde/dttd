@@ -373,11 +373,11 @@ export function RosterBuilderBoard({
   return (
     <div className="flex min-h-screen flex-col bg-muted/30 dark:bg-background">
       {/* Page header */}
-      <header className="border-b bg-card px-6 py-3 shadow-sm">
+      <header className="border-b bg-card px-6 py-4">
         <div className="mx-auto max-w-screen-2xl flex items-center gap-6">
           <div className="flex items-center gap-3 shrink-0">
             <Users className="h-5 w-5 text-primary" />
-            <h1 className="text-lg font-bold text-foreground">
+            <h1 className="text-xl font-bold text-foreground">
               {weekendTitle}
             </h1>
           </div>
@@ -388,7 +388,7 @@ export function RosterBuilderBoard({
       </header>
 
       {/* Sticky toolbar */}
-      <div className="sticky top-0 z-20 border-b bg-card/95 px-6 py-3 shadow-sm backdrop-blur-sm">
+      <div className="sticky top-0 z-20 border-b bg-muted/50 px-6 py-3 shadow-sm backdrop-blur-sm dark:bg-card/95">
         <div className="mx-auto max-w-screen-2xl">
           <Toolbar
             search={search}
@@ -405,10 +405,10 @@ export function RosterBuilderBoard({
       </div>
 
       {/* Horizontal kanban board */}
-      <main className="flex-1 overflow-hidden px-6 py-4">
+      <main className="flex-1 overflow-hidden px-6 py-5">
         <div className="mx-auto max-w-screen-2xl">
-          <ScrollArea className="w-full whitespace-nowrap pb-2">
-            <div className="flex gap-3 pb-4">
+          <ScrollArea className="w-full pb-2">
+            <div className="flex gap-5 pb-4">
               {visibleCategories.length === 0 ? (
                 <div className="flex h-48 w-full items-center justify-center">
                   <div className="text-center">
