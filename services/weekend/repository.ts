@@ -395,6 +395,46 @@ export async function insertWeekendRosterMember(data: {
 }
 
 /**
+ * Updates a weekend roster member's status to 'drop'.
+ */
+export async function dropWeekendRosterMember(
+  rosterId: string
+): Promise<Result<string, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('weekend_roster')
+    .update({ status: 'drop' })
+    .eq('id', rosterId)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(undefined)
+}
+
+/**
+ * Deletes a weekend roster member record.
+ */
+export async function deleteWeekendRosterMember(
+  rosterId: string
+): Promise<Result<string, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('weekend_roster')
+    .delete()
+    .eq('id', rosterId)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(undefined)
+}
+
+/**
  * Fetches the special_needs field for a roster record by ID.
  */
 export async function findRosterSpecialNeeds(

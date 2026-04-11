@@ -68,7 +68,7 @@ Replace the mock-data prototype with the real data layer. Wire up the server pag
 
 ---
 
-### [ ] 4.0 Community Drawer Panel with Real Data
+### [x] 4.0 Community Drawer Panel with Real Data
 
 Implement the slide-out Sheet panel with filterable community browser, rich member detail cards, and the "Assign to..." flow — all wired to real data from the community data action.
 
@@ -81,11 +81,12 @@ Implement the slide-out Sheet panel with filterable community browser, rich memb
 
 #### 4.0 Tasks
 
-TBD
+- [x] 4.1 Show assigned members in community sheet as grayed-out cards with their current assignment (draft/finalized role) instead of hiding them; sort assigned members to bottom of list
+- [x] 4.2 Verify `yarn lint` and `npx tsc --noEmit` pass with zero errors
 
 ---
 
-### [ ] 5.0 Draft Finalization & Removal Flows
+### [x] 5.0 Draft Finalization & Removal Flows
 
 Implement the finalization confirmation dialog, the draft removal action, and the finalized member drop/remove menu. This completes the full draft lifecycle in the UI.
 
@@ -99,7 +100,11 @@ Implement the finalization confirmation dialog, the draft removal action, and th
 
 #### 5.0 Tasks
 
-TBD
+- [x] 5.1 Add repository functions to weekend repository for dropping (update status to 'drop') and removing (hard delete) a finalized roster member
+- [x] 5.2 Add service and action functions for `dropFinalizedRosterMember` and `removeFinalizedRosterMember` in roster-builder service layer
+- [x] 5.3 Update `FilledSlotCard` — add "Finalize" button on draft cards with confirmation dialog; replace X button on finalized cards with dropdown menu (Dropped / Remove)
+- [x] 5.4 Wire up finalize, drop, and remove flows in the board component with optimistic UI
+- [x] 5.5 Verify `yarn lint` and `npx tsc --noEmit` pass with zero errors
 
 ---
 

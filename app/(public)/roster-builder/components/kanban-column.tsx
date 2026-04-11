@@ -29,6 +29,8 @@ export function KanbanColumn({
   filterMode,
   onAssign,
   onRemove,
+  onFinalize,
+  onDrop,
   onAddSlot,
 }: {
   category: RoleCategory
@@ -37,6 +39,8 @@ export function KanbanColumn({
   filterMode: FilterMode
   onAssign: (slotId: string, member: RosterBuilderCommunityMember) => void
   onRemove: (slotId: string) => void
+  onFinalize: (slotId: string) => void
+  onDrop: (slotId: string) => void
   onAddSlot: (categoryName: string, role: CHARole) => void
 }) {
   const [addOpen, setAddOpen] = useState(false)
@@ -112,6 +116,8 @@ export function KanbanColumn({
               key={slot.id}
               slot={slot}
               onRemove={() => onRemove(slot.id)}
+              onFinalize={() => onFinalize(slot.id)}
+              onDrop={() => onDrop(slot.id)}
             />
           ) : (
             <EmptySlotCard

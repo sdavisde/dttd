@@ -13,6 +13,9 @@ import type { RosterBuilderCommunityMember } from '@/services/roster-builder'
 import {
   addDraftRosterMember,
   removeDraftRosterMember,
+  finalizeDraftRosterMember,
+  dropFinalizedRosterMember,
+  removeFinalizedRosterMember,
 } from '@/services/roster-builder'
 import type { CHARole } from '@/lib/weekend/types'
 import type {
@@ -130,7 +133,7 @@ export function RosterBuilderBoard({
     [categories, weekendId, rectorUserId]
   )
 
-  // Remove a member from a slot
+  // Remove a member from a slot (handles both draft and finalized)
   const handleRemove = useCallback(
     (slotId: string) => {
       let targetSlot: RosterSlot | undefined
@@ -140,13 +143,6 @@ export function RosterBuilderBoard({
       }
       if (isNil(targetSlot) || targetSlot.assignment.type === 'empty') return
 
-      // Only handle draft removal in this task (finalized removal is Task 5.0)
-      if (targetSlot.assignment.type === 'finalized') {
-        toast.info('Use the admin roster page to remove finalized members.')
-        return
-      }
-
-      const draftId = targetSlot.assignment.draftId
       const savedAssignment = targetSlot.assignment
 
       // Optimistic update
@@ -162,7 +158,11 @@ export function RosterBuilderBoard({
       )
 
       startTransition(async () => {
-        const result = await removeDraftRosterMember(draftId)
+        const result =
+          savedAssignment.type === 'draft'
+            ? await removeDraftRosterMember(savedAssignment.draftId)
+            : await removeFinalizedRosterMember(savedAssignment.rosterId)
+
         if (isErr(result)) {
           // Rollback
           setCategories((prev) =>
@@ -174,6 +174,120 @@ export function RosterBuilderBoard({
             }))
           )
           toastError('Unable to remove member. Please try again.', {
+            error: result.error,
+          })
+        }
+      })
+    },
+    [categories]
+  )
+
+  // Finalize a draft member
+  const handleFinalize = useCallback(
+    (slotId: string) => {
+      let targetSlot: RosterSlot | undefined
+      for (const cat of categories) {
+        targetSlot = cat.slots.find((s) => s.id === slotId)
+        if (!isNil(targetSlot)) break
+      }
+      if (isNil(targetSlot) || targetSlot.assignment.type !== 'draft') return
+
+      const draftId = targetSlot.assignment.draftId
+      const member = targetSlot.assignment.member
+      const tempRosterId = `temp-roster-${Date.now()}`
+
+      // Optimistic update: draft → finalized
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          slots: cat.slots.map((s) =>
+            s.id === slotId
+              ? {
+                  ...s,
+                  assignment: {
+                    type: 'finalized' as const,
+                    rosterId: tempRosterId,
+                    member,
+                  },
+                }
+              : s
+          ),
+        }))
+      )
+
+      startTransition(async () => {
+        const result = await finalizeDraftRosterMember(draftId)
+        if (isErr(result)) {
+          // Rollback to draft
+          setCategories((prev) =>
+            prev.map((cat) => ({
+              ...cat,
+              slots: cat.slots.map((s) =>
+                s.id === slotId
+                  ? {
+                      ...s,
+                      assignment: {
+                        type: 'draft' as const,
+                        draftId,
+                        member,
+                      },
+                    }
+                  : s
+              ),
+            }))
+          )
+          toastError('Unable to finalize member. Please try again.', {
+            error: result.error,
+          })
+        } else {
+          toast.success(
+            `${member.firstName ?? ''} ${member.lastName ?? ''} finalized.`
+          )
+        }
+      })
+    },
+    [categories]
+  )
+
+  // Drop a finalized member (sets status to 'drop')
+  const handleDrop = useCallback(
+    (slotId: string) => {
+      let targetSlot: RosterSlot | undefined
+      for (const cat of categories) {
+        targetSlot = cat.slots.find((s) => s.id === slotId)
+        if (!isNil(targetSlot)) break
+      }
+      if (isNil(targetSlot) || targetSlot.assignment.type !== 'finalized')
+        return
+
+      const rosterId = targetSlot.assignment.rosterId
+      const savedAssignment = targetSlot.assignment
+
+      // Optimistic update
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          slots: cat.slots.map((s) =>
+            s.id === slotId
+              ? { ...s, assignment: { type: 'empty' as const } }
+              : s
+          ),
+        }))
+      )
+
+      startTransition(async () => {
+        const result = await dropFinalizedRosterMember(rosterId)
+        if (isErr(result)) {
+          // Rollback
+          setCategories((prev) =>
+            prev.map((cat) => ({
+              ...cat,
+              slots: cat.slots.map((s) =>
+                s.id === slotId ? { ...s, assignment: savedAssignment } : s
+              ),
+            }))
+          )
+          toastError('Unable to drop member. Please try again.', {
             error: result.error,
           })
         }
@@ -303,6 +417,8 @@ export function RosterBuilderBoard({
                     filterMode={filterMode}
                     onAssign={handleAssign}
                     onRemove={handleRemove}
+                    onFinalize={handleFinalize}
+                    onDrop={handleDrop}
                     onAddSlot={handleAddSlot}
                   />
                 ))

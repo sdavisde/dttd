@@ -75,3 +75,27 @@ export async function finalizeDraftRosterMember(
 ): Promise<Result<string, void>> {
   return RosterBuilderService.finalizeDraftRosterMember(draftId)
 }
+
+// ============================================================================
+// Finalized Roster Management
+// ============================================================================
+
+/**
+ * Drops a finalized roster member (sets status to 'drop').
+ * The member returns to the community pool.
+ */
+export async function dropFinalizedRosterMember(
+  rosterId: string
+): Promise<Result<string, void>> {
+  return RosterBuilderService.dropFinalizedRosterMember(rosterId)
+}
+
+/**
+ * Removes a finalized roster member entirely (hard delete).
+ * The member returns to the community pool.
+ */
+export async function removeFinalizedRosterMember(
+  rosterId: string
+): Promise<Result<string, void>> {
+  return RosterBuilderService.removeFinalizedRosterMember(rosterId)
+}

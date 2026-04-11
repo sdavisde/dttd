@@ -291,3 +291,27 @@ export async function finalizeDraftRosterMember(
 
   return ok(undefined)
 }
+
+// ============================================================================
+// Finalized Roster Management
+// ============================================================================
+
+/**
+ * Drops a finalized roster member by setting their status to 'drop'.
+ * The member returns to the community pool.
+ */
+export async function dropFinalizedRosterMember(
+  rosterId: string
+): Promise<Result<string, void>> {
+  return WeekendRepository.dropWeekendRosterMember(rosterId)
+}
+
+/**
+ * Removes a finalized roster member by deleting the weekend_roster row entirely.
+ * The member returns to the community pool.
+ */
+export async function removeFinalizedRosterMember(
+  rosterId: string
+): Promise<Result<string, void>> {
+  return WeekendRepository.deleteWeekendRosterMember(rosterId)
+}

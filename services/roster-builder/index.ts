@@ -14,6 +14,9 @@ export {
   getDraftRoster,
   removeDraftRosterMember,
   finalizeDraftRosterMember,
+  // Finalized roster
+  dropFinalizedRosterMember,
+  removeFinalizedRosterMember,
 } from './actions'
 
 // Types

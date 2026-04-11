@@ -1,7 +1,17 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { X, Calendar, Star, AlertTriangle } from 'lucide-react'
+import {
+  X,
+  Calendar,
+  Star,
+  AlertTriangle,
+  CheckCircle2,
+  MoreVertical,
+  UserX,
+  Trash2,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Popover,
   PopoverContent,
@@ -15,6 +25,23 @@ import {
   CommandEmpty,
   CommandGroup,
 } from '@/components/ui/command'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { RosterBuilderCommunityMember } from '@/services/roster-builder'
 import type { RosterSlot } from './roster-builder-types'
 import {
@@ -29,9 +56,13 @@ import {
 export function FilledSlotCard({
   slot,
   onRemove,
+  onFinalize,
+  onDrop,
 }: {
   slot: RosterSlot
   onRemove: () => void
+  onFinalize?: () => void
+  onDrop?: () => void
 }) {
   const assignment = slot.assignment
   if (assignment.type === 'empty') return null
@@ -46,14 +77,42 @@ export function FilledSlotCard({
           : 'border bg-card'
       }`}
     >
-      {/* Remove button */}
-      <button
-        onClick={onRemove}
-        className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-        aria-label={`Remove ${fullName(member)}`}
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
+      {/* Top-right actions */}
+      <div className="absolute right-2 top-2 flex items-center gap-0.5">
+        {isDraft ? (
+          <button
+            onClick={onRemove}
+            className="rounded-full p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+            aria-label={`Remove ${fullName(member)}`}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="rounded-full p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+                aria-label={`Actions for ${fullName(member)}`}
+              >
+                <MoreVertical className="h-3.5 w-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem
+                onClick={onDrop}
+                className="text-amber-600 dark:text-amber-400"
+              >
+                <UserX className="mr-2 h-4 w-4" />
+                Dropped
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onRemove} className="text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Remove
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
 
       {/* Draft indicator */}
       {isDraft && (
@@ -112,6 +171,44 @@ export function FilledSlotCard({
             </p>
           ))}
         </div>
+      )}
+
+      {/* Finalize button for drafts */}
+      {isDraft && onFinalize != null && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-3 h-7 w-full gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Finalize
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Finalize Assignment</AlertDialogTitle>
+              <AlertDialogDescription>
+                Have you personally confirmed that{' '}
+                <span className="font-semibold text-foreground">
+                  {fullName(member)}
+                </span>{' '}
+                has accepted the{' '}
+                <span className="font-semibold text-foreground">
+                  {slotLabel(slot)}
+                </span>{' '}
+                position?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={onFinalize}>
+                Yes, Finalize
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   )

@@ -65,6 +65,30 @@ type SheetFilters = {
 
 // ── Community Member Card ─────────────────────────────────────────────────────
 
+function AssignmentBadge({ member }: { member: RosterBuilderCommunityMember }) {
+  const status = member.assignmentStatus
+  if (status.type === 'unassigned') return null
+
+  const isDraft = status.type === 'draft'
+  const roleLabel =
+    status.rollo != null
+      ? `${status.chaRole} — ${status.rollo}`
+      : status.chaRole
+
+  return (
+    <Badge
+      variant="outline"
+      className={`text-xs ${
+        isDraft
+          ? 'border-dashed border-orange-300 bg-orange-50 text-orange-700 dark:border-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+          : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+      }`}
+    >
+      {isDraft ? 'Draft' : 'Assigned'}: {roleLabel}
+    </Badge>
+  )
+}
+
 function CommunityMemberCard({
   member,
   categories,
@@ -77,6 +101,8 @@ function CommunityMemberCard({
   const [expanded, setExpanded] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
 
+  const isAssigned = member.assignmentStatus.type !== 'unassigned'
+
   const emptySlotsByCategory = useMemo(() => {
     return categories
       .map((cat) => ({
@@ -87,7 +113,11 @@ function CommunityMemberCard({
   }, [categories])
 
   return (
-    <div className="rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md">
+    <div
+      className={`rounded-lg border bg-card shadow-sm transition-shadow ${
+        isAssigned ? 'opacity-50' : 'hover:shadow-md'
+      }`}
+    >
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -104,6 +134,13 @@ function CommunityMemberCard({
             weekendsServed={member.weekendsServed}
           />
         </div>
+
+        {/* Assignment status for assigned members */}
+        {isAssigned && (
+          <div className="mt-2">
+            <AssignmentBadge member={member} />
+          </div>
+        )}
 
         {/* Indicator badges */}
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -145,64 +182,76 @@ function CommunityMemberCard({
           )}
         </div>
 
-        <p className="mt-2 text-xs text-muted-foreground">
-          {getEligibleRoleSummary(member)}
-        </p>
+        {!isAssigned && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {getEligibleRoleSummary(member)}
+          </p>
+        )}
 
         {/* Action row */}
         <div className="mt-3 flex items-center gap-2">
-          <Popover open={assignOpen} onOpenChange={setAssignOpen}>
-            <PopoverTrigger asChild>
-              <Button size="sm" className="h-8 flex-1 text-sm">
-                <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                Assign to...
-                <ChevronDown className="ml-auto h-3.5 w-3.5 opacity-60" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search slots..." className="h-9" />
-                <CommandList className="max-h-64">
-                  <CommandEmpty>No empty slots found.</CommandEmpty>
-                  {emptySlotsByCategory.map((cat) => (
-                    <CommandGroup key={cat.name} heading={cat.name}>
-                      {cat.slots.map((slot) => {
-                        const warning = getEligibilityWarning(slot.role, member)
-                        return (
-                          <CommandItem
-                            key={slot.id}
-                            value={`${slotLabel(slot)} ${cat.name}`}
-                            onSelect={() => {
-                              onAssign(slot.id, member)
-                              setAssignOpen(false)
-                            }}
-                            className="text-sm"
-                          >
-                            <div className="flex flex-col gap-0.5 min-w-0">
-                              <span className="truncate">
-                                {slotLabel(slot)}
-                              </span>
-                              {warning !== null && (
-                                <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                                  <AlertTriangle className="h-3 w-3 shrink-0" />
-                                  {warning}
+          {isAssigned ? (
+            <Button size="sm" className="h-8 flex-1 text-sm" disabled>
+              <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+              Already assigned
+            </Button>
+          ) : (
+            <Popover open={assignOpen} onOpenChange={setAssignOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm" className="h-8 flex-1 text-sm">
+                  <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                  Assign to...
+                  <ChevronDown className="ml-auto h-3.5 w-3.5 opacity-60" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search slots..." className="h-9" />
+                  <CommandList className="max-h-64">
+                    <CommandEmpty>No empty slots found.</CommandEmpty>
+                    {emptySlotsByCategory.map((cat) => (
+                      <CommandGroup key={cat.name} heading={cat.name}>
+                        {cat.slots.map((slot) => {
+                          const warning = getEligibilityWarning(
+                            slot.role,
+                            member
+                          )
+                          return (
+                            <CommandItem
+                              key={slot.id}
+                              value={`${slotLabel(slot)} ${cat.name}`}
+                              onSelect={() => {
+                                onAssign(slot.id, member)
+                                setAssignOpen(false)
+                              }}
+                              className="text-sm"
+                            >
+                              <div className="flex flex-col gap-0.5 min-w-0">
+                                <span className="truncate">
+                                  {slotLabel(slot)}
+                                </span>
+                                {warning !== null && (
+                                  <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                                    <AlertTriangle className="h-3 w-3 shrink-0" />
+                                    {warning}
+                                  </span>
+                                )}
+                              </div>
+                              {!slot.required && (
+                                <span className="ml-auto text-xs text-muted-foreground">
+                                  opt
                                 </span>
                               )}
-                            </div>
-                            {!slot.required && (
-                              <span className="ml-auto text-xs text-muted-foreground">
-                                opt
-                              </span>
-                            )}
-                          </CommandItem>
-                        )
-                      })}
-                    </CommandGroup>
-                  ))}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+                            </CommandItem>
+                          )
+                        })}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          )}
 
           <Button
             variant="outline"
@@ -314,13 +363,13 @@ export function CommunitySheet({
     return ids
   }, [categories])
 
-  const unassigned = useMemo(
-    () => communityMembers.filter((m) => !assignedIds.has(m.id)),
+  const unassignedCount = useMemo(
+    () => communityMembers.filter((m) => !assignedIds.has(m.id)).length,
     [communityMembers, assignedIds]
   )
 
   const filteredMembers = useMemo(() => {
-    let list = unassigned
+    let list = [...communityMembers]
     const q = filters.search.trim().toLowerCase()
     if (q.length > 0) {
       list = list.filter(
@@ -341,8 +390,14 @@ export function CommunitySheet({
         return label.toLowerCase() === filters.experienceLevel
       })
     }
+    // Sort: unassigned first, assigned last
+    list.sort((a, b) => {
+      const aAssigned = assignedIds.has(a.id) ? 1 : 0
+      const bAssigned = assignedIds.has(b.id) ? 1 : 0
+      return aAssigned - bAssigned
+    })
     return list
-  }, [unassigned, filters])
+  }, [communityMembers, assignedIds, filters])
 
   const hasActiveFilters =
     filters.attendsSecuela ||
@@ -393,7 +448,7 @@ export function CommunitySheet({
               Community Members
             </SheetTitle>
             <Badge variant="secondary" className="text-sm px-2.5">
-              {unassigned.length} unassigned
+              {unassignedCount} unassigned
             </Badge>
           </div>
           <SheetDescription className="text-sm">
@@ -503,9 +558,9 @@ export function CommunitySheet({
             </span>{' '}
             of{' '}
             <span className="font-semibold text-foreground">
-              {unassigned.length}
+              {communityMembers.length}
             </span>{' '}
-            unassigned members
+            members ({unassignedCount} unassigned)
           </p>
         </div>
 
@@ -517,15 +572,11 @@ export function CommunitySheet({
                 <Users className="h-10 w-10 text-muted-foreground/30" />
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    {unassigned.length === 0
-                      ? 'All members assigned'
-                      : 'No members match filters'}
+                    No members match filters
                   </p>
-                  {unassigned.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Try clearing some filters
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Try clearing some filters
+                  </p>
                 </div>
                 {hasActiveFilters && (
                   <Button variant="outline" size="sm" onClick={clearFilters}>
