@@ -1,3 +1,18 @@
+## [1.31.0](https://github.com/sdavisde/dttd/compare/v1.30.0...v1.31.0) (2026-04-11)
+
+### Features
+
+- add accordion and scrollarea components ([a5cc814](https://github.com/sdavisde/dttd/commit/a5cc8140275b51b3b5bbdc05f3b826498e9afc41))
+- add ui pro skill ([f209bf9](https://github.com/sdavisde/dttd/commit/f209bf9f10df214bfe55ff818bdfba239160ab4b))
+- **roster-builder:** add community data fetching and eligibility system ([5064705](https://github.com/sdavisde/dttd/commit/50647051c578804ceefedf8517bf56e3ed205f7b))
+- **roster-builder:** add draft finalization and roster management flows ([1ee8377](https://github.com/sdavisde/dttd/commit/1ee837783aedc71db509170012b518f9bc80d779))
+- **roster-builder:** add draft roster data model and service layer ([209ef52](https://github.com/sdavisde/dttd/commit/209ef52f0ba85248af0987b91d44fede05da3f1a))
+- **roster-builder:** give rectors quick access from nav and homepage ([1233a3d](https://github.com/sdavisde/dttd/commit/1233a3d00cecd3dfaccbd753dd335e3b6ff60cb2))
+
+### Bug Fixes
+
+- **roster-builder:** resolve draft removal failure and polish header UI ([40278b7](https://github.com/sdavisde/dttd/commit/40278b7e5cfbb6302ac173245cfb915e965bca58)), closes [#N](https://github.com/sdavisde/dttd/issues/N)
+
 ## [1.30.0](https://github.com/sdavisde/dttd/compare/v1.29.1...v1.30.0) (2026-04-07)
 
 ### Features
