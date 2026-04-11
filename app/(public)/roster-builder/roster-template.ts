@@ -54,9 +54,9 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
         rollo: Rollo.REUNION_GROUP,
         required: true,
       },
-      { role: CHARole.TABLE_LEADER, rollo: Rollo.SILENT, required: true },
-      { role: CHARole.TABLE_LEADER, rollo: Rollo.SILENT, required: true },
-      { role: CHARole.TABLE_LEADER, rollo: Rollo.SILENT, required: true },
+      { role: CHARole.TABLE_LEADER, required: true },
+      { role: CHARole.TABLE_LEADER, required: true },
+      { role: CHARole.TABLE_LEADER, required: true },
     ],
   },
   {

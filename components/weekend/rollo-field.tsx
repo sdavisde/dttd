@@ -18,6 +18,13 @@ import {
 } from '@/components/ui/select'
 import type { Control, FieldPath } from 'react-hook-form'
 
+/**
+ * Sentinel value used in the Select UI to represent "no rollo."
+ * This is mapped to `undefined` (which becomes `null` in the DB)
+ * before the form value is set. It is NOT a real Rollo enum value.
+ */
+const SILENT_SENTINEL = '__silent__'
+
 interface RolloFieldProps<T extends Record<string, any>> {
   control: Control<T>
   name: FieldPath<T>
@@ -52,13 +59,19 @@ export function RolloField<T extends Record<string, any>>({
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value}>
+          <Select
+            onValueChange={(v) =>
+              field.onChange(v === SILENT_SENTINEL ? undefined : v)
+            }
+            value={field.value ?? SILENT_SENTINEL}
+          >
             <FormControl>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
+              <SelectItem value={SILENT_SENTINEL}>Silent</SelectItem>
               {Object.values(Rollo).map((rollo) => (
                 <SelectItem key={rollo} value={rollo}>
                   {rollo}

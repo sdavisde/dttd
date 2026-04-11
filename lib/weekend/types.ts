@@ -144,6 +144,14 @@ export enum CHARole {
   ROVER = 'Rover',
 }
 
+/**
+ * Rollos that can be assigned to Table Leaders and Spiritual Directors.
+ *
+ * "Silent" team members (those not giving a rollo) are represented by
+ * `rollo = null` in the database — NOT by a Rollo enum value. This is
+ * important because other parts of the app use `!isNil(rollo)` to
+ * determine whether someone has given a rollo (e.g. eligibility checks).
+ */
 export enum Rollo {
   IDEALS = 'Ideals',
   GRACE = 'Grace',
@@ -160,5 +168,4 @@ export enum Rollo {
   CCIA = 'CCIA',
   REUNION_GROUP = 'Reunion Group',
   FOURTH_DAY = 'Fourth Day',
-  SILENT = 'Silent',
 }
