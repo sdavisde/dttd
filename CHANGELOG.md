@@ -1,3 +1,9 @@
+## [1.31.2](https://github.com/sdavisde/dttd/compare/v1.31.1...v1.31.2) (2026-04-11)
+
+### Bug Fixes
+
+- use WRITE_TEAM_ROSTER permission for roster builder nav visibility ([166eae2](https://github.com/sdavisde/dttd/commit/166eae25b35cb61db7b733962c8e6a1d60f5b08d))
+
 ## [1.31.1](https://github.com/sdavisde/dttd/compare/v1.31.0...v1.31.1) (2026-04-11)
 
 ### Bug Fixes
