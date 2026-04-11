@@ -1,6 +1,7 @@
 import 'server-only'
 
-import type { Result} from '@/lib/results';
+import { isNil } from 'lodash'
+import type { Result } from '@/lib/results'
 import { isErr, ok, unwrapOr, safeParse, isOk } from '@/lib/results'
 import * as MasterRosterRepository from './repository'
 import { addressSchema } from '@/lib/users/validation'
@@ -15,6 +16,7 @@ import type {
   MasterRoster,
   MasterRosterMember,
   ExperienceDistribution,
+  CommunityDataForRosterBuilder,
 } from './types'
 import { countBy } from 'lodash'
 
@@ -120,5 +122,44 @@ export async function getWeekendRosterExperienceDistribution(
       percentage: toPercentage(levelCounts['3'] ?? 0),
     },
     total,
+  })
+}
+
+/**
+ * Fetches all community data needed by the roster builder for a given weekend:
+ * users with experience, secuela attendance, roster assignments, and draft assignments.
+ * Runs queries in parallel for performance.
+ */
+export async function getCommunityDataForRosterBuilder(
+  weekendId: string
+): Promise<Result<string, CommunityDataForRosterBuilder>> {
+  // Get the weekend's group_id for secuela lookup
+  const groupIdResult =
+    await MasterRosterRepository.findWeekendGroupId(weekendId)
+  if (isErr(groupIdResult)) {
+    return groupIdResult
+  }
+
+  // Run parallel queries
+  const [masterRosterResult, rosterResult, draftResult, secuelaResult] =
+    await Promise.all([
+      MasterRosterRepository.getMasterRoster(),
+      MasterRosterRepository.findRosterAssignments(weekendId),
+      MasterRosterRepository.findDraftAssignments(weekendId),
+      !isNil(groupIdResult.data)
+        ? MasterRosterRepository.findSecuelaAttendees(groupIdResult.data)
+        : Promise.resolve(ok(new Set<string>())),
+    ])
+
+  if (isErr(masterRosterResult)) return masterRosterResult
+  if (isErr(rosterResult)) return rosterResult
+  if (isErr(draftResult)) return draftResult
+  if (isErr(secuelaResult)) return secuelaResult
+
+  return ok({
+    users: masterRosterResult.data,
+    rosterAssignments: rosterResult.data,
+    draftAssignments: draftResult.data,
+    secuelaAttendees: secuelaResult.data,
   })
 }

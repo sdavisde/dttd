@@ -1,3 +1,4 @@
+import type { Tables } from '@/database.types'
 import type { CommunityInformation } from '@/lib/users/types'
 import type { Address } from '@/lib/users/validation'
 import type { UserExperience } from '@/lib/users/experience/validation'
@@ -71,4 +72,36 @@ export type GroupedExperience = {
 export type UserExperienceRecord = {
   weekend_id: string | null
   weekend_reference: string
+}
+
+/**
+ * Raw community user data shape from the master roster query.
+ * Includes user info and experience records needed by the roster builder.
+ */
+export type RawCommunityUser = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+  phone_number: string | null
+  church_affiliation: string | null
+  gender: string | null
+  users_experience: Array<Tables<'users_experience'>>
+}
+
+/**
+ * Bundled community data for the roster builder.
+ * Contains all raw data needed to compute eligibility and assignment status.
+ */
+export type CommunityDataForRosterBuilder = {
+  users: RawCommunityUser[]
+  rosterAssignments: Map<
+    string,
+    { rosterId: string; chaRole: string; rollo: string | null }
+  >
+  draftAssignments: Map<
+    string,
+    { draftId: string; chaRole: string; rollo: string | null }
+  >
+  secuelaAttendees: Set<string>
 }

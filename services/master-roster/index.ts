@@ -2,7 +2,12 @@
 
 import * as MasterRosterService from './master-roster-service'
 
-export type { ExperienceDistribution, MasterRosterMember } from './types'
+export type {
+  ExperienceDistribution,
+  MasterRosterMember,
+  RawCommunityUser,
+  CommunityDataForRosterBuilder,
+} from './types'
 
 /**
  * @returns the master roster with all user information in the community.
@@ -22,4 +27,12 @@ export async function getWeekendRosterExperienceDistribution(
   return await MasterRosterService.getWeekendRosterExperienceDistribution(
     weekendId
   )
+}
+
+/**
+ * Fetches all community data needed by the roster builder for a given weekend.
+ * Includes users with experience, secuela attendance, and assignment status.
+ */
+export async function getCommunityDataForRosterBuilder(weekendId: string) {
+  return await MasterRosterService.getCommunityDataForRosterBuilder(weekendId)
 }

@@ -24,7 +24,7 @@ Set up the `draft_weekend_roster` database table, Supabase migration, RLS polici
 
 ---
 
-### [ ] 2.0 Community Data Fetching & Eligibility System
+### [x] 2.0 Community Data Fetching & Eligibility System
 
 Build the server action that fetches all community members with their experience, secuela attendance, current assignment status (roster + draft), and computed eligibility flags. Implement the extendable eligibility checking system.
 
@@ -36,7 +36,12 @@ Build the server action that fetches all community members with their experience
 
 #### 2.0 Tasks
 
-TBD
+- [x] 2.1 Create `services/roster-builder/types.ts` — define `RosterBuilderCommunityMember` type with user info, experience records, computed flags (experienceLevel, rectorReadyStatus, hasBeenSectionHead, hasGivenRollo, attendsSecuela, assignmentStatus), and eligibility map
+- [x] 2.2 Create `services/roster-builder/eligibility.ts` — extendable eligibility system as a map of `CHARole → check function` with Head/Asst Head and Rover rules
+- [x] 2.3 Create `services/roster-builder/repository.ts` — query to fetch all users with experience, secuela attendance, and current assignment status (roster + draft)
+- [x] 2.4 Create `services/roster-builder/roster-builder-service.ts` — `getRosterBuilderCommunityData(weekendId)` that fetches, computes, and returns fully shaped community data
+- [x] 2.5 Create `services/roster-builder/actions.ts` and `services/roster-builder/index.ts` — server action exports
+- [x] 2.6 Verify `npx tsc --noEmit` passes with zero errors
 
 ---
 

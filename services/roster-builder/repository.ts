@@ -8,6 +8,7 @@ import type { RawDraftRosterWithUser } from './types'
 
 /**
  * Query constant for draft roster with user data.
+ * Uses FK hint to disambiguate the two user FK relationships.
  */
 const DraftRosterQuery = `
   id,
