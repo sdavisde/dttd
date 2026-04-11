@@ -375,6 +375,61 @@ export type Database = {
         }
         Relationships: []
       }
+      draft_weekend_roster: {
+        Row: {
+          cha_role: string
+          created_at: string | null
+          created_by: string
+          finalized_at: string | null
+          id: string
+          rollo: string | null
+          user_id: string
+          weekend_id: string
+        }
+        Insert: {
+          cha_role: string
+          created_at?: string | null
+          created_by: string
+          finalized_at?: string | null
+          id?: string
+          rollo?: string | null
+          user_id: string
+          weekend_id: string
+        }
+        Update: {
+          cha_role?: string
+          created_at?: string | null
+          created_by?: string
+          finalized_at?: string | null
+          id?: string
+          rollo?: string | null
+          user_id?: string
+          weekend_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'draft_weekend_roster_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'draft_weekend_roster_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'draft_weekend_roster_weekend_id_fkey'
+            columns: ['weekend_id']
+            isOneToOne: false
+            referencedRelation: 'weekends'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
