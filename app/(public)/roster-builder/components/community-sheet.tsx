@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import {
   Search,
   X,
@@ -105,10 +105,12 @@ function CommunityMemberCard({
   member,
   categories,
   onAssign,
+  scrollAreaRef,
 }: {
   member: RosterBuilderCommunityMember
   categories: RoleCategory[]
   onAssign: (slotId: string, member: RosterBuilderCommunityMember) => void
+  scrollAreaRef: React.RefObject<HTMLDivElement | null>
 }) {
   const [expanded, setExpanded] = useState(false)
   const [assignOpen, setAssignOpen] = useState(false)
@@ -267,6 +269,13 @@ function CommunityMemberCard({
                 side="bottom"
                 collisionPadding={16}
                 onWheel={(e) => e.stopPropagation()}
+                onCloseAutoFocus={(e) => {
+                  // When the popover closes after assignment, the card
+                  // re-sorts to the bottom. Radix tries to restore focus
+                  // to the trigger (now at the bottom), scrolling the list.
+                  // Prevent that focus restoration to keep scroll stable.
+                  e.preventDefault()
+                }}
               >
                 <Command>
                   <CommandInput placeholder="Search slots..." className="h-9" />
@@ -305,11 +314,6 @@ function CommunityMemberCard({
                                   </span>
                                 )}
                               </div>
-                              {!slot.required && (
-                                <span className="ml-auto text-xs text-muted-foreground">
-                                  opt
-                                </span>
-                              )}
                             </CommandItem>
                           )
                         })}
@@ -416,6 +420,18 @@ export function CommunitySheet({
   categories: RoleCategory[]
   onAssign: (slotId: string, member: RosterBuilderCommunityMember) => void
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const pendingScrollRef = useRef(false)
+
+  useEffect(() => {
+    if (!pendingScrollRef.current) return
+    pendingScrollRef.current = false
+    const viewport = scrollRef.current?.querySelector(
+      '[data-slot="scroll-area-viewport"]'
+    )
+    viewport?.scrollTo({ top: 0 })
+  }, [categories])
+
   const [filters, setFilters] = useState<SheetFilters>(() => ({
     search: '',
     gender: defaultGenderFilter(weekendType),
@@ -455,7 +471,7 @@ export function CommunitySheet({
       )
     }
     if (filters.gender !== 'all') {
-      list = list.filter((m) => m.gender === filters.gender)
+      list = list.filter((m) => m.gender?.toLowerCase() === filters.gender)
     }
     if (filters.attendsSecuela) list = list.filter((m) => m.attendsSecuela)
     if (filters.hasGivenRollo) list = list.filter((m) => m.hasGivenRollo)
@@ -664,7 +680,7 @@ export function CommunitySheet({
         </div>
 
         {/* Member list */}
-        <ScrollArea className="flex-1 min-h-0">
+        <ScrollArea ref={scrollRef} className="flex-1 min-h-0">
           <div className="px-5 py-4 space-y-3">
             {filteredMembers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
@@ -689,7 +705,11 @@ export function CommunitySheet({
                   key={member.id}
                   member={member}
                   categories={categories}
-                  onAssign={onAssign}
+                  scrollAreaRef={scrollRef}
+                  onAssign={(slotId, m) => {
+                    onAssign(slotId, m)
+                    pendingScrollRef.current = true
+                  }}
                 />
               ))
             )}
