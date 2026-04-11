@@ -33,7 +33,7 @@ yarn-error.log*
 # migration data
 /migration-data/
 
-*__pycache__
+__pycache__
 
 # env files (can opt-in for committing if needed)
 .env
