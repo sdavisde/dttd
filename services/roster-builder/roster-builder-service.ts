@@ -228,7 +228,7 @@ export async function removeDraftRosterMember(
  */
 export async function finalizeDraftRosterMember(
   draftId: string
-): Promise<Result<string, void>> {
+): Promise<Result<string, string>> {
   const draftResult = await RosterBuilderRepository.findDraftById(draftId)
   if (isErr(draftResult)) {
     return err(draftResult.error)
@@ -256,6 +256,8 @@ export async function finalizeDraftRosterMember(
   if (isErr(rosterResult)) {
     return err(`Failed to create roster entry: ${rosterResult.error}`)
   }
+
+  const rosterId = rosterResult.data
 
   // Step 2: Ensure a weekend_group_members row exists
   const weekendResult = await WeekendRepository.findWeekendById(
@@ -289,7 +291,7 @@ export async function finalizeDraftRosterMember(
     )
   }
 
-  return ok(undefined)
+  return ok(rosterId)
 }
 
 // ============================================================================

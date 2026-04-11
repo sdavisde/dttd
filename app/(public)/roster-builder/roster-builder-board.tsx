@@ -36,6 +36,7 @@ import { Toolbar } from './components/toolbar'
 export function RosterBuilderBoard({
   weekendId,
   weekendTitle,
+  weekendType,
   rectorUserId,
   communityMembers,
 }: RosterBuilderBoardProps) {
@@ -262,6 +263,27 @@ export function RosterBuilderBoard({
             error: result.error,
           })
         } else {
+          // Replace temp rosterId with real one from the database
+          const realRosterId = result.data
+          setCategories((prev) =>
+            prev.map((cat) => ({
+              ...cat,
+              slots: cat.slots.map((s) =>
+                s.id === slotId &&
+                s.assignment.type === 'finalized' &&
+                s.assignment.rosterId === tempRosterId
+                  ? {
+                      ...s,
+                      assignment: {
+                        type: 'finalized' as const,
+                        rosterId: realRosterId,
+                        member,
+                      },
+                    }
+                  : s
+              ),
+            }))
+          )
           toast.success(
             `${member.firstName ?? ''} ${member.lastName ?? ''} finalized.`
           )
@@ -395,6 +417,7 @@ export function RosterBuilderBoard({
             onSearchChange={setSearch}
             filterMode={filterMode}
             onFilterModeChange={setFilterMode}
+            weekendType={weekendType}
             communityMembers={communityMembers}
             categories={categories}
             onAssign={handleAssign}

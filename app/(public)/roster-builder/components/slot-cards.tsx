@@ -10,6 +10,9 @@ import {
   MoreVertical,
   UserX,
   Trash2,
+  Phone,
+  Mail,
+  Award,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -149,26 +152,40 @@ export function FilledSlotCard({
             <Calendar className="h-3.5 w-3.5" />
           </span>
         )}
-        {member.rectorReadyStatus.isReady && (
+        {member.rectorReadyStatus.criteria.hasServedAsRector ? (
           <span
-            title="Rector Ready"
-            className="text-amber-500 dark:text-amber-400"
+            title="Past Rector"
+            className="text-violet-500 dark:text-violet-400"
           >
-            <Star className="h-3.5 w-3.5 fill-amber-400" />
+            <Award className="h-3.5 w-3.5" />
           </span>
+        ) : (
+          member.rectorReadyStatus.isReady && (
+            <span
+              title="Rector Ready"
+              className="text-amber-500 dark:text-amber-400"
+            >
+              <Star className="h-3.5 w-3.5 fill-amber-400" />
+            </span>
+          )
         )}
       </div>
 
-      {/* Last 2 past roles */}
-      {member.experience.length > 0 && (
-        <div className="mt-2 space-y-0.5 border-t pt-2">
-          {member.experience.slice(0, 2).map((r, i) => (
-            <p key={i} className="text-xs text-muted-foreground leading-snug">
-              {r.weekend_reference}: {r.cha_role}
-              {r.rollo != null ? ` — ${r.rollo}` : ''}
-            </p>
-          ))}
-        </div>
+      {/* Contact info */}
+      {(member.phoneNumber != null || member.email != null) && (
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground truncate">
+          {member.phoneNumber != null ? (
+            <>
+              <Phone className="h-3 w-3 shrink-0" />
+              {member.phoneNumber}
+            </>
+          ) : (
+            <>
+              <Mail className="h-3 w-3 shrink-0" />
+              {member.email}
+            </>
+          )}
+        </p>
       )}
 
       {/* Finalize button for drafts */}
@@ -291,10 +308,16 @@ export function EmptySlotCard({
                           <Calendar className="h-3 w-3" /> Secuela
                         </span>
                       )}
-                      {m.rectorReadyStatus.isReady && (
-                        <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
-                          <Star className="h-3 w-3" /> Rector Ready
+                      {m.rectorReadyStatus.criteria.hasServedAsRector ? (
+                        <span className="inline-flex items-center gap-0.5 text-xs text-violet-600 dark:text-violet-400">
+                          <Award className="h-3 w-3" /> Past Rector
                         </span>
+                      ) : (
+                        m.rectorReadyStatus.isReady && (
+                          <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
+                            <Star className="h-3 w-3" /> Rector Ready
+                          </span>
+                        )
                       )}
                     </div>
                     {warning !== null && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import {
   Search,
   X,
@@ -14,6 +14,9 @@ import {
   Briefcase,
   History,
   Church,
+  Phone,
+  Mail,
+  Award,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -54,13 +57,22 @@ import {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+type GenderFilter = 'all' | 'male' | 'female'
+
 type SheetFilters = {
   search: string
+  gender: GenderFilter
   attendsSecuela: boolean
   hasGivenRollo: boolean
   hasBeenSectionHead: boolean
   isRectorReady: boolean
   experienceLevel: 'all' | 'veteran' | 'experienced' | 'served'
+}
+
+function defaultGenderFilter(weekendType: string): GenderFilter {
+  if (weekendType === 'MENS') return 'male'
+  if (weekendType === 'WOMENS') return 'female'
+  return 'all'
 }
 
 // ── Community Member Card ─────────────────────────────────────────────────────
@@ -103,14 +115,38 @@ function CommunityMemberCard({
 
   const isAssigned = member.assignmentStatus.type !== 'unassigned'
 
-  const emptySlotsByCategory = useMemo(() => {
+  // Deduplicate empty slots by role label so the selector shows
+  // each unique role once per category (e.g. one "Chapel" instead of two).
+  // When selected, we assign to the first available slot for that role.
+  const uniqueEmptySlotsByCategory = useMemo(() => {
     return categories
-      .map((cat) => ({
-        name: cat.name,
-        slots: cat.slots.filter((s) => s.assignment.type === 'empty'),
-      }))
+      .map((cat) => {
+        const seen = new Set<string>()
+        const uniqueSlots = cat.slots.filter((s) => {
+          if (s.assignment.type !== 'empty') return false
+          const label = slotLabel(s)
+          if (seen.has(label)) return false
+          seen.add(label)
+          return true
+        })
+        return { name: cat.name, slots: uniqueSlots }
+      })
       .filter((cat) => cat.slots.length > 0)
   }, [categories])
+
+  // Find the first empty slot matching a given role label within a category
+  const findFirstEmptySlot = useCallback(
+    (categoryName: string, roleLabel: string) => {
+      const cat = categories.find((c) => c.name === categoryName)
+      if (cat == null) return null
+      return (
+        cat.slots.find(
+          (s) => s.assignment.type === 'empty' && slotLabel(s) === roleLabel
+        ) ?? null
+      )
+    },
+    [categories]
+  )
 
   return (
     <div
@@ -128,6 +164,17 @@ function CommunityMemberCard({
               <Church className="h-3.5 w-3.5 shrink-0" />
               {member.church}
             </p>
+            {member.phoneNumber != null ? (
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                <Phone className="h-3 w-3 shrink-0" />
+                {member.phoneNumber}
+              </p>
+            ) : member.email != null ? (
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground truncate">
+                <Mail className="h-3 w-3 shrink-0" />
+                {member.email}
+              </p>
+            ) : null}
           </div>
           <ExperienceBadge
             level={member.experienceLevel}
@@ -153,14 +200,24 @@ function CommunityMemberCard({
               Secuela
             </Badge>
           )}
-          {member.rectorReadyStatus.isReady && (
+          {member.rectorReadyStatus.criteria.hasServedAsRector ? (
             <Badge
               variant="outline"
-              className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs"
+              className="border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300 text-xs"
             >
-              <Star className="mr-1 h-3 w-3" />
-              Rector Ready
+              <Award className="mr-1 h-3 w-3" />
+              Past Rector
             </Badge>
+          ) : (
+            member.rectorReadyStatus.isReady && (
+              <Badge
+                variant="outline"
+                className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs"
+              >
+                <Star className="mr-1 h-3 w-3" />
+                Rector Ready
+              </Badge>
+            )
           )}
           {member.hasGivenRollo && (
             <Badge
@@ -204,32 +261,43 @@ function CommunityMemberCard({
                   <ChevronDown className="ml-auto h-3.5 w-3.5 opacity-60" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-0" align="start">
+              <PopoverContent
+                className="w-72 p-0"
+                align="start"
+                side="bottom"
+                collisionPadding={16}
+                onWheel={(e) => e.stopPropagation()}
+              >
                 <Command>
                   <CommandInput placeholder="Search slots..." className="h-9" />
-                  <CommandList className="max-h-64">
+                  <CommandList>
                     <CommandEmpty>No empty slots found.</CommandEmpty>
-                    {emptySlotsByCategory.map((cat) => (
+                    {uniqueEmptySlotsByCategory.map((cat) => (
                       <CommandGroup key={cat.name} heading={cat.name}>
                         {cat.slots.map((slot) => {
                           const warning = getEligibilityWarning(
                             slot.role,
                             member
                           )
+                          const label = slotLabel(slot)
                           return (
                             <CommandItem
                               key={slot.id}
-                              value={`${slotLabel(slot)} ${cat.name}`}
+                              value={`${label} ${cat.name}`}
                               onSelect={() => {
-                                onAssign(slot.id, member)
+                                const target = findFirstEmptySlot(
+                                  cat.name,
+                                  label
+                                )
+                                if (target != null) {
+                                  onAssign(target.id, member)
+                                }
                                 setAssignOpen(false)
                               }}
                               className="text-sm"
                             >
                               <div className="flex flex-col gap-0.5 min-w-0">
-                                <span className="truncate">
-                                  {slotLabel(slot)}
-                                </span>
+                                <span className="truncate">{label}</span>
                                 {warning !== null && (
                                   <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                                     <AlertTriangle className="h-3 w-3 shrink-0" />
@@ -315,13 +383,18 @@ function CommunityMemberCard({
             </span>
             <span
               className={
-                member.rectorReadyStatus.isReady
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-muted-foreground'
+                member.rectorReadyStatus.criteria.hasServedAsRector
+                  ? 'text-violet-600 dark:text-violet-400'
+                  : member.rectorReadyStatus.isReady
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-muted-foreground'
               }
             >
-              {member.rectorReadyStatus.isReady ? '\u2605' : '\u2606'} Rector
-              Ready
+              {member.rectorReadyStatus.criteria.hasServedAsRector
+                ? '\u2605 Past Rector'
+                : member.rectorReadyStatus.isReady
+                  ? '\u2605 Rector Ready'
+                  : '\u2606 Rector Ready'}
             </span>
           </div>
         </div>
@@ -333,22 +406,25 @@ function CommunityMemberCard({
 // ── Community Sheet ───────────────────────────────────────────────────────────
 
 export function CommunitySheet({
+  weekendType,
   communityMembers,
   categories,
   onAssign,
 }: {
+  weekendType: string
   communityMembers: RosterBuilderCommunityMember[]
   categories: RoleCategory[]
   onAssign: (slotId: string, member: RosterBuilderCommunityMember) => void
 }) {
-  const [filters, setFilters] = useState<SheetFilters>({
+  const [filters, setFilters] = useState<SheetFilters>(() => ({
     search: '',
+    gender: defaultGenderFilter(weekendType),
     attendsSecuela: false,
     hasGivenRollo: false,
     hasBeenSectionHead: false,
     isRectorReady: false,
     experienceLevel: 'all',
-  })
+  }))
 
   // Get the set of assigned member IDs from the categories
   const assignedIds = useMemo(() => {
@@ -378,6 +454,9 @@ export function CommunitySheet({
           (m.church ?? '').toLowerCase().includes(q)
       )
     }
+    if (filters.gender !== 'all') {
+      list = list.filter((m) => m.gender === filters.gender)
+    }
     if (filters.attendsSecuela) list = list.filter((m) => m.attendsSecuela)
     if (filters.hasGivenRollo) list = list.filter((m) => m.hasGivenRollo)
     if (filters.hasBeenSectionHead)
@@ -399,17 +478,20 @@ export function CommunitySheet({
     return list
   }, [communityMembers, assignedIds, filters])
 
+  const defaultGender = defaultGenderFilter(weekendType)
   const hasActiveFilters =
     filters.attendsSecuela ||
     filters.hasGivenRollo ||
     filters.hasBeenSectionHead ||
     filters.isRectorReady ||
     filters.experienceLevel !== 'all' ||
+    filters.gender !== defaultGender ||
     filters.search.length > 0
 
   function clearFilters() {
     setFilters({
       search: '',
+      gender: defaultGender,
       attendsSecuela: false,
       hasGivenRollo: false,
       hasBeenSectionHead: false,
@@ -519,6 +601,23 @@ export function CommunitySheet({
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <select
+                value={filters.gender}
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    gender: e.target.value as GenderFilter,
+                  }))
+                }
+                className="w-full appearance-none rounded-md border border-input bg-background px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+              >
+                <option value="all">All genders</option>
+                <option value="male">Men</option>
+                <option value="female">Women</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            </div>
             <div className="relative flex-1">
               <select
                 value={filters.experienceLevel}

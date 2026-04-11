@@ -12,6 +12,7 @@ export function Toolbar({
   onSearchChange,
   filterMode,
   onFilterModeChange,
+  weekendType,
   communityMembers,
   categories,
   onAssign,
@@ -22,6 +23,7 @@ export function Toolbar({
   onSearchChange: (v: string) => void
   filterMode: FilterMode
   onFilterModeChange: (v: FilterMode) => void
+  weekendType: string
   communityMembers: RosterBuilderCommunityMember[]
   categories: RoleCategory[]
   onAssign: (slotId: string, member: RosterBuilderCommunityMember) => void
@@ -50,6 +52,7 @@ export function Toolbar({
       </div>
 
       <CommunitySheet
+        weekendType={weekendType}
         communityMembers={communityMembers}
         categories={categories}
         onAssign={onAssign}

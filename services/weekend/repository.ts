@@ -382,16 +382,20 @@ export async function insertWeekendRosterMember(data: {
   status: string
   cha_role: string
   rollo: string | null
-}): Promise<Result<string, void>> {
+}): Promise<Result<string, string>> {
   const supabase = await createClient()
 
-  const { error } = await supabase.from('weekend_roster').insert(data)
+  const { data: row, error } = await supabase
+    .from('weekend_roster')
+    .insert(data)
+    .select('id')
+    .single()
 
-  if (isSupabaseError(error)) {
-    return err(error.message)
+  if (isSupabaseError(error) || isNil(row)) {
+    return err(error?.message ?? 'Failed to insert weekend roster member')
   }
 
-  return ok(undefined)
+  return ok(row.id)
 }
 
 /**

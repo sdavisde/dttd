@@ -98,6 +98,7 @@ async function renderBoard(weekend: Weekend, userId: string) {
     <RosterBuilderBoard
       weekendId={weekend.id}
       weekendTitle={weekendTitle(weekend)}
+      weekendType={weekend.type}
       rectorUserId={userId}
       communityMembers={communityResult.data}
     />

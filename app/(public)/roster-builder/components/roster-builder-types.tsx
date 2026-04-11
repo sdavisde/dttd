@@ -37,6 +37,7 @@ export type RoleCategory = {
 export type RosterBuilderBoardProps = {
   weekendId: string
   weekendTitle: string
+  weekendType: string
   rectorUserId: string
   communityMembers: RosterBuilderCommunityMember[]
 }
@@ -238,6 +239,8 @@ export function getEligibilityWarning(
 export function getEligibleRoleSummary(
   member: RosterBuilderCommunityMember
 ): string {
+  if (member.rectorReadyStatus.criteria.hasServedAsRector)
+    return 'Eligible for: All roles (Past Rector)'
   if (member.rectorReadyStatus.isReady)
     return 'Eligible for: All roles including Rector/Rover'
   if (member.hasBeenSectionHead && member.hasGivenRollo)

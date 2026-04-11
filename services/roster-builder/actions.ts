@@ -72,7 +72,7 @@ export async function removeDraftRosterMember(
  */
 export async function finalizeDraftRosterMember(
   draftId: string
-): Promise<Result<string, void>> {
+): Promise<Result<string, string>> {
   return RosterBuilderService.finalizeDraftRosterMember(draftId)
 }
 
