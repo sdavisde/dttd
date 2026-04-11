@@ -79,7 +79,8 @@ async function getNavElements(): Promise<NavElement[]> {
 
     featuredContent = {
       title: `DTTD #${mensWeekend.number}`,
-      description: dateDescription !== '' ? dateDescription : 'View details and sign up',
+      description:
+        dateDescription !== '' ? dateDescription : 'View details and sign up',
       linkText: 'View weekend details',
       linkHref: '/current-weekend',
     }
@@ -138,6 +139,14 @@ async function getNavElements(): Promise<NavElement[]> {
           permissions_needed: [],
           description: 'View basic candidate information',
           icon: 'user-check',
+        },
+        {
+          name: 'Roster Builder',
+          slug: 'roster-builder',
+          permissions_needed: [Permission.WRITE_TEAM_ROSTER],
+          description: 'Build and manage the weekend team roster',
+          icon: 'shield',
+          badge: 'restricted',
         },
         {
           name: 'Review Candidates',

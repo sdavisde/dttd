@@ -108,7 +108,7 @@ Implement the finalization confirmation dialog, the draft removal action, and th
 
 ---
 
-### [ ] 6.0 Navigation & Homepage Integration
+### [x] 6.0 Navigation & Homepage Integration
 
 Add the "Roster Builder" nav item under "Current Weekend" (visible only to rectors) and add a homepage banner card for rectors linking to the roster builder.
 
@@ -121,4 +121,6 @@ Add the "Roster Builder" nav item under "Current Weekend" (visible only to recto
 
 #### 6.0 Tasks
 
-TBD
+- [x] 6.1 Add "Roster Builder" nav item under "Current Weekend" dropdown in `navbar-server.tsx` — requires `WRITE_TEAM_ROSTER` permission, `restricted` badge, `shield` icon
+- [x] 6.2 Add rector homepage banner card in `dashboard.tsx` — prominent card shown when user is a Rector for an active weekend, displaying "You're the Rector for DTTD #[N] [Men's/Women's] Weekend — Build Your Roster →" with link to `/roster-builder`
+- [x] 6.3 Verify `yarn lint` and `npx tsc --noEmit` pass with zero errors
