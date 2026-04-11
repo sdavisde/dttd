@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import type { CHARole } from '@/lib/weekend/types'
+import { CHARole } from '@/lib/weekend/types'
 import type { RosterBuilderCommunityMember } from '@/services/roster-builder'
 import {
   DEFAULT_ROSTER_TEMPLATE,
@@ -192,6 +192,7 @@ export function fullName(m: RosterBuilderCommunityMember): string {
 
 export function slotLabel(slot: RosterSlot): string {
   if (slot.rollo != null) return `${slot.role} — ${slot.rollo}`
+  if (slot.role === CHARole.TABLE_LEADER) return `${slot.role} — Silent`
   return slot.role
 }
 
