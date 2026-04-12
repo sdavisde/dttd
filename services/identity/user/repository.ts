@@ -45,6 +45,7 @@ export const JoinWeekendRosterOnUserId = `
         status,
         weekend_roster(
           id,
+          user_id,
           cha_role,
           rollo,
           additional_cha_role,

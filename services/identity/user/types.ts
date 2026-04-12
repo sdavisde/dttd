@@ -32,6 +32,7 @@ export type RawUser = Tables<'users'> & {
         /** The user's roster row(s) in this weekend (empty if not assigned) */
         weekend_roster: Array<{
           id: string
+          user_id: string | null
           cha_role: string | null
           rollo: string | null
           additional_cha_role: string | null

@@ -54,7 +54,7 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
     const weekendAssignments: WeekendAssignment[] = activeWeekends.flatMap(
       (w) =>
         (w.weekend_roster ?? [])
-          .filter((r) => r.status !== 'drop')
+          .filter((r) => r.user_id === rawUser.id && r.status !== 'drop')
           .map((r) => ({
             rosterId: r.id,
             weekendId: r.weekend_id,
