@@ -1,3 +1,9 @@
+## [1.35.1](https://github.com/sdavisde/dttd/compare/v1.35.0...v1.35.1) (2026-04-12)
+
+### Bug Fixes
+
+- mobile styling fix on roster builder ([ca10f51](https://github.com/sdavisde/dttd/commit/ca10f510555549b46ca2c4dfb4a005999462c20f))
+
 ## [1.35.0](https://github.com/sdavisde/dttd/compare/v1.34.0...v1.35.0) (2026-04-12)
 
 ### Features
