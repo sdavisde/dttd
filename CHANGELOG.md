@@ -1,3 +1,10 @@
+## [1.34.0](https://github.com/sdavisde/dttd/compare/v1.33.3...v1.34.0) (2026-04-12)
+
+### Features
+
+- **roster-builder:** distinguish secuela attendees from late volunteers ([eb2f67e](https://github.com/sdavisde/dttd/commit/eb2f67e944fd61192f09b4d0a1ca6cd03f6f4b41))
+- **secuela:** migrate attendance tracking from boolean to timestamp ([1c5c0b8](https://github.com/sdavisde/dttd/commit/1c5c0b851b6646b83fa5635f7a1037b69c541035))
+
 ## [1.33.3](https://github.com/sdavisde/dttd/compare/v1.33.2...v1.33.3) (2026-04-12)
 
 ### Bug Fixes
