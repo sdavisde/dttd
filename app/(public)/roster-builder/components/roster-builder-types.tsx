@@ -40,6 +40,7 @@ export type RosterBuilderBoardProps = {
   weekendType: string
   rectorUserId: string
   communityMembers: RosterBuilderCommunityMember[]
+  hasSecuelaEvent: boolean
 }
 
 export type FilterMode = 'all' | 'filled' | 'empty'

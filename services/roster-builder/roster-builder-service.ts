@@ -21,10 +21,10 @@ import * as MasterRosterService from '@/services/master-roster/master-roster-ser
 import type {
   RosterBuilderCommunityMember,
   AssignmentStatus,
-  VolunteerStatus,
   DraftRosterMember,
   RawDraftRosterWithUser,
 } from './types'
+import { computeVolunteerStatus } from './volunteer-status'
 
 // ============================================================================
 // Community Data
@@ -77,7 +77,7 @@ export async function getRosterBuilderCommunityData(
     rosterAssignments,
     draftAssignments,
     secuelaAttendees,
-    secuelaEventDate,
+    secuelaEvent,
   } = communityResult.data
 
   const members: RosterBuilderCommunityMember[] = users.map((user) => {
@@ -88,16 +88,11 @@ export async function getRosterBuilderCommunityData(
     const hasBeenSectionHead = computeHasBeenSectionHead(experience)
     const hasGivenRollo = computeHasGivenRollo(experience)
 
-    // Compute secuela status by comparing sign-up timestamp to event date
-    const secuelaTimestamp = secuelaAttendees.get(user.id) ?? null
-    let volunteerStatus: VolunteerStatus = 'none'
-    if (!isNil(secuelaTimestamp)) {
-      if (isNil(secuelaEventDate) || secuelaTimestamp <= secuelaEventDate) {
-        volunteerStatus = 'attended_secuela'
-      } else {
-        volunteerStatus = 'wants_to_serve'
-      }
-    }
+    const signInTimestamp = secuelaAttendees.get(user.id) ?? null
+    const volunteerStatus = computeVolunteerStatus(
+      signInTimestamp,
+      secuelaEvent
+    )
 
     // Determine assignment status: finalized roster takes priority over draft
     let assignmentStatus: AssignmentStatus

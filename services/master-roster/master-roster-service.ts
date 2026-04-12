@@ -173,6 +173,12 @@ export async function getCommunityDataForRosterBuilder(
     rosterAssignments: rosterResult.data,
     draftAssignments: draftResult.data,
     secuelaAttendees: secuelaResult.data,
-    secuelaEventDate: secuelaDateResult.data?.datetime ?? null,
+    secuelaEvent:
+      secuelaDateResult.data?.datetime != null
+        ? {
+            startDate: secuelaDateResult.data.datetime,
+            endDate: secuelaDateResult.data.end_datetime ?? null,
+          }
+        : null,
   })
 }

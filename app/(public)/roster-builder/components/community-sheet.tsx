@@ -44,6 +44,11 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
 import type { RosterBuilderCommunityMember } from '@/services/roster-builder'
 import type { RoleCategory } from './roster-builder-types'
 import {
@@ -194,22 +199,32 @@ function CommunityMemberCard({
         {/* Indicator badges */}
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {member.volunteerStatus === 'attended_secuela' && (
-            <Badge
-              variant="outline"
-              className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 text-xs"
-            >
-              <Calendar className="mr-1 h-3 w-3" />
-              Attended Secuela
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 text-xs"
+                >
+                  <Calendar className="mr-1 h-3 w-3" />
+                  Attended Secuela
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Signed in at the secuela event</TooltipContent>
+            </Tooltip>
           )}
           {member.volunteerStatus === 'wants_to_serve' && (
-            <Badge
-              variant="outline"
-              className="border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300 text-xs"
-            >
-              <Calendar className="mr-1 h-3 w-3" />
-              Wants to Serve
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300 text-xs"
+                >
+                  <Calendar className="mr-1 h-3 w-3" />
+                  Wants to Serve
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Signed up to serve after secuela</TooltipContent>
+            </Tooltip>
           )}
           {member.rectorReadyStatus.criteria.hasServedAsRector ? (
             <Badge

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, useTransition } from 'react'
-import { Users } from 'lucide-react'
+import { AlertTriangle, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
@@ -39,6 +39,7 @@ export function RosterBuilderBoard({
   weekendType,
   rectorUserId,
   communityMembers,
+  hasSecuelaEvent,
 }: RosterBuilderBoardProps) {
   const [isPending, startTransition] = useTransition()
   const [categories, setCategories] = useState(() =>
@@ -408,6 +409,20 @@ export function RosterBuilderBoard({
           </div>
         </div>
       </header>
+
+      {/* Missing secuela event warning */}
+      {!hasSecuelaEvent && (
+        <div className="border-b border-amber-200 bg-amber-50 px-6 py-3 dark:border-amber-800 dark:bg-amber-950/40">
+          <div className="mx-auto max-w-screen-2xl flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <p>
+              No Secuela event has been created for this weekend. Volunteer
+              attendance status will not appear until a Secuela event is added
+              to the calendar.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Sticky toolbar */}
       <div className="sticky top-0 z-20 border-b bg-muted/50 px-6 py-3 shadow-sm backdrop-blur-sm dark:bg-card/95">

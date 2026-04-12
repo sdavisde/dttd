@@ -4,6 +4,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import { userHasPermission, Permission } from '@/lib/security'
 import { getActiveWeekends, getWeekendRoster } from '@/services/weekend'
 import { getRosterBuilderCommunityData } from '@/services/roster-builder'
+import { getSecuelaDateForGroup } from '@/services/events'
 import { isErr, isOk } from '@/lib/results'
 import type { Weekend } from '@/lib/weekend/types'
 import { WeekendType } from '@/lib/weekend/types'
@@ -80,7 +81,13 @@ export default async function RosterBuilderPage({
 }
 
 async function renderBoard(weekend: Weekend, userId: string) {
-  const communityResult = await getRosterBuilderCommunityData(weekend.id)
+  const [communityResult, secuelaDateResult] = await Promise.all([
+    getRosterBuilderCommunityData(weekend.id),
+    !isNil(weekend.groupId)
+      ? getSecuelaDateForGroup(weekend.groupId)
+      : Promise.resolve(null),
+  ])
+
   if (isErr(communityResult)) {
     return (
       <div className="container mx-auto px-4 pt-12 pb-8 text-center">
@@ -94,6 +101,11 @@ async function renderBoard(weekend: Weekend, userId: string) {
     )
   }
 
+  const hasSecuelaEvent =
+    secuelaDateResult !== null &&
+    isOk(secuelaDateResult) &&
+    secuelaDateResult.data !== null
+
   return (
     <RosterBuilderBoard
       weekendId={weekend.id}
@@ -101,6 +113,7 @@ async function renderBoard(weekend: Weekend, userId: string) {
       weekendType={weekend.type}
       rectorUserId={userId}
       communityMembers={communityResult.data}
+      hasSecuelaEvent={hasSecuelaEvent}
     />
   )
 }

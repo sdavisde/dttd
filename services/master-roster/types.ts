@@ -104,5 +104,5 @@ export type CommunityDataForRosterBuilder = {
     { draftId: string; chaRole: string; rollo: string | null }
   >
   secuelaAttendees: Map<string, string>
-  secuelaEventDate: string | null
+  secuelaEvent: { startDate: string; endDate: string | null } | null
 }

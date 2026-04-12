@@ -16,6 +16,11 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -145,20 +150,24 @@ export function FilledSlotCard({
           weekendsServed={member.weekendsServed}
         />
         {member.volunteerStatus !== 'none' && (
-          <span
-            title={
-              member.volunteerStatus === 'attended_secuela'
-                ? 'Attended Secuela'
-                : 'Wants to Serve'
-            }
-            className={
-              member.volunteerStatus === 'attended_secuela'
-                ? 'text-blue-500 dark:text-blue-400'
-                : 'text-cyan-500 dark:text-cyan-400'
-            }
-          >
-            <Calendar className="h-3.5 w-3.5" />
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className={
+                  member.volunteerStatus === 'attended_secuela'
+                    ? 'text-blue-500 dark:text-blue-400'
+                    : 'text-cyan-500 dark:text-cyan-400'
+                }
+              >
+                <Calendar className="h-3.5 w-3.5" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              {member.volunteerStatus === 'attended_secuela'
+                ? 'Signed in at the secuela event'
+                : 'Signed up to serve after secuela'}
+            </TooltipContent>
+          </Tooltip>
         )}
         {member.rectorReadyStatus.criteria.hasServedAsRector ? (
           <span
