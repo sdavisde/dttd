@@ -1,3 +1,10 @@
+## [1.35.0](https://github.com/sdavisde/dttd/compare/v1.34.0...v1.35.0) (2026-04-12)
+
+### Features
+
+- create testing framework with example test ([10f2b25](https://github.com/sdavisde/dttd/commit/10f2b2508f69a7e70757031cd5a1f3e763fd0d29))
+- **roster-builder:** add tooltips and missing secuela event warning ([361130a](https://github.com/sdavisde/dttd/commit/361130a1018e340b4a56b94607f5cb898014fde9))
+
 ## [1.34.0](https://github.com/sdavisde/dttd/compare/v1.33.3...v1.34.0) (2026-04-12)
 
 ### Features
