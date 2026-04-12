@@ -10,10 +10,11 @@ ALTER TABLE "public"."weekend_roster"
 -- Step 2: Backfill from existing data by joining through weekends → weekend_groups
 UPDATE "public"."weekend_roster" AS wr
 SET "group_member_id" = wgm.id
-FROM "public"."weekends" AS w
-JOIN "public"."weekend_group_members" AS wgm
-  ON wgm.group_id = w.group_id AND wgm.user_id = wr.user_id
+FROM "public"."weekends" AS w,
+     "public"."weekend_group_members" AS wgm
 WHERE wr.weekend_id = w.id
+  AND wgm.group_id = w.group_id
+  AND wgm.user_id = wr.user_id
   AND wr.group_member_id IS NULL;
 
 -- Step 3: Add FK constraint (nullable — historical rows without a group member are OK)
