@@ -64,7 +64,7 @@ export default function Home() {
             <Typography variant="h2" className="text-[#3D2B1F] mb-4">
               What is Tres Dias?
             </Typography>
-            <p className="text-[#7A6555] leading-relaxed">
+            <p className="text-[#7A6555] leading-relaxed max-w-prose">
               Tres Dias is an international movement designed to create an
               environment for strengthening your walk with Christ. It&apos;s a
               time of worship, fellowship, learning, and personal reflection in
@@ -95,7 +95,7 @@ export default function Home() {
         </div>
 
         {/* Contact */}
-        <div className="bg-gray-50 rounded-lg pb-6 text-center">
+        <div className="bg-[#FAF5EF] rounded-lg pb-6 text-center">
           <h3 className="text-xl font-bold text-[#3D2B1F] mb-4">
             Reach Out To The Community
           </h3>
