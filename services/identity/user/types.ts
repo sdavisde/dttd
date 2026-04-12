@@ -29,7 +29,13 @@ export type RawUser = Tables<'users'> & {
         type: string | null
         /** 'ACTIVE' | 'PLANNING' | 'FINISHED' — used to filter to the active group */
         status: string | null
-        /** The user's roster row(s) in this weekend (empty if not assigned) */
+        /**
+         * All roster rows for this weekend. IMPORTANT: this returns rows for ALL
+         * users on the weekend, not just the current user. Always filter by user_id
+         * in application code. Once database types are regenerated after the
+         * group_member_id migration, this join should be replaced with a direct
+         * weekend_roster!group_member_id join on weekend_group_members.
+         */
         weekend_roster: Array<{
           id: string
           user_id: string | null

@@ -244,10 +244,27 @@ export async function finalizeDraftRosterMember(
     return err('Draft roster entry has already been finalized')
   }
 
-  // Step 1: Create the weekend_roster row
+  // Step 1: Ensure a weekend_group_members row exists (needed for FK on roster)
+  const weekendResult = await WeekendRepository.findWeekendById(
+    draft.weekend_id
+  )
+  if (isErr(weekendResult) || isNil(weekendResult.data?.group_id)) {
+    return err('Weekend or group_id not found during finalization')
+  }
+
+  const groupResult = await GroupMemberRepository.upsertGroupMember(
+    weekendResult.data.group_id,
+    draft.user_id
+  )
+  if (isErr(groupResult)) {
+    return err(`Failed to upsert weekend_group_members: ${groupResult.error}`)
+  }
+
+  // Step 2: Create the weekend_roster row linked to the group member
   const rosterResult = await WeekendRepository.insertWeekendRosterMember({
     weekend_id: draft.weekend_id,
     user_id: draft.user_id,
+    group_member_id: groupResult.data,
     status: 'awaiting_payment',
     cha_role: draft.cha_role,
     rollo: draft.rollo,
@@ -258,28 +275,6 @@ export async function finalizeDraftRosterMember(
   }
 
   const rosterId = rosterResult.data
-
-  // Step 2: Ensure a weekend_group_members row exists
-  const weekendResult = await WeekendRepository.findWeekendById(
-    draft.weekend_id
-  )
-  if (isErr(weekendResult) || isNil(weekendResult.data?.group_id)) {
-    logger.warn(
-      { weekendId: draft.weekend_id, userId: draft.user_id },
-      'Could not upsert weekend_group_members during finalization: weekend or group_id not found'
-    )
-  } else {
-    const groupResult = await GroupMemberRepository.upsertGroupMember(
-      weekendResult.data.group_id,
-      draft.user_id
-    )
-    if (isErr(groupResult)) {
-      logger.warn(
-        { error: groupResult.error },
-        'Failed to upsert weekend_group_members during finalization'
-      )
-    }
-  }
 
   // Step 3: Archive the draft by setting finalized_at
   const finalizeResult =

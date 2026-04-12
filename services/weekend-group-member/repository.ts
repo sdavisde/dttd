@@ -14,11 +14,12 @@ import type {
 /**
  * Upserts a weekend_group_members row for a given group and user.
  * Safe to call multiple times — ON CONFLICT DO NOTHING ensures idempotency.
+ * Returns the group member ID.
  */
 export async function upsertGroupMember(
   groupId: string,
   userId: string
-): Promise<Result<string, void>> {
+): Promise<Result<string, string>> {
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -32,7 +33,19 @@ export async function upsertGroupMember(
     return err(`Failed to upsert group member: ${error.message}`)
   }
 
-  return ok(undefined)
+  // Fetch the ID (upsert with ignoreDuplicates doesn't return data)
+  const { data: member, error: fetchError } = await supabase
+    .from('weekend_group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .single()
+
+  if (isSupabaseError(fetchError) || isNil(member)) {
+    return err('Group member was created but could not be fetched')
+  }
+
+  return ok(member.id)
 }
 
 /**
@@ -327,22 +340,12 @@ export async function markSecuelaAttendance(
     return err(upsertResult.error)
   }
 
-  // Fetch the group member to get the ID, then set attends_secuela
-  const { data: member, error: memberError } = await supabase
-    .from('weekend_group_members')
-    .select('id')
-    .eq('group_id', groupId)
-    .eq('user_id', userId)
-    .single()
-
-  if (isSupabaseError(memberError) || isNil(member)) {
-    return err('Failed to find group member after upsert')
-  }
+  const groupMemberId = upsertResult.data
 
   const { error: updateError } = await supabase
     .from('weekend_group_members')
     .update({ attends_secuela: true })
-    .eq('id', member.id)
+    .eq('id', groupMemberId)
 
   if (isSupabaseError(updateError)) {
     return err('Failed to mark secuela attendance')
@@ -352,7 +355,7 @@ export async function markSecuelaAttendance(
     (activeWeekend.weekend_groups as { number: number | null } | null)
       ?.number ?? null
 
-  return ok({ groupMemberId: member.id, groupNumber })
+  return ok({ groupMemberId, groupNumber })
 }
 
 /**

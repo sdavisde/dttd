@@ -50,7 +50,8 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
       activeGroupMember.weekend_groups?.weekends ?? []
     ).filter((w) => w.status === WeekendStatus.ACTIVE)
 
-    // Exclude dropped roster rows — they are admin-only concern
+    // IMPORTANT: The roster join returns ALL users' rows for the weekend.
+    // Filter to only this user's rows to prevent leaking other users' roles/permissions.
     const weekendAssignments: WeekendAssignment[] = activeWeekends.flatMap(
       (w) =>
         (w.weekend_roster ?? [])

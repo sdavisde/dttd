@@ -903,9 +903,25 @@ export async function addUserToWeekendRoster(
   role: string,
   rollo?: string
 ): Promise<Result<string, void>> {
+  // Step 1: Ensure a weekend_group_members row exists (needed for FK on roster)
+  const weekendResult = await WeekendRepository.findWeekendById(weekendId)
+  if (isErr(weekendResult) || isNil(weekendResult.data?.group_id)) {
+    return err('Weekend or group_id not found')
+  }
+
+  const groupMemberResult = await GroupMemberRepository.upsertGroupMember(
+    weekendResult.data.group_id,
+    userId
+  )
+  if (isErr(groupMemberResult)) {
+    return groupMemberResult
+  }
+
+  // Step 2: Create the roster row linked to the group member
   const rosterResult = await WeekendRepository.insertWeekendRosterMember({
     weekend_id: weekendId,
     user_id: userId,
+    group_member_id: groupMemberResult.data,
     status: 'awaiting_payment',
     cha_role: role,
     rollo: rollo ?? null,
@@ -915,22 +931,7 @@ export async function addUserToWeekendRoster(
     return rosterResult
   }
 
-  // Ensure a weekend_group_members row exists for this user+group.
-  // Uses the weekend's group_id so a cross-weekend user gets one shared member row.
-  const weekendResult = await WeekendRepository.findWeekendById(weekendId)
-  if (isErr(weekendResult) || isNil(weekendResult.data?.group_id)) {
-    // Non-fatal: roster insert succeeded, log and continue
-    logger.warn(
-      { weekendId, userId },
-      'Could not upsert weekend_group_members: weekend or group_id not found'
-    )
-    return ok(undefined)
-  }
-
-  return GroupMemberRepository.upsertGroupMember(
-    weekendResult.data.group_id,
-    userId
-  )
+  return ok(undefined)
 }
 
 /**

@@ -379,6 +379,7 @@ export async function findWeekendRosterRecord(
 export async function insertWeekendRosterMember(data: {
   weekend_id: string
   user_id: string
+  group_member_id: string
   status: string
   cha_role: string
   rollo: string | null
