@@ -1,3 +1,9 @@
+## [1.33.2](https://github.com/sdavisde/dttd/compare/v1.33.1...v1.33.2) (2026-04-12)
+
+### Bug Fixes
+
+- ensure we're pulling the correct permissions back for users ([4f9ed15](https://github.com/sdavisde/dttd/commit/4f9ed15717458d1939f4ba3e02f5db6f1f85cb16))
+
 ## [1.33.1](https://github.com/sdavisde/dttd/compare/v1.33.0...v1.33.1) (2026-04-12)
 
 ### Bug Fixes
