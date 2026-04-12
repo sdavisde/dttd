@@ -25,12 +25,12 @@ export default async function SecuelaSignInPage() {
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Heart className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Secuela Sign-Up</CardTitle>
+          <CardTitle className="text-2xl">Sign Up to Serve</CardTitle>
           <CardDescription className="text-base">
             Thank you for your willingness to serve on the upcoming weekend!
             {isLoggedIn
-              ? ' Tap the button below to confirm your attendance.'
-              : ' Sign in or create an account to confirm your attendance.'}
+              ? ' Tap the button below to sign up to serve.'
+              : ' Sign in or create an account to sign up.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">

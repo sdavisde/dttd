@@ -41,7 +41,7 @@ export default async function SecuelaSignInPage() {
           </h1>
           <p className="text-muted-foreground">
             We are so grateful for your willingness to serve. You will receive
-            more information as the weekend approaches.
+            more information soon.
           </p>
         </div>
       </div>
