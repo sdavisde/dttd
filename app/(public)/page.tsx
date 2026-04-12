@@ -1,114 +1,205 @@
-import { Calendar, Mail, Phone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from '@/components/ui/card'
+  Calendar,
+  Mail,
+  Heart,
+  BookOpen,
+  Users,
+  ArrowRight,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import Link from 'next/link'
+import { Separator } from '@/components/ui/separator'
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Main Content */}
-      <main className="container mx-auto p-0 md:px-6 md:py-8 max-w-4xl">
-        {/* Hero Section with Background Image */}
-        <div className="relative md:rounded-lg overflow-hidden mb-12 min-h-[500px] flex items-center justify-center shadow-md">
-          <Image
-            src="/tanglewood.jpg"
-            alt="Community gathering"
-            className="absolute inset-0 object-cover w-full h-full"
-            width={1200}
-            height={500}
-            priority
-          />
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-[#2C1810]/60"></div>
+    <div className="flex flex-col">
+      {/* Hero — full-bleed with tall image */}
+      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+        <Image
+          src="/tanglewood.jpg"
+          alt="Tanglewood retreat center surrounded by Hill Country landscape"
+          className="absolute inset-0 object-cover w-full h-full"
+          width={1920}
+          height={1080}
+          priority
+        />
+        <div className="absolute inset-0 bg-[#2C1810]/60" />
 
-          {/* Hero Content */}
-          <div className="relative z-10 text-center px-6 py-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Welcome Friends
-            </h2>
-            <p className="text-xl text-white font-bold mb-8 leading-relaxed max-w-2xl mx-auto">
-              Dusty Trails is our local Tres Dias community - a place where
-              Christians gather for spiritual renewal, fellowship, and
-              encouragement in faith.
-            </p>
-
-            {/* Scripture */}
-            <Card className="bg-white/20 border-none p-6 max-w-2xl mx-auto backdrop-blur-sm">
-              <CardTitle>
-                <Typography className="text-background text-lg italic leading-relaxed text-center">
-                  &ldquo;For in Christ all the fullness of the Deity lives in
-                  bodily form, and in Christ you have been brought to fullness.
-                  He is the head over every power and authority.&rdquo;
-                </Typography>
-              </CardTitle>
-              <CardDescription>
-                <Typography className="text-background text-base font-medium text-center">
-                  - Colossians 2:9-10
-                </Typography>
-              </CardDescription>
-            </Card>
-          </div>
+        <div className="relative z-10 text-center px-6 py-20 max-w-3xl mx-auto">
+          <p className="text-white/80 uppercase tracking-[0.25em] text-sm mb-4">
+            A Tres Dias Community in Central Texas
+          </p>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            Dusty Trails
+            <br />
+            Tres Dias
+          </h1>
+          <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-xl mx-auto mb-10">
+            A place where Christians gather for spiritual renewal, fellowship,
+            and encouragement in faith.
+          </p>
+          <Button
+            href="/login"
+            size="lg"
+            className="bg-white text-[#3D2B1F] hover:bg-white/90 text-base px-8 py-6"
+          >
+            Community Login
+          </Button>
         </div>
+      </section>
 
-        {/* What We Do & Upcoming Weekends */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12 px-4">
-          {/* About Tres Dias */}
-          <div>
-            <Typography variant="h2" className="text-[#3D2B1F] mb-4">
+      {/* Scripture banner */}
+      <section className="bg-secondary py-10 px-6">
+        <blockquote className="max-w-2xl mx-auto text-center">
+          <p className="text-lg md:text-xl italic text-secondary-foreground leading-relaxed">
+            &ldquo;For in Christ all the fullness of the Deity lives in bodily
+            form, and in Christ you have been brought to fullness. He is the
+            head over every power and authority.&rdquo;
+          </p>
+          <cite className="block mt-3 text-sm font-medium text-secondary-foreground/70 not-italic">
+            Colossians 2:9-10
+          </cite>
+        </blockquote>
+      </section>
+
+      {/* What is Tres Dias */}
+      <section className="py-16 md:py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="max-w-2xl mx-auto text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               What is Tres Dias?
-            </Typography>
-            <p className="text-[#7A6555] leading-relaxed max-w-prose">
-              Tres Dias is an international movement designed to create an
-              environment for strengthening your walk with Christ. It&apos;s a
-              time of worship, fellowship, learning, and personal reflection in
-              a supportive Christian community.
+            </h2>
+            <Separator className="w-16 mx-auto mb-6 bg-primary" />
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Tres Dias is an international Christian movement designed to train
+              Christian leaders to serve in their communities.
             </p>
           </div>
 
-          {/* Upcoming Weekends */}
-          <div className="flex flex-col gap-4">
-            <Typography variant="h2" className="text-[#3D2B1F]">
-              Upcoming Weekends
-            </Typography>
-
-            <Alert>
-              <Calendar />
-              <AlertTitle className="font-bold">DTTD #10 Mens</AlertTitle>
-              <AlertDescription>Weekend: September 4-7, 2025</AlertDescription>
-            </Alert>
-
-            <Alert>
-              <Calendar />
-              <AlertTitle className="font-bold">DTTD #10 Womens</AlertTitle>
-              <AlertDescription>
-                Weekend: September 11-14, 2025
-              </AlertDescription>
-            </Alert>
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div className="bg-[#FAF5EF] rounded-lg pb-6 text-center">
-          <h3 className="text-xl font-bold text-[#3D2B1F] mb-4">
-            Reach Out To The Community
-          </h3>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6">
-            <div className="flex items-center space-x-2">
-              <Mail className="h-4 w-4 text-secondary-foreground" />
-              <span className="text-secondary-foreground">
-                admin@dustytrailstresdias.org
-              </span>
+          {/* Three pillars */}
+          <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="w-6 h-6 text-secondary-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Spiritual Renewal
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Fifteen talks exploring life in Christian grace, supported by
+                worship, prayer, and personal reflection.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
+                <Users className="w-6 h-6 text-secondary-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Authentic Community
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Build deep, lasting friendships with fellow believers in a
+                supportive and encouraging environment.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-6 h-6 text-secondary-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Living Faith
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Discover practical ways to carry your renewed faith back into
+                your everyday life, family, and church.
+              </p>
             </div>
           </div>
         </div>
-      </main>
+      </section>
+
+      {/* Upcoming weekends */}
+      <section className="bg-muted py-16 md:py-24 px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Upcoming Weekends
+          </h2>
+          <Separator className="w-16 mx-auto mb-6 bg-primary" />
+          <p className="text-muted-foreground text-lg mb-10">
+            Get in touch with our team to figure out how you can help pray for
+            our upcoming weekend events.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <div className="bg-card rounded-xl border p-6 text-left shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-secondary-foreground" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">
+                    DTTD #10 Men&apos;s
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    September 4 &ndash; 7, 2025
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-xl border p-6 text-left shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-secondary-foreground" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">
+                    DTTD #10 Women&apos;s
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    September 11 &ndash; 14, 2025
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            href="mailto:admin@dustytrailstresdias.org"
+            className="mt-10 text-base px-8 py-6"
+            size="lg"
+          >
+            Reach Out to Our Team
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
+        </div>
+      </section>
+
+      {/* Get involved CTA */}
+      <section className="py-16 md:py-24 px-6">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Get Involved
+          </h2>
+          <Separator className="w-16 mx-auto mb-6 bg-primary" />
+          <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+            Whether you&apos;re looking to attend a weekend, sponsor someone you
+            care about, or serve on a team &mdash; there&apos;s a place for you
+            in our community.
+          </p>
+
+          <div className="flex items-center justify-center gap-3 text-muted-foreground">
+            <Mail className="w-5 h-5" />
+            <Link
+              href="mailto:admin@dustytrailstresdias.org"
+              className="text-primary hover:underline font-medium"
+            >
+              admin@dustytrailstresdias.org
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
