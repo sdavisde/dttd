@@ -1,11 +1,11 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok } from '@/lib/results'
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
-import type { CreateEmailResponseSuccess } from 'resend';
+import type { CreateEmailResponseSuccess } from 'resend'
 import { Resend } from 'resend'
 import PasswordResetEmail from '@/components/email/PasswordResetEmail'
 import { getUrl } from '@/lib/url'
@@ -24,10 +24,11 @@ export async function sendPasswordResetEmail(
     const supabase = await createClient()
 
     // Generate password reset link using Supabase Auth
+    // Route through /auth/callback for PKCE code exchange, then forward to /reset-password
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email,
       {
-        redirectTo: `${getUrl('/reset-password')}`,
+        redirectTo: `${getUrl('/auth/callback')}?next=/reset-password`,
       }
     )
 
@@ -36,9 +37,6 @@ export async function sendPasswordResetEmail(
     }
 
     logger.info(`Password reset email initiated successfully for ${email}`)
-
-    // Note: Supabase handles sending the email, but we could also send a custom email using Resend
-    // For now, we'll let Supabase handle it and return success
     return ok({ data: null })
   } catch (error) {
     return err(
@@ -59,35 +57,22 @@ export async function sendCustomPasswordResetEmail(
 
     const supabase = await createClient()
 
-    // Check if user exists first
-    const { data: userCheck } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single()
-
-    if (isNil(userCheck)) {
-      // Don't reveal if email exists or not for security
-      logger.info(`Password reset requested for non-existent email: ${email}`)
-      return ok({ data: null })
-    }
+    // No user existence check needed -- Supabase's resetPasswordForEmail
+    // already handles non-existent emails silently (no error, no email sent),
+    // which is the correct behavior to prevent email enumeration.
 
     // Generate password reset link using Supabase Auth
+    // Route through /auth/callback for PKCE code exchange, then forward to /reset-password
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email,
       {
-        redirectTo: `${getUrl('/reset-password')}`,
+        redirectTo: `${getUrl('/auth/callback')}?next=/reset-password`,
       }
     )
 
     if (!isNil(resetError)) {
       return err(`Failed to send reset email: ${resetError.message}`)
     }
-
-    // Send custom email using Resend with our template
-    // Note: Since Supabase generates the reset URL and sends it, we'd need to use
-    // Supabase's custom email templates or handle the token ourselves
-    // For simplicity, we'll use Supabase's built-in email for now
 
     logger.info(
       `Custom password reset email initiated successfully for ${email}`

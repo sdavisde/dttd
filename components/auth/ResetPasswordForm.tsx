@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { logger } from '@/lib/logger'
 import PasswordInput from './PasswordInput'
 import Link from 'next/link'
 import { isNil } from 'lodash'
@@ -31,40 +32,41 @@ export default function ResetPasswordForm({
       const supabase = createClient()
 
       try {
+        // Primary path: session already established by /auth/callback (PKCE flow)
         const {
           data: { session },
         } = await supabase.auth.getSession()
 
         if (!isNil(session)) {
           setHasValidSession(true)
-        } else {
-          // Check if we have a hash fragment with tokens (from email link)
-          const hashParams = new URLSearchParams(
-            window.location.hash.substring(1)
-          )
-          const accessToken = hashParams.get('access_token')
-          const refreshToken = hashParams.get('refresh_token')
+          return
+        }
 
-          if (!isNil(accessToken) && !isNil(refreshToken)) {
-            // Set the session using the tokens from the URL
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            })
+        // Fallback: check for hash fragment tokens (implicit flow / legacy links)
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        )
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
 
-            if (!isNil(error)) {
-              console.log(error)
-              setError(
-                'Invalid or expired reset link. Please request a new password reset.'
-              )
-            } else if (!isNil(data.session)) {
-              setHasValidSession(true)
-            }
-          } else {
+        if (!isNil(accessToken) && !isNil(refreshToken)) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+
+          if (!isNil(error)) {
+            logger.error({ error }, 'Failed to set session from hash tokens')
             setError(
               'Invalid or expired reset link. Please request a new password reset.'
             )
+          } else if (!isNil(data.session)) {
+            setHasValidSession(true)
           }
+        } else {
+          setError(
+            'Invalid or expired reset link. Please request a new password reset.'
+          )
         }
       } catch (error) {
         setError('An error occurred while validating your reset link.')
@@ -104,7 +106,10 @@ export default function ResetPasswordForm({
       })
 
       if (!isNil(updateError)) {
-        setError(updateError.message)
+        logger.error({ error: updateError }, 'Password update failed')
+        setError(
+          'Unable to update your password. Please try again or request a new reset link.'
+        )
       } else {
         setPasswordReset(true)
 

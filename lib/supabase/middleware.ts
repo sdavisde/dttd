@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import { validateRedirectUrl } from '@/lib/redirect'
+import { PUBLIC_REGEX_ROUTES } from '@/proxy'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -42,8 +43,9 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const publicUrls =
-    /^\/(forgot-password|reset-password|login|join|auth\/callback|secuela-signin|\/?)$/
+  const isPublicUrl = PUBLIC_REGEX_ROUTES.some((route) =>
+    route.test(request.nextUrl.pathname)
+  )
   const redirectToHomeUrls = /^\/(login|join)?$/
 
   if (!isNil(user) && redirectToHomeUrls.test(request.nextUrl.pathname)) {
@@ -66,7 +68,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (isNil(user) && !publicUrls.test(request.nextUrl.pathname)) {
+  if (isNil(user) && !isPublicUrl) {
     // Capture the original URL to redirect back after login
     const originalUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`
     logger.info(

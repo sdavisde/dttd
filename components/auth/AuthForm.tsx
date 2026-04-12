@@ -17,10 +17,15 @@ import { isNil } from 'lodash'
 interface AuthFormProps {
   onSuccess?: () => void
   redirectTo?: string
+  defaultMode?: 'login' | 'register'
 }
 
-export default function AuthForm({ onSuccess, redirectTo }: AuthFormProps) {
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+export default function AuthForm({
+  onSuccess,
+  redirectTo,
+  defaultMode = 'login',
+}: AuthFormProps) {
+  const [mode, setMode] = useState<'login' | 'register'>(defaultMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
