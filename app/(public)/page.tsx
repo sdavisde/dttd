@@ -26,7 +26,7 @@ export default function Home() {
             priority
           />
           {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute inset-0 bg-[#2C1810]/60"></div>
 
           {/* Hero Content */}
           <div className="relative z-10 text-center px-6 py-12">
