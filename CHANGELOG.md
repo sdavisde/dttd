@@ -1,3 +1,17 @@
+## [1.32.0](https://github.com/sdavisde/dttd/compare/v1.31.2...v1.32.0) (2026-04-11)
+
+### Features
+
+- **roster-builder:** display silent table leaders as "Table Leader — Silent" ([beb65a5](https://github.com/sdavisde/dttd/commit/beb65a5deab92aede999b2888f9bd9cea3669e67))
+- **roster-builder:** improve card UX, fix remove bug, and distinguish past rectors ([58f043c](https://github.com/sdavisde/dttd/commit/58f043c1be06ab952a5366b493684348cbca0b60)), closes [#45](https://github.com/sdavisde/dttd/issues/45)
+- **roster-builder:** restrict access to Rectors and Leaders Committee ([5a6c8dd](https://github.com/sdavisde/dttd/commit/5a6c8ddc58b97529bb00e6ea65c8ae4406272891))
+- **weekend:** add Silent as a proper Rollo and simplify roster template ([3fccb17](https://github.com/sdavisde/dttd/commit/3fccb171b4f3b0bc92ac207201fcc5e69f7ca100))
+
+### Bug Fixes
+
+- **roster-builder:** fix community sheet gender filter, scroll, and role dedup ([c5e8ae5](https://github.com/sdavisde/dttd/commit/c5e8ae5684b9c00953a51353094b5d4a1777a3b9))
+- **weekend:** store silent table leaders with rollo = null, not a string ([e7ce950](https://github.com/sdavisde/dttd/commit/e7ce950225fa004cf4725b3ebfd8a416ad956ba5))
+
 ## [1.31.2](https://github.com/sdavisde/dttd/compare/v1.31.1...v1.31.2) (2026-04-11)
 
 ### Bug Fixes
