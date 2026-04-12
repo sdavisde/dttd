@@ -62,7 +62,7 @@ type GenderFilter = 'all' | 'male' | 'female'
 type SheetFilters = {
   search: string
   gender: GenderFilter
-  attendsSecuela: boolean
+  secuela: boolean
   hasGivenRollo: boolean
   hasBeenSectionHead: boolean
   isRectorReady: boolean
@@ -193,13 +193,22 @@ function CommunityMemberCard({
 
         {/* Indicator badges */}
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {member.attendsSecuela && (
+          {member.volunteerStatus === 'attended_secuela' && (
             <Badge
               variant="outline"
               className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 text-xs"
             >
               <Calendar className="mr-1 h-3 w-3" />
-              Secuela
+              Attended Secuela
+            </Badge>
+          )}
+          {member.volunteerStatus === 'wants_to_serve' && (
+            <Badge
+              variant="outline"
+              className="border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300 text-xs"
+            >
+              <Calendar className="mr-1 h-3 w-3" />
+              Wants to Serve
             </Badge>
           )}
           {member.rectorReadyStatus.criteria.hasServedAsRector ? (
@@ -435,7 +444,7 @@ export function CommunitySheet({
   const [filters, setFilters] = useState<SheetFilters>(() => ({
     search: '',
     gender: defaultGenderFilter(weekendType),
-    attendsSecuela: false,
+    secuela: false,
     hasGivenRollo: false,
     hasBeenSectionHead: false,
     isRectorReady: false,
@@ -473,7 +482,7 @@ export function CommunitySheet({
     if (filters.gender !== 'all') {
       list = list.filter((m) => m.gender?.toLowerCase() === filters.gender)
     }
-    if (filters.attendsSecuela) list = list.filter((m) => m.attendsSecuela)
+    if (filters.secuela) list = list.filter((m) => m.volunteerStatus !== 'none')
     if (filters.hasGivenRollo) list = list.filter((m) => m.hasGivenRollo)
     if (filters.hasBeenSectionHead)
       list = list.filter((m) => m.hasBeenSectionHead)
@@ -496,7 +505,7 @@ export function CommunitySheet({
 
   const defaultGender = defaultGenderFilter(weekendType)
   const hasActiveFilters =
-    filters.attendsSecuela ||
+    filters.secuela ||
     filters.hasGivenRollo ||
     filters.hasBeenSectionHead ||
     filters.isRectorReady ||
@@ -508,7 +517,7 @@ export function CommunitySheet({
     setFilters({
       search: '',
       gender: defaultGender,
-      attendsSecuela: false,
+      secuela: false,
       hasGivenRollo: false,
       hasBeenSectionHead: false,
       isRectorReady: false,
@@ -519,10 +528,7 @@ export function CommunitySheet({
   function toggleBool(
     key: keyof Pick<
       SheetFilters,
-      | 'attendsSecuela'
-      | 'hasGivenRollo'
-      | 'hasBeenSectionHead'
-      | 'isRectorReady'
+      'secuela' | 'hasGivenRollo' | 'hasBeenSectionHead' | 'isRectorReady'
     >
   ) {
     setFilters((f) => ({ ...f, [key]: !f[key] }))
@@ -581,7 +587,7 @@ export function CommunitySheet({
             {(
               [
                 {
-                  key: 'attendsSecuela',
+                  key: 'secuela',
                   label: 'Secuela',
                   icon: Calendar,
                 },

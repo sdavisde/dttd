@@ -24,6 +24,7 @@ export type {
   RosterBuilderCommunityMember,
   AssignmentStatus,
   EligibilityResult,
+  VolunteerStatus,
   DraftRosterMember,
 } from './types'
 

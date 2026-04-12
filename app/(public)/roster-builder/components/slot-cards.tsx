@@ -144,10 +144,18 @@ export function FilledSlotCard({
           level={member.experienceLevel}
           weekendsServed={member.weekendsServed}
         />
-        {member.attendsSecuela && (
+        {member.volunteerStatus !== 'none' && (
           <span
-            title="Attends Secuela"
-            className="text-blue-500 dark:text-blue-400"
+            title={
+              member.volunteerStatus === 'attended_secuela'
+                ? 'Attended Secuela'
+                : 'Wants to Serve'
+            }
+            className={
+              member.volunteerStatus === 'attended_secuela'
+                ? 'text-blue-500 dark:text-blue-400'
+                : 'text-cyan-500 dark:text-cyan-400'
+            }
           >
             <Calendar className="h-3.5 w-3.5" />
           </span>
@@ -243,9 +251,11 @@ export function EmptySlotCard({
   const [open, setOpen] = useState(false)
 
   const sortedMembers = useMemo(() => {
+    const statusOrder = { attended_secuela: 0, wants_to_serve: 1, none: 2 }
     return [...availableMembers].sort((a, b) => {
-      if (a.attendsSecuela !== b.attendsSecuela)
-        return a.attendsSecuela ? -1 : 1
+      const aSec = statusOrder[a.volunteerStatus]
+      const bSec = statusOrder[b.volunteerStatus]
+      if (aSec !== bSec) return aSec - bSec
       return b.weekendsServed - a.weekendsServed
     })
   }, [availableMembers])
@@ -303,9 +313,14 @@ export function EmptySlotCard({
                       />
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      {m.attendsSecuela && (
+                      {m.volunteerStatus === 'attended_secuela' && (
                         <span className="inline-flex items-center gap-0.5 text-xs text-blue-600 dark:text-blue-400">
-                          <Calendar className="h-3 w-3" /> Secuela
+                          <Calendar className="h-3 w-3" /> Attended Secuela
+                        </span>
+                      )}
+                      {m.volunteerStatus === 'wants_to_serve' && (
+                        <span className="inline-flex items-center gap-0.5 text-xs text-cyan-600 dark:text-cyan-400">
+                          <Calendar className="h-3 w-3" /> Wants to Serve
                         </span>
                       )}
                       {m.rectorReadyStatus.criteria.hasServedAsRector ? (

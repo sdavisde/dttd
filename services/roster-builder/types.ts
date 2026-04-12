@@ -5,6 +5,12 @@ import type {
 import type { UserExperience } from '@/lib/users/experience/validation'
 
 // ============================================================================
+// Volunteer Status
+// ============================================================================
+
+export type VolunteerStatus = 'attended_secuela' | 'wants_to_serve' | 'none'
+
+// ============================================================================
 // Community Member Types (for roster builder display)
 // ============================================================================
 
@@ -50,7 +56,7 @@ export type RosterBuilderCommunityMember = {
   rectorReadyStatus: RectorReadyStatus
   hasBeenSectionHead: boolean
   hasGivenRollo: boolean
-  attendsSecuela: boolean
+  volunteerStatus: VolunteerStatus
 
   // Current assignment on this weekend
   assignmentStatus: AssignmentStatus
