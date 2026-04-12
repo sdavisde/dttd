@@ -397,14 +397,14 @@ export function RosterBuilderBoard({
     <div className="flex min-h-screen flex-col bg-muted/30 dark:bg-background">
       {/* Page header */}
       <header className="border-b bg-card px-6 py-4">
-        <div className="mx-auto max-w-screen-2xl flex items-center gap-6">
+        <div className="mx-auto max-w-screen-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           <div className="flex items-center gap-3 shrink-0">
             <Users className="h-5 w-5 text-primary" />
             <h1 className="text-xl font-bold text-foreground">
               {weekendTitle}
             </h1>
           </div>
-          <div className="ml-auto">
+          <div className="sm:ml-auto overflow-x-auto">
             <StatsHeader categories={categories} />
           </div>
         </div>

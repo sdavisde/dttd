@@ -94,7 +94,7 @@ export function FilledSlotCard({
         {isDraft ? (
           <button
             onClick={onRemove}
-            className="rounded-full p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+            className="rounded-full p-1 text-muted-foreground md:opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100"
             aria-label={`Remove ${fullName(member)}`}
           >
             <X className="h-3.5 w-3.5" />
@@ -103,7 +103,7 @@ export function FilledSlotCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="rounded-full p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+                className="rounded-full p-1 text-muted-foreground md:opacity-0 transition-opacity hover:bg-muted md:group-hover:opacity-100"
                 aria-label={`Actions for ${fullName(member)}`}
               >
                 <MoreVertical className="h-3.5 w-3.5" />

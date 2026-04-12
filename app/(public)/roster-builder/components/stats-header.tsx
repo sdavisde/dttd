@@ -32,7 +32,7 @@ export function StatsHeader({ categories }: { categories: RoleCategory[] }) {
     stats.expDist.Veteran + stats.expDist.Experienced + stats.expDist.Served
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex flex-wrap items-center gap-3 sm:gap-5">
       {/* Positions filled */}
       <div className="flex items-center gap-2.5">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
