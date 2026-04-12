@@ -1,3 +1,13 @@
+## [1.33.0](https://github.com/sdavisde/dttd/compare/v1.32.0...v1.33.0) (2026-04-12)
+
+### Features
+
+- **roster-builder:** redesign weekend picker for a professional look ([8aab535](https://github.com/sdavisde/dttd/commit/8aab5356da582257475cae268f513d585b17e265))
+
+### Bug Fixes
+
+- **seed:** use RFC 4122-compliant UUIDs so Zod validation passes ([b9113ad](https://github.com/sdavisde/dttd/commit/b9113ad8f132e2d29804f63eea955cea144db982))
+
 ## [1.32.0](https://github.com/sdavisde/dttd/compare/v1.31.2...v1.32.0) (2026-04-11)
 
 ### Features
