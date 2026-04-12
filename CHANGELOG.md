@@ -1,3 +1,11 @@
+## [1.33.3](https://github.com/sdavisde/dttd/compare/v1.33.2...v1.33.3) (2026-04-12)
+
+### Bug Fixes
+
+- **auth:** resolve 404s and broken password reset flow ([fc4e40f](https://github.com/sdavisde/dttd/commit/fc4e40fc6cd9f9f8efa4b028ec279f12dada102d))
+- **roster:** add group_member_id FK to weekend_roster to prevent role/permission leaking ([fe3e7a1](https://github.com/sdavisde/dttd/commit/fe3e7a109d8001d434a20845a5d9d40cf2db6a62))
+- **roster:** use comma-separated FROM in migration to fix PostgreSQL error ([9b59768](https://github.com/sdavisde/dttd/commit/9b597686b0370e76a2ff51b8d9fcb91b01f51109))
+
 ## [1.33.2](https://github.com/sdavisde/dttd/compare/v1.33.1...v1.33.2) (2026-04-12)
 
 ### Bug Fixes
