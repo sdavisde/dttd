@@ -1,3 +1,9 @@
+## [1.33.1](https://github.com/sdavisde/dttd/compare/v1.33.0...v1.33.1) (2026-04-12)
+
+### Bug Fixes
+
+- **roster-builder:** center weekend picker content on page ([52e1513](https://github.com/sdavisde/dttd/commit/52e1513b8c922fed75e56e248e90450828fee136))
+
 ## [1.33.0](https://github.com/sdavisde/dttd/compare/v1.32.0...v1.33.0) (2026-04-12)
 
 ### Features
