@@ -100,7 +100,7 @@ export function WeekendPicker({ weekends }: { weekends: Weekend[] }) {
 
       {/* Content — vertically centered */}
       <main className="px-6 py-12">
-        <div className="w-full max-w-3xl">
+        <div className="mx-auto w-full max-w-3xl">
           {groups.map((group) => (
             <div key={group.groupId ?? 'ungrouped'}>
               <div className="mb-8 text-center">
