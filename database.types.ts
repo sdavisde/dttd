@@ -770,21 +770,21 @@ export type Database = {
       }
       weekend_group_members: {
         Row: {
-          attends_secuela: boolean
+          attended_secuela_at: string | null
           created_at: string | null
           group_id: string
           id: string
           user_id: string
         }
         Insert: {
-          attends_secuela?: boolean
+          attended_secuela_at?: string | null
           created_at?: string | null
           group_id: string
           id?: string
           user_id: string
         }
         Update: {
-          attends_secuela?: boolean
+          attended_secuela_at?: string | null
           created_at?: string | null
           group_id?: string
           id?: string
@@ -830,6 +830,7 @@ export type Database = {
           additional_cha_role: string | null
           cha_role: string | null
           created_at: string
+          group_member_id: string | null
           id: string
           rollo: string | null
           special_needs: string | null
@@ -841,6 +842,7 @@ export type Database = {
           additional_cha_role?: string | null
           cha_role?: string | null
           created_at?: string
+          group_member_id?: string | null
           id?: string
           rollo?: string | null
           special_needs?: string | null
@@ -852,6 +854,7 @@ export type Database = {
           additional_cha_role?: string | null
           cha_role?: string | null
           created_at?: string
+          group_member_id?: string | null
           id?: string
           rollo?: string | null
           special_needs?: string | null
@@ -860,6 +863,13 @@ export type Database = {
           weekend_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: 'weekend_roster_group_member_id_fkey'
+            columns: ['group_member_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_group_members'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'weekend_roster_user_id_fkey'
             columns: ['user_id']
@@ -939,6 +949,7 @@ export type Database = {
         | 'sendoff'
         | 'closing'
         | 'other'
+        | 'secuela'
       permissions: 'READ_MEDICAL_HISTORY'
       role_type: 'INDIVIDUAL' | 'COMMITTEE'
       weekend_type: 'MENS' | 'WOMENS'
@@ -1087,6 +1098,7 @@ export const Constants = {
         'sendoff',
         'closing',
         'other',
+        'secuela',
       ],
       permissions: ['READ_MEDICAL_HISTORY'],
       role_type: ['INDIVIDUAL', 'COMMITTEE'],

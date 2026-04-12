@@ -19,6 +19,7 @@ export const EventType = {
   SERENADE: 'serenade',
   SENDOFF: 'sendoff',
   CLOSING: 'closing',
+  SECUELA: 'secuela',
   OTHER: 'other',
 } as const
 
@@ -33,6 +34,7 @@ export const EVENT_TYPE_VALUES: EventTypeValue[] = [
   EventType.SERENADE,
   EventType.SENDOFF,
   EventType.CLOSING,
+  EventType.SECUELA,
   EventType.OTHER,
 ]
 
@@ -45,6 +47,7 @@ export const EVENT_TYPE_COLORS: Record<EventTypeValue, string> = {
   [EventType.SERENADE]: 'bg-blue-500',
   [EventType.SENDOFF]: 'bg-orange-500',
   [EventType.CLOSING]: 'bg-purple-500',
+  [EventType.SECUELA]: 'bg-pink-500',
   [EventType.OTHER]: 'bg-gray-500',
 }
 
@@ -57,6 +60,7 @@ export const EVENT_TYPE_BORDER_COLORS: Record<EventTypeValue, string> = {
   [EventType.SERENADE]: 'border-l-blue-500',
   [EventType.SENDOFF]: 'border-l-orange-500',
   [EventType.CLOSING]: 'border-l-purple-500',
+  [EventType.SECUELA]: 'border-l-pink-500',
   [EventType.OTHER]: 'border-l-gray-500',
 }
 
@@ -69,6 +73,7 @@ export const EVENT_TYPE_LABELS: Record<EventTypeValue, string> = {
   [EventType.SERENADE]: 'Serenade',
   [EventType.SENDOFF]: 'Sendoff',
   [EventType.CLOSING]: 'Closing',
+  [EventType.SECUELA]: 'Secuela',
   [EventType.OTHER]: 'Other',
 }
 

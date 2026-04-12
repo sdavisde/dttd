@@ -195,6 +195,31 @@ export async function updateEventById(
 }
 
 /**
+ * Fetches the secuela event for a weekend group.
+ * Returns the first secuela event found (ordered by datetime).
+ */
+export async function findSecuelaEventByGroupId(
+  groupId: string
+): Promise<Result<string, RawEventRecord | null>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('weekend_group_id', groupId)
+    .eq('type', 'secuela')
+    .order('datetime', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data)
+}
+
+/**
  * Deletes an event by ID.
  */
 export async function deleteEventById(

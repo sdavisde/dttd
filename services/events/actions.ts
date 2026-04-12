@@ -77,6 +77,14 @@ export async function updateEvent(id: number, data: EventUpdateInput) {
 }
 
 /**
+ * Gets the secuela event date for a weekend group.
+ * Public - events are visible to all authenticated users.
+ */
+export async function getSecuelaDateForGroup(groupId: string) {
+  return EventsService.getSecuelaDateForGroup(groupId)
+}
+
+/**
  * Deletes an event.
  * Public - relies on RLS for authorization.
  */

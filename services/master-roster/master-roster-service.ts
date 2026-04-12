@@ -4,6 +4,7 @@ import { isNil } from 'lodash'
 import type { Result } from '@/lib/results'
 import { isErr, ok, unwrapOr, safeParse, isOk } from '@/lib/results'
 import * as MasterRosterRepository from './repository'
+import * as EventsRepository from '@/services/events/repository'
 import { addressSchema } from '@/lib/users/validation'
 import { UserExperienceSchema } from '@/lib/users/experience'
 import {
@@ -141,25 +142,37 @@ export async function getCommunityDataForRosterBuilder(
   }
 
   // Run parallel queries
-  const [masterRosterResult, rosterResult, draftResult, secuelaResult] =
-    await Promise.all([
-      MasterRosterRepository.getMasterRoster(),
-      MasterRosterRepository.findRosterAssignments(weekendId),
-      MasterRosterRepository.findDraftAssignments(weekendId),
-      !isNil(groupIdResult.data)
-        ? MasterRosterRepository.findSecuelaAttendees(groupIdResult.data)
-        : Promise.resolve(ok(new Set<string>())),
-    ])
+  const groupId = groupIdResult.data
+
+  const [
+    masterRosterResult,
+    rosterResult,
+    draftResult,
+    secuelaResult,
+    secuelaDateResult,
+  ] = await Promise.all([
+    MasterRosterRepository.getMasterRoster(),
+    MasterRosterRepository.findRosterAssignments(weekendId),
+    MasterRosterRepository.findDraftAssignments(weekendId),
+    !isNil(groupId)
+      ? MasterRosterRepository.findSecuelaAttendees(groupId)
+      : Promise.resolve(ok(new Map<string, string>())),
+    !isNil(groupId)
+      ? EventsRepository.findSecuelaEventByGroupId(groupId)
+      : Promise.resolve(ok(null)),
+  ])
 
   if (isErr(masterRosterResult)) return masterRosterResult
   if (isErr(rosterResult)) return rosterResult
   if (isErr(draftResult)) return draftResult
   if (isErr(secuelaResult)) return secuelaResult
+  if (isErr(secuelaDateResult)) return secuelaDateResult
 
   return ok({
     users: masterRosterResult.data,
     rosterAssignments: rosterResult.data,
     draftAssignments: draftResult.data,
     secuelaAttendees: secuelaResult.data,
+    secuelaEventDate: secuelaDateResult.data?.datetime ?? null,
   })
 }

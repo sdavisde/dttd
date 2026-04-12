@@ -311,7 +311,7 @@ export async function getUserMedicalProfile(
 
 /**
  * Finds or creates a weekend_group_members row for the active weekend group,
- * then sets attends_secuela = true.
+ * then sets attended_secuela_at = true.
  */
 export async function markSecuelaAttendance(
   userId: string
@@ -344,7 +344,7 @@ export async function markSecuelaAttendance(
 
   const { error: updateError } = await supabase
     .from('weekend_group_members')
-    .update({ attends_secuela: true })
+    .update({ attended_secuela_at: new Date().toISOString() })
     .eq('id', groupMemberId)
 
   if (isSupabaseError(updateError)) {

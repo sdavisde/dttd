@@ -55,21 +55,26 @@ export async function getMasterRoster() {
  */
 export async function findSecuelaAttendees(
   groupId: string
-): Promise<Result<string, Set<string>>> {
+): Promise<Result<string, Map<string, string>>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('weekend_group_members')
-    .select('user_id')
+    .select('user_id, attended_secuela_at')
     .eq('group_id', groupId)
-    .eq('attends_secuela', true)
+    .not('attended_secuela_at', 'is', null)
 
   if (isSupabaseError(error)) {
     return err(`Failed to fetch secuela attendees: ${error.message}`)
   }
 
-  const userIds = new Set((data ?? []).map((row) => row.user_id))
-  return ok(userIds)
+  const map = new Map<string, string>()
+  for (const row of data ?? []) {
+    if (!isNil(row.attended_secuela_at)) {
+      map.set(row.user_id, row.attended_secuela_at)
+    }
+  }
+  return ok(map)
 }
 
 /**

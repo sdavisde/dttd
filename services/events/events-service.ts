@@ -157,6 +157,22 @@ export async function updateEvent(
 }
 
 /**
+ * Gets the secuela event date for a weekend group.
+ * Returns the datetime string if a secuela event exists, null otherwise.
+ */
+export async function getSecuelaDateForGroup(
+  groupId: string
+): Promise<Result<string, string | null>> {
+  const result = await EventsRepository.findSecuelaEventByGroupId(groupId)
+
+  if (isErr(result)) {
+    return err(`Failed to get secuela date: ${result.error}`)
+  }
+
+  return ok(result.data?.datetime ?? null)
+}
+
+/**
  * Deletes an event.
  */
 export async function deleteEvent(

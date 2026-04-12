@@ -13,6 +13,7 @@ export {
   getPastEvents,
   getUpcomingEventsForPeriod,
   getEventsForWeekendGroup,
+  getSecuelaDateForGroup,
   createEvent,
   updateEvent,
   deleteEvent,
