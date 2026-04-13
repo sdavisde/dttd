@@ -143,6 +143,30 @@ export async function findEventsByGroupId(
 }
 
 /**
+ * Fetches upcoming community events (no weekend group or weekend association).
+ */
+export async function findUpcomingCommunityEvents(): Promise<
+  Result<string, RawEventRecord[]>
+> {
+  const supabase = await createClient()
+  const now = new Date().toISOString()
+
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .is('weekend_group_id', null)
+    .is('weekend_id', null)
+    .gte('datetime', now)
+    .order('datetime', { ascending: true })
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data ?? [])
+}
+
+/**
  * Inserts a new event.
  */
 export async function insertEvent(

@@ -26,6 +26,7 @@ function normalizeEvent(raw: RawEventRecord): Event {
     location: raw.location,
     endDatetime: raw.end_datetime ?? null,
     weekendGroupId: raw.weekend_group_id ?? null,
+    weekendId: raw.weekend_id ?? null,
     type: raw.type ?? null,
     createdAt: raw.created_at,
   }
@@ -170,6 +171,19 @@ export async function getSecuelaDateForGroup(
   }
 
   return ok(result.data?.datetime ?? null)
+}
+
+/**
+ * Fetches upcoming community events (not associated with any weekend group).
+ */
+export async function getCommunityEvents(): Promise<Result<string, Event[]>> {
+  const result = await EventsRepository.findUpcomingCommunityEvents()
+
+  if (isErr(result)) {
+    return err(`Failed to get community events: ${result.error}`)
+  }
+
+  return ok(result.data.map(normalizeEvent))
 }
 
 /**

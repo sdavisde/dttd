@@ -85,6 +85,14 @@ export async function getSecuelaDateForGroup(groupId: string) {
 }
 
 /**
+ * Fetches upcoming community events (not associated with any weekend group).
+ * Public - events are visible to all authenticated users.
+ */
+export async function getCommunityEvents() {
+  return EventsService.getCommunityEvents()
+}
+
+/**
  * Deletes an event.
  * Public - relies on RLS for authorization.
  */

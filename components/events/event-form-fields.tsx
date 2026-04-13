@@ -19,20 +19,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { EVENT_TYPE_VALUES, EVENT_TYPE_LABELS } from '@/services/events/types'
-import type { EventFormData, WeekendOption } from './event-form-schema'
+import {
+  EVENT_TYPE_VALUES,
+  EVENT_TYPE_LABELS,
+  SINGLETON_EVENT_TYPES,
+} from '@/services/events/types'
+import type { EventTypeValue } from '@/services/events/types'
+import type {
+  EventFormData,
+  EventFormPrefill,
+  WeekendOption,
+  WeekendIndividualOption,
+} from './event-form-schema'
 
 interface EventFormFieldsProps {
   form: UseFormReturn<EventFormData>
   hasEndDateTime: boolean
   weekendOptions: WeekendOption[]
+  weekendIndividualOptions?: WeekendIndividualOption[]
+  prefill?: EventFormPrefill
 }
 
 export function EventFormFields({
   form,
   hasEndDateTime,
   weekendOptions,
+  weekendIndividualOptions = [],
+  prefill,
 }: EventFormFieldsProps) {
+  const selectedType = form.watch('type') as EventTypeValue | null | undefined
+  const isSingletonType =
+    selectedType != null &&
+    SINGLETON_EVENT_TYPES.includes(selectedType as EventTypeValue)
+
+  // When prefill provides type or weekendId, hide those fields
+  const hideTypeField = prefill?.type != null
+  const hideWeekendField =
+    prefill?.weekendId != null || prefill?.weekendGroupId != null
+
   return (
     <div className="space-y-4 px-4 flex-1">
       <FormField
@@ -109,35 +133,69 @@ export function EventFormFields({
         )}
       />
 
-      <FormField
-        control={form.control}
-        name="type"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-medium">Event Type</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              value={field.value ?? undefined}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select event type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {EVENT_TYPE_VALUES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {EVENT_TYPE_LABELS[type]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {!hideTypeField && (
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium">Event Type</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value ?? undefined}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select event type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {EVENT_TYPE_VALUES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {EVENT_TYPE_LABELS[type]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
-      {weekendOptions.length > 0 && (
+      {!hideWeekendField &&
+        isSingletonType &&
+        weekendIndividualOptions.length > 0 && (
+          <FormField
+            control={form.control}
+            name="weekendId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">Weekend</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? undefined}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Men's or Women's" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {weekendIndividualOptions.map((weekend) => (
+                      <SelectItem key={weekend.id} value={weekend.id}>
+                        {weekend.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+      {!hideWeekendField && !isSingletonType && weekendOptions.length > 0 && (
         <FormField
           control={form.control}
           name="weekendGroupId"

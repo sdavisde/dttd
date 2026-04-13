@@ -14,6 +14,7 @@ export {
   getUpcomingEventsForPeriod,
   getEventsForWeekendGroup,
   getSecuelaDateForGroup,
+  getCommunityEvents,
   createEvent,
   updateEvent,
   deleteEvent,
@@ -28,6 +29,8 @@ export {
   EVENT_TYPE_COLORS,
   EVENT_TYPE_BORDER_COLORS,
   EVENT_TYPE_LABELS,
+  SINGLETON_EVENT_TYPES,
+  GROUP_EVENT_TYPES,
 } from './types'
 
 export type { EventTypeValue } from './types'

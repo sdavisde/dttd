@@ -7,6 +7,7 @@ import type { Tables } from '@/database.types'
 export type RawEventRecord = Tables<'events'> & {
   end_datetime?: string | null
   weekend_group_id?: string | null
+  weekend_id?: string | null
   type?: EventTypeValue | null
 }
 
@@ -87,6 +88,7 @@ export type Event = {
   location: string | null
   endDatetime: string | null
   weekendGroupId: string | null
+  weekendId: string | null
   type: EventTypeValue | null
   createdAt: string
 }
@@ -100,6 +102,7 @@ export type EventCreateInput = {
   location?: string | null
   end_datetime?: string | null
   weekend_group_id?: string | null
+  weekend_id?: string | null
   type?: EventTypeValue | null
 }
 
@@ -107,3 +110,21 @@ export type EventCreateInput = {
  * Input type for updating an event
  */
 export type EventUpdateInput = Partial<EventCreateInput>
+
+/**
+ * Singleton event types — one per individual weekend (Men's or Women's).
+ */
+export const SINGLETON_EVENT_TYPES: EventTypeValue[] = [
+  EventType.WEEKEND,
+  EventType.SENDOFF,
+  EventType.SERENADE,
+  EventType.CLOSING,
+]
+
+/**
+ * Group-level event types — shared across the weekend group (Men's + Women's).
+ */
+export const GROUP_EVENT_TYPES: EventTypeValue[] = [
+  EventType.MEETING,
+  EventType.SECUELA,
+]

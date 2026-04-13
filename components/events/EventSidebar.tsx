@@ -17,16 +17,26 @@ import { type Event } from '@/services/events'
 
 import { useEventForm } from './hooks/use-event-form'
 import { EventFormFields } from './event-form-fields'
-import type { WeekendOption } from './event-form-schema'
+import type {
+  WeekendOption,
+  WeekendIndividualOption,
+  EventFormPrefill,
+} from './event-form-schema'
 
 // Re-export for backwards compatibility
-export type { WeekendOption } from './event-form-schema'
+export type {
+  WeekendOption,
+  WeekendIndividualOption,
+  EventFormPrefill,
+} from './event-form-schema'
 
 interface EventSidebarProps {
   isOpen: boolean
   onClose: () => void
   event?: Event | null
   weekendOptions?: WeekendOption[]
+  weekendIndividualOptions?: WeekendIndividualOption[]
+  prefill?: EventFormPrefill
 }
 
 export function EventSidebar({
@@ -34,6 +44,8 @@ export function EventSidebar({
   onClose,
   event,
   weekendOptions = [],
+  weekendIndividualOptions = [],
+  prefill,
 }: EventSidebarProps) {
   const {
     form,
@@ -47,7 +59,7 @@ export function EventSidebar({
     handleSubmit,
     handleDelete,
     handleClose,
-  } = useEventForm({ event, onClose })
+  } = useEventForm({ event, onClose, prefill })
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
@@ -64,13 +76,17 @@ export function EventSidebar({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="flex flex-col h-full"
+            className="flex flex-col h-full overflow-hidden"
           >
-            <EventFormFields
-              form={form}
-              hasEndDateTime={hasEndDateTime}
-              weekendOptions={weekendOptions}
-            />
+            <div className="flex-1 overflow-y-auto">
+              <EventFormFields
+                form={form}
+                hasEndDateTime={hasEndDateTime}
+                weekendOptions={weekendOptions}
+                weekendIndividualOptions={weekendIndividualOptions}
+                prefill={prefill}
+              />
+            </div>
 
             <SheetFooter>
               <div className="flex gap-2 w-full">

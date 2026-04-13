@@ -440,6 +440,7 @@ export type Database = {
           title: string | null
           type: Database['public']['Enums']['event_type'] | null
           weekend_group_id: string | null
+          weekend_id: string | null
         }
         Insert: {
           created_at?: string
@@ -450,6 +451,7 @@ export type Database = {
           title?: string | null
           type?: Database['public']['Enums']['event_type'] | null
           weekend_group_id?: string | null
+          weekend_id?: string | null
         }
         Update: {
           created_at?: string
@@ -460,6 +462,7 @@ export type Database = {
           title?: string | null
           type?: Database['public']['Enums']['event_type'] | null
           weekend_group_id?: string | null
+          weekend_id?: string | null
         }
         Relationships: [
           {
@@ -467,6 +470,13 @@ export type Database = {
             columns: ['weekend_group_id']
             isOneToOne: false
             referencedRelation: 'weekend_groups'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'events_weekend_id_fkey'
+            columns: ['weekend_id']
+            isOneToOne: false
+            referencedRelation: 'weekends'
             referencedColumns: ['id']
           },
         ]

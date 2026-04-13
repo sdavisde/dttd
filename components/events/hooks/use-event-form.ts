@@ -14,7 +14,7 @@ import { createEvent, updateEvent, deleteEvent } from '@/services/events'
 import { type EventTypeValue } from '@/services/events/types'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'
-import type { EventFormData } from '../event-form-schema'
+import type { EventFormData, EventFormPrefill } from '../event-form-schema'
 import {
   eventFormSchema,
   DEFAULT_FORM_VALUES,
@@ -24,9 +24,10 @@ import {
 interface UseEventFormProps {
   event?: Event | null
   onClose: () => void
+  prefill?: EventFormPrefill
 }
 
-export function useEventForm({ event, onClose }: UseEventFormProps) {
+export function useEventForm({ event, onClose, prefill }: UseEventFormProps) {
   const isEditing = !isNil(event)
   const router = useRouter()
   const [originalFormData, setOriginalFormData] =
@@ -54,6 +55,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         endDate: null,
         endTime: null,
         weekendGroupId: event.weekendGroupId ?? null,
+        weekendId: event.weekendId ?? null,
       }
 
       if (!isNil(event.datetime)) {
@@ -74,10 +76,19 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
       form.reset(formData)
       setOriginalFormData(formData)
     } else {
-      form.reset(DEFAULT_FORM_VALUES)
+      const createDefaults = !isNil(prefill)
+        ? {
+            ...DEFAULT_FORM_VALUES,
+            title: prefill.title ?? '',
+            type: prefill.type ?? null,
+            weekendGroupId: prefill.weekendGroupId ?? null,
+            weekendId: prefill.weekendId ?? null,
+          }
+        : DEFAULT_FORM_VALUES
+      form.reset(createDefaults)
       setOriginalFormData(null)
     }
-  }, [isEditing, event, form])
+  }, [isEditing, event, form, prefill])
 
   const handleSubmit = async (data: EventFormData) => {
     setIsSubmitting(true)
@@ -102,6 +113,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         type: (data.type as EventTypeValue) ?? null,
         end_datetime: endDatetimeUtc,
         weekend_group_id: data.weekendGroupId ?? null,
+        weekend_id: data.weekendId ?? null,
       }
 
       if (isEditing && !isNil(event)) {
@@ -166,6 +178,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         endDate: currentFormData.endDate?.toISOString(),
         endTime: currentFormData.endTime,
         weekendGroupId: currentFormData.weekendGroupId,
+        weekendId: currentFormData.weekendId,
       }) !==
       JSON.stringify({
         title: originalFormData.title,
@@ -177,6 +190,7 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
         endDate: originalFormData.endDate?.toISOString(),
         endTime: originalFormData.endTime,
         weekendGroupId: originalFormData.weekendGroupId,
+        weekendId: originalFormData.weekendId,
       })
     : currentFormData.title !== '' ||
       currentFormData.date?.toDateString() !== new Date().toDateString() ||
@@ -184,7 +198,8 @@ export function useEventForm({ event, onClose }: UseEventFormProps) {
       currentFormData.location !== '' ||
       currentFormData.type !== null ||
       currentFormData.hasEndDateTime !== false ||
-      currentFormData.weekendGroupId !== null
+      currentFormData.weekendGroupId !== null ||
+      currentFormData.weekendId !== null
 
   const isFormValid = form.formState.isValid
   const isSaveDisabled =
