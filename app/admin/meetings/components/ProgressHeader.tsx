@@ -21,7 +21,7 @@ export function ProgressHeader({
   const meetings = events.filter((e) => e.type === 'meeting')
   const secuela = events.find((e) => e.type === 'secuela')
   const groupFilled = meetings.length + (!isNil(secuela) ? 1 : 0)
-  const groupTotal = 5
+  const groupTotal = 4
 
   const mensSingletons = events.filter(
     (e) =>

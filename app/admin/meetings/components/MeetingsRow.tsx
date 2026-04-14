@@ -46,7 +46,7 @@ export function MeetingsRow({
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {allGroupEvents.map((event) => (
           <MeetingCard
             key={event.id}
