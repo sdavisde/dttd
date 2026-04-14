@@ -1,3 +1,16 @@
+## [1.36.0](https://github.com/sdavisde/dttd/compare/v1.35.2...v1.36.0) (2026-04-14)
+
+### Features
+
+- **landing:** redesign welcome page with proper sections and layout ([fc9c4f1](https://github.com/sdavisde/dttd/commit/fc9c4f131863fe8f60a25ead328a261da9fbda50))
+- new events page ([31b5994](https://github.com/sdavisde/dttd/commit/31b599490888a382a665c41c20ba2ffa82f7e4b8))
+
+### Bug Fixes
+
+- **events:** lock event type and hide irrelevant fields by context ([2fd0e99](https://github.com/sdavisde/dttd/commit/2fd0e99caf776ee1b5f3f2cd9d889069924f78be))
+- **events:** prevent orphaned events when changing between group and singleton types ([7d16af5](https://github.com/sdavisde/dttd/commit/7d16af57c5e35d9a8116746df2ea91d07efe95af))
+- **meetings:** correct weekend meetings to 4 slots and improve event form field syncing ([6cbdc69](https://github.com/sdavisde/dttd/commit/6cbdc69e82a7b12155104d6681eaabcf13cdee3f))
+
 ## [1.35.2](https://github.com/sdavisde/dttd/compare/v1.35.1...v1.35.2) (2026-04-12)
 
 ### Bug Fixes
