@@ -59,7 +59,7 @@ export function EventSidebar({
     handleSubmit,
     handleDelete,
     handleClose,
-  } = useEventForm({ event, onClose, prefill })
+  } = useEventForm({ event, onClose, prefill, weekendIndividualOptions })
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>

@@ -48,9 +48,15 @@ export function EventFormFields({
   prefill,
 }: EventFormFieldsProps) {
   const selectedType = form.watch('type') as EventTypeValue | null | undefined
+  const selectedGroupId = form.watch('weekendGroupId')
   const isSingletonType =
     selectedType != null &&
     SINGLETON_EVENT_TYPES.includes(selectedType as EventTypeValue)
+
+  // Filter individual weekend options to the selected group
+  const filteredIndividualOptions = weekendIndividualOptions.filter(
+    (w) => w.groupId === selectedGroupId
+  )
 
   // When prefill provides type or weekendId, hide those fields
   const hideTypeField = prefill?.type != null
@@ -163,39 +169,7 @@ export function EventFormFields({
         />
       )}
 
-      {!hideWeekendField &&
-        isSingletonType &&
-        weekendIndividualOptions.length > 0 && (
-          <FormField
-            control={form.control}
-            name="weekendId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium">Weekend</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value ?? undefined}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Men's or Women's" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {weekendIndividualOptions.map((weekend) => (
-                      <SelectItem key={weekend.id} value={weekend.id}>
-                        {weekend.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-      {!hideWeekendField && !isSingletonType && weekendOptions.length > 0 && (
+      {!hideWeekendField && weekendOptions.length > 0 && (
         <FormField
           control={form.control}
           name="weekendGroupId"
@@ -226,6 +200,40 @@ export function EventFormFields({
           )}
         />
       )}
+
+      {!hideWeekendField &&
+        isSingletonType &&
+        filteredIndividualOptions.length > 0 && (
+          <FormField
+            control={form.control}
+            name="weekendId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">
+                  Men&apos;s / Women&apos;s
+                </FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? undefined}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Men's or Women's" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {filteredIndividualOptions.map((weekend) => (
+                      <SelectItem key={weekend.id} value={weekend.id}>
+                        {weekend.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
       <FormField
         control={form.control}

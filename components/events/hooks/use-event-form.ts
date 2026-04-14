@@ -11,10 +11,17 @@ import { toastError } from '@/lib/toast-error'
 
 import { type Event } from '@/services/events'
 import { createEvent, updateEvent, deleteEvent } from '@/services/events'
-import { type EventTypeValue } from '@/services/events/types'
+import {
+  type EventTypeValue,
+  SINGLETON_EVENT_TYPES,
+} from '@/services/events/types'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'
-import type { EventFormData, EventFormPrefill } from '../event-form-schema'
+import type {
+  EventFormData,
+  EventFormPrefill,
+  WeekendIndividualOption,
+} from '../event-form-schema'
 import {
   eventFormSchema,
   DEFAULT_FORM_VALUES,
@@ -25,9 +32,15 @@ interface UseEventFormProps {
   event?: Event | null
   onClose: () => void
   prefill?: EventFormPrefill
+  weekendIndividualOptions?: WeekendIndividualOption[]
 }
 
-export function useEventForm({ event, onClose, prefill }: UseEventFormProps) {
+export function useEventForm({
+  event,
+  onClose,
+  prefill,
+  weekendIndividualOptions = [],
+}: UseEventFormProps) {
   const isEditing = !isNil(event)
   const router = useRouter()
   const [originalFormData, setOriginalFormData] =
@@ -90,6 +103,42 @@ export function useEventForm({ event, onClose, prefill }: UseEventFormProps) {
     }
   }, [isEditing, event, form, prefill])
 
+  // When type changes to a group type, clear weekendId since it's not applicable
+  const watchedType = form.watch('type') as EventTypeValue | null | undefined
+  const isSingletonType =
+    watchedType != null && SINGLETON_EVENT_TYPES.includes(watchedType)
+  useEffect(() => {
+    if (!isSingletonType) {
+      form.setValue('weekendId', null)
+    }
+  }, [isSingletonType, form])
+
+  // When weekendId is selected, auto-set weekendGroupId from the individual weekend's group
+  const watchedWeekendId = form.watch('weekendId')
+  useEffect(() => {
+    if (!isNil(watchedWeekendId)) {
+      const match = weekendIndividualOptions.find(
+        (w) => w.id === watchedWeekendId
+      )
+      if (!isNil(match) && form.getValues('weekendGroupId') !== match.groupId) {
+        form.setValue('weekendGroupId', match.groupId)
+      }
+    }
+  }, [watchedWeekendId, weekendIndividualOptions, form])
+
+  // When weekendGroupId changes, clear weekendId if it no longer belongs to the selected group
+  const watchedGroupId = form.watch('weekendGroupId')
+  useEffect(() => {
+    if (!isNil(watchedWeekendId) && !isNil(watchedGroupId)) {
+      const match = weekendIndividualOptions.find(
+        (w) => w.id === watchedWeekendId
+      )
+      if (!isNil(match) && match.groupId !== watchedGroupId) {
+        form.setValue('weekendId', null)
+      }
+    }
+  }, [watchedGroupId, watchedWeekendId, weekendIndividualOptions, form])
+
   const handleSubmit = async (data: EventFormData) => {
     setIsSubmitting(true)
     try {
@@ -106,14 +155,29 @@ export function useEventForm({ event, onClose, prefill }: UseEventFormProps) {
         endDatetimeUtc = fromZonedTime(ctEndDateTime, CT_TIMEZONE).toISOString()
       }
 
+      const dataType = (data.type as EventTypeValue) ?? null
+      const isSubmittingSingleton =
+        dataType != null && SINGLETON_EVENT_TYPES.includes(dataType)
+
+      // For singleton types, derive weekendGroupId from the selected individual weekend
+      // For group types, clear weekendId since it doesn't apply
+      let weekendGroupId = data.weekendGroupId ?? null
+      let weekendId = data.weekendId ?? null
+      if (isSubmittingSingleton && !isNil(weekendId)) {
+        const match = weekendIndividualOptions.find((w) => w.id === weekendId)
+        if (!isNil(match)) weekendGroupId = match.groupId
+      } else if (!isSubmittingSingleton) {
+        weekendId = null
+      }
+
       const eventData = {
         title: data.title,
         datetime: utcDateTime.toISOString(),
         location: data.location ?? null,
-        type: (data.type as EventTypeValue) ?? null,
+        type: dataType,
         end_datetime: endDatetimeUtc,
-        weekend_group_id: data.weekendGroupId ?? null,
-        weekend_id: data.weekendId ?? null,
+        weekend_group_id: weekendGroupId,
+        weekend_id: weekendId,
       }
 
       if (isEditing && !isNil(event)) {
