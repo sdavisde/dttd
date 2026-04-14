@@ -1,3 +1,9 @@
+## [1.35.2](https://github.com/sdavisde/dttd/compare/v1.35.1...v1.35.2) (2026-04-12)
+
+### Bug Fixes
+
+- generalize the secuela sign-in page ([58aa00a](https://github.com/sdavisde/dttd/commit/58aa00a8f2e6e5a1d6a977bd5e258eb0a295b021))
+
 ## [1.35.1](https://github.com/sdavisde/dttd/compare/v1.35.0...v1.35.1) (2026-04-12)
 
 ### Bug Fixes
