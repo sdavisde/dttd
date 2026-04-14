@@ -51,6 +51,7 @@ export interface EventFormPrefill {
   weekendGroupId?: string | null
   weekendId?: string | null
   title?: string | null
+  hideWeekendFields?: boolean
 }
 
 export const DEFAULT_FORM_VALUES: EventFormData = {

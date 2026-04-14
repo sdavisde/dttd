@@ -57,7 +57,17 @@ export default function Meetings({
   const handleEventClick = (event: Event) => {
     if (!canEdit) return
     setSelectedEvent(event)
-    setPrefill(undefined)
+    // Derive prefill from the event so type stays locked and weekend
+    // fields are hidden for community events
+    const isCommunity = isNil(event.weekendGroupId) && isNil(event.weekendId)
+    setPrefill({
+      type: event.type ?? 'other',
+      ...(isCommunity ? { hideWeekendFields: true } : {}),
+      ...(!isNil(event.weekendGroupId)
+        ? { weekendGroupId: event.weekendGroupId }
+        : {}),
+      ...(!isNil(event.weekendId) ? { weekendId: event.weekendId } : {}),
+    })
     setIsSidebarOpen(true)
   }
 
@@ -90,7 +100,7 @@ export default function Meetings({
 
   const handleAddCommunityEvent = () => {
     setSelectedEvent(null)
-    setPrefill(undefined)
+    setPrefill({ type: 'other', hideWeekendFields: true })
     setIsSidebarOpen(true)
   }
 

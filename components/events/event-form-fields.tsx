@@ -61,7 +61,9 @@ export function EventFormFields({
   // When prefill provides type or weekendId, hide those fields
   const hideTypeField = prefill?.type != null
   const hideWeekendField =
-    prefill?.weekendId != null || prefill?.weekendGroupId != null
+    prefill?.hideWeekendFields === true ||
+    prefill?.weekendId != null ||
+    prefill?.weekendGroupId != null
 
   return (
     <div className="space-y-4 px-4 flex-1">
