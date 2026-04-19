@@ -88,21 +88,21 @@ Rollos (prepared talks) are assigned to specific roles and tracked in `weekend_r
 | --------------- | ------------------- |
 | **Head Dining** | _TODO: description_ |
 | **Dining**      | _TODO: description_ |
-| **Meat**        | _TODO: description_ |
 | **Smoker**      | _TODO: description_ |
 
 ## Support & Operations
 
-| Role            | Description                                              |
-| --------------- | -------------------------------------------------------- |
-| **Head Mobile** | _TODO: description_                                      |
-| **Mobile**      | _TODO: description_                                      |
-| **Escort**      | _TODO: description_                                      |
-| **Floater**     | _TODO: description_                                      |
-| **Roster**      | _TODO: description_                                      |
-| **Gopher**      | _TODO: description_                                      |
-| **Medic**       | _TODO: description_                                      |
-| **Rover**       | _TODO: description (note: may be removed in the future)_ |
+| Role               | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| **Head Mobile**    | _TODO: description_                                      |
+| **Mobile**         | _TODO: description_                                      |
+| **Escort**         | _TODO: description_                                      |
+| **Floater**        | _TODO: description_                                      |
+| **Roster**         | _TODO: description_                                      |
+| **Gopher**         | _TODO: description_                                      |
+| **Medic**          | _TODO: description_                                      |
+| **Outside Prayer** | _TODO: description_                                      |
+| **Rover**          | _TODO: description (note: may be removed in the future)_ |
 
 ---
 
