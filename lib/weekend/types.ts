@@ -139,6 +139,7 @@ export enum CHARole {
   GOPHER = 'Gopher',
   MEDIC = 'Medic',
   SMOKER = 'Smoker',
+  OUTSIDE_PRAYER = 'Outside Prayer',
 
   // todo: we might take this position out in the future
   ROVER = 'Rover',
