@@ -3,6 +3,7 @@ import {
   BookOpen,
   DollarSign,
   File,
+  HandHeart,
   UserPlus,
   CheckCircle,
   CalendarDays,
@@ -76,6 +77,14 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
           >
             <UserPlus className="w-10 h-10" />
             <span className="text-lg font-semibold">Sponsor a Candidate</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-52 flex flex-col items-center justify-center gap-2"
+            href="/secuela-signin"
+          >
+            <HandHeart className="w-10 h-10" />
+            <span className="text-lg font-semibold">Sign Up to Serve</span>
           </Button>
           {!isNil(prayerWheelUrl) && (
             <Button
