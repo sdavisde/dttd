@@ -1,3 +1,9 @@
+## [1.38.0](https://github.com/sdavisde/dttd/compare/v1.37.0...v1.38.0) (2026-04-22)
+
+### Features
+
+- **dashboard:** add Sign Up to Serve button linking to secuela sign-in ([3debc61](https://github.com/sdavisde/dttd/commit/3debc61a522a2822c741c99bee81add4de94a705))
+
 ## [1.37.0](https://github.com/sdavisde/dttd/compare/v1.36.0...v1.37.0) (2026-04-21)
 
 ### Features
