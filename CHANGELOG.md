@@ -1,3 +1,15 @@
+## [1.38.0](https://github.com/sdavisde/dttd/compare/v1.37.0...v1.38.0) (2026-04-22)
+
+### Features
+
+- **dashboard:** add Sign Up to Serve button linking to secuela sign-in ([3debc61](https://github.com/sdavisde/dttd/commit/3debc61a522a2822c741c99bee81add4de94a705))
+
+## [1.37.0](https://github.com/sdavisde/dttd/compare/v1.36.0...v1.37.0) (2026-04-21)
+
+### Features
+
+- **roster:** swap Meat CHA for Outside Prayer on Mobile team ([258e511](https://github.com/sdavisde/dttd/commit/258e5110eaa49c5cc6cc5646afd84a01d176953d))
+
 ## [1.36.0](https://github.com/sdavisde/dttd/compare/v1.35.2...v1.36.0) (2026-04-14)
 
 ### Features

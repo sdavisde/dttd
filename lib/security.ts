@@ -218,6 +218,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_MARITAL_STATUS,
   ],
   [CHARole.SMOKER]: [],
+  [CHARole.OUTSIDE_PRAYER]: [],
   [CHARole.ROVER]: [],
 } as const
 
