@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -66,7 +67,7 @@ export function BasicInfoSection() {
           />
 
           <div className="space-y-2">
-            <FormLabel>Which weekend did you go through Tres Dias?</FormLabel>
+            <Label>Which weekend did you go through Tres Dias?</Label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={control}
@@ -115,7 +116,7 @@ export function BasicInfoSection() {
           </div>
 
           <div className="space-y-4">
-            <FormLabel>Have you completed Essentials Training?</FormLabel>
+            <Label>Have you completed Essentials Training?</Label>
             <RadioGroup
               value={hasCompleted}
               onValueChange={(val) => {
@@ -128,15 +129,15 @@ export function BasicInfoSection() {
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="yes" id="training-yes" />
-                <FormLabel htmlFor="training-yes" className="font-normal">
+                <Label htmlFor="training-yes" className="font-normal">
                   Yes
-                </FormLabel>
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="no" id="training-no" />
-                <FormLabel htmlFor="training-no" className="font-normal">
+                <Label htmlFor="training-no" className="font-normal">
                   No
-                </FormLabel>
+                </Label>
               </div>
             </RadioGroup>
 
