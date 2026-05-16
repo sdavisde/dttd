@@ -1,3 +1,9 @@
+## [1.38.1](https://github.com/sdavisde/dttd/compare/v1.38.0...v1.38.1) (2026-05-16)
+
+### Bug Fixes
+
+- **team-forms:** prevent info-sheet page crash from misused FormLabel ([519b503](https://github.com/sdavisde/dttd/commit/519b50307259f8dc7679694503b9e780139cef95))
+
 ## [1.38.0](https://github.com/sdavisde/dttd/compare/v1.37.0...v1.38.0) (2026-04-22)
 
 ### Features
