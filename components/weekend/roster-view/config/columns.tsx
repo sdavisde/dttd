@@ -73,6 +73,23 @@ export function getWeekendRosterColumns(
       },
     },
     {
+      id: 'email',
+      accessorFn: (m) => m.users?.email ?? null,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Email" />
+      ),
+      cell: ({ getValue }) => (
+        <span className="text-muted-foreground">
+          {getValue<string | null>() ?? '-'}
+        </span>
+      ),
+      meta: {
+        showOnMobile: true,
+        mobileLabel: 'Email',
+        mobilePriority: 'detail',
+      },
+    },
+    {
       id: 'phone',
       accessorFn: (m) => m.users?.phone_number ?? null,
       header: ({ column }) => (
