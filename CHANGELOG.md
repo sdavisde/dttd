@@ -1,3 +1,9 @@
+## [1.39.0](https://github.com/sdavisde/dttd/compare/v1.38.1...v1.39.0) (2026-05-18)
+
+### Features
+
+- **roster:** add email column to team roster page ([507fc75](https://github.com/sdavisde/dttd/commit/507fc75157db9f71de29b16d48dd0e90f625172a))
+
 ## [1.38.1](https://github.com/sdavisde/dttd/compare/v1.38.0...v1.38.1) (2026-05-16)
 
 ### Bug Fixes
