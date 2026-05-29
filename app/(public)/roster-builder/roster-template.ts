@@ -143,6 +143,7 @@ export const DEFAULT_ROSTER_TEMPLATE: TemplateCategory[] = [
       { role: CHARole.GOPHER, required: true },
       { role: CHARole.MEDIC, required: true },
       { role: CHARole.SMOKER, required: true },
+      { role: CHARole.STOREROOM, required: true },
       { role: CHARole.OUTSIDE_PRAYER, required: true },
     ],
   },

@@ -101,6 +101,7 @@ Rollos (prepared talks) are assigned to specific roles and tracked in `weekend_r
 | **Roster**         | _TODO: description_                                      |
 | **Gopher**         | _TODO: description_                                      |
 | **Medic**          | _TODO: description_                                      |
+| **Storeroom**      | _TODO: description_                                      |
 | **Outside Prayer** | _TODO: description_                                      |
 | **Rover**          | _TODO: description (note: may be removed in the future)_ |
 
