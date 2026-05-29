@@ -108,6 +108,10 @@ export enum CHARole {
   HEAD = 'Head',
   ASSISTANT_HEAD = 'Assistant Head',
   BACKUP_RECTOR = 'Backup Rector',
+
+  // todo: we might take this position out in the future
+  ROVER = 'Rover',
+
   HEAD_TECH = 'Head Tech',
   TECH = 'Tech',
   HEAD_ROLLISTA = 'Head Rollista',
@@ -141,9 +145,6 @@ export enum CHARole {
   SMOKER = 'Smoker',
   STOREROOM = 'Storeroom',
   OUTSIDE_PRAYER = 'Outside Prayer',
-
-  // todo: we might take this position out in the future
-  ROVER = 'Rover',
 }
 
 /**
