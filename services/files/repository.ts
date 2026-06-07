@@ -1,11 +1,7 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import type {
-  SearchOptions,
-  FileOptions,
-  FileObject,
-} from '@supabase/storage-js'
+import type { SearchOptions, FileObject } from '@supabase/storage-js'
 
 type SortOptions = NonNullable<SearchOptions['sortBy']>
 
@@ -43,14 +39,14 @@ export async function getFileInfo(bucket: string, path: string) {
   return supabase.storage.from(bucket).info(path)
 }
 
-export async function uploadFile(
-  bucket: string,
-  path: string,
-  file: File,
-  options?: FileOptions
-) {
+/**
+ * Mints a one-time signed upload URL + token for a path. The privileged server
+ * client authorizes the upload here; the browser then streams bytes directly to
+ * Supabase using the token, bypassing the Next.js Server Action body-size limit.
+ */
+export async function createSignedUploadUrl(bucket: string, path: string) {
   const supabase = await createClient()
-  return supabase.storage.from(bucket).upload(path, file, options)
+  return supabase.storage.from(bucket).createSignedUploadUrl(path)
 }
 
 export async function getPublicUrl(bucket: string, path: string) {

@@ -4,8 +4,12 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ALLOWED_FILE_TYPES,
+  MAX_UPLOAD_SIZE_BYTES,
+  MAX_UPLOAD_SIZE_LABEL,
   MEETING_MINUTES_FOLDER,
 } from '@/lib/files/constants'
+import { uploadFileToStorage } from '@/lib/files/upload-client'
+import { isErr } from '@/lib/results'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,7 +20,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { uploadFileAction } from '@/services/files/actions'
 import { Upload, Loader2, FileText, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { toastError } from '@/lib/toast-error'
@@ -58,6 +61,14 @@ export function MeetingMinutesUpload() {
       return
     }
 
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      toast.error(`File size must be less than ${MAX_UPLOAD_SIZE_LABEL}`)
+      if (fileInputRef.current !== null) {
+        fileInputRef.current.value = ''
+      }
+      return
+    }
+
     setSelectedFile(file)
   }
 
@@ -74,18 +85,16 @@ export function MeetingMinutesUpload() {
     try {
       setUploading(true)
 
-      const formData = new FormData()
-      formData.set('folder', MEETING_MINUTES_FOLDER)
-      formData.set('file', selectedFile)
-
       const trimmedLocation = location.trim()
-      if (trimmedLocation !== '') {
-        formData.set('metadata', JSON.stringify({ location: trimmedLocation }))
-      }
 
-      const result = await uploadFileAction(formData)
+      const result = await uploadFileToStorage({
+        folder: MEETING_MINUTES_FOLDER,
+        file: selectedFile,
+        metadata:
+          trimmedLocation !== '' ? { location: trimmedLocation } : undefined,
+      })
 
-      if (result.error !== undefined) {
+      if (isErr(result)) {
         throw new Error(result.error)
       }
 

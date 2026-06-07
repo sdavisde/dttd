@@ -42,35 +42,23 @@ export async function getFileDownloadUrlAction(
   return FileService.getFileDownloadUrl(folder, fileName)
 }
 
-export const uploadFileAction = authorizedAction<
-  FormData,
-  { fileName: string }
->(Permission.FILES_UPLOAD, async (formData) => {
-  const folder = formData.get('folder')
-  const file = formData.get('file')
-  const metadataValue = formData.get('metadata')
-
+/**
+ * Mints a one-time signed upload URL for a file. The bytes are uploaded directly
+ * from the browser to Supabase Storage using the returned token (see
+ * `uploadFileToStorage` in `lib/files/upload-client`), bypassing the Next.js
+ * Server Action body-size limit. RBAC and extension validation happen here.
+ */
+export const createUploadUrlAction = authorizedAction<
+  { folder: string; fileName: string },
+  { bucket: string; path: string; token: string }
+>(Permission.FILES_UPLOAD, async ({ folder, fileName }) => {
   if (typeof folder !== 'string' || folder.trim() === '') {
     return err('Folder is required')
   }
 
-  if (!(file instanceof File) || file.size === 0) {
+  if (typeof fileName !== 'string' || fileName.trim() === '') {
     return err('A file is required')
   }
 
-  let metadata: Record<string, string> | undefined
-
-  if (typeof metadataValue === 'string' && metadataValue.trim() !== '') {
-    try {
-      metadata = JSON.parse(metadataValue) as Record<string, string>
-    } catch {
-      return err('Invalid file metadata')
-    }
-  }
-
-  return FileService.uploadFile({
-    folder: folder.trim(),
-    file,
-    metadata,
-  })
+  return FileService.createUploadUrl(folder.trim(), fileName.trim())
 })

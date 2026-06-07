@@ -4,8 +4,13 @@ import { useState, useRef } from 'react'
 import { isNil } from 'lodash'
 import { useRouter } from 'next/navigation'
 import { Button, type ButtonProps } from '@/components/ui/button'
-import { ALLOWED_FILE_TYPES } from '@/lib/files/constants'
-import { uploadFileAction } from '@/services/files/actions'
+import {
+  ALLOWED_FILE_TYPES,
+  MAX_UPLOAD_SIZE_BYTES,
+  MAX_UPLOAD_SIZE_LABEL,
+} from '@/lib/files/constants'
+import { uploadFileToStorage } from '@/lib/files/upload-client'
+import { isErr } from '@/lib/results'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { toastError } from '@/lib/toast-error'
@@ -38,21 +43,17 @@ export function FileUpload({
         return
       }
 
-      // Validate file size (10MB limit) REMOVED THIS LIMIT B/C OF ROSTER PDFS
-      // if (file.size > 10 * 1024 * 1024) {
-      //   toast.error('File size must be less than 10MB')
-      //   return
-      // }
+      // Friendly size guard (bytes go directly to Supabase Storage)
+      if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+        toast.error(`File size must be less than ${MAX_UPLOAD_SIZE_LABEL}`)
+        return
+      }
 
       setUploading(true)
 
-      const formData = new FormData()
-      formData.set('folder', folder)
-      formData.set('file', file)
+      const result = await uploadFileToStorage({ folder, file })
 
-      const result = await uploadFileAction(formData)
-
-      if (result.error !== undefined) {
+      if (isErr(result)) {
         throw new Error(result.error)
       }
 

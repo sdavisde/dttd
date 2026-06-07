@@ -12,6 +12,7 @@ import type {
   StorageSortField,
 } from '@/lib/files/types'
 import { MEETING_MINUTES_FOLDER } from '@/lib/files/constants'
+import { isAllowedFileExtension } from '@/lib/files/validation'
 import * as FileRepository from './repository'
 
 export type Bucket = {
@@ -229,31 +230,24 @@ export async function getMeetingMinutesPage(
   })
 }
 
-export async function uploadFile({
-  folder,
-  file,
-  metadata,
-}: {
-  folder: string
-  file: File
-  metadata?: Record<string, string>
-}): Promise<Result<string, { fileName: string }>> {
-  const { error } = await FileRepository.uploadFile(
-    'files',
-    `${folder}/${file.name}`,
-    file,
-    {
-      cacheControl: '3600',
-      upsert: false,
-      metadata,
-    }
-  )
-
-  if (!isNil(error)) {
-    return err(error.message)
+export async function createUploadUrl(
+  folder: string,
+  fileName: string
+): Promise<Result<string, { bucket: string; path: string; token: string }>> {
+  if (!isAllowedFileExtension(fileName)) {
+    return err('Only PDF and image files are allowed')
   }
 
-  return ok({ fileName: file.name })
+  const { data, error } = await FileRepository.createSignedUploadUrl(
+    'files',
+    `${folder}/${fileName}`
+  )
+
+  if (!isNil(error) || isNil(data)) {
+    return err(error?.message ?? 'Unable to create upload URL')
+  }
+
+  return ok({ bucket: 'files', path: data.path, token: data.token })
 }
 
 export async function getFilePublicUrl(
