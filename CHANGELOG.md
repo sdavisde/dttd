@@ -1,3 +1,9 @@
+## [1.40.2](https://github.com/sdavisde/dttd/compare/v1.40.1...v1.40.2) (2026-06-08)
+
+### Bug Fixes
+
+- **files:** allow large PDF uploads via direct-to-storage signed URLs ([41dbe6d](https://github.com/sdavisde/dttd/commit/41dbe6d4a2fe7b79297d2ddd88fc83e0756175cd))
+
 ## [1.40.1](https://github.com/sdavisde/dttd/compare/v1.40.0...v1.40.1) (2026-05-29)
 
 ### Bug Fixes
