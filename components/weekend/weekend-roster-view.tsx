@@ -1,5 +1,7 @@
 import { WeekendRosterTable } from '@/components/weekend/roster-view/weekend-roster-table'
 import { AddTeamMemberButton } from '@/components/weekend/roster-view/add-team-member-button'
+import { PrintRosterButton } from '@/components/weekend/roster-view/print-roster-button'
+import { PrintableRoster } from '@/components/weekend/roster-view/printable-roster'
 import {
   DroppedRosterSection,
   ActiveRosterHeader,
@@ -127,19 +129,34 @@ export async function WeekendRosterView({
       <div>
         <div className="mb-4">
           <ActiveRosterHeader roster={roster} title="Team Roster">
-            {canEditRoster && isWeekendEditable && (
-              <AddTeamMemberButton
-                weekendId={weekend.id}
-                weekendTitle={weekendTitle}
-                users={availableUsers}
-              />
-            )}
+            <div className="flex items-center gap-2">
+              <PrintRosterButton />
+              {canEditRoster && isWeekendEditable && (
+                <AddTeamMemberButton
+                  weekendId={weekend.id}
+                  weekendTitle={weekendTitle}
+                  users={availableUsers}
+                />
+              )}
+            </div>
           </ActiveRosterHeader>
         </div>
 
         <WeekendRosterTable
           roster={roster}
           isEditable={canEditRoster && isWeekendEditable}
+          includePaymentInformation={canViewPaymentInfo}
+          includeEmergencyContact={canViewEmergencyContact}
+          includeSpecialNeeds={canViewSpecialNeeds}
+          includeTeamFormInfo={canViewTeamFormInfo}
+        />
+
+        {/* Print-only roster (hidden on screen; revealed by @media print). */}
+        <PrintableRoster
+          roster={roster}
+          weekendTitle={weekendTitle}
+          startDate={startDate}
+          endDate={endDate}
           includePaymentInformation={canViewPaymentInfo}
           includeEmergencyContact={canViewEmergencyContact}
           includeSpecialNeeds={canViewSpecialNeeds}
