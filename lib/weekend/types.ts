@@ -63,6 +63,9 @@ export const WeekendType = {
 
 export type WeekendType = (typeof WeekendType)[keyof typeof WeekendType]
 
+/** Maximum number of candidates a single weekend can hold. */
+export const WEEKEND_CANDIDATE_CAPACITY = 42
+
 export enum WeekendStatus {
   PLANNING = 'PLANNING',
   ACTIVE = 'ACTIVE',

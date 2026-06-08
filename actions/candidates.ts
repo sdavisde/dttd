@@ -16,10 +16,13 @@ import { Permission } from '@/lib/security'
 import { sendCandidateFormsCompletedEmail } from '@/services/notifications'
 import { logger } from '@/lib/logger'
 import type { WeekendType } from '@/lib/weekend/types'
+import { WeekendStatus, WEEKEND_CANDIDATE_CAPACITY } from '@/lib/weekend/types'
 import type { Database } from '@/database.types'
+import { getCandidateCountByWeekend } from '@/services/candidates/actions'
 import {
   getPaymentForTarget,
   getCandidateFee,
+  movePaymentsToWeekend,
 } from '@/services/payment/payment-service'
 import { getPaymentSummary } from '@/lib/payments/utils'
 
@@ -454,6 +457,141 @@ export const updateCandidateStatusField = authorizedAction<
   } catch (error) {
     return err(
       `Error while updating status: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
+})
+
+/**
+ * A weekend a candidate can be moved to, with a live capacity hint.
+ */
+export interface MoveWeekendOption {
+  weekendId: string
+  label: string
+  count: number
+  capacity: number
+  isFull: boolean
+}
+
+/**
+ * Gets the weekends a candidate can be moved to.
+ * Only weekends of the same gender (type) that are not finished are eligible,
+ * and the candidate's current weekend is excluded. Each option includes a live
+ * candidate count so callers can show a capacity hint.
+ */
+export async function getMoveWeekendOptions(
+  candidateId: string
+): Promise<Result<string, MoveWeekendOption[]>> {
+  try {
+    const supabase = await createClient()
+
+    // Load the candidate's current weekend to determine gender and exclude it
+    const { data: candidate, error: candidateError } = await supabase
+      .from('candidates')
+      .select('weekend_id')
+      .eq('id', candidateId)
+      .single()
+
+    if (!isNil(candidateError) || isNil(candidate)) {
+      return err(
+        `Failed to load candidate: ${candidateError?.message ?? 'No data returned'}`
+      )
+    }
+
+    if (isNil(candidate.weekend_id)) {
+      return err('Candidate is not assigned to a weekend')
+    }
+
+    const { data: currentWeekend, error: currentWeekendError } = await supabase
+      .from('weekends')
+      .select('id, type')
+      .eq('id', candidate.weekend_id)
+      .single()
+
+    if (!isNil(currentWeekendError) || isNil(currentWeekend)) {
+      return err(
+        `Failed to load current weekend: ${currentWeekendError?.message ?? 'No data returned'}`
+      )
+    }
+
+    // Eligible targets: same gender, not finished, excluding the current weekend
+    const { data: weekends, error: weekendsError } = await supabase
+      .from('weekends')
+      .select('id, type, title, start_date, weekend_groups(number)')
+      .eq('type', currentWeekend.type)
+      .neq('id', currentWeekend.id)
+      .in('status', [WeekendStatus.PLANNING, WeekendStatus.ACTIVE])
+      .order('start_date', { ascending: true })
+
+    if (!isNil(weekendsError) || isNil(weekends)) {
+      return err(
+        `Failed to load weekends: ${weekendsError?.message ?? 'No data returned'}`
+      )
+    }
+
+    const options = await Promise.all(
+      weekends.map(async (weekend) => {
+        const countResult = await getCandidateCountByWeekend(weekend.id)
+        const count = isErr(countResult) ? 0 : countResult.data
+        const number = weekend.weekend_groups?.number
+        const groupLabel = !isNil(number)
+          ? `DTTD #${number}`
+          : (weekend.title ?? 'Weekend')
+        const gender = weekend.type === 'MENS' ? "Men's" : "Women's"
+        return {
+          weekendId: weekend.id,
+          label: `${groupLabel} ${gender}`,
+          count,
+          capacity: WEEKEND_CANDIDATE_CAPACITY,
+          isFull: count >= WEEKEND_CANDIDATE_CAPACITY,
+        }
+      })
+    )
+
+    return ok(options)
+  } catch (error) {
+    return err(
+      `Error while loading move weekend options: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
+}
+
+/**
+ * Moves a candidate to a different weekend.
+ * The candidate's forms (candidate_info) and sponsorship info travel
+ * automatically via candidate_id; their payments are reassigned to the new
+ * weekend so financials follow them. Requires WRITE_CANDIDATES permission.
+ */
+export const moveCandidateToWeekend = authorizedAction<
+  { candidateId: string; targetWeekendId: string },
+  { success: boolean }
+>(Permission.WRITE_CANDIDATES, async ({ candidateId, targetWeekendId }) => {
+  try {
+    const supabase = await createClient()
+
+    const { error: updateError } = await supabase
+      .from('candidates')
+      .update({ weekend_id: targetWeekendId })
+      .eq('id', candidateId)
+
+    if (!isNil(updateError)) {
+      return err(`Failed to move candidate: ${updateError.message}`)
+    }
+
+    // Reassign the candidate's payments to the new weekend
+    const paymentsResult = await movePaymentsToWeekend(
+      'candidate',
+      candidateId,
+      targetWeekendId
+    )
+
+    if (isErr(paymentsResult)) {
+      return err(`Failed to move candidate payments: ${paymentsResult.error}`)
+    }
+
+    return ok({ success: true })
+  } catch (error) {
+    return err(
+      `Error while moving candidate: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
 })

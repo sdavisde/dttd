@@ -71,6 +71,7 @@ function getPaymentCategory(candidate: HydratedCandidate): string {
 export interface CandidateReviewColumnCallbacks {
   onSendForms: (candidate: HydratedCandidate) => void
   onSendPaymentRequest: (candidate: HydratedCandidate) => void
+  onMove: (candidate: HydratedCandidate) => void
   onReject: (candidate: HydratedCandidate) => void
   onViewDetails: (candidate: HydratedCandidate) => void
   canEditPayments: boolean
@@ -230,6 +231,12 @@ export function getCandidateReviewColumns(
                       (sponsor)
                     </span>
                   )}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => callbacks.onMove(candidate)}
+                  className="cursor-pointer"
+                >
+                  Move to Weekend
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"

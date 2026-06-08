@@ -3,7 +3,10 @@
 import { useMemo, useState } from 'react'
 import type { HydratedCandidate } from '@/lib/candidates/types'
 import { logger } from '@/lib/logger'
-import { updateCandidateStatus } from '@/actions/candidates'
+import {
+  updateCandidateStatus,
+  moveCandidateToWeekend,
+} from '@/actions/candidates'
 import * as Results from '@/lib/results'
 import {
   sendCandidateForms,
@@ -29,6 +32,7 @@ import {
 import { SendFormsConfirmationModal } from './SendFormsConfirmationModal'
 import { SendPaymentRequestConfirmationModal } from './SendPaymentRequestConfirmationModal'
 import { RejectCandidateConfirmationModal } from './RejectCandidateConfirmationModal'
+import { MoveCandidateConfirmationModal } from './MoveCandidateConfirmationModal'
 
 interface CandidateReviewTableProps {
   candidates: HydratedCandidate[]
@@ -47,6 +51,9 @@ export function CandidateReviewTable({
     useState<HydratedCandidate | null>(null)
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
   const [candidateForReject, setCandidateForReject] =
+    useState<HydratedCandidate | null>(null)
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false)
+  const [candidateForMove, setCandidateForMove] =
     useState<HydratedCandidate | null>(null)
   const router = useRouter()
 
@@ -87,6 +94,10 @@ export function CandidateReviewTable({
         onSendPaymentRequest: (candidate) => {
           setCandidateForSendPayment(candidate)
           setIsSendPaymentModalOpen(true)
+        },
+        onMove: (candidate) => {
+          setCandidateForMove(candidate)
+          setIsMoveModalOpen(true)
         },
         onReject: (candidate) => {
           setCandidateForReject(candidate)
@@ -196,6 +207,35 @@ export function CandidateReviewTable({
     setCandidateForSendPayment(null)
   }
 
+  const handleMoveConfirm = async (targetWeekendId: string) => {
+    if (isNil(candidateForMove)) return
+
+    logger.info(
+      `Moving candidate ${candidateForMove.id} to weekend ${targetWeekendId}`
+    )
+
+    const result = await moveCandidateToWeekend({
+      candidateId: candidateForMove.id,
+      targetWeekendId,
+    })
+
+    if (Results.isErr(result)) {
+      logger.error(`Failed to move candidate: ${result.error}`)
+      toast.error(`Failed to move candidate: ${result.error}`)
+      return
+    }
+
+    toast.success('Candidate moved successfully')
+    setIsMoveModalOpen(false)
+    setCandidateForMove(null)
+    router.refresh()
+  }
+
+  const handleMoveCancel = () => {
+    setIsMoveModalOpen(false)
+    setCandidateForMove(null)
+  }
+
   return (
     <>
       <DataTable
@@ -270,6 +310,13 @@ export function CandidateReviewTable({
         candidate={candidateForReject}
         onCancel={handleRejectCancel}
         onConfirm={handleRejectConfirm}
+      />
+
+      <MoveCandidateConfirmationModal
+        isOpen={isMoveModalOpen}
+        candidate={candidateForMove}
+        onCancel={handleMoveCancel}
+        onConfirm={handleMoveConfirm}
       />
     </>
   )

@@ -181,6 +181,31 @@ export async function updatePayment(
 }
 
 /**
+ * Reassigns every payment transaction for a target to a different weekend.
+ * Used when a candidate is moved between weekends so their payments follow them.
+ * @param targetType - The type of target ('candidate' or 'weekend_roster')
+ * @param targetId - The ID of the target entity
+ * @param weekendId - The weekend to reassign the payments to
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the updated payment transactions or an error
+ */
+export async function updatePaymentsWeekendByTarget(
+  targetType: NonNullable<TargetType>,
+  targetId: string,
+  weekendId: string,
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionRow[]>> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('payment_transaction')
+    .update({ weekend_id: weekendId })
+    .eq('target_type', targetType)
+    .eq('target_id', targetId)
+    .select()
+  return fromSupabase(response)
+}
+
+/**
  * Updates a payment transaction by payment intent ID.
  * Used for backfilling Stripe data when we only have the payment intent ID.
  * @param paymentIntentId - The Stripe payment intent ID

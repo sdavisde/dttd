@@ -208,6 +208,30 @@ export async function getPaymentForTarget(
 }
 
 /**
+ * Reassigns all of a target's payment transactions to a different weekend.
+ * Used when a candidate is moved between weekends so their payments follow them.
+ *
+ * @param targetType - The type of target ('candidate' or 'weekend_roster')
+ * @param targetId - The ID of the target entity
+ * @param weekendId - The weekend to reassign the payments to
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the updated payment transactions
+ */
+export async function movePaymentsToWeekend(
+  targetType: NonNullable<TargetType>,
+  targetId: string,
+  weekendId: string,
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionRow[]>> {
+  return PaymentRepository.updatePaymentsWeekendByTarget(
+    targetType,
+    targetId,
+    weekendId,
+    options
+  )
+}
+
+/**
  * Checks if any payment exists for a specific target.
  *
  * @param targetType - The type of target ('candidate' or 'weekend_roster')
