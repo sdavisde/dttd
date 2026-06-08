@@ -1,6 +1,8 @@
 import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/client'
 import { createUploadUrlAction } from '@/services/files/actions'
+import { logger } from '@/lib/logger'
+import { getFriendlyUploadError } from '@/lib/files/upload-errors'
 import { err, isErr, ok, type Result } from '@/lib/results'
 
 /**
@@ -15,6 +17,9 @@ import { err, isErr, ok, type Result } from '@/lib/results'
  * Note: `uploadToSignedUrl` cannot carry custom object metadata (the SDK drops
  * it), so any per-file metadata must be persisted separately — see
  * `saveMeetingMinutesLocationAction`.
+ *
+ * This never throws: every failure is logged with its raw cause and returned as
+ * a specific, user-facing message so callers can show it directly.
  */
 export async function uploadFileToStorage({
   folder,
@@ -23,18 +28,38 @@ export async function uploadFileToStorage({
   folder: string
   file: File
 }): Promise<Result<string, { fileName: string }>> {
-  const grant = await createUploadUrlAction({ folder, fileName: file.name })
-  if (isErr(grant)) return grant
+  try {
+    const grant = await createUploadUrlAction({ folder, fileName: file.name })
+    if (isErr(grant)) {
+      logger.error(
+        { error: grant.error, folder, fileName: file.name },
+        'Failed to create signed upload URL'
+      )
+      return err(getFriendlyUploadError(grant.error))
+    }
 
-  const supabase = createClient()
-  const { error } = await supabase.storage
-    .from(grant.data.bucket)
-    .uploadToSignedUrl(grant.data.path, grant.data.token, file, {
-      cacheControl: '3600',
-      upsert: false,
-    })
+    const supabase = createClient()
+    const { error } = await supabase.storage
+      .from(grant.data.bucket)
+      .uploadToSignedUrl(grant.data.path, grant.data.token, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
 
-  if (!isNil(error)) return err(error.message)
+    if (!isNil(error)) {
+      logger.error(
+        { error, folder, fileName: file.name },
+        'Upload to Supabase Storage failed'
+      )
+      return err(getFriendlyUploadError(error))
+    }
 
-  return ok({ fileName: file.name })
+    return ok({ fileName: file.name })
+  } catch (error) {
+    logger.error(
+      { error, folder, fileName: file.name },
+      'Unexpected error while uploading file'
+    )
+    return err(getFriendlyUploadError(error))
+  }
 }

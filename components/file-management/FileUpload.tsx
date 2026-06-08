@@ -10,6 +10,10 @@ import {
   MAX_UPLOAD_SIZE_LABEL,
 } from '@/lib/files/constants'
 import { uploadFileToStorage } from '@/lib/files/upload-client'
+import {
+  formatFileSize,
+  getFriendlyUploadError,
+} from '@/lib/files/upload-errors'
 import { isErr } from '@/lib/results'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,13 +43,17 @@ export function FileUpload({
 
       // Validate file type
       if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        toast.error('Only PDF and image files are allowed')
+        toast.error(
+          `"${file.name}" isn't a supported file type. Please upload a PDF or image file.`
+        )
         return
       }
 
       // Friendly size guard (bytes go directly to Supabase Storage)
       if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-        toast.error(`File size must be less than ${MAX_UPLOAD_SIZE_LABEL}`)
+        toast.error(
+          `"${file.name}" is ${formatFileSize(file.size)}, which exceeds the ${MAX_UPLOAD_SIZE_LABEL} limit.`
+        )
         return
       }
 
@@ -54,7 +62,10 @@ export function FileUpload({
       const result = await uploadFileToStorage({ folder, file })
 
       if (isErr(result)) {
-        throw new Error(result.error)
+        // uploadFileToStorage already logged the raw cause; show the user the
+        // specific reason it returned.
+        toast.error(result.error)
+        return
       }
 
       toast.success(`File "${file.name}" uploaded successfully`)
@@ -62,7 +73,7 @@ export function FileUpload({
       // Refresh the page to show the new file
       router.refresh()
     } catch (err) {
-      toastError('Failed to upload file. Please try again.', { error: err })
+      toastError(getFriendlyUploadError(err), { error: err })
     } finally {
       setUploading(false)
       // Reset the file input

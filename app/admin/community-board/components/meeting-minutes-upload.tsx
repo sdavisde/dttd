@@ -9,6 +9,10 @@ import {
   MEETING_MINUTES_FOLDER,
 } from '@/lib/files/constants'
 import { uploadFileToStorage } from '@/lib/files/upload-client'
+import {
+  formatFileSize,
+  getFriendlyUploadError,
+} from '@/lib/files/upload-errors'
 import { saveMeetingMinutesLocationAction } from '@/services/files/actions'
 import { isErr } from '@/lib/results'
 import { Button } from '@/components/ui/button'
@@ -55,7 +59,9 @@ export function MeetingMinutesUpload() {
     const file = files[0]
 
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      toast.error('Only PDF and image files are allowed')
+      toast.error(
+        `"${file.name}" isn't a supported file type. Please upload a PDF or image file.`
+      )
       if (fileInputRef.current !== null) {
         fileInputRef.current.value = ''
       }
@@ -63,7 +69,9 @@ export function MeetingMinutesUpload() {
     }
 
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      toast.error(`File size must be less than ${MAX_UPLOAD_SIZE_LABEL}`)
+      toast.error(
+        `"${file.name}" is ${formatFileSize(file.size)}, which exceeds the ${MAX_UPLOAD_SIZE_LABEL} limit.`
+      )
       if (fileInputRef.current !== null) {
         fileInputRef.current.value = ''
       }
@@ -92,7 +100,10 @@ export function MeetingMinutesUpload() {
       })
 
       if (isErr(result)) {
-        throw new Error(result.error)
+        // uploadFileToStorage already logged the raw cause; show the specific
+        // reason it returned rather than a generic failure message.
+        toast.error(result.error)
+        return
       }
 
       // Location can't ride along with the signed-URL upload, so persist it
@@ -115,9 +126,7 @@ export function MeetingMinutesUpload() {
       handleOpenChange(false)
       router.refresh()
     } catch (err) {
-      toastError('Failed to upload meeting minutes. Please try again.', {
-        error: err,
-      })
+      toastError(getFriendlyUploadError(err), { error: err })
     } finally {
       setUploading(false)
     }
