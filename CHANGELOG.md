@@ -1,3 +1,14 @@
+## [1.41.0](https://github.com/sdavisde/dttd/compare/v1.40.2...v1.41.0) (2026-06-08)
+
+### Features
+
+- **candidate:** let pre-weekend couple move candidates between weekends ([9301a9d](https://github.com/sdavisde/dttd/commit/9301a9da539cb24d946a06d1ad6110d5d3b3eeb3)), closes [#11](https://github.com/sdavisde/dttd/issues/11)
+
+### Bug Fixes
+
+- **files:** restore meeting minutes location after signed-URL upload switch ([7bc6bf1](https://github.com/sdavisde/dttd/commit/7bc6bf13301f1b09a63a123dd471336cb4543ea7))
+- **files:** show specific reasons when a file upload fails ([9959a80](https://github.com/sdavisde/dttd/commit/9959a80e3b1be9f11194de77d093247fe0a45478))
+
 ## [1.40.2](https://github.com/sdavisde/dttd/compare/v1.40.1...v1.40.2) (2026-06-08)
 
 ### Bug Fixes
