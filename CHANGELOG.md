@@ -1,3 +1,9 @@
+## [1.40.1](https://github.com/sdavisde/dttd/compare/v1.40.0...v1.40.1) (2026-05-29)
+
+### Bug Fixes
+
+- move rover under leaders in cha sort ([beb347b](https://github.com/sdavisde/dttd/commit/beb347b4c64cb8ee17809532c50a0dbf6a357020))
+
 ## [1.40.0](https://github.com/sdavisde/dttd/compare/v1.39.0...v1.40.0) (2026-05-29)
 
 ### Features
