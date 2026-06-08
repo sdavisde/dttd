@@ -25,4 +25,5 @@ export const CANDIDATE_FORM_TEST_DATA = {
   medicalConditions: 'None',
   medicalPermission: true,
   emergencyContactPermission: true,
+  signature: 'John Doe',
 }

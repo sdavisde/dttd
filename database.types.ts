@@ -39,6 +39,7 @@ export type Database = {
           address_line_1: string
           address_line_2: string | null
           age: number | null
+          camp_waiver_signed_at: string | null
           candidate_id: string | null
           church: string | null
           city: string
@@ -68,6 +69,7 @@ export type Database = {
           address_line_1: string
           address_line_2?: string | null
           age?: number | null
+          camp_waiver_signed_at?: string | null
           candidate_id?: string | null
           church?: string | null
           city: string
@@ -97,6 +99,7 @@ export type Database = {
           address_line_1?: string
           address_line_2?: string | null
           age?: number | null
+          camp_waiver_signed_at?: string | null
           candidate_id?: string | null
           church?: string | null
           city?: string

@@ -6,7 +6,8 @@ import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { StatusChip } from '@/components/candidates/status-chip'
 import { StatusLegend } from '../components/StatusLegend'
 import { CandidatePaymentInfo } from '../components/CandidatePaymentInfo'
-import { Info, MoreHorizontal } from 'lucide-react'
+import { Check, Info, Minus, MoreHorizontal } from 'lucide-react'
+import { isNil } from 'lodash'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -169,6 +170,36 @@ export function getCandidateReviewColumns(
         showOnMobile: true,
         mobileLabel: 'Status',
         mobilePriority: 'secondary',
+      },
+    },
+    {
+      id: 'campWaiver',
+      accessorFn: (c) =>
+        isNil(c.candidate_info?.camp_waiver_signed_at) ? 'unsigned' : 'signed',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Waiver" />
+      ),
+      cell: ({ row }) => {
+        const signed = !isNil(
+          row.original.candidate_info?.camp_waiver_signed_at
+        )
+        return signed ? (
+          <span title="Camp waiver signed">
+            <Check className="h-4 w-4 text-green-600" />
+            <span className="sr-only">Camp waiver signed</span>
+          </span>
+        ) : (
+          <span title="Camp waiver not signed">
+            <Minus className="h-4 w-4 text-muted-foreground" />
+            <span className="sr-only">Camp waiver not signed</span>
+          </span>
+        )
+      },
+      meta: {
+        filterType: 'select',
+        showOnMobile: true,
+        mobileLabel: 'Camp Waiver',
+        mobilePriority: 'detail',
       },
     },
     {

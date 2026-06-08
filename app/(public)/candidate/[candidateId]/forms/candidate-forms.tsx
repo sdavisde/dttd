@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
 import { DatePicker } from '@/components/ui/date-picker'
-import { WaiverDialog } from '@/components/ui/waiver-dialog'
+import { CampWaiverText } from '@/components/forms/camp-waiver-text'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
@@ -84,6 +84,8 @@ const formSchema = z.object({
   medicalConditions: z.string().optional(),
   medicalPermission: z.boolean(),
   emergencyContactPermission: z.boolean(),
+  /** Camp Waiver — typed signature acknowledging the Tanglewood waiver */
+  signature: z.string().min(2, 'Signature is required'),
 })
 type FormValues = z.infer<typeof formSchema>
 
@@ -97,7 +99,6 @@ export function CandidateForms({
   initialData,
 }: CandidateFormsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [waiverOpen, setWaiverOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
   const form = useForm<FormValues>({
@@ -131,6 +132,7 @@ export function CandidateForms({
       medicalConditions: initialData?.medical_conditions ?? '',
       medicalPermission: false,
       emergencyContactPermission: false,
+      signature: '',
     },
     resolver: zodResolver(formSchema),
   })
@@ -168,6 +170,7 @@ export function CandidateForms({
         emergency_contact_name: data.emergencyContactName ?? null,
         emergency_contact_phone: data.emergencyContactPhone ?? null,
         medical_conditions: data.medicalConditions ?? null,
+        camp_waiver_signed_at: new Date().toISOString(),
         age,
       })
       if (isErr(result)) {
@@ -643,6 +646,60 @@ export function CandidateForms({
           </CardContent>
         </Card>
 
+        {/* Camp Waiver Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Camp Waiver</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-sm text-muted-foreground">
+              Waiver of Claim — Tanglewood Christian Camp. Please read carefully
+              and sign below.
+            </p>
+            <CampWaiverText />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-secondary/10 rounded-md items-end">
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">
+                  Name of Attendee
+                </Label>
+                <p className="font-medium text-lg">
+                  {(() => {
+                    const name = [
+                      form.watch('firstName'),
+                      form.watch('lastName'),
+                    ]
+                      .filter(Boolean)
+                      .join(' ')
+                    return name === '' ? '—' : name
+                  })()}
+                </p>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="signature"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Signature of Attendee</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Sign with full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Date</Label>
+                <div className="h-10 flex items-center px-3 border rounded-md bg-muted text-muted-foreground">
+                  {new Date().toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {successMessage !== '' && (
           <Alert variant="success">
             <AlertTitle>Success</AlertTitle>
@@ -673,25 +730,6 @@ export function CandidateForms({
           </Button>
         </div>
       </form>
-
-      <WaiverDialog
-        open={waiverOpen}
-        onOpenChange={setWaiverOpen}
-        title="Tanglewood Christian Camp Waiver"
-        content={`
-WAIVER OF CLAIM TANGLEWOOD CHRISTIAN CAMP
-
-This Waiver of Claim (the "Waiver") is given for the following purposes:
-
-1. I hereby desire to participate in various activities while on or about the premises Of Tanglewood Christian Camp in Tanglewood. TX without any supervision supplied by Tanglewood Christian Camp.
-2. I recognize that although the odds of serious injury or death is low, nevertheless, a body that slips-or falls may have a reaction to the immediate injury or the treatment for such injury that results in a medical condition that could lead to serious injury or death.
-3. I agree that in exchange for Tanglewood Christian Camp allowing me to participate in the activities on the premises that Im aware my individual capacities will not assert or pursue a claim for personal injury against Tanglewood Christian Camp or any person or entity or fellow participant that conducts or participates in any activity on the premises. More specifically, I hereby WAIVE and RENOUNCE and RELEASE any claim for personal injury suffered by me during activities regardless of the cause of the injury, that is, regardless of whether the injury is caused by participating in the/a planned activity or injury caused by movement on the premises or the mere going to and from the site where the activity takes place and regardless of whether the injury is caused by the negligence of any person or entity involved in the activity or the condition of the premises where the activity takes place SAVE and EXCEPT injury caused by gross negligence of Tanglewood Christian Camp acting through its agents, servants, employees, officers, directors or owners.
-4. I agree that if any claim is brought by any participant against Tanglewood Christian Camp or any employee, agent, owner, director or officer of Tanglewood Christian Camp because of my actions or omissions while participating in activities on the premises of Tanglewood Christian Camp, I shall INDEMNIFY and HOLD HARMLESS Tanglewood Christian Camp, its employees, agents, owners, officers and directors from and against any such claim including the duty to investigate, defend and pay on the part of Tanglewood Christian Camp.
-5. Texas law governs the interpretation and enforcement of this Waiver. Venue of any dispute will be ni the county where Tanglewood Christian Camp is located. Any claim shall be first discussed among the claimants) and Tanglewood Christian Camp before any suit if filed by way of face-to-face meeting on the premises, and thereafter, by way of non-binding mediation BEFORE suit to interpret or enforce is filed
-        `}
-        onAcknowledge={() => setWaiverOpen(false)}
-        acknowledgeText="I have read, understood, and agree to the medical permission terms"
-      />
     </Form>
   )
 }
