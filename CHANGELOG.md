@@ -1,3 +1,9 @@
+## [1.42.0](https://github.com/sdavisde/dttd/compare/v1.41.0...v1.42.0) (2026-06-08)
+
+### Features
+
+- **candidate:** add camp waiver to candidate intake forms ([0f8cc4d](https://github.com/sdavisde/dttd/commit/0f8cc4deb6b23fa004369516ec6a3292525a391c))
+
 ## [1.41.0](https://github.com/sdavisde/dttd/compare/v1.40.2...v1.41.0) (2026-06-08)
 
 ### Features
