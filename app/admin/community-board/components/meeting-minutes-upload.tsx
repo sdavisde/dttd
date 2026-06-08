@@ -9,6 +9,7 @@ import {
   MEETING_MINUTES_FOLDER,
 } from '@/lib/files/constants'
 import { uploadFileToStorage } from '@/lib/files/upload-client'
+import { saveMeetingMinutesLocationAction } from '@/services/files/actions'
 import { isErr } from '@/lib/results'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -85,17 +86,29 @@ export function MeetingMinutesUpload() {
     try {
       setUploading(true)
 
-      const trimmedLocation = location.trim()
-
       const result = await uploadFileToStorage({
         folder: MEETING_MINUTES_FOLDER,
         file: selectedFile,
-        metadata:
-          trimmedLocation !== '' ? { location: trimmedLocation } : undefined,
       })
 
       if (isErr(result)) {
         throw new Error(result.error)
+      }
+
+      // Location can't ride along with the signed-URL upload, so persist it
+      // separately. A failure here shouldn't discard the uploaded file.
+      const trimmedLocation = location.trim()
+      if (trimmedLocation !== '') {
+        const locationResult = await saveMeetingMinutesLocationAction({
+          fileName: selectedFile.name,
+          location: trimmedLocation,
+        })
+
+        if (isErr(locationResult)) {
+          toastError('File uploaded, but the location could not be saved.', {
+            error: locationResult.error,
+          })
+        }
       }
 
       toast.success(`File "${selectedFile.name}" uploaded successfully`)

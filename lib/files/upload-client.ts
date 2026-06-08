@@ -10,17 +10,18 @@ import { err, isErr, ok, type Result } from '@/lib/results'
  *   2. Stream the bytes directly from the browser to Supabase using that token.
  *
  * The file never passes through a Next.js Server Action, so it is not subject to
- * the Server Action / platform request body-size limit. Optional `metadata` is
- * persisted as the object's user_metadata (read back later via `.info()`).
+ * the Server Action / platform request body-size limit.
+ *
+ * Note: `uploadToSignedUrl` cannot carry custom object metadata (the SDK drops
+ * it), so any per-file metadata must be persisted separately — see
+ * `saveMeetingMinutesLocationAction`.
  */
 export async function uploadFileToStorage({
   folder,
   file,
-  metadata,
 }: {
   folder: string
   file: File
-  metadata?: Record<string, string>
 }): Promise<Result<string, { fileName: string }>> {
   const grant = await createUploadUrlAction({ folder, fileName: file.name })
   if (isErr(grant)) return grant
@@ -31,7 +32,6 @@ export async function uploadFileToStorage({
     .uploadToSignedUrl(grant.data.path, grant.data.token, file, {
       cacheControl: '3600',
       upsert: false,
-      metadata,
     })
 
   if (!isNil(error)) return err(error.message)

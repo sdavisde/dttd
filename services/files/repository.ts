@@ -34,9 +34,25 @@ export async function listFilesPage(
   })
 }
 
-export async function getFileInfo(bucket: string, path: string) {
+export async function upsertMeetingMinutesLocation(
+  storagePath: string,
+  location: string
+) {
   const supabase = await createClient()
-  return supabase.storage.from(bucket).info(path)
+  return supabase
+    .from('meeting_minutes_metadata')
+    .upsert(
+      { storage_path: storagePath, location },
+      { onConflict: 'storage_path' }
+    )
+}
+
+export async function getMeetingMinutesLocations(storagePaths: string[]) {
+  const supabase = await createClient()
+  return supabase
+    .from('meeting_minutes_metadata')
+    .select('storage_path, location')
+    .in('storage_path', storagePaths)
 }
 
 /**

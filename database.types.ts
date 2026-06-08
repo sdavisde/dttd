@@ -481,6 +481,24 @@ export type Database = {
           },
         ]
       }
+      meeting_minutes_metadata: {
+        Row: {
+          created_at: string
+          location: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          location: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          location?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
       payment_transaction: {
         Row: {
           balance_transaction_id: string | null

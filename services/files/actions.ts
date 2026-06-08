@@ -62,3 +62,27 @@ export const createUploadUrlAction = authorizedAction<
 
   return FileService.createUploadUrl(folder.trim(), fileName.trim())
 })
+
+/**
+ * Persists the location for a meeting minutes file. Signed-URL uploads cannot
+ * carry custom metadata, so location is stored separately and joined back in
+ * when listing meeting minutes.
+ */
+export const saveMeetingMinutesLocationAction = authorizedAction<
+  { fileName: string; location: string },
+  null
+>(Permission.FILES_UPLOAD, async ({ fileName, location }) => {
+  if (typeof fileName !== 'string' || fileName.trim() === '') {
+    return err('A file is required')
+  }
+
+  const trimmedLocation = typeof location === 'string' ? location.trim() : ''
+  if (trimmedLocation === '') {
+    return err('Location is required')
+  }
+
+  return FileService.saveMeetingMinutesLocation(
+    fileName.trim(),
+    trimmedLocation
+  )
+})

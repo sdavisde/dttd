@@ -186,19 +186,41 @@ async function enrichWithLocation(
   files: FileObject[],
   path: string
 ): Promise<MeetingMinuteFile[]> {
-  return Promise.all(
-    files.map(async (file) => {
-      const { data } = await FileRepository.getFileInfo(
-        'files',
-        `${path}/${file.name}`
-      )
+  if (files.length === 0) return []
 
-      return {
-        ...file,
-        location: (data?.metadata?.location as string) ?? undefined,
-      }
-    })
+  const storagePaths = files.map((file) => `${path}/${file.name}`)
+  const { data, error } =
+    await FileRepository.getMeetingMinutesLocations(storagePaths)
+
+  if (!isNil(error)) {
+    logger.error(`Error fetching meeting minutes locations: ${error.message}`)
+  }
+
+  const locationByPath = new Map(
+    (data ?? []).map((row) => [row.storage_path, row.location])
   )
+
+  return files.map((file) => ({
+    ...file,
+    location: locationByPath.get(`${path}/${file.name}`) ?? undefined,
+  }))
+}
+
+export async function saveMeetingMinutesLocation(
+  fileName: string,
+  location: string
+): Promise<Result<string, null>> {
+  const storagePath = `${MEETING_MINUTES_FOLDER}/${fileName}`
+  const { error } = await FileRepository.upsertMeetingMinutesLocation(
+    storagePath,
+    location
+  )
+
+  if (!isNil(error)) {
+    return err(error.message)
+  }
+
+  return ok(null)
 }
 
 export async function getMeetingMinutesPage(
