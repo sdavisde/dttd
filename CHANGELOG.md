@@ -1,3 +1,9 @@
+## [1.43.1](https://github.com/sdavisde/dttd/compare/v1.43.0...v1.43.1) (2026-06-22)
+
+### Bug Fixes
+
+- use candidate id instead of sponsorship info to build links ([b51d0cc](https://github.com/sdavisde/dttd/commit/b51d0ccbfafabb3ec4d4b8aa7dd4584218a8bb81))
+
 ## [1.43.0](https://github.com/sdavisde/dttd/compare/v1.42.0...v1.43.0) (2026-06-22)
 
 ### Features
