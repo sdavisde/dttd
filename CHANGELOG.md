@@ -1,3 +1,9 @@
+## [1.43.0](https://github.com/sdavisde/dttd/compare/v1.42.0...v1.43.0) (2026-06-22)
+
+### Features
+
+- **weekend:** add export and share buttons to team roster ([3381dc9](https://github.com/sdavisde/dttd/commit/3381dc91b36e6ccc669dd8f4c5051f6e69beda4f))
+
 ## [1.42.0](https://github.com/sdavisde/dttd/compare/v1.41.0...v1.42.0) (2026-06-08)
 
 ### Features
