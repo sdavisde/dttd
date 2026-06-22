@@ -2,10 +2,12 @@ import type { Tables } from '@/database.types'
 import { getUrl } from '@/lib/url'
 
 interface CandidateFormsEmailPreviewProps {
+  candidateId: string
   candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>
 }
 
 export function CandidateFormsEmailPreview({
+  candidateId,
   candidateSponsorshipInfo,
 }: CandidateFormsEmailPreviewProps) {
   return (
@@ -41,9 +43,7 @@ export function CandidateFormsEmailPreview({
           <div className="text-center mb-8">
             <a
               className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md font-medium no-underline"
-              href={getUrl(
-                `/candidate/${candidateSponsorshipInfo.candidate_id}/forms`
-              )}
+              href={getUrl(`/candidate/${candidateId}/forms`)}
               target="_blank"
               rel="noopener noreferrer"
             >

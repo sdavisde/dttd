@@ -1,12 +1,12 @@
 'use server'
 
 import { isNil } from 'lodash'
-import type { CreateEmailResponseSuccess} from 'resend';
+import type { CreateEmailResponseSuccess } from 'resend'
 import { Resend } from 'resend'
 import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotificationEmail'
 import CandidateFormsCompletedEmail from '@/components/email/CandidateFormsCompletedEmail'
 import { createClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok, isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import type { Tables } from '@/database.types'
@@ -73,9 +73,14 @@ export async function sendSponsorshipNotificationEmail(
  * Send candidate forms to sponsorship request, turning them into a candidate
  */
 export async function sendCandidateForms(
+  candidateId: string,
   candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
+    if (isNil(candidateId)) {
+      return err('Candidate id is required to build the forms link')
+    }
+
     if (isNil(candidateSponsorshipInfo.candidate_email)) {
       return err('Candidate email not found on candidate')
     }
@@ -85,7 +90,7 @@ export async function sendCandidateForms(
         from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
         to: [candidateSponsorshipInfo.candidate_email],
         subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
-        react: CandidateFormsEmail(candidateSponsorshipInfo),
+        react: CandidateFormsEmail({ candidateId, candidateSponsorshipInfo }),
       })
 
     if (!isNil(candidateFormsEmailError)) {

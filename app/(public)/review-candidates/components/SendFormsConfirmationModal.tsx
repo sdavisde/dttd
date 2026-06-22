@@ -80,6 +80,7 @@ export function SendFormsConfirmationModal({
         {/* Email Preview */}
         <div className="border rounded-lg bg-gray-50 max-h-[400px] overflow-auto">
           <CandidateFormsEmailPreview
+            candidateId={candidate.id}
             candidateSponsorshipInfo={candidate.candidate_sponsorship_info}
           />
         </div>

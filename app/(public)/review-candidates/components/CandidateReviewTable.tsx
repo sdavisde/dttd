@@ -162,6 +162,7 @@ export function CandidateReviewTable({
     }
 
     const candidateFormsResult = await sendCandidateForms(
+      candidateForSendForms.id,
       candidateSponsorshipInfo
     )
     if (Results.isErr(candidateFormsResult)) {

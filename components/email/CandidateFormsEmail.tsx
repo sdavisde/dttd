@@ -14,9 +14,15 @@ import {
 } from '@react-email/components'
 import { Tailwind } from '@react-email/tailwind'
 
-export default function CandidateFormsEmail(
+interface CandidateFormsEmailProps {
+  candidateId: string
   candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>
-) {
+}
+
+export default function CandidateFormsEmail({
+  candidateId,
+  candidateSponsorshipInfo,
+}: CandidateFormsEmailProps) {
   return (
     <Html>
       <Head />
@@ -54,9 +60,7 @@ export default function CandidateFormsEmail(
               <Section className="text-center mb-8">
                 <Button
                   className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium"
-                  href={getUrl(
-                    `/candidate/${candidateSponsorshipInfo.candidate_id}/forms`
-                  )}
+                  href={getUrl(`/candidate/${candidateId}/forms`)}
                 >
                   Complete Your Forms
                 </Button>
