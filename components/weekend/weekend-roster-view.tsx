@@ -1,5 +1,7 @@
 import { WeekendRosterTable } from '@/components/weekend/roster-view/weekend-roster-table'
 import { AddTeamMemberButton } from '@/components/weekend/roster-view/add-team-member-button'
+import { ExportRosterButton } from '@/components/weekend/roster-view/export-roster-button'
+import { ShareRosterButton } from '@/components/weekend/roster-view/share-roster-button'
 import {
   DroppedRosterSection,
   ActiveRosterHeader,
@@ -127,13 +129,29 @@ export async function WeekendRosterView({
       <div>
         <div className="mb-4">
           <ActiveRosterHeader roster={roster} title="Team Roster">
-            {canEditRoster && isWeekendEditable && (
-              <AddTeamMemberButton
-                weekendId={weekend.id}
-                weekendTitle={weekendTitle}
-                users={availableUsers}
+            <div className="flex gap-2">
+              <ExportRosterButton
+                roster={roster}
+                canExport={canEditRoster}
+                options={{
+                  includePaymentInformation: canViewPaymentInfo,
+                  includeEmergencyContact: canViewEmergencyContact,
+                  includeSpecialNeeds: canViewSpecialNeeds,
+                }}
+                weekendName={weekendTitle}
               />
-            )}
+              <ShareRosterButton
+                title={weekendTitle}
+                text="View the team roster for this weekend"
+              />
+              {canEditRoster && isWeekendEditable && (
+                <AddTeamMemberButton
+                  weekendId={weekend.id}
+                  weekendTitle={weekendTitle}
+                  users={availableUsers}
+                />
+              )}
+            </div>
           </ActiveRosterHeader>
         </div>
 
