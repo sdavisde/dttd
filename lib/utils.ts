@@ -53,30 +53,68 @@ export type FormattedDateTime =
     }
   | string
 
-/**
- * Formats a date-only string (YYYY-MM-DD or datetime stored as midnight UTC).
- * Use this for weekend start/end dates where only the date matters, not the time.
- * Does NOT apply timezone conversion to avoid date shifting.
- */
-export const formatDateOnly = (dateString: string | null): string => {
-  if (isNil(dateString) || dateString === '') return 'Date TBD'
-
-  try {
-    const date = toLocalDateFromISO(dateString)
-    if (isNil(date)) {
-      return 'Invalid Date'
-    }
-
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  } catch {
-    return 'Invalid Date'
-  }
+const DEFAULT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
 }
+
+/**
+ * Formats a date-only value (e.g. "2026-09-03") for display — no time, no
+ * timezone conversion. This is the default helper for rendering any date column.
+ *
+ * Date-only columns (start_date, end_date, date_of_birth, ...) represent a
+ * calendar day, not an instant. Parsing them with `new Date()` interprets the
+ * string as UTC midnight, which renders a day early for any viewer behind UTC
+ * (e.g. all US timezones) — the classic off-by-one. Routing through
+ * `toLocalDateFromISO` builds the date in local time and avoids the shift.
+ *
+ * For real timestamps where the clock time matters (event datetimes), use
+ * `formatDateTime` instead, which applies an explicit timezone.
+ *
+ * @example formatDate('2026-09-03') // "Sep 3, 2026"
+ * @example formatDate('2026-09-03', { year: undefined }) // "Sep 3"
+ * @example formatDate('2026-09-03', { weekday: 'long', month: 'long' }) // "Thursday, September 3, 2026"
+ */
+export const formatDate = (
+  dateString?: string | null,
+  options?: Intl.DateTimeFormatOptions
+): string => {
+  const date = toLocalDateFromISO(dateString)
+  if (isNil(date)) return 'Date TBD'
+
+  return date.toLocaleDateString('en-US', {
+    ...DEFAULT_DATE_FORMAT,
+    ...options,
+  })
+}
+
+/**
+ * Formats a date-only range (e.g. "Sep 3 - Sep 6, 2026"). The start label omits
+ * the year by default to avoid repetition; pass `options` to customize both
+ * ends. Returns 'Dates TBD' if either side is missing or invalid.
+ */
+export const formatDateRange = (
+  start?: string | null,
+  end?: string | null,
+  options?: Intl.DateTimeFormatOptions
+): string => {
+  if (isNil(toLocalDateFromISO(start)) || isNil(toLocalDateFromISO(end))) {
+    return 'Dates TBD'
+  }
+
+  const startLabel = formatDate(start, { year: undefined, ...options })
+  const endLabel = formatDate(end, options)
+
+  return `${startLabel} - ${endLabel}`
+}
+
+/**
+ * Long-form date-only formatter (e.g. "Thursday, September 3, 2026").
+ * Thin wrapper over {@link formatDate}; prefer `formatDate` for new code.
+ */
+export const formatDateOnly = (dateString: string | null): string =>
+  formatDate(dateString, { weekday: 'long', month: 'long' })
 
 /**
  * Formats a datetime string with timezone conversion to Chicago time.

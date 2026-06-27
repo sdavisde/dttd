@@ -5,6 +5,7 @@ import { Permission } from '@/lib/security'
 import { getActiveWeekends } from '@/services/weekend'
 import { isOk } from '@/lib/results'
 import { WeekendType } from '@/lib/weekend/types'
+import { formatDate } from '@/lib/utils'
 import { isNil } from 'lodash'
 
 // Icon names that map to lucide-react icons in the client component
@@ -62,15 +63,11 @@ async function getNavElements(): Promise<NavElement[]> {
     const mensWeekend = weekends[WeekendType.MENS]
     const womensWeekend = weekends[WeekendType.WOMENS]
 
-    // Format dates for display
-    const formatDate = (date: Date) =>
-      date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-
     const mensDateStr = !isNil(mensWeekend)
-      ? `Men's: ${formatDate(new Date(mensWeekend.start_date))}`
+      ? `Men's: ${formatDate(mensWeekend.start_date, { year: undefined })}`
       : null
     const womensDateStr = !isNil(womensWeekend)
-      ? `Women's: ${formatDate(new Date(womensWeekend.start_date))}`
+      ? `Women's: ${formatDate(womensWeekend.start_date, { year: undefined })}`
       : null
 
     const dateDescription = [mensDateStr, womensDateStr]
