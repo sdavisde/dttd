@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar, avatarUserFromDto } from '@/components/user-avatar'
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -33,16 +33,7 @@ export function NavUser() {
             showImpersonation ? () => setImpersonationOpen(true) : undefined
           }
         >
-          <Avatar className="h-8 w-8 rounded-lg">
-            {/* <AvatarImage
-              src={user.user_metadata.avatar_url}
-              alt={user.user_metadata.first_name}
-            /> */}
-            <AvatarFallback className="rounded-lg">
-              {user.firstName?.charAt(0)}
-              {user.lastName?.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar user={avatarUserFromDto(user)} size={32} />
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">
               {user.firstName} {user.lastName}

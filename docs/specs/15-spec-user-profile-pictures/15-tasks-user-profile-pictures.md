@@ -88,7 +88,7 @@ and regenerate types. Backend foundation everything else depends on.
       `{uid}.webp` and is denied writing another user's path; capture the denial as the 1.0
       write-isolation proof artifact.
 
-### [ ] 2.0 Reusable `UserAvatar` component + client image utilities
+### [x] 2.0 Reusable `UserAvatar` component + client image utilities
 
 Build the shared `UserAvatar` (CDN image with cache-buster + deterministic initials
 fallback) and the pure helpers it relies on, with unit tests. Wire it into the two existing
@@ -105,19 +105,19 @@ Avatar surfaces (navbar, admin sidebar).
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Create `lib/avatar/avatar-url.ts` building the `avatars` public URL for a path and
+- [x] 2.1 Create `lib/avatar/avatar-url.ts` building the `avatars` public URL for a path and
       appending `?v=<epoch of profile_photo_updated_at>`; return `null` when path is nil.
-- [ ] 2.2 Add `lib/avatar/avatar-url.test.ts` covering: path present → URL with `?v=`,
+- [x] 2.2 Add `lib/avatar/avatar-url.test.ts` covering: path present → URL with `?v=`,
       path nil → null, updated_at changes → different `?v=`.
-- [ ] 2.3 Create `lib/avatar/initials.ts`: `getInitials({first_name,last_name,email})` and
+- [x] 2.3 Create `lib/avatar/initials.ts`: `getInitials({first_name,last_name,email})` and
       `getAvatarColor(id)` (deterministic hash → palette).
-- [ ] 2.4 Add `lib/avatar/initials.test.ts` covering names present, names missing (email
+- [x] 2.4 Add `lib/avatar/initials.test.ts` covering names present, names missing (email
       fallback), and same-id-same-color.
-- [ ] 2.5 Create `components/user-avatar.tsx` composing shadcn `Avatar`/`AvatarImage`/
+- [x] 2.5 Create `components/user-avatar.tsx` composing shadcn `Avatar`/`AvatarImage`/
       `AvatarFallback`, accepting `{ user, size }`; render image via `avatar-url` else initials
       with `getAvatarColor`.
-- [ ] 2.6 Replace the Avatar block in `components/navbar/user-menu.tsx` with `UserAvatar`.
-- [ ] 2.7 Replace the Avatar block in `components/admin/sidebar/nav-user.tsx` with `UserAvatar`.
+- [x] 2.6 Replace the Avatar block in `components/navbar/user-menu.tsx` with `UserAvatar`.
+- [x] 2.7 Replace the Avatar block in `components/admin/sidebar/nav-user.tsx` with `UserAvatar`.
 
 ### [ ] 3.0 Profile-page upload, crop, replace & remove
 

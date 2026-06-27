@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MonitorCog } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { UserAvatar, avatarUserFromDto } from '@/components/user-avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -52,11 +52,9 @@ export function UserMenu({ isAuthenticated, user }: UserMenuProps) {
       <DropdownMenu>
         <DropdownMenuTrigger>
           <div className="flex-shrink-0">
-            <Avatar className="h-9 w-9 bg-primary">
-              <AvatarFallback className="bg-primary text-white font-semibold text-sm">
-                {user?.email?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            {!isNil(user) && (
+              <UserAvatar user={avatarUserFromDto(user)} size={36} />
+            )}
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
