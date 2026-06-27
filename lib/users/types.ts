@@ -17,6 +17,10 @@ export type User = {
   email: string
   phoneNumber: string | null
   address: Address | null
+  /** Storage path of the user's avatar in the `avatars` bucket, or null for none. */
+  profilePhotoPath: string | null
+  /** When the avatar was last set; used as a cache-busting key on the CDN URL. */
+  profilePhotoUpdatedAt: string | null
   roles: Array<UserRoleInfo>
   permissions: Set<string>
   communityInformation: CommunityInformation

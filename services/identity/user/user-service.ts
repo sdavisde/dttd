@@ -96,6 +96,8 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
     email: rawUser.email,
     phoneNumber: rawUser.phone_number,
     address,
+    profilePhotoPath: rawUser.profile_photo_path,
+    profilePhotoUpdatedAt: rawUser.profile_photo_updated_at,
     roles,
     permissions,
     communityInformation: {

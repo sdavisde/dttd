@@ -18,7 +18,9 @@ export const GetUserInfoQuery = `
   church_affiliation,
   weekend_attended,
   essentials_training_date,
-  special_gifts_and_skills
+  special_gifts_and_skills,
+  profile_photo_path,
+  profile_photo_updated_at
 `
 
 export const JoinUserRolesOnUserId = `

@@ -54,7 +54,7 @@
 
 ## Tasks
 
-### [ ] 1.0 Storage & data-model foundation (bucket, RLS, `users` columns, types)
+### [x] 1.0 Storage & data-model foundation (bucket, RLS, `users` columns, types)
 
 Create the `avatars` public bucket with RLS, add the two new columns to `public.users`,
 and regenerate types. Backend foundation everything else depends on.
@@ -72,19 +72,19 @@ and regenerate types. Backend foundation everything else depends on.
 
 #### 1.0 Tasks
 
-- [ ] 1.1 Run `yarn db:migrate avatars_bucket` to scaffold a migration file.
-- [ ] 1.2 In the migration, create a public `avatars` bucket via `storage.buckets`
+- [x] 1.1 Run `yarn db:migrate avatars_bucket` to scaffold a migration file.
+- [x] 1.2 In the migration, create a public `avatars` bucket via `storage.buckets`
       (`public = true`, `file_size_limit = 5242880`, allowed mime types
       `image/webp,image/jpeg,image/png`).
-- [ ] 1.3 Add RLS policies on `storage.objects` for `bucket_id = 'avatars'`: public `SELECT`;
+- [x] 1.3 Add RLS policies on `storage.objects` for `bucket_id = 'avatars'`: public `SELECT`;
       `INSERT`/`UPDATE`/`DELETE` allowed only when `name = auth.uid()::text || '.webp'`.
-- [ ] 1.4 In the same migration, `ALTER TABLE public.users ADD COLUMN profile_photo_path text`
+- [x] 1.4 In the same migration, `ALTER TABLE public.users ADD COLUMN profile_photo_path text`
       and `ADD COLUMN profile_photo_updated_at timestamptz`.
-- [ ] 1.5 Run `yarn db:reset` to apply; confirm no errors.
-- [ ] 1.6 Run `yarn db:generate`; confirm the new columns appear in `database.types.ts`.
-- [ ] 1.7 Add `profile_photo_path` + `profile_photo_updated_at` to `services/identity/user/types.ts`
+- [x] 1.5 Run `yarn db:reset` to apply; confirm no errors.
+- [x] 1.6 Run `yarn db:generate`; confirm the new columns appear in `database.types.ts`.
+- [x] 1.7 Add `profile_photo_path` + `profile_photo_updated_at` to `services/identity/user/types.ts`
       and `lib/users/types.ts`.
-- [ ] 1.8 Verify RLS write-isolation: confirm an authenticated user can write only their own
+- [x] 1.8 Verify RLS write-isolation: confirm an authenticated user can write only their own
       `{uid}.webp` and is denied writing another user's path; capture the denial as the 1.0
       write-isolation proof artifact.
 

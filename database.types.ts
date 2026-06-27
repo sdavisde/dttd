@@ -720,6 +720,8 @@ export type Database = {
           id: string
           last_name: string | null
           phone_number: string | null
+          profile_photo_path: string | null
+          profile_photo_updated_at: string | null
           special_gifts_and_skills: string[] | null
           weekend_attended: string | null
         }
@@ -733,6 +735,8 @@ export type Database = {
           id: string
           last_name?: string | null
           phone_number?: string | null
+          profile_photo_path?: string | null
+          profile_photo_updated_at?: string | null
           special_gifts_and_skills?: string[] | null
           weekend_attended?: string | null
         }
@@ -746,6 +750,8 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone_number?: string | null
+          profile_photo_path?: string | null
+          profile_photo_updated_at?: string | null
           special_gifts_and_skills?: string[] | null
           weekend_attended?: string | null
         }
