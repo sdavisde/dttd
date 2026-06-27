@@ -2,28 +2,12 @@
 
 import { Alert } from '@/components/ui/alert'
 import { Typography } from '@/components/ui/typography'
-import { capitalize, cn, toLocalDateFromISO } from '@/lib/utils'
+import { capitalize, cn, formatDateRange } from '@/lib/utils'
 import type { Weekend } from '@/lib/weekend/types'
-import { formatDateLabel } from '@/lib/weekend/scheduling'
 import Link from 'next/link'
-import { isNil } from 'lodash'
 
 interface WeekendCardProps {
   weekend: Weekend
-}
-
-const formatDateRange = (start?: string | null, end?: string | null) => {
-  const startDate = toLocalDateFromISO(start)
-  const endDate = toLocalDateFromISO(end)
-
-  if (isNil(startDate) || isNil(endDate)) {
-    return 'Dates TBD'
-  }
-
-  const startLabel = formatDateLabel(startDate, { year: undefined })
-  const endLabel = formatDateLabel(endDate)
-
-  return `${startLabel} - ${endLabel}`
 }
 
 export function WeekendCard({ weekend }: WeekendCardProps) {

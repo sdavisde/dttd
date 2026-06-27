@@ -6,8 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { Weekend } from '@/lib/weekend/types'
 import { WeekendType } from '@/lib/weekend/types'
+import { formatDateRange } from '@/lib/utils'
 import { isNil } from 'lodash'
-import { format } from 'date-fns'
 
 type WeekendGroup = {
   number: number | null
@@ -29,12 +29,6 @@ function groupByNumber(weekends: Weekend[]): WeekendGroup[] {
   return Array.from(map.values()).sort(
     (a, b) => (b.number ?? 0) - (a.number ?? 0)
   )
-}
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start)
-  const e = new Date(end)
-  return `${format(s, 'MMM d')} – ${format(e, 'MMM d, yyyy')}`
 }
 
 function WeekendCard({ weekend }: { weekend: Weekend }) {
@@ -72,7 +66,9 @@ function WeekendCard({ weekend }: { weekend: Weekend }) {
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
             <Calendar className="h-3 w-3 shrink-0" />
-            <span>{formatDateRange(weekend.start_date, weekend.end_date)}</span>
+            <span>
+              {formatDateRange(weekend.start_date, weekend.end_date)}
+            </span>
           </div>
 
           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors group-hover:text-primary/80">

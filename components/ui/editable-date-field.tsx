@@ -1,8 +1,8 @@
 'use client'
 
-import { format } from 'date-fns'
 import { Typography } from '@/components/ui/typography'
 import { InlineDateField } from '@/components/ui/inline-date-field'
+import { formatDate } from '@/lib/utils'
 import { isNil } from 'lodash'
 import { Pencil } from 'lucide-react'
 
@@ -25,7 +25,9 @@ export function EditableDateField({
   startYear,
   endYear,
 }: EditableDateFieldProps) {
-  const displayValue = isNil(value) ? emptyText : format(new Date(value), 'PPP')
+  const displayValue = isNil(value)
+    ? emptyText
+    : formatDate(value, { month: 'long' })
 
   return (
     <div>
