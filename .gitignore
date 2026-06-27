@@ -51,3 +51,6 @@ next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# SDD proof artifacts (local evidence only; spec/tasks/questions stay tracked)
+docs/specs/**/*-proofs/
