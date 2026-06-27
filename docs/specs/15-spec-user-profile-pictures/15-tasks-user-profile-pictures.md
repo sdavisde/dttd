@@ -185,7 +185,7 @@ Reuse the cropper in the signup form; upload after a successful `signUp`; never 
 ### [ ] 5.0 Roll `UserAvatar` out across all in-scope user surfaces
 
 Wire the photo fields into each surface's query and render `UserAvatar`, preserving desktop
-layouts and adding avatars to mobile cards.
+layouts and adding avatars to mobile cards. Every user avatar that does not already have a hover effect should have an effect where the avatar image appears larger as a tooltip-type popover.
 
 #### 5.0 Proof Artifact(s)
 
