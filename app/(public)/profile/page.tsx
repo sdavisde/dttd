@@ -23,6 +23,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { isNil } from 'lodash'
 import { Button } from '@/components/ui/button'
+import { UserAvatar, avatarUserFromDto } from '@/components/user-avatar'
+import { AvatarCropperDialog } from '@/components/avatar/avatar-cropper-dialog'
+import { uploadAvatar, deleteAvatar } from '@/lib/avatar/upload-client'
+import {
+  updateUserProfilePhoto,
+  removeUserProfilePhoto,
+} from '@/services/identity/user'
+import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
+import { toast } from 'sonner'
 
 const profileFormSchema = z.object({
   email: z.email(),
@@ -39,10 +49,17 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, loading: sessionLoading } = useSession()
+  const {
+    user,
+    isAuthenticated,
+    loading: sessionLoading,
+    refreshSession,
+  } = useSession()
   const router = useRouter()
   const [isUpdating, setIsUpdating] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [cropperOpen, setCropperOpen] = useState(false)
+  const [photoBusy, setPhotoBusy] = useState(false)
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -66,6 +83,58 @@ export default function ProfilePage() {
       form.setValue('phoneNumber', user.phoneNumber ?? '')
     }
   }, [user, sessionLoading, isAuthenticated, router, form])
+
+  const handleCroppedPhoto = async (blob: Blob) => {
+    if (isNil(user?.id)) return
+    setPhotoBusy(true)
+    try {
+      const upload = await uploadAvatar(user.id, blob)
+      if (isErr(upload)) {
+        toastError(upload.error)
+        return
+      }
+
+      const persisted = await updateUserProfilePhoto(user.id, upload.data.path)
+      if (isErr(persisted)) {
+        toastError('Could not save your photo. Please try again.', {
+          error: persisted.error,
+        })
+        return
+      }
+
+      toast.success('Profile photo updated')
+      refreshSession()
+      router.refresh()
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  const handleRemovePhoto = async () => {
+    if (isNil(user?.id)) return
+    setPhotoBusy(true)
+    try {
+      const removed = await deleteAvatar(user.id)
+      if (isErr(removed)) {
+        toastError(removed.error)
+        return
+      }
+
+      const persisted = await removeUserProfilePhoto(user.id)
+      if (isErr(persisted)) {
+        toastError('Could not remove your photo. Please try again.', {
+          error: persisted.error,
+        })
+        return
+      }
+
+      toast.success('Profile photo removed')
+      refreshSession()
+      router.refresh()
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,6 +193,49 @@ export default function ProfilePage() {
       <div className="my-4">
         <Typography variant="h1">Profile</Typography>
         <Typography variant="p">Manage your account information</Typography>
+
+        {!isNil(user) && (
+          <div className="my-6 flex items-center gap-4">
+            <UserAvatar user={avatarUserFromDto(user)} size={96} />
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCropperOpen(true)}
+                  disabled={photoBusy}
+                >
+                  Edit photo
+                </Button>
+                {!isNil(user.profilePhotoPath) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemovePhoto}
+                    disabled={photoBusy}
+                  >
+                    {photoBusy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      'Remove photo'
+                    )}
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                JPEG, PNG, or WebP. Up to 5MB.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <AvatarCropperDialog
+          open={cropperOpen}
+          onOpenChange={setCropperOpen}
+          onConfirm={handleCroppedPhoto}
+        />
 
         <div className="">
           {!isNil(message) && (

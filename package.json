@@ -12,6 +12,7 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop --project-id dttd",
     "db:status": "supabase status",
+    "db:migrate": "supabase migration new",
     "db:reset": "supabase db reset",
     "db:generate": "supabase gen types typescript --local > database.types.ts",
     "test": "jest"
@@ -67,6 +68,7 @@
     "react": "^19.0.0",
     "react-day-picker": "^9.8.0",
     "react-dom": "^19.0.0",
+    "react-easy-crop": "^6.0.2",
     "react-hook-form": "^7.60.0",
     "react-select": "^5.10.2",
     "recharts": "2.15.4",

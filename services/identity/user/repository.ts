@@ -18,7 +18,9 @@ export const GetUserInfoQuery = `
   church_affiliation,
   weekend_attended,
   essentials_training_date,
-  special_gifts_and_skills
+  special_gifts_and_skills,
+  profile_photo_path,
+  profile_photo_updated_at
 `
 
 export const JoinUserRolesOnUserId = `
@@ -94,6 +96,30 @@ export const updateUserRoles = async (userId: string, roleIds: string[]) => {
     .insert(roleIds.map((roleId) => ({ user_id: userId, role_id: roleId })))
     .select()
   return fromSupabase(insertResponse)
+}
+
+export const updateProfilePhoto = async (userId: string, path: string) => {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('users')
+    .update({
+      profile_photo_path: path,
+      profile_photo_updated_at: new Date().toISOString(),
+    })
+    .eq('id', userId)
+  return fromSupabase(response)
+}
+
+export const clearProfilePhoto = async (userId: string) => {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('users')
+    .update({
+      profile_photo_path: null,
+      profile_photo_updated_at: null,
+    })
+    .eq('id', userId)
+  return fromSupabase(response)
 }
 
 export const updateUserAddress = async (userId: string, address: Address) => {
