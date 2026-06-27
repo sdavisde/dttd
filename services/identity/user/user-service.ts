@@ -171,6 +171,16 @@ export async function updateUserAddress(userId: string, address: Address) {
   return await UserRepository.updateUserAddress(userId, address)
 }
 
+/** Persists the path of a freshly uploaded avatar and bumps the cache-bust timestamp. */
+export async function updateUserProfilePhoto(userId: string, path: string) {
+  return await UserRepository.updateProfilePhoto(userId, path)
+}
+
+/** Clears the avatar columns, reverting all surfaces to the initials fallback. */
+export async function removeUserProfilePhoto(userId: string) {
+  return await UserRepository.clearProfilePhoto(userId)
+}
+
 export async function deleteUser(userId: string) {
   return await UserRepository.deleteUser(userId)
 }

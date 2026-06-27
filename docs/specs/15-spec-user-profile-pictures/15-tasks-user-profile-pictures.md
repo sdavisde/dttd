@@ -119,7 +119,7 @@ Avatar surfaces (navbar, admin sidebar).
 - [x] 2.6 Replace the Avatar block in `components/navbar/user-menu.tsx` with `UserAvatar`.
 - [x] 2.7 Replace the Avatar block in `components/admin/sidebar/nav-user.tsx` with `UserAvatar`.
 
-### [ ] 3.0 Profile-page upload, crop, replace & remove
+### [x] 3.0 Profile-page upload, crop, replace & remove
 
 Add the avatar edit experience to the profile page: pick → crop → upload → persist, plus
 remove. Build the reusable cropper dialog here.
@@ -140,24 +140,26 @@ remove. Build the reusable cropper dialog here.
 
 #### 3.0 Tasks
 
-- [ ] 3.1 `yarn add react-easy-crop`.
-- [ ] 3.2 Create `lib/avatar/crop-image.ts`: given an image source + crop area, draw to a
-      256×256 canvas and `toBlob('image/webp', ~0.85)`; add `lib/avatar/crop-image.test.ts`.
-- [ ] 3.3 Create `lib/avatar/upload-client.ts`: upload a blob to `avatars/{userId}.webp` with
+- [x] 3.1 `yarn add react-easy-crop`.
+- [x] 3.2 Create `lib/avatar/crop-image.ts`: given an image source + crop area, draw to a
+      256×256 canvas and `toBlob('image/webp', ~0.85)`. (Per maintainer direction, the jsdom
+      `crop-image.test.ts` was intentionally omitted — we don't jsdom-test canvas/DOM code;
+      the helper is kept small and well-typed instead.)
+- [x] 3.3 Create `lib/avatar/upload-client.ts`: upload a blob to `avatars/{userId}.webp` with
       `upsert: true` via the authed Supabase client; map errors to friendly messages.
-- [ ] 3.4 Create `lib/avatar/validate-file.ts` (`validateAvatarFile`) + `validate-file.test.ts`,
+- [x] 3.4 Create `lib/avatar/validate-file.ts` (`validateAvatarFile`) + `validate-file.test.ts`,
       then create `components/avatar/avatar-cropper-dialog.tsx`: file input (calling
       `validateAvatarFile` for type/size with friendly errors) → `react-easy-crop` circular crop +
       zoom slider → on save, call `crop-image` and return the WebP blob.
-- [ ] 3.5 Add update/clear methods to `services/identity/user/repository.ts` and
+- [x] 3.5 Add update/clear methods to `services/identity/user/repository.ts` and
       `user-service.ts`; add `updateUserProfilePhoto` + `removeUserProfilePhoto` actions in
       `services/identity/user/actions.ts` (set/clear `profile_photo_path` + set
       `profile_photo_updated_at = now()`), returning `Result`.
-- [ ] 3.6 Add `services/identity/user/actions.test.ts` for set + clear.
-- [ ] 3.7 On `app/(public)/profile/page.tsx`: add a large `UserAvatar` with an "Edit photo"
+- [x] 3.6 Add `services/identity/user/actions.test.ts` for set + clear.
+- [x] 3.7 On `app/(public)/profile/page.tsx`: add a large `UserAvatar` with an "Edit photo"
       control opening the cropper; on confirm, upload via `upload-client`, call the action, refresh.
       Use `toastError` for failures.
-- [ ] 3.8 Add a "Remove photo" control that deletes `avatars/{userId}.webp` and calls
+- [x] 3.8 Add a "Remove photo" control that deletes `avatars/{userId}.webp` and calls
       `removeUserProfilePhoto`, reverting to initials.
 
 ### [ ] 4.0 Optional avatar during account creation

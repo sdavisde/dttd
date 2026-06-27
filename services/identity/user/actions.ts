@@ -30,6 +30,14 @@ export const updateUserBasicInfo = async (userId: string, data: BasicInfo) => {
   return await UserService.updateUserBasicInfo(userId, data)
 }
 
+export const updateUserProfilePhoto = async (userId: string, path: string) => {
+  return await UserService.updateUserProfilePhoto(userId, path)
+}
+
+export const removeUserProfilePhoto = async (userId: string) => {
+  return await UserService.removeUserProfilePhoto(userId)
+}
+
 /** This is required to run `authorizedAction`, so it cannot be wrapped in it. */
 export const getLoggedInUser = async () => {
   const impersonatingUser = await findImpersonatingUser()

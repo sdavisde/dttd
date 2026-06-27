@@ -98,6 +98,30 @@ export const updateUserRoles = async (userId: string, roleIds: string[]) => {
   return fromSupabase(insertResponse)
 }
 
+export const updateProfilePhoto = async (userId: string, path: string) => {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('users')
+    .update({
+      profile_photo_path: path,
+      profile_photo_updated_at: new Date().toISOString(),
+    })
+    .eq('id', userId)
+  return fromSupabase(response)
+}
+
+export const clearProfilePhoto = async (userId: string) => {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('users')
+    .update({
+      profile_photo_path: null,
+      profile_photo_updated_at: null,
+    })
+    .eq('id', userId)
+  return fromSupabase(response)
+}
+
 export const updateUserAddress = async (userId: string, address: Address) => {
   const supabase = await createClient()
   const response = await supabase
