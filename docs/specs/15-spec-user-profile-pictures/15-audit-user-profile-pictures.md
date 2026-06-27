@@ -2,20 +2,20 @@
 
 ## Executive Summary
 
-- Overall Status: FAIL
-- Required Gate Failures: 1
-- Flagged Risks: 2
+- Overall Status: PASS
+- Required Gate Failures: 0
+- Flagged Risks: 0 (both prior flags remediated)
 
 ## Gateboard
 
-| Gate                             | Status | Why it failed (<=10 words)                                | Exact fix target                  |
-| -------------------------------- | ------ | --------------------------------------------------------- | --------------------------------- |
-| Requirement-to-test traceability | FAIL   | Input validation FR has no mapped test                    | `## Tasks > 3.0` + Relevant Files |
-| Proof artifact verifiability     | PASS   | —                                                         | —                                 |
-| Repository standards consistency | PASS   | —                                                         | —                                 |
-| Open question resolution         | PASS   | —                                                         | —                                 |
-| Regression-risk blind spots      | FLAG   | RLS write-isolation + query edits not behaviorally tested | `## Tasks > 1.0`, `5.0`           |
-| Non-goal leakage                 | PASS   | —                                                         | —                                 |
+| Gate                             | Status | Why it failed (<=10 words) | Exact fix target |
+| -------------------------------- | ------ | -------------------------- | ---------------- |
+| Requirement-to-test traceability | PASS   | —                          | —                |
+| Proof artifact verifiability     | PASS   | —                          | —                |
+| Repository standards consistency | PASS   | —                          | —                |
+| Open question resolution         | PASS   | —                          | —                |
+| Regression-risk blind spots      | PASS   | —                          | —                |
+| Non-goal leakage                 | PASS   | —                          | —                |
 
 ## Standards Evidence Table
 
@@ -28,38 +28,23 @@
 | `jest.config.ts` + co-located tests | yes       | Jest via `yarn test`; co-locate `.test.ts`; no `__tests__`                                             | none      |
 | `AGENTS.md`                         | not found | —                                                                                                      | —         |
 
-## Findings
+## Re-Audit Delta (Run 2)
 
-### REQUIRED Failures
+- Requirement-to-test traceability: FAIL → PASS. Added `lib/avatar/validate-file.ts` +
+  `validate-file.test.ts` to Relevant Files, updated task 3.4 to use it, and added a
+  validation test proof artifact to 3.0. The input-validation FR now maps to a jest test.
+- Regression-risk blind spots: FLAG → PASS.
+  - Flag 1 (RLS write-isolation): added sub-task 1.8 + a 1.0 write-isolation proof artifact.
+  - Flag 2 (Task 5 query edits): added a per-surface regression spot-check proof artifact to
+    5.0 and to sub-task 5.9.
+- Still-failing REQUIRED gates: none.
+- Newly introduced findings: none.
 
-1. Input-validation functional requirement has no mapped test artifact
-   - Missing item: Spec Unit 2 requires client-side validation (accept jpeg/png/webp,
-     reject >5MB, friendly error). Validation currently lives only inside the cropper
-     dialog (task 3.4) with no testable unit.
-   - File section to edit: `## Relevant Files` (add `lib/avatar/validate-file.ts` +
-     `lib/avatar/validate-file.test.ts`); `## Tasks > 3.0` proof artifacts + sub-task 3.4.
-   - Acceptance condition: A pure `validateAvatarFile(file)` helper exists with a jest test
-     covering accepted types, rejected type, and oversize rejection; cropper dialog calls it.
+## Chain-of-Verification
 
-### FLAG Findings
+- Every functional requirement maps to at least one planned test or observable proof artifact.
+- All proof artifacts are observable, reproducible, scope-linked, and sanitized.
+- ≥2 repository guideline sources read; root `README.md` reviewed; no standards conflicts.
+- All spec Open Questions are non-blocking with explicit documented assumptions.
 
-1. RLS owner-only write isolation is not behaviorally verified
-   - Risk: The migration declares owner-only write, but nothing verifies user A cannot
-     overwrite user B's `{uid}.webp`. A policy typo would silently allow cross-user writes.
-   - Suggested remediation: Add a sub-task under 1.0 to verify enforcement (a short SQL/
-     psql check or documented manual test as a proof artifact) — not a blocking gate.
-
-2. Surface rollout (Task 5) edits ~7 existing queries with only tsc/lint as guard
-   - Risk: Adding columns to shared queries (roster, master roster, pickers) could regress
-     existing data rendering; type/lint checks won't catch a broken join or dropped field.
-   - Suggested remediation: Add a spot-check checklist proof artifact (each surface still
-     lists the same people with correct names) to task 5.9.
-
-## User-Approved Remediation Plan
-
-- Pending approval
-- Proposed edits:
-  1. (Resolves REQUIRED) Add `lib/avatar/validate-file.ts` + test to Relevant Files; update
-     task 3.4 to use it; add a test proof artifact to 3.0.
-  2. (Resolves FLAG 1) Add sub-task 1.8: verify RLS write-isolation; add as a 1.0 proof artifact.
-  3. (Resolves FLAG 2) Add a regression spot-check proof artifact to 5.0.
+Planning is ready for implementation.
