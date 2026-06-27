@@ -162,7 +162,7 @@ remove. Build the reusable cropper dialog here.
 - [x] 3.8 Add a "Remove photo" control that deletes `avatars/{userId}.webp` and calls
       `removeUserProfilePhoto`, reverting to initials.
 
-### [ ] 4.0 Optional avatar during account creation
+### [x] 4.0 Optional avatar during account creation
 
 Reuse the cropper in the signup form; upload after a successful `signUp`; never block signup.
 
@@ -175,11 +175,11 @@ Reuse the cropper in the signup form; upload after a successful `signUp`; never 
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Add the `avatar-cropper-dialog` to `components/auth/AuthForm.tsx` register mode as
+- [x] 4.1 Add the `avatar-cropper-dialog` to `components/auth/AuthForm.tsx` register mode as
       an optional control; hold the resulting blob in local state (no upload yet).
-- [ ] 4.2 After `supabase.auth.signUp` succeeds and a session exists, if a blob is present,
+- [x] 4.2 After `supabase.auth.signUp` succeeds and a session exists, if a blob is present,
       upload to `avatars/{userId}.webp` and call `updateUserProfilePhoto`.
-- [ ] 4.3 Ensure a skipped photo or a failed upload does not block account creation; surface
+- [x] 4.3 Ensure a skipped photo or a failed upload does not block account creation; surface
       any upload failure as a non-blocking `toastError` and continue the redirect.
 
 ### [ ] 5.0 Roll `UserAvatar` out across all in-scope user surfaces

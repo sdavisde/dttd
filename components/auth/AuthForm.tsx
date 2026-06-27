@@ -1,17 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Loader2, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { buildUrlWithRedirect } from '@/lib/url'
 import AuthModeToggle from './AuthModeToggle'
 import PasswordInput from './PasswordInput'
 import RegistrationFields from './RegistrationFields'
+import { AvatarCropperDialog } from '@/components/avatar/avatar-cropper-dialog'
+import { uploadAvatar } from '@/lib/avatar/upload-client'
+import { updateUserProfilePhoto } from '@/services/identity/user'
+import { getInitials } from '@/lib/avatar/initials'
+import { isErr } from '@/lib/results'
+import { toastError } from '@/lib/toast-error'
 import { isNil } from 'lodash'
 
 interface AuthFormProps {
@@ -35,7 +42,22 @@ export default function AuthForm({
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [cropperOpen, setCropperOpen] = useState(false)
+  const [avatarBlob, setAvatarBlob] = useState<Blob | null>(null)
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
   const router = useRouter()
+
+  // Keep a preview object URL in sync with the chosen (not-yet-uploaded) blob,
+  // revoking the previous one so we never leak blob URLs.
+  useEffect(() => {
+    if (isNil(avatarBlob)) {
+      setAvatarPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(avatarBlob)
+    setAvatarPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [avatarBlob])
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -83,6 +105,27 @@ export default function AuthForm({
           password,
         })
         if (!isNil(signInError)) throw signInError
+
+        // Optional avatar: upload only after a session exists so RLS allows the
+        // write. A missing or failed photo must never block account creation —
+        // surface failures as a non-blocking toast and continue the redirect.
+        const newUserId = data.user?.id
+        if (!isNil(avatarBlob) && !isNil(newUserId)) {
+          const upload = await uploadAvatar(newUserId, avatarBlob)
+          if (isErr(upload)) {
+            toastError(upload.error)
+          } else {
+            const persisted = await updateUserProfilePhoto(
+              newUserId,
+              upload.data.path
+            )
+            if (isErr(persisted)) {
+              toastError('Could not save your photo. You can add it later.', {
+                error: persisted.error,
+              })
+            }
+          }
+        }
 
         onSuccess?.()
         router.refresh()
@@ -137,6 +180,55 @@ export default function AuthForm({
           gender={gender}
           setGender={setGender}
         />
+      )}
+
+      {mode === 'register' && (
+        <div className="space-y-2">
+          <Label>Profile Photo</Label>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16">
+              {!isNil(avatarPreviewUrl) && (
+                <AvatarImage
+                  src={avatarPreviewUrl}
+                  alt="Profile photo preview"
+                />
+              )}
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                {getInitials({
+                  first_name: firstName,
+                  last_name: lastName,
+                  email,
+                })}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCropperOpen(true)}
+                >
+                  {isNil(avatarBlob) ? 'Add photo' : 'Change photo'}
+                </Button>
+                {!isNil(avatarBlob) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAvatarBlob(null)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Please add a picture of yourself so the community can recognize
+                you in person!
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="space-y-2">
@@ -231,6 +323,13 @@ export default function AuthForm({
           </>
         )}
       </p>
+
+      <AvatarCropperDialog
+        open={cropperOpen}
+        onOpenChange={setCropperOpen}
+        onConfirm={(blob) => setAvatarBlob(blob)}
+        confirmLabel="Use photo"
+      />
     </form>
   )
 }
