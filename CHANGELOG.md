@@ -1,3 +1,14 @@
+## [1.45.0](https://github.com/sdavisde/dttd/compare/v1.44.0...v1.45.0) (2026-06-29)
+
+### Features
+
+- **users:** clarify profile photo guidance during upload ([cdd9522](https://github.com/sdavisde/dttd/commit/cdd95228249e8f7731c4ca071114b854330b4668))
+- **users:** roll UserAvatar out to all in-scope surfaces ([84a1363](https://github.com/sdavisde/dttd/commit/84a13639c2be320536dc9f461b71a75a0f148802))
+
+### Bug Fixes
+
+- make hover efffect for profile pics larger ([8bf3be6](https://github.com/sdavisde/dttd/commit/8bf3be61f931f8161f1eeb615bca95055634d202))
+
 ## [1.44.0](https://github.com/sdavisde/dttd/compare/v1.43.1...v1.44.0) (2026-06-27)
 
 ### Features
