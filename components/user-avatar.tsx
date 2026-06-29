@@ -80,7 +80,7 @@ export function UserAvatarWithPreview({
   user,
   size = 36,
   className,
-  previewSize = 80,
+  previewSize = 160,
 }: UserAvatarProps & { previewSize?: number }) {
   return (
     <Tooltip>

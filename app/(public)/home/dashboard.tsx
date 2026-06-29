@@ -37,7 +37,7 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
             <UserAvatarWithPreview
               user={avatarUserFromDto(user)}
               size={48}
-              previewSize={96}
+              previewSize={160}
             />
             <Typography variant="h1">
               Hi {user.firstName} {user.lastName}

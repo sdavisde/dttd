@@ -44,7 +44,7 @@ export function RoleCard({
                         profilePhoto: member.profilePhoto,
                       }}
                       size={24}
-                      previewSize={72}
+                      previewSize={96}
                     />
                     {member.firstName} {member.lastName}
                   </span>

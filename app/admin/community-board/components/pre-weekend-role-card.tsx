@@ -60,7 +60,7 @@ export function PreWeekendRoleCard({
                         profilePhoto: member.profilePhoto,
                       }}
                       size={24}
-                      previewSize={72}
+                      previewSize={96}
                     />
                     {member.firstName} {member.lastName}
                   </span>
