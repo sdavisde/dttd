@@ -1,3 +1,12 @@
+## [1.44.0](https://github.com/sdavisde/dttd/compare/v1.43.1...v1.44.0) (2026-06-27)
+
+### Features
+
+- **auth:** add optional avatar picker to signup ([d3b4a05](https://github.com/sdavisde/dttd/commit/d3b4a055105f74df2869e3e2f91c189271e629a1))
+- **users:** add avatars storage bucket, owner-only RLS, and photo columns ([e447441](https://github.com/sdavisde/dttd/commit/e447441803b6092f0e2a8b890a87320456aad834))
+- **users:** add profile photo upload, crop, replace, and remove ([d200060](https://github.com/sdavisde/dttd/commit/d20006086a2fbb717db5d2edd951171b96296df8))
+- **users:** add reusable UserAvatar component and image helpers ([c87e8e5](https://github.com/sdavisde/dttd/commit/c87e8e5df12e4e5ea941365538c41d90855b0a96))
+
 ## [1.43.1](https://github.com/sdavisde/dttd/compare/v1.43.0...v1.43.1) (2026-06-22)
 
 ### Bug Fixes
