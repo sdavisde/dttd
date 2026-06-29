@@ -4,10 +4,11 @@ import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { MasterRosterMember } from '@/services/master-roster/types'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
-import { User as UserIcon, Check, Star } from 'lucide-react'
+import { Check, Star } from 'lucide-react'
 import { formatPhoneNumber } from '@/lib/utils'
 import { isEmpty } from 'lodash'
 import '@/components/ui/data-table/types'
+import { UserAvatarWithPreview } from '@/components/user-avatar'
 
 // ---------------------------------------------------------------------------
 // Column definitions
@@ -25,12 +26,21 @@ export const masterRosterColumns: ColumnDef<MasterRosterMember>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ getValue }) => {
-      const value = getValue<string>()
+    cell: ({ getValue, row }) => {
+      const member = row.original
       return (
         <div className="flex items-center gap-2">
-          <UserIcon className="h-4 w-4 text-gray-500" />
-          <span className="font-medium">{value}</span>
+          <UserAvatarWithPreview
+            user={{
+              id: member.id,
+              first_name: member.firstName,
+              last_name: member.lastName,
+              email: member.email,
+              profilePhoto: member.profilePhoto,
+            }}
+            size={28}
+          />
+          <span className="font-medium">{getValue<string>()}</span>
         </div>
       )
     },

@@ -1,4 +1,5 @@
 import type { RoleType } from '@/services/identity/roles'
+import type { ProfilePhoto } from '@/components/user-avatar'
 import type { ContactInfo } from '@/services/notifications'
 
 /**
@@ -41,6 +42,7 @@ export type BoardMember = {
   lastName: string | null
   email: string | null
   roles: Array<{ id: string; label: string }>
+  profilePhoto: ProfilePhoto
 }
 
 /**

@@ -12,6 +12,7 @@ import { ClipboardList, Edit, Stethoscope } from 'lucide-react'
 import { PaymentInfo } from '../payment-info'
 import '@/components/ui/data-table/types'
 import { isEmpty, isNil } from 'lodash'
+import { UserAvatarWithPreview } from '@/components/user-avatar'
 
 // ---------------------------------------------------------------------------
 // Role sorting helper
@@ -63,9 +64,29 @@ export function getWeekendRosterColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />
       ),
-      cell: ({ getValue }) => (
-        <span className="font-medium">{getValue<string>()}</span>
-      ),
+      cell: ({ getValue, row }) => {
+        const u = row.original.users
+        return (
+          <div className="flex items-center gap-2">
+            {!isNil(u) && (
+              <UserAvatarWithPreview
+                user={{
+                  id: u.id,
+                  first_name: u.first_name,
+                  last_name: u.last_name,
+                  email: u.email,
+                  profilePhoto: {
+                    path: u.profile_photo_path,
+                    updatedAt: u.profile_photo_updated_at,
+                  },
+                }}
+                size={28}
+              />
+            )}
+            <span className="font-medium">{getValue<string>()}</span>
+          </div>
+        )
+      },
       meta: {
         showOnMobile: true,
         mobileLabel: 'Name',
@@ -306,9 +327,29 @@ export const droppedRosterColumns: ColumnDef<WeekendRosterMember>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
-    cell: ({ getValue }) => (
-      <span className="font-medium">{getValue<string>()}</span>
-    ),
+    cell: ({ getValue, row }) => {
+      const u = row.original.users
+      return (
+        <div className="flex items-center gap-2">
+          {!isNil(u) && (
+            <UserAvatarWithPreview
+              user={{
+                id: u.id,
+                first_name: u.first_name,
+                last_name: u.last_name,
+                email: u.email,
+                profilePhoto: {
+                  path: u.profile_photo_path,
+                  updatedAt: u.profile_photo_updated_at,
+                },
+              }}
+              size={28}
+            />
+          )}
+          <span className="font-medium">{getValue<string>()}</span>
+        </div>
+      )
+    },
     meta: {
       showOnMobile: true,
       mobileLabel: 'Name',

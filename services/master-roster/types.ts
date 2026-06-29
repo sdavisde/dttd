@@ -3,6 +3,7 @@ import type { CommunityInformation } from '@/lib/users/types'
 import type { Address } from '@/lib/users/validation'
 import type { UserExperience } from '@/lib/users/experience/validation'
 import type { RoleType } from '@/services/identity/roles'
+import type { ProfilePhoto } from '@/components/user-avatar'
 
 export type MasterRosterMember = {
   id: string
@@ -18,6 +19,7 @@ export type MasterRosterMember = {
   level: ExperienceLevel
   rectorReady: RectorReadyStatus
   experience: Array<UserExperience>
+  profilePhoto: ProfilePhoto
 }
 
 export type MasterRoster = {
@@ -87,6 +89,8 @@ export type RawCommunityUser = {
   church_affiliation: string | null
   gender: string | null
   users_experience: Array<Tables<'users_experience'>>
+  profile_photo_path: string | null
+  profile_photo_updated_at: string | null
 }
 
 /**

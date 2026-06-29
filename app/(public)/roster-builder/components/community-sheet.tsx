@@ -59,6 +59,7 @@ import {
   getEligibilityWarning,
   getEligibleRoleSummary,
 } from './roster-builder-types'
+import { UserAvatarWithPreview } from '@/components/user-avatar'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -163,25 +164,37 @@ function CommunityMemberCard({
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-base font-semibold leading-tight text-foreground">
-              {fullName(member)}
-            </p>
-            <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
-              <Church className="h-3.5 w-3.5 shrink-0" />
-              {member.church}
-            </p>
-            {member.phoneNumber != null ? (
-              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                <Phone className="h-3 w-3 shrink-0" />
-                {member.phoneNumber}
+          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+            <UserAvatarWithPreview
+              user={{
+                id: member.id,
+                first_name: member.firstName,
+                last_name: member.lastName,
+                email: member.email,
+                profilePhoto: member.profilePhoto,
+              }}
+              size={36}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-base font-semibold leading-tight text-foreground">
+                {fullName(member)}
               </p>
-            ) : member.email != null ? (
-              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground truncate">
-                <Mail className="h-3 w-3 shrink-0" />
-                {member.email}
+              <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+                <Church className="h-3.5 w-3.5 shrink-0" />
+                {member.church}
               </p>
-            ) : null}
+              {member.phoneNumber != null ? (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                  <Phone className="h-3 w-3 shrink-0" />
+                  {member.phoneNumber}
+                </p>
+              ) : member.email != null ? (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground truncate">
+                  <Mail className="h-3 w-3 shrink-0" />
+                  {member.email}
+                </p>
+              ) : null}
+            </div>
           </div>
           <ExperienceBadge
             level={member.experienceLevel}

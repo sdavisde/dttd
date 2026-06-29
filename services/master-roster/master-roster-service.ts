@@ -55,6 +55,10 @@ export async function getMasterRoster(): Promise<Result<string, MasterRoster>> {
       experience,
       level,
       rectorReady,
+      profilePhoto: {
+        path: member.profile_photo_path,
+        updatedAt: member.profile_photo_updated_at,
+      },
     }
   })
 

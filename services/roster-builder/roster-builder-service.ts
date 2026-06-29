@@ -141,6 +141,10 @@ export async function getRosterBuilderCommunityData(
       volunteerStatus,
       assignmentStatus,
       eligibility,
+      profilePhoto: {
+        path: user.profile_photo_path,
+        updatedAt: user.profile_photo_updated_at,
+      },
     }
   })
 

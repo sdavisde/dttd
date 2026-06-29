@@ -33,7 +33,9 @@ export const WeekendRosterQuery = `
     first_name,
     last_name,
     email,
-    phone_number
+    phone_number,
+    profile_photo_path,
+    profile_photo_updated_at
   )
 `
 
@@ -56,6 +58,8 @@ export type RawWeekendRosterDB = {
     last_name: string | null
     email: string | null
     phone_number: string | null
+    profile_photo_path: string | null
+    profile_photo_updated_at: string | null
   } | null
 }
 

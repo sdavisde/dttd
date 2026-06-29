@@ -35,6 +35,8 @@ export type RawWeekendRoster = {
     last_name: string | null
     email: string | null
     phone_number: string | null
+    profile_photo_path: string | null
+    profile_photo_updated_at: string | null
   } | null
   /** Payments fetched from payment_transaction table */
   payments: PaymentRecord[]
@@ -61,6 +63,8 @@ export type WeekendRosterMember = {
     last_name: string | null
     email: string | null
     phone_number: string | null
+    profile_photo_path: string | null
+    profile_photo_updated_at: string | null
   } | null
   /** The shared weekend_group_member ID for this roster member */
   groupMemberId: string | null

@@ -1,9 +1,24 @@
 import { isNil } from 'lodash'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { getAvatarUrl } from '@/lib/avatar/avatar-url'
 import { getAvatarColor, getInitials } from '@/lib/avatar/initials'
 import { cn } from '@/lib/utils'
 import type { User } from '@/lib/users/types'
+
+/**
+ * Groups the two DB columns that together identify a stored profile photo.
+ * Kept as an object so surfaces always carry the pairing rather than tracking
+ * the two fields separately.
+ */
+export type ProfilePhoto = {
+  path: string | null
+  updatedAt: string | null
+}
 
 /**
  * Minimal user shape `UserAvatar` needs. Most surfaces work with raw,
@@ -15,8 +30,7 @@ export type UserAvatarUser = {
   first_name?: string | null
   last_name?: string | null
   email?: string | null
-  profile_photo_path?: string | null
-  profile_photo_updated_at?: string | null
+  profilePhoto: ProfilePhoto
 }
 
 type UserAvatarProps = {
@@ -34,8 +48,8 @@ type UserAvatarProps = {
  */
 export function UserAvatar({ user, size = 36, className }: UserAvatarProps) {
   const imageUrl = getAvatarUrl(
-    user.profile_photo_path,
-    user.profile_photo_updated_at
+    user.profilePhoto.path,
+    user.profilePhoto.updatedAt
   )
   const initials = getInitials(user)
   const colorClass = getAvatarColor(user.id)
@@ -58,6 +72,30 @@ export function UserAvatar({ user, size = 36, className }: UserAvatarProps) {
   )
 }
 
+/**
+ * Wraps `UserAvatar` in a tooltip that shows a larger preview on hover.
+ * Use this on surfaces without an existing hover interaction.
+ */
+export function UserAvatarWithPreview({
+  user,
+  size = 36,
+  className,
+  previewSize = 80,
+}: UserAvatarProps & { previewSize?: number }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="cursor-default shrink-0">
+          <UserAvatar user={user} size={size} className={className} />
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="right" className="p-1.5 bg-popover">
+        <UserAvatar user={user} size={previewSize} />
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 /** Adapts the camelCase `User` DTO into the snake_case shape `UserAvatar` expects. */
 export function avatarUserFromDto(
   user: Pick<
@@ -75,7 +113,9 @@ export function avatarUserFromDto(
     first_name: user.firstName,
     last_name: user.lastName,
     email: user.email,
-    profile_photo_path: user.profilePhotoPath,
-    profile_photo_updated_at: user.profilePhotoUpdatedAt,
+    profilePhoto: {
+      path: user.profilePhotoPath,
+      updatedAt: user.profilePhotoUpdatedAt,
+    },
   }
 }

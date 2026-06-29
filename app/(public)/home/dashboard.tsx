@@ -12,6 +12,10 @@ import {
 import type { User } from '@/lib/users/types'
 import { isNil } from 'lodash'
 import { Typography } from '@/components/ui/typography'
+import {
+  UserAvatarWithPreview,
+  avatarUserFromDto,
+} from '@/components/user-avatar'
 import { Button } from '@/components/ui/button'
 import { UpcomingEvents } from '@/components/events/UpcomingEvents'
 import { isUserOnActiveTeam, isUserRector } from '@/lib/users'
@@ -29,9 +33,16 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
     <div className="my-4">
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-2">
-          <Typography variant="h1">
-            Hi {user.firstName} {user.lastName}
-          </Typography>
+          <div className="flex items-center gap-3">
+            <UserAvatarWithPreview
+              user={avatarUserFromDto(user)}
+              size={48}
+              previewSize={96}
+            />
+            <Typography variant="h1">
+              Hi {user.firstName} {user.lastName}
+            </Typography>
+          </div>
           <Typography>
             This is your personal space in the Dusty Trails Tres Dias community.
           </Typography>

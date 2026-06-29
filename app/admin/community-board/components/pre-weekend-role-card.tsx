@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Typography } from '@/components/ui/typography'
 import type { BoardRole, BoardMember } from '@/services/community/board'
+import { UserAvatarWithPreview } from '@/components/user-avatar'
 
 type PreWeekendRoleCardProps = {
   role: BoardRole
@@ -48,12 +49,19 @@ export function PreWeekendRoleCard({
                 {assignedMembers.map((member) => (
                   <span
                     key={member.id}
-                    className="inline-flex items-center text-sm text-foreground"
+                    className="inline-flex items-center gap-1.5 text-sm text-foreground"
                   >
-                    <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary mr-1.5">
-                      {member.firstName?.[0]}
-                      {member.lastName?.[0]}
-                    </span>
+                    <UserAvatarWithPreview
+                      user={{
+                        id: member.id,
+                        first_name: member.firstName,
+                        last_name: member.lastName,
+                        email: member.email,
+                        profilePhoto: member.profilePhoto,
+                      }}
+                      size={24}
+                      previewSize={72}
+                    />
                     {member.firstName} {member.lastName}
                   </span>
                 ))}

@@ -45,6 +45,7 @@ import { Check, ChevronsUpDown, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNil } from 'lodash'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { UserAvatar } from '@/components/user-avatar'
 
 const addTeamMemberFormSchema = z.object({
   userId: z.string().min(1, { message: 'User is required' }),
@@ -190,15 +191,31 @@ export function AddTeamMemberModal({
                                     setUserComboboxOpen(false)
                                   }}
                                 >
-                                  <div className="flex flex-col">
-                                    <span>
-                                      {user.first_name} {user.last_name}
-                                    </span>
-                                    {!isNil(user.email) && (
-                                      <span className="text-sm text-muted-foreground">
-                                        {user.email}
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <UserAvatar
+                                      user={{
+                                        id: user.id,
+                                        first_name: user.first_name,
+                                        last_name: user.last_name,
+                                        email: user.email,
+                                        profilePhoto: {
+                                          path: user.profile_photo_path,
+                                          updatedAt:
+                                            user.profile_photo_updated_at,
+                                        },
+                                      }}
+                                      size={24}
+                                    />
+                                    <div className="flex flex-col min-w-0">
+                                      <span>
+                                        {user.first_name} {user.last_name}
                                       </span>
-                                    )}
+                                      {!isNil(user.email) && (
+                                        <span className="text-sm text-muted-foreground truncate">
+                                          {user.email}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                   <Check
                                     className={cn(

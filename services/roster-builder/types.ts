@@ -3,6 +3,7 @@ import type {
   RectorReadyStatus,
 } from '@/services/master-roster/types'
 import type { UserExperience } from '@/lib/users/experience/validation'
+import type { ProfilePhoto } from '@/components/user-avatar'
 
 // ============================================================================
 // Volunteer Status
@@ -63,6 +64,8 @@ export type RosterBuilderCommunityMember = {
 
   // Eligibility map for roles with special requirements
   eligibility: Record<string, EligibilityResult>
+
+  profilePhoto: ProfilePhoto
 }
 
 // ============================================================================

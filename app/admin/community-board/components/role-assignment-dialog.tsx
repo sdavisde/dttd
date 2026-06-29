@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { formatMemberName } from '@/lib/formatting/member-utils'
 import type { BoardRole, BoardMember } from '@/services/community/board'
+import { UserAvatarWithPreview } from '@/components/user-avatar'
 
 type RoleAssignmentDialogProps = {
   open: boolean
@@ -137,6 +138,16 @@ function CommitteeMemberList({
               checked={isSelected}
               onCheckedChange={() => onToggleMember(member.id)}
             />
+            <UserAvatarWithPreview
+              user={{
+                id: member.id,
+                first_name: member.firstName,
+                last_name: member.lastName,
+                email: member.email,
+                profilePhoto: member.profilePhoto,
+              }}
+              size={28}
+            />
             <MemberInfo name={name} email={member.email} />
             <RoleBadges memberId={member.id} roleLabels={roleLabels} />
           </label>
@@ -176,7 +187,19 @@ function IndividualMemberList({
             className="w-full text-left px-3 py-2 rounded-md hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-center justify-between gap-3">
-              <MemberInfo name={name} email={member.email} />
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <UserAvatarWithPreview
+                  user={{
+                    id: member.id,
+                    first_name: member.firstName,
+                    last_name: member.lastName,
+                    email: member.email,
+                    profilePhoto: member.profilePhoto,
+                  }}
+                  size={28}
+                />
+                <MemberInfo name={name} email={member.email} />
+              </div>
               <RoleBadges memberId={member.id} roleLabels={roleLabels} />
             </div>
           </button>

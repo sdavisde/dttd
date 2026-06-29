@@ -182,7 +182,7 @@ Reuse the cropper in the signup form; upload after a successful `signUp`; never 
 - [x] 4.3 Ensure a skipped photo or a failed upload does not block account creation; surface
       any upload failure as a non-blocking `toastError` and continue the redirect.
 
-### [ ] 5.0 Roll `UserAvatar` out across all in-scope user surfaces
+### [x] 5.0 Roll `UserAvatar` out across all in-scope user surfaces
 
 Wire the photo fields into each surface's query and render `UserAvatar`, preserving desktop
 layouts and adding avatars to mobile cards. Every user avatar that does not already have a hover effect should have an effect where the avatar image appears larger as a tooltip-type popover.
@@ -199,19 +199,19 @@ layouts and adding avatars to mobile cards. Every user avatar that does not alre
 
 #### 5.0 Tasks
 
-- [ ] 5.1 Audit each surface's data query and add `profile_photo_path` +
+- [x] 5.1 Audit each surface's data query and add `profile_photo_path` +
       `profile_photo_updated_at` to the selected user fields (start from `GetUserInfoQuery`;
       repeat for weekend roster, master roster, roster-builder community, role member, impersonation,
       and add-team-member queries).
-- [ ] 5.2 Dashboard greeting / rector banner (`app/(public)/home/dashboard.tsx`): add `UserAvatar`.
-- [ ] 5.3 Weekend roster name column (`components/weekend/roster-view/config/columns.tsx`):
+- [x] 5.2 Dashboard greeting / rector banner (`app/(public)/home/dashboard.tsx`): add `UserAvatar`.
+- [x] 5.3 Weekend roster name column (`components/weekend/roster-view/config/columns.tsx`):
       add `UserAvatar` (desktop) + mobile card.
-- [ ] 5.4 Master roster (`app/admin/users/config/columns.tsx`): replace `UserIcon` with `UserAvatar`.
-- [ ] 5.5 Roster builder (`slot-cards.tsx`, `community-sheet.tsx`): add `UserAvatar`.
-- [ ] 5.6 Role cards (`role-card.tsx`, `pre-weekend-role-card.tsx`) + `role-assignment-dialog.tsx`:
+- [x] 5.4 Master roster (`app/admin/users/config/columns.tsx`): replace `UserIcon` with `UserAvatar`.
+- [x] 5.5 Roster builder (`slot-cards.tsx`, `community-sheet.tsx`): add `UserAvatar`.
+- [x] 5.6 Role cards (`role-card.tsx`, `pre-weekend-role-card.tsx`) + `role-assignment-dialog.tsx`:
       add `UserAvatar`.
-- [ ] 5.7 Impersonation selector (`components/admin/sidebar/impersonation-dialog.tsx`): add `UserAvatar`.
-- [ ] 5.8 Add-team-member modal (`components/weekend/roster-view/add-team-member-modal.tsx`):
+- [x] 5.7 Impersonation selector (`components/admin/sidebar/impersonation-dialog.tsx`): add `UserAvatar`.
+- [x] 5.8 Add-team-member modal (`components/weekend/roster-view/add-team-member-modal.tsx`):
       add `UserAvatar` to the combobox/list.
-- [ ] 5.9 Run `npx tsc --noEmit` and `yarn lint`; fix any issues. Spot-check each modified
+- [x] 5.9 Run `npx tsc --noEmit` and `yarn lint`; fix any issues. Spot-check each modified
       surface still lists the same people with correct names/data (no regression from the query edits).

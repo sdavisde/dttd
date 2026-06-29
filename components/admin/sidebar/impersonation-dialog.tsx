@@ -22,6 +22,7 @@ import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { toastError } from '@/lib/toast-error'
 import { useSession } from '@/components/auth/session-provider'
+import { UserAvatarWithPreview } from '@/components/user-avatar'
 
 type ImpersonationDialogProps = {
   open: boolean
@@ -126,11 +127,28 @@ export function ImpersonationDialog({
                   onClick={() => handleSelectUser(user.id)}
                   className="w-full text-left px-3 py-2 rounded-md hover:bg-accent transition-colors"
                 >
-                  <div className="font-medium">
-                    {user.first_name} {user.last_name}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {user.email}
+                  <div className="flex items-center gap-2.5">
+                    <UserAvatarWithPreview
+                      user={{
+                        id: user.id,
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                        email: user.email,
+                        profilePhoto: {
+                          path: user.profile_photo_path,
+                          updatedAt: user.profile_photo_updated_at,
+                        },
+                      }}
+                      size={32}
+                    />
+                    <div>
+                      <div className="font-medium">
+                        {user.first_name} {user.last_name}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {user.email}
+                      </div>
+                    </div>
                   </div>
                 </button>
               ))

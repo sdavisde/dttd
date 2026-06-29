@@ -58,6 +58,7 @@ import {
   ExperienceBadge,
   getEligibilityWarning,
 } from './roster-builder-types'
+import { UserAvatar } from '@/components/user-avatar'
 
 // ── Filled Slot Card ──────────────────────────────────────────────────────────
 
@@ -139,9 +140,21 @@ export function FilledSlotCard({
       </div>
 
       {/* Member name */}
-      <p className="text-sm font-semibold leading-tight text-foreground truncate">
-        {fullName(member)}
-      </p>
+      <div className="flex items-center gap-2">
+        <UserAvatar
+          user={{
+            id: member.id,
+            first_name: member.firstName,
+            last_name: member.lastName,
+            email: member.email,
+            profilePhoto: member.profilePhoto,
+          }}
+          size={28}
+        />
+        <p className="text-sm font-semibold leading-tight text-foreground truncate">
+          {fullName(member)}
+        </p>
+      </div>
 
       {/* Experience badge + indicator icons — combined row */}
       <div className="mt-2 flex items-center gap-2">
@@ -308,13 +321,25 @@ export function EmptySlotCard({
                     className="flex flex-col items-start gap-1 py-2.5"
                   >
                     <div className="flex w-full items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium leading-tight">
-                          {fullName(m)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {m.church}
-                        </p>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <UserAvatar
+                          user={{
+                            id: m.id,
+                            first_name: m.firstName,
+                            last_name: m.lastName,
+                            email: m.email,
+                            profilePhoto: m.profilePhoto,
+                          }}
+                          size={24}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium leading-tight">
+                            {fullName(m)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {m.church}
+                          </p>
+                        </div>
                       </div>
                       <ExperienceBadge
                         level={m.experienceLevel}
