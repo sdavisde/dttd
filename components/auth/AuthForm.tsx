@@ -223,8 +223,8 @@ export default function AuthForm({
                 )}
               </div>
               <p className="text-muted-foreground text-xs">
-                Please add a picture of yourself so the community can recognize
-                you in person!
+                Please add a clear photo of just you, with your face big enough
+                to see, so the community can recognize you in person!
               </p>
             </div>
           </div>

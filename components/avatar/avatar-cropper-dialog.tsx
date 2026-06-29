@@ -52,8 +52,8 @@ export function AvatarCropperDialog({
   open,
   onOpenChange,
   onConfirm,
-  title = 'Edit photo',
-  description = 'Upload a photo, then drag and zoom to frame it.',
+  title = 'Add your photo',
+  description = 'Pick a clear photo of you, then drag and zoom so your face fills the circle.',
   confirmLabel = 'Save photo',
 }: AvatarCropperDialogProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null)
@@ -134,17 +134,30 @@ export function AvatarCropperDialog({
         </DialogHeader>
 
         {isNil(imageSrc) ? (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="avatar-file">Choose an image</Label>
-            <Input
-              id="avatar-file"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleFileSelected}
-            />
-            <p className="text-muted-foreground text-xs">
-              JPEG, PNG, or WebP. Up to 5MB.
-            </p>
+          <div className="flex flex-col gap-3">
+            <div className="bg-muted/50 text-muted-foreground rounded-md border p-3 text-sm">
+              <p className="text-foreground font-medium">
+                A friendly photo of just you
+              </p>
+              <p className="mt-1">
+                This helps the community recognize you in person. Please choose
+                a recent photo where your face is clearly visible and large
+                enough to see &mdash; not a group shot, pet, or landscape. A
+                smile is always welcome!
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="avatar-file">Choose an image</Label>
+              <Input
+                id="avatar-file"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileSelected}
+              />
+              <p className="text-muted-foreground text-xs">
+                JPEG, PNG, or WebP. Up to 5MB.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
@@ -163,6 +176,9 @@ export function AvatarCropperDialog({
                 }
               />
             </div>
+            <p className="text-muted-foreground text-center text-xs">
+              Drag and zoom so your face fills the circle.
+            </p>
             <div className="flex flex-col gap-2">
               <Label htmlFor="avatar-zoom">Zoom</Label>
               <Slider
