@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Info, Loader2, Pencil, Save, Trash2, X } from 'lucide-react'
+import { HeartHandshake, Loader2, Pencil, Save, Trash2, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -98,14 +98,17 @@ export function EncouragementEditor({
           Create Community Encouragement
         </Button>
       ) : (
-        <Alert className="relative rounded-xl border-transparent bg-secondary text-secondary-foreground [&>svg]:text-secondary-foreground *:data-[slot=alert-description]:text-secondary-foreground/80">
-          <Info />
+        <Alert
+          variant="success"
+          className="relative border-success/40 bg-success/5"
+        >
+          <HeartHandshake />
           <AlertTitle>Community Encouragement</AlertTitle>
           <AlertDescription className="whitespace-pre-wrap">
             {message}
           </AlertDescription>
           {canEdit && (
-            <div className="absolute right-4 top-4 flex gap-2">
+            <div className="mt-3 flex gap-2 sm:absolute sm:right-4 sm:top-4 sm:mt-0">
               <Button
                 size="sm"
                 variant="outline"

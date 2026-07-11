@@ -38,13 +38,15 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
     <div className="my-6 space-y-6">
       <ProfilePhotoAlert needsPhoto={isNil(user.profilePhotoPath)} />
 
+      <CommunityEncouragement user={user} />
+
       {/*
         Two-column layout on lg+: main column (2/3) + events sidebar (1/3).
         Grid auto-placement gives the mobile stacking order:
-        greeting + weekend hero -> events -> everything else.
+        greeting + weekend hero + team checklist -> events -> quick actions.
       */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
-        {/* Main column, row 1: greeting + current weekend hero */}
+        {/* Main column, row 1: greeting, weekend hero, and team checklist */}
         <div className="space-y-6 lg:col-span-2">
           <div className="flex items-center gap-4">
             <UserAvatarWithPreview
@@ -65,15 +67,7 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
           <Suspense fallback={<CurrentWeekendHeroSkeleton />}>
             <CurrentWeekendHero user={user} />
           </Suspense>
-        </div>
 
-        {/* Right sidebar: upcoming events */}
-        <aside className="lg:row-span-2">
-          <UpcomingEvents />
-        </aside>
-
-        {/* Main column, row 2: role banners, todos, encouragement, actions */}
-        <div className="space-y-6 lg:col-span-2">
           <RectorBanner user={user} />
 
           {isUserOnActiveTeam(user) && (
@@ -81,9 +75,15 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
               <TeamMemberTodo user={user} />
             </Suspense>
           )}
+        </div>
 
-          <CommunityEncouragement user={user} />
+        {/* Right sidebar: upcoming events */}
+        <aside className="lg:row-span-2">
+          <UpcomingEvents />
+        </aside>
 
+        {/* Main column, row 2: quick actions */}
+        <div className="lg:col-span-2">
           <QuickActions prayerWheelUrl={prayerWheelUrl} />
         </div>
       </div>
