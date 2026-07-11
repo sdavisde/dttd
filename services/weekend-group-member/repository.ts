@@ -109,7 +109,7 @@ export async function getActiveGroupMemberForUser(
 
 /**
  * Finds a weekend_group_member by its ID.
- * Also fetches a representative weekend_id from the group (for notifications).
+ * Also resolves the weekend_id within the group that matches the member's gender.
  * Uses admin client to bypass RLS — for use in webhook handlers.
  */
 export async function getGroupMemberById(
@@ -127,11 +127,26 @@ export async function getGroupMemberById(
     return err('Weekend group member not found')
   }
 
-  // Get a weekend_id from the group for notification purposes
+  // A group contains both a MENS and WOMENS weekend. Resolve the weekend that
+  // matches the member's gender — otherwise we'd always return the MENS weekend
+  // (inserted first), mis-tagging women's payments as men's.
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('gender')
+    .eq('id', member.user_id)
+    .maybeSingle()
+
+  if (isSupabaseError(userError)) {
+    return err('Failed to fetch user for group member')
+  }
+
+  const weekendType = user?.gender === 'female' ? 'WOMENS' : 'MENS'
+
   const { data: weekend, error: weekendError } = await supabase
     .from('weekends')
     .select('id')
     .eq('group_id', member.group_id)
+    .eq('type', weekendType)
     .limit(1)
     .maybeSingle()
 
