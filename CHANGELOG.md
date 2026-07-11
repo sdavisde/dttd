@@ -1,3 +1,9 @@
+## [1.46.0](https://github.com/sdavisde/dttd/compare/v1.45.1...v1.46.0) (2026-07-11)
+
+### Features
+
+- **home:** prompt members without a profile photo to add one ([38efc8a](https://github.com/sdavisde/dttd/commit/38efc8a2010169bf4365ff945b4717d5a37996cc))
+
 ## [1.45.1](https://github.com/sdavisde/dttd/compare/v1.45.0...v1.45.1) (2026-07-11)
 
 ### Bug Fixes
