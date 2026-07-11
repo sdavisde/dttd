@@ -1,3 +1,9 @@
+## [1.47.0](https://github.com/sdavisde/dttd/compare/v1.46.0...v1.47.0) (2026-07-11)
+
+### Features
+
+- **home:** redesign dashboard to surface weekend info at a glance ([8964c88](https://github.com/sdavisde/dttd/commit/8964c88b12e62f9ef6f9b686897e0620d1d7372f))
+
 ## [1.46.0](https://github.com/sdavisde/dttd/compare/v1.45.1...v1.46.0) (2026-07-11)
 
 ### Features
