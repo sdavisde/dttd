@@ -1,3 +1,9 @@
+## [1.47.1](https://github.com/sdavisde/dttd/compare/v1.47.0...v1.47.1) (2026-07-11)
+
+### Bug Fixes
+
+- improve layout of homepage ([5185cd1](https://github.com/sdavisde/dttd/commit/5185cd1885954df7a9b74e26f5458a3b2766b9dc))
+
 ## [1.47.0](https://github.com/sdavisde/dttd/compare/v1.46.0...v1.47.0) (2026-07-11)
 
 ### Features
