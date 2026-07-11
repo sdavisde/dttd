@@ -1,17 +1,17 @@
 import { Suspense } from 'react'
 import {
-  BookOpen,
-  DollarSign,
+  ArrowRight,
   File,
   HandHeart,
   UserPlus,
-  CheckCircle,
-  CalendarDays,
   Shield,
+  type LucideIcon,
 } from 'lucide-react'
+import Link from 'next/link'
 import type { User } from '@/lib/users/types'
 import { isNil } from 'lodash'
 import { Typography } from '@/components/ui/typography'
+import { Separator } from '@/components/ui/separator'
 import {
   UserAvatarWithPreview,
   avatarUserFromDto,
@@ -23,6 +23,10 @@ import { TeamMemberTodo, TeamMemberTodoLoading } from '@/components/team-todos'
 import { CommunityEncouragement } from '@/components/community-encouragement/CommunityEncouragement'
 import { CHARole, WeekendType } from '@/lib/weekend/types'
 import { ProfilePhotoAlert } from './profile-photo-alert'
+import {
+  CurrentWeekendHero,
+  CurrentWeekendHeroSkeleton,
+} from './current-weekend-hero'
 
 interface DashboardProps {
   user: User
@@ -31,88 +35,129 @@ interface DashboardProps {
 
 export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
   return (
-    <div className="my-4">
-      <div className="flex flex-col gap-2">
-        <ProfilePhotoAlert needsPhoto={isNil(user.profilePhotoPath)} />
+    <div className="my-6 space-y-6">
+      <ProfilePhotoAlert needsPhoto={isNil(user.profilePhotoPath)} />
 
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
+      {/*
+        Two-column layout on lg+: main column (2/3) + events sidebar (1/3).
+        Grid auto-placement gives the mobile stacking order:
+        greeting + weekend hero -> events -> everything else.
+      */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+        {/* Main column, row 1: greeting + current weekend hero */}
+        <div className="space-y-6 lg:col-span-2">
+          <div className="flex items-center gap-4">
             <UserAvatarWithPreview
               user={avatarUserFromDto(user)}
-              size={48}
+              size={56}
               previewSize={160}
             />
-            <Typography variant="h1">
-              Hi {user.firstName} {user.lastName}
-            </Typography>
+            <div>
+              <p className="mb-1 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                Dusty Trails Tres Dias
+              </p>
+              <Typography variant="h1">
+                Hi {user.firstName ?? 'there'}
+              </Typography>
+            </div>
           </div>
-          <Typography>
-            This is your personal space in the Dusty Trails Tres Dias community.
-          </Typography>
-          <Typography variant="muted">
-            Here you&apos;ll find important information, updates, and resources.
-          </Typography>
-        </div>
 
-        <CommunityEncouragement user={user} />
-
-        <RectorBanner user={user} />
-
-        <UpcomingEvents />
-
-        {isUserOnActiveTeam(user) && (
-          <Suspense fallback={<TeamMemberTodoLoading />}>
-            <TeamMemberTodo user={user} />
+          <Suspense fallback={<CurrentWeekendHeroSkeleton />}>
+            <CurrentWeekendHero user={user} />
           </Suspense>
-        )}
-
-        {/* Dynamic Action Section */}
-
-        <div className="w-full mt-4">
-          <Typography variant="h2">Dashboard</Typography>
         </div>
 
-        <div className="w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button
-            variant="outline"
-            className="w-full h-52 flex flex-col items-center justify-center gap-2"
-            href="/current-weekend"
-          >
-            <CalendarDays className="w-10 h-10" />
-            <span className="text-lg font-semibold">Current Weekend</span>
-          </Button>
+        {/* Right sidebar: upcoming events */}
+        <aside className="lg:row-span-2">
+          <UpcomingEvents />
+        </aside>
 
-          <Button
-            variant="outline"
-            className="w-full h-52 flex flex-col items-center justify-center gap-2"
-            // todo: eventually this should link back to the /sponsor page. We put this here because the sponsorship flow is not ready yet.
-            // more info in the README.
-            href="/sponsor"
-          >
-            <UserPlus className="w-10 h-10" />
-            <span className="text-lg font-semibold">Sponsor a Candidate</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full h-52 flex flex-col items-center justify-center gap-2"
-            href="/secuela-signin"
-          >
-            <HandHeart className="w-10 h-10" />
-            <span className="text-lg font-semibold">Sign Up to Serve</span>
-          </Button>
-          {!isNil(prayerWheelUrl) && (
-            <Button
-              variant="outline"
-              className="w-full h-52 flex flex-col items-center justify-center gap-2"
-              href={prayerWheelUrl}
-            >
-              <File className="w-10 h-10" />
-              <span className="text-lg font-semibold">Prayer Wheel Signup</span>
-            </Button>
+        {/* Main column, row 2: role banners, todos, encouragement, actions */}
+        <div className="space-y-6 lg:col-span-2">
+          <RectorBanner user={user} />
+
+          {isUserOnActiveTeam(user) && (
+            <Suspense fallback={<TeamMemberTodoLoading />}>
+              <TeamMemberTodo user={user} />
+            </Suspense>
           )}
+
+          <CommunityEncouragement user={user} />
+
+          <QuickActions prayerWheelUrl={prayerWheelUrl} />
         </div>
       </div>
     </div>
+  )
+}
+
+function QuickActions({ prayerWheelUrl }: { prayerWheelUrl: string | null }) {
+  return (
+    <section>
+      <div className="mb-3">
+        <Typography variant="h3">Quick Actions</Typography>
+        <Separator className="mt-2 w-12 bg-primary" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <QuickActionCard
+          // todo: eventually this should link back to the /sponsor page. We put this here because the sponsorship flow is not ready yet.
+          // more info in the README.
+          href="/sponsor"
+          icon={UserPlus}
+          title="Sponsor a Candidate"
+          description="Nominate someone you know for an upcoming weekend"
+        />
+        <QuickActionCard
+          href="/secuela-signin"
+          icon={HandHeart}
+          title="Sign Up to Serve"
+          description="Volunteer to serve on an upcoming weekend team"
+        />
+        {!isNil(prayerWheelUrl) && (
+          <QuickActionCard
+            href={prayerWheelUrl}
+            icon={File}
+            title="Prayer Wheel Signup"
+            description="Commit to an hour of prayer during the weekend"
+          />
+        )}
+      </div>
+    </section>
+  )
+}
+
+interface QuickActionCardProps {
+  href: string
+  icon: LucideIcon
+  title: string
+  description: string
+}
+
+function QuickActionCard({
+  href,
+  icon: Icon,
+  title,
+  description,
+}: QuickActionCardProps) {
+  return (
+    <Link
+      href={href}
+      className="group flex min-h-[44px] cursor-pointer items-start gap-3 rounded-xl border bg-card p-4 shadow-sm transition-colors duration-200 hover:border-primary/40 hover:bg-accent"
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary">
+        <Icon className="h-5 w-5 text-secondary-foreground" />
+      </div>
+      <div className="min-w-0">
+        <p className="flex items-center gap-1 text-sm font-semibold">
+          {title}
+          <ArrowRight className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
+        </p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      </div>
+    </Link>
   )
 }
 
@@ -130,7 +175,7 @@ function RectorBanner({ user }: { user: User }) {
     rectorAssignment?.weekendType === WeekendType.MENS ? "Men's" : "Women's"
 
   return (
-    <div className="mt-2">
+    <div>
       <Button
         href="/roster-builder"
         variant="outline"

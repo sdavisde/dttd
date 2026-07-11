@@ -1,4 +1,3 @@
-import { Typography } from '@/components/ui/typography'
 import { Skeleton } from '@/components/ui/skeleton'
 
 /**
@@ -7,9 +6,13 @@ import { Skeleton } from '@/components/ui/skeleton'
  */
 export function TeamMemberTodoLoading() {
   return (
-    <div className="w-full">
-      <div className="w-full mt-4 mb-2">
-        <Typography variant="h2">Team Member Checklist</Typography>
+    <div className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+      <div className="mb-3 flex items-center gap-3">
+        <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-1 w-12" />
+        </div>
       </div>
       <div className="space-y-1">
         {/* Simulate 3 TODO items loading */}

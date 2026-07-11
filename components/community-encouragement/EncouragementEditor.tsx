@@ -93,16 +93,12 @@ export function EncouragementEditor({
   return (
     <>
       {isEmpty(message) ? (
-        <Button
-          onClick={handleOpenDialog}
-          variant="outline"
-          className="mb-4 gap-2"
-        >
+        <Button onClick={handleOpenDialog} variant="outline" className="gap-2">
           <Pencil className="h-4 w-4" />
           Create Community Encouragement
         </Button>
       ) : (
-        <Alert variant="info" className="mb-4 relative">
+        <Alert className="relative rounded-xl border-transparent bg-secondary text-secondary-foreground [&>svg]:text-secondary-foreground *:data-[slot=alert-description]:text-secondary-foreground/80">
           <Info />
           <AlertTitle>Community Encouragement</AlertTitle>
           <AlertDescription className="whitespace-pre-wrap">
