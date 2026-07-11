@@ -1,3 +1,9 @@
+## [1.45.1](https://github.com/sdavisde/dttd/compare/v1.45.0...v1.45.1) (2026-07-11)
+
+### Bug Fixes
+
+- **payments:** tie team payments to the correct-gender weekend ([ae0d5c7](https://github.com/sdavisde/dttd/commit/ae0d5c7edf5f22f619f98f67325a64945116059f))
+
 ## [1.45.0](https://github.com/sdavisde/dttd/compare/v1.44.0...v1.45.0) (2026-06-29)
 
 ### Features
