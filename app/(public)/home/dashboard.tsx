@@ -22,6 +22,7 @@ import { isUserOnActiveTeam, isUserRector } from '@/lib/users'
 import { TeamMemberTodo, TeamMemberTodoLoading } from '@/components/team-todos'
 import { CommunityEncouragement } from '@/components/community-encouragement/CommunityEncouragement'
 import { CHARole, WeekendType } from '@/lib/weekend/types'
+import { ProfilePhotoAlert } from './profile-photo-alert'
 
 interface DashboardProps {
   user: User
@@ -32,6 +33,8 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
   return (
     <div className="my-4">
       <div className="flex flex-col gap-2">
+        <ProfilePhotoAlert needsPhoto={isNil(user.profilePhotoPath)} />
+
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
             <UserAvatarWithPreview
