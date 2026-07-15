@@ -1,3 +1,9 @@
+## [1.47.2](https://github.com/sdavisde/dttd/compare/v1.47.1...v1.47.2) (2026-07-15)
+
+### Bug Fixes
+
+- make payment owner editable on candidate review page ([667269b](https://github.com/sdavisde/dttd/commit/667269b61cd4dd223651671cc06c7f087e3a290f))
+
 ## [1.47.1](https://github.com/sdavisde/dttd/compare/v1.47.0...v1.47.1) (2026-07-11)
 
 ### Bug Fixes
