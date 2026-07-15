@@ -10,6 +10,8 @@ import * as Results from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import type { Database } from '@/database.types'
 import { useCallback } from 'react'
+import { Pencil } from 'lucide-react'
+import { PaymentOwnerForm } from '@/app/(public)/review-candidates/components/PaymentOwnerForm'
 
 type SponsorshipInfoUpdate =
   Database['public']['Tables']['candidate_sponsorship_info']['Update']
@@ -152,7 +154,23 @@ export function SponsorInformationSection({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <ReadOnlyField label="Payment Owner" value={paymentOwnerDisplay} />
+        {canEdit ? (
+          <div>
+            <Typography
+              variant="small"
+              className="text-muted-foreground flex items-center gap-1"
+            >
+              Payment Owner
+              <Pencil className="h-3 w-3" />
+            </Typography>
+            <PaymentOwnerForm
+              candidateId={candidate.id}
+              initialPaymentOwner={sponsorshipInfo?.payment_owner}
+            />
+          </div>
+        ) : (
+          <ReadOnlyField label="Payment Owner" value={paymentOwnerDisplay} />
+        )}
       </div>
     </section>
   )
