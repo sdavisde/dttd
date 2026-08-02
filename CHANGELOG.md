@@ -1,3 +1,11 @@
+## [1.47.3](https://github.com/sdavisde/dttd/compare/v1.47.2...v1.47.3) (2026-08-02)
+
+### Bug Fixes
+
+- **ui:** pin table and form dates to en-US MM/DD/YYYY ([eb21146](https://github.com/sdavisde/dttd/commit/eb21146ef7fb7b8d544ec237c822dadf0ad2a487))
+- **ui:** standardize date input components on MM/DD/YYYY ([5c3233c](https://github.com/sdavisde/dttd/commit/5c3233c22e9408407aefc35ad9afa939939bcf1c))
+- **weekend:** serialize weekend dates from the local calendar day ([d4604b6](https://github.com/sdavisde/dttd/commit/d4604b67bbdf6cf3046afd83e762fd951c4254f5))
+
 ## [1.47.2](https://github.com/sdavisde/dttd/compare/v1.47.1...v1.47.2) (2026-07-15)
 
 ### Bug Fixes
