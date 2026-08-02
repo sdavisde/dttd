@@ -60,6 +60,18 @@ const DEFAULT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
 }
 
 /**
+ * The numeric American date format (MM/DD/YYYY) used by every date input
+ * component, so a field reads identically whether it is being edited or just
+ * displayed. Pass it to {@link formatDate} for ISO strings, or use
+ * {@link formatDateNumeric} for a `Date` you already hold.
+ */
+export const NUMERIC_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: '2-digit',
+  day: '2-digit',
+  year: 'numeric',
+}
+
+/**
  * Formats a date-only value (e.g. "2026-09-03") for display — no time, no
  * timezone conversion. This is the default helper for rendering any date column.
  *
@@ -147,6 +159,31 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
   } catch {
     return 'Invalid Date'
   }
+}
+
+/**
+ * Formats a `Date` as MM/DD/YYYY. Use this for values already held as `Date`
+ * (date inputs, pickers); for date-only ISO strings prefer
+ * `formatDate(value, NUMERIC_DATE_FORMAT)`, which avoids the UTC off-by-one.
+ *
+ * @example formatDateNumeric(new Date(2026, 8, 3)) // "09/03/2026"
+ */
+export const formatDateNumeric = (date: Date): string =>
+  date.toLocaleDateString('en-US', NUMERIC_DATE_FORMAT)
+
+/**
+ * Serializes a `Date` to a "YYYY-MM-DD" string using its local calendar day.
+ *
+ * `toISOString().split('T')[0]` looks equivalent but converts to UTC first, so
+ * a local midnight in any UTC-positive zone serializes to the previous day.
+ * Reading those values back through `toLocalDateFromISO` is what keeps a
+ * date-only round trip stable.
+ */
+export const toISODateString = (date: Date): string => {
+  const year = String(date.getFullYear()).padStart(4, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 export const setDatetimeToMidnight = (date: Date) => {

@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, formatDateNumeric } from '@/lib/utils'
 import { isNil } from 'lodash'
 
 /**
@@ -67,14 +67,6 @@ export interface DateInputProps {
   required?: boolean
 }
 
-function formatDisplay(d: Date): string {
-  return d.toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-  })
-}
-
 function DateInput({
   date,
   onDateChange,
@@ -115,10 +107,10 @@ function DateInput({
       return 'Invalid date'
     }
     if (!isNil(minDate) && parsed < minDate) {
-      return `Date must be after ${formatDisplay(minDate)}`
+      return `Date must be after ${formatDateNumeric(minDate)}`
     }
     if (!isNil(maxDate) && parsed > maxDate) {
-      return `Date must be before ${formatDisplay(maxDate)}`
+      return `Date must be before ${formatDateNumeric(maxDate)}`
     }
     return null
   }
@@ -166,7 +158,7 @@ function DateInput({
   const displayValue = isFocused
     ? formatDateString(digits)
     : !isNil(date)
-      ? formatDisplay(date)
+      ? formatDateNumeric(date)
       : formatDateString(digits)
 
   return (
