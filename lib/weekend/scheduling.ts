@@ -1,7 +1,11 @@
 import { isNil } from 'lodash'
 import { formatWeekendTitle } from '.'
 import type { WeekendGroupWithId, Weekend } from '@/lib/weekend/types'
-import { setDatetimeToMidnight, toLocalDateFromISO } from '@/lib/utils'
+import {
+  setDatetimeToMidnight,
+  toISODateString,
+  toLocalDateFromISO,
+} from '@/lib/utils'
 
 export type DateRange = {
   start: Date
@@ -40,7 +44,7 @@ export const formatDateLabel = (
     ...options,
   })
 
-export const formatDateForApi = (date: Date) => date.toISOString().split('T')[0]
+export const formatDateForApi = (date: Date) => toISODateString(date)
 
 export const getNextThursdayRange = (reference = new Date()): DateRange => {
   const next = setDatetimeToMidnight(reference)
