@@ -59,6 +59,9 @@ const DEFAULT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   year: 'numeric',
 }
 
+/** The community's timezone — all event and record times are shown in CT. */
+export const COMMUNITY_TIMEZONE = 'America/Chicago'
+
 /**
  * The numeric American date format (MM/DD/YYYY) used by every date input
  * component, so a field reads identically whether it is being edited or just
@@ -146,13 +149,13 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      timeZone: 'America/Chicago',
+      timeZone: COMMUNITY_TIMEZONE,
     })
     const timeStr = date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Chicago',
+      timeZone: COMMUNITY_TIMEZONE,
     })
 
     return { dateStr, timeStr: `${timeStr} CT` }
@@ -170,6 +173,29 @@ export const formatDateTime = (datetime: string | null): FormattedDateTime => {
  */
 export const formatDateNumeric = (date: Date): string =>
   date.toLocaleDateString('en-US', NUMERIC_DATE_FORMAT)
+
+/**
+ * Formats a timestamp (a real instant, e.g. `created_at`/`updated_at`) as the
+ * MM/DD/YYYY calendar day it fell on in community time. Returns '-' when the
+ * value is missing or unparseable, which is what table cells want.
+ *
+ * Distinct from {@link formatDate}, which is for date-only columns: this parses
+ * the full instant rather than taking the literal date portion, so a file
+ * uploaded at 02:00 UTC is reported on the previous CT day, as it should be.
+ *
+ * @example formatTimestampDate('2026-09-03T14:30:00Z') // "09/03/2026"
+ */
+export const formatTimestampDate = (datetime?: string | null): string => {
+  if (isNil(datetime) || datetime === '') return '-'
+
+  const date = new Date(datetime)
+  if (isNaN(date.getTime())) return '-'
+
+  return date.toLocaleDateString('en-US', {
+    ...NUMERIC_DATE_FORMAT,
+    timeZone: COMMUNITY_TIMEZONE,
+  })
+}
 
 /**
  * Serializes a `Date` to a "YYYY-MM-DD" string using its local calendar day.

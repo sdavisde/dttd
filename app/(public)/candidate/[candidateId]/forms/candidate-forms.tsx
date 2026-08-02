@@ -32,7 +32,7 @@ import { CampWaiverText } from '@/components/forms/camp-waiver-text'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { addCandidateInfo } from '@/actions/candidates'
 import { isErr } from '@/lib/results'
-import { calculateAge } from '@/lib/utils'
+import { calculateAge, formatDateNumeric } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { isDevMode } from '@/lib/dev-mode'
 import { CANDIDATE_FORM_TEST_DATA } from './candidate-forms.helpers'
@@ -693,7 +693,7 @@ export function CandidateForms({
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Date</Label>
                 <div className="h-10 flex items-center px-3 border rounded-md bg-muted text-muted-foreground">
-                  {new Date().toLocaleDateString()}
+                  {formatDateNumeric(new Date())}
                 </div>
               </div>
             </div>

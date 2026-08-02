@@ -1,5 +1,6 @@
 'use client'
 
+import { formatTimestampDate } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { FileObject } from '@supabase/storage-js'
@@ -112,12 +113,7 @@ export function SortableFileTable({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Last Modified" />
       ),
-      cell: ({ row }) =>
-        row.original.updated_at !== undefined &&
-        row.original.updated_at !== null &&
-        row.original.updated_at !== ''
-          ? new Date(row.original.updated_at).toLocaleDateString()
-          : '-',
+      cell: ({ row }) => formatTimestampDate(row.original.updated_at),
       meta: {
         showOnMobile: true,
         mobileLabel: 'Last Modified',

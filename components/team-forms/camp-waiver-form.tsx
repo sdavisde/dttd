@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateNumeric } from '@/lib/utils'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -52,7 +53,7 @@ export function CampWaiverForm({
     },
   })
 
-  const currentDate = new Date().toLocaleDateString()
+  const currentDate = formatDateNumeric(new Date())
 
   const onSubmit = async (data: CampWaiverFormValues) => {
     setIsSubmitting(true)

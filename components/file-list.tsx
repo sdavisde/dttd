@@ -1,5 +1,6 @@
 'use client'
 
+import { formatTimestampDate } from '@/lib/utils'
 import { useState } from 'react'
 import Link from 'next/link'
 import { isNil } from 'lodash'
@@ -57,11 +58,6 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`
   }
 
-  const formatDate = (dateString?: string) => {
-    if (isNil(dateString)) return '-'
-    return new Date(dateString).toLocaleDateString()
-  }
-
   return (
     <>
       <div className="divide-y">
@@ -103,7 +99,7 @@ export function FileList({ items, currentBucket, currentPath }: FileListProps) {
                     <div className="font-medium truncate">{item.name}</div>
                     <div className="text-sm text-muted-foreground">
                       {formatFileSize(item.size)} •{' '}
-                      {formatDate(item.updated_at)}
+                      {formatTimestampDate(item.updated_at)}
                     </div>
                   </div>
                 )}

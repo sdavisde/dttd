@@ -1,5 +1,6 @@
 'use client'
 
+import { formatTimestampDate } from '@/lib/utils'
 import type { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table'
 import type { HydratedCandidate, CandidateStatus } from '@/lib/candidates/types'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
@@ -134,7 +135,7 @@ export function getCandidateReviewColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Submitted" />
       ),
-      cell: ({ getValue }) => new Date(getValue<string>()).toLocaleDateString(),
+      cell: ({ getValue }) => formatTimestampDate(getValue<string>()),
       meta: {
         showOnMobile: true,
         mobileLabel: 'Submitted',

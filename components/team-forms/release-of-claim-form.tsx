@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateNumeric } from '@/lib/utils'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, useWatch } from 'react-hook-form'
@@ -83,7 +84,7 @@ export function ReleaseOfClaimForm({
     control: form.control,
     name: 'has_special_needs',
   })
-  const currentDate = new Date().toLocaleDateString()
+  const currentDate = formatDateNumeric(new Date())
 
   const onSubmit = async (data: ReleaseOfClaimFormValues) => {
     setIsSubmitting(true)
