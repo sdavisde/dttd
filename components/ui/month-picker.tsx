@@ -106,7 +106,11 @@ export function MonthPickerPopover({
             className
           )}
         >
-          {!isNil(value) ? format(value, 'MMMM yyyy') : <span>{placeholder}</span>}
+          {!isNil(value) ? (
+            format(value, 'MMM yyyy')
+          ) : (
+            <span>{placeholder}</span>
+          )}
           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
