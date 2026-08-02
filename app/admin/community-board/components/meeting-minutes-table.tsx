@@ -1,5 +1,6 @@
 'use client'
 
+import { formatTimestampDate } from '@/lib/utils'
 import type { FileObject } from '@supabase/storage-js'
 import type {
   MeetingMinuteFile,
@@ -174,13 +175,7 @@ export function MeetingMinutesTable({
                       {file.name}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    {file.created_at !== undefined &&
-                    file.created_at !== null &&
-                    file.created_at !== ''
-                      ? new Date(file.created_at).toLocaleDateString()
-                      : '-'}
-                  </TableCell>
+                  <TableCell>{formatTimestampDate(file.created_at)}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {file.location ?? '-'}
                   </TableCell>

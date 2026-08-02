@@ -2,7 +2,7 @@
 
 import { Typography } from '@/components/ui/typography'
 import { InlineDateField } from '@/components/ui/inline-date-field'
-import { formatDate } from '@/lib/utils'
+import { formatDate, NUMERIC_DATE_FORMAT } from '@/lib/utils'
 import { isNil } from 'lodash'
 import { Pencil } from 'lucide-react'
 
@@ -27,7 +27,7 @@ export function EditableDateField({
 }: EditableDateFieldProps) {
   const displayValue = isNil(value)
     ? emptyText
-    : formatDate(value, { month: 'long' })
+    : formatDate(value, NUMERIC_DATE_FORMAT)
 
   return (
     <div>

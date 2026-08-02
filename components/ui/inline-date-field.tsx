@@ -1,7 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import {
+  cn,
+  formatDateNumeric,
+  toISODateString,
+  toLocalDateFromISO,
+} from '@/lib/utils'
 import { isNil } from 'lodash'
 import { DateInput } from '@/components/ui/date-input'
 
@@ -25,12 +30,14 @@ export function InlineDateField({
   const [isEditing, setIsEditing] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  const dateValue = !isNil(value) ? new Date(value) : undefined
+  // `new Date(value)` would read a date-only string as UTC midnight and render
+  // a day early for viewers behind UTC; toLocalDateFromISO builds it locally.
+  const dateValue = toLocalDateFromISO(value) ?? undefined
 
   async function handleDateChange(selectedDate: Date | undefined) {
     if (isNil(selectedDate)) return
 
-    const isoString = selectedDate.toISOString().split('T')[0]
+    const isoString = toISODateString(selectedDate)
     if (isoString !== value) {
       setIsSubmitting(true)
       try {
@@ -43,13 +50,7 @@ export function InlineDateField({
   }
 
   if (!isEditing) {
-    const displayValue = !isNil(dateValue)
-      ? dateValue.toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        })
-      : ''
+    const displayValue = !isNil(dateValue) ? formatDateNumeric(dateValue) : ''
     const isEmpty = isNil(value)
 
     return (

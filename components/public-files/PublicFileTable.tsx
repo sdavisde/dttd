@@ -1,5 +1,6 @@
 'use client'
 
+import { formatTimestampDate } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import type { FileObject } from '@supabase/storage-js'
 import { logger } from '@/lib/logger'
@@ -136,9 +137,7 @@ export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
                         : '-'}
                     </TableCell>
                     <TableCell>
-                      {!isNil(file.updated_at)
-                        ? new Date(file.updated_at).toLocaleDateString()
-                        : '-'}
+                      {formatTimestampDate(file.updated_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div onClick={(e) => e.stopPropagation()}>

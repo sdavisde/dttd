@@ -1,5 +1,6 @@
 'use client'
 
+import { formatTimestampDate } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isNil } from 'lodash'
@@ -114,11 +115,7 @@ export function FileTable({ files: initialFiles, folderName }: FileTableProps) {
                     ? `${(file.metadata.size / 1024).toFixed(1)} KB`
                     : '-'}
                 </TableCell>
-                <TableCell>
-                  {!isNil(file.updated_at)
-                    ? new Date(file.updated_at).toLocaleDateString()
-                    : '-'}
-                </TableCell>
+                <TableCell>{formatTimestampDate(file.updated_at)}</TableCell>
                 <TableCell className="sticky right-0 bg-background text-right border-l">
                   <div onClick={(e) => e.stopPropagation()}>
                     <TooltipProvider>
