@@ -47,12 +47,12 @@ export const getAllCandidates = async () => {
  */
 export async function findCandidateById(
   id: string
-): Promise<Result<string, { id: string } | null>> {
+): Promise<Result<string, { id: string; weekend_id: string | null } | null>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('candidates')
-    .select('id')
+    .select('id, weekend_id')
     .eq('id', id)
     .single()
 

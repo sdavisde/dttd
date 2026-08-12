@@ -180,7 +180,7 @@ export async function recordManualCandidatePayment(
     type: 'fee',
     target_type: 'candidate',
     target_id: candidateId,
-    weekend_id: null, // Could be fetched from candidate if needed
+    weekend_id: candidateResult.data.weekend_id,
     payment_intent_id: paymentIntentId,
     gross_amount: paymentAmount,
     payment_method: paymentMethod,
