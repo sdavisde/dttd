@@ -45,8 +45,7 @@ export async function getUserServiceHistory(
         weekends (
           id,
           type,
-          start_date,
-          title
+          start_date
         )
       `
       )
