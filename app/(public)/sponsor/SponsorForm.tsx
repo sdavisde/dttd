@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { sendSponsorshipNotificationEmail } from '@/services/notifications'
 import * as Results from '@/lib/results'
 import { isNil } from 'lodash'
+import { formatWeekendTitle } from '@/lib/weekend'
 import { useSession } from '@/components/auth/session-provider'
 import { createCandidateWithSponsorshipInfo } from '@/actions/candidates'
 import { useWeekends } from '@/hooks/useWeekends'
@@ -262,16 +263,16 @@ export function SponsorForm() {
                           <SelectContent>
                             {!isNil(weekends?.MENS) && (
                               <SelectItem value={weekends.MENS.id}>
-                                Men&apos;s Weekend -{' '}
-                                {weekends.MENS.title ??
-                                  `Weekend #${weekends.MENS.number}`}
+                                {formatWeekendTitle(weekends.MENS, {
+                                  genderStyle: 'possessive',
+                                })}
                               </SelectItem>
                             )}
                             {!isNil(weekends?.WOMENS) && (
                               <SelectItem value={weekends.WOMENS.id}>
-                                Women&apos;s Weekend -{' '}
-                                {weekends.WOMENS.title ??
-                                  `Weekend #${weekends.WOMENS.number}`}
+                                {formatWeekendTitle(weekends.WOMENS, {
+                                  genderStyle: 'possessive',
+                                })}
                               </SelectItem>
                             )}
                             {isNil(weekends?.MENS) &&

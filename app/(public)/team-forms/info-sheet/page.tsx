@@ -4,7 +4,7 @@ import { TeamInfoForm } from '@/components/team-forms/team-info-form'
 import { isErr, unwrap } from '@/lib/results'
 import { isNil } from 'lodash'
 import { getUserServiceHistory } from '@/actions/user-experience'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import { parseCommunityWeekendRef } from '@/lib/weekend/weekend-reference'
 import { experienceToFormValues } from '@/lib/users/experience'
 import { getUserMedicalProfile } from '@/services/weekend-group-member/weekend-group-member-service'
 
@@ -38,21 +38,19 @@ export default async function TeamInfoPage() {
   const experience = experienceToFormValues(
     unwrap(serviceHistoryResult).experience
   )
-  const attendedWeekendReference = !isNil(
+  const attendedWeekendRef = parseCommunityWeekendRef(
     user.communityInformation.weekendAttended
   )
-    ? WeekendReference.fromString(
-        user.communityInformation.weekendAttended
-      ).toJSON()
-    : null
 
   const basicInfo = {
     church_affiliation: user.communityInformation.churchAffiliation ?? '',
-    weekend_attended: attendedWeekendReference ?? {
-      community: '',
-      weekend_number: '',
+    weekend_attended: {
+      community: attendedWeekendRef?.community ?? '',
+      weekend_number: attendedWeekendRef?.number.toString() ?? '',
     },
-    essentials_training_date: !isNil(user.communityInformation.essentialsTrainingDate)
+    essentials_training_date: !isNil(
+      user.communityInformation.essentialsTrainingDate
+    )
       ? new Date(user.communityInformation.essentialsTrainingDate)
       : undefined,
     special_gifts_and_skills:

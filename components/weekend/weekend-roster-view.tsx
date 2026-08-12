@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { Users } from 'lucide-react'
 import { isNil } from 'lodash'
 import { WeekendStatus } from '@/lib/weekend/types'
+import { formatWeekendTitle } from '@/lib/weekend'
 import { getWeekendRosterViewData } from '@/services/weekend'
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
@@ -74,8 +75,7 @@ export async function WeekendRosterView({
 
   const startDate = formatDateOnly(weekend.start_date)
   const endDate = formatDateOnly(weekend.end_date)
-  const weekendTitle =
-    weekend.title ?? `${weekend.type} Weekend #${weekend.number}`
+  const weekendTitle = formatWeekendTitle(weekend)
 
   return (
     <>

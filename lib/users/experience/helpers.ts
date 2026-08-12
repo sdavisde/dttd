@@ -1,5 +1,5 @@
 import type { UserExperienceFormValue } from '@/components/team-forms/schemas'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import { parseCommunityWeekendRef } from '@/lib/weekend/weekend-reference'
 import type { UserExperience } from './validation'
 
 /**
@@ -9,15 +9,13 @@ export const experienceToFormValues = (
   experience: Array<UserExperience>
 ): Array<UserExperienceFormValue> => {
   return experience.map((experience) => {
-    const { community, weekend_number } = WeekendReference.fromString(
-      experience.weekend_reference
-    )
+    const ref = parseCommunityWeekendRef(experience.weekend_reference)
     return {
       id: experience.id,
       cha_role: experience.cha_role,
       rollo: experience.rollo,
-      community,
-      weekend_number: weekend_number.toString(),
+      community: ref?.community ?? '',
+      weekend_number: ref?.number.toString() ?? '',
     }
   })
 }

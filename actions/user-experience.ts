@@ -1,10 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Result} from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { err, ok } from '@/lib/results'
-import type {
-  UserExperience} from '@/lib/users/experience';
+import type { UserExperience } from '@/lib/users/experience'
 import {
   calculateExperienceLevel,
   calculateRectorReadyStatus,
@@ -16,7 +15,10 @@ import z from 'zod'
 import { isNil } from 'lodash'
 import type { UserExperienceFormValue } from '@/components/team-forms/schemas'
 import type { UserServiceHistory } from '@/services/master-roster/types'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import {
+  formatCommunityWeekendRef,
+  toCommunityWeekendRef,
+} from '@/lib/weekend/weekend-reference'
 
 /**
  * @deprecated - move a version of this function to the master roster service and call that instead.
@@ -125,15 +127,15 @@ export async function upsertUserExperience(
       return err('Missing community or weekend number')
     }
 
-    const weekend_reference = new WeekendReference(
-      entry.community,
-      parseInt(entry.weekend_number)
-    )
+    const weekend_reference = toCommunityWeekendRef({
+      community: entry.community,
+      number: parseInt(entry.weekend_number),
+    })
 
     const payload = {
       user_id: userId,
       cha_role: entry.cha_role, // Enum string
-      weekend_reference: weekend_reference.toString(),
+      weekend_reference: formatCommunityWeekendRef(weekend_reference),
       updated_at: new Date().toISOString(),
       // Ensure weekend_id is null for external
       weekend_id: null,

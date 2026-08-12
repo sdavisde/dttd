@@ -35,8 +35,7 @@ import {
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
 import { toastError } from '@/lib/toast-error'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
-import { COMMUNITY_NAME } from '@/lib/weekend/constants'
+import { formatWeekendGroupTitle } from '@/lib/weekend'
 import type { DateRange } from '@/lib/weekend/scheduling'
 import {
   addDays,
@@ -86,7 +85,7 @@ export function WeekendSidebar({
 
   const weekendLabel = useMemo(() => {
     const number = weekendGroup?.weekends.MENS?.number ?? nextGroupNumber
-    return new WeekendReference(COMMUNITY_NAME, number).toString()
+    return formatWeekendGroupTitle(number)
   }, [weekendGroup, nextGroupNumber])
 
   // Form state managed by React Hook Form

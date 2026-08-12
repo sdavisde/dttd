@@ -200,7 +200,6 @@ export async function insertWeekendGroup(
     start_date: string
     end_date: string
     status: WeekendStatusValue
-    title: string | null
   }>
 ): Promise<Result<string, RawWeekendRecord[]>> {
   const supabase = await createClient()

@@ -141,7 +141,7 @@ function normalizePaymentTransaction(
     created_at: raw.created_at ?? new Date().toISOString(),
     payer_name: payerName,
     payer_email: null, // Email not stored in payment_transaction; would require separate lookup
-    weekend_title: raw.weekends?.title ?? null,
+    weekend_number: raw.weekends?.weekend_groups?.number ?? null,
     weekend_type: (raw.weekends?.type as 'MENS' | 'WOMENS') ?? null,
   }
 }

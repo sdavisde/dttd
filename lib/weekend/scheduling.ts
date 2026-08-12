@@ -155,13 +155,5 @@ export const getWeekendTitle = (weekend: Weekend | null) => {
     return ''
   }
 
-  if (!isNil(weekend.title)) {
-    return formatWeekendTitle(weekend)
-  }
-
-  if (typeof weekend.number === 'number') {
-    return `Weekend #${weekend.number}`
-  }
-
-  return ''
+  return formatWeekendTitle(weekend)
 }

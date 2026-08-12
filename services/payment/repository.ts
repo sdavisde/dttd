@@ -53,7 +53,7 @@ export const PaymentTransactionQuery = `
   charge_id,
   balance_transaction_id,
   created_at,
-  weekends(title, type)
+  weekends(type, weekend_groups(number))
 `
 
 // ============================================================================

@@ -1,5 +1,7 @@
 import type { PaymentTransactionDTO } from '@/services/payment'
 import { isNil } from 'lodash'
+import { formatWeekendGroupTitle } from '@/lib/weekend'
+import { NO_WEEKEND_GROUP_LABEL } from './formatters'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -100,11 +102,16 @@ export type WeekendGroup = {
 export function computeWeekendReport(
   payments: PaymentTransactionDTO[]
 ): WeekendGroup[] {
-  // Group by weekend_title, then by weekend_type
-  const weekendMap = new Map<string, Map<string, PaymentTransactionDTO[]>>()
+  // Group by weekend group number, then by weekend_type. Keying on the number
+  // (rather than a display label) keeps Men's and Women's payments for the same
+  // weekend group together no matter how the label is formatted.
+  const weekendMap = new Map<
+    number | null,
+    Map<string, PaymentTransactionDTO[]>
+  >()
 
   for (const p of payments) {
-    const groupKey = p.weekend_title ?? 'No Weekend'
+    const groupKey = p.weekend_number
     const typeKey = p.weekend_type ?? 'unknown'
 
     if (!weekendMap.has(groupKey)) {
@@ -119,7 +126,18 @@ export function computeWeekendReport(
 
   const groups: WeekendGroup[] = []
 
-  for (const [groupLabel, typeMap] of weekendMap) {
+  // Newest weekend first; payments with no weekend sort last.
+  const sortedGroupKeys = [...weekendMap.keys()].sort((a, b) => {
+    if (isNil(a)) return 1
+    if (isNil(b)) return -1
+    return b - a
+  })
+
+  for (const groupKey of sortedGroupKeys) {
+    const typeMap = weekendMap.get(groupKey)!
+    const groupLabel = isNil(groupKey)
+      ? NO_WEEKEND_GROUP_LABEL
+      : formatWeekendGroupTitle(groupKey)
     const weekends: WeekendBreakdown[] = []
 
     // Sort: MENS first, then WOMENS, then unknown

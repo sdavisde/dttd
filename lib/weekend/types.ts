@@ -90,7 +90,6 @@ export type WeekendWriteInput = {
   start_date: string
   end_date: string
   status?: WeekendStatusValue | null
-  title?: string | null
 }
 
 export type WeekendUpdateInput = Partial<WeekendWriteInput>

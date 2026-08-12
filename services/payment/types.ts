@@ -179,7 +179,10 @@ export type RawPaymentTransaction = PaymentTransactionRow & {
  * Raw payment row with joined weekend data from getAllPayments query.
  */
 export type PaymentTransactionWithWeekend = PaymentTransactionRow & {
-  weekends: { title: string | null; type: string } | null
+  weekends: {
+    type: string
+    weekend_groups: { number: number | null } | null
+  } | null
 }
 
 // ============================================================================
@@ -208,7 +211,8 @@ export type PaymentTransactionDTO = {
   // Derived payer info
   payer_name: string | null
   payer_email: string | null
-  // Joined weekend info
-  weekend_title: string | null
+  // Joined weekend info. The display label is derived from these — see
+  // `formatWeekendLabel` in lib/payments/formatters.
+  weekend_number: number | null
   weekend_type: 'MENS' | 'WOMENS' | null
 }

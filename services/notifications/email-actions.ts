@@ -15,6 +15,7 @@ import { getHydratedCandidate } from '@/actions/candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'
 import TeamPaymentNotificationEmail from '@/components/email/TeamPaymentNotificationEmail'
 import * as NotificationService from './notification-service'
+import { formatWeekendLabelFor } from '@/lib/weekend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -248,7 +249,11 @@ export async function notifyAssistantHeadForTeamPayment(
           .single(),
 
         // Get weekend details
-        supabase.from('weekends').select('*').eq('id', weekendId).single(),
+        supabase
+          .from('weekends')
+          .select('*, weekend_groups(number)')
+          .eq('id', weekendId)
+          .single(),
 
         // Find Assistant Head for this weekend
         supabase
@@ -300,7 +305,10 @@ export async function notifyAssistantHeadForTeamPayment(
       react: TeamPaymentNotificationEmail({
         teamMemberName: `${teamMember.users.first_name} ${teamMember.users.last_name}`,
         teamMemberEmail: teamMember.users.email,
-        weekendName: weekend.title ?? `${weekend.type} DTTD`,
+        weekendName: formatWeekendLabelFor({
+          number: weekend.weekend_groups?.number,
+          gender: weekend.type,
+        }),
         paymentAmount,
       }),
     })

@@ -6,7 +6,7 @@ import { isNil, isEqual } from 'lodash'
 import { toast } from 'sonner'
 import { isErr } from '@/lib/results'
 import { formatPhoneNumber } from '@/lib/utils'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import { parseCommunityWeekendRef } from '@/lib/weekend/weekend-reference'
 import { groupExperienceByCommunity } from '@/lib/users/experience'
 import { updateUserRoles } from '@/services/identity/roles'
 import {
@@ -115,16 +115,12 @@ export function useUserEditForm({
 
     let weekendCommunity = ''
     let weekendNumber = ''
-    if (!isNil(member.communityInformation.weekendAttended)) {
-      try {
-        const ref = WeekendReference.fromString(
-          member.communityInformation.weekendAttended
-        )
-        weekendCommunity = ref.community
-        weekendNumber = ref.weekend_number.toString()
-      } catch {
-        // ignore parse errors
-      }
+    const attendedRef = parseCommunityWeekendRef(
+      member.communityInformation.weekendAttended
+    )
+    if (!isNil(attendedRef)) {
+      weekendCommunity = attendedRef.community
+      weekendNumber = attendedRef.number.toString()
     }
 
     setCommunity({

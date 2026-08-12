@@ -17,6 +17,7 @@ import { sendCandidateFormsCompletedEmail } from '@/services/notifications'
 import { logger } from '@/lib/logger'
 import type { WeekendType } from '@/lib/weekend/types'
 import { WeekendStatus, WEEKEND_CANDIDATE_CAPACITY } from '@/lib/weekend/types'
+import { formatWeekendLabelFor } from '@/lib/weekend'
 import type { Database } from '@/database.types'
 import { getCandidateCountByWeekend } from '@/services/candidates/actions'
 import {
@@ -532,14 +533,12 @@ export async function getMoveWeekendOptions(
       weekends.map(async (weekend) => {
         const countResult = await getCandidateCountByWeekend(weekend.id)
         const count = isErr(countResult) ? 0 : countResult.data
-        const number = weekend.weekend_groups?.number
-        const groupLabel = !isNil(number)
-          ? `DTTD #${number}`
-          : (weekend.title ?? 'Weekend')
-        const gender = weekend.type === 'MENS' ? "Men's" : "Women's"
         return {
           weekendId: weekend.id,
-          label: `${groupLabel} ${gender}`,
+          label: formatWeekendLabelFor({
+            number: weekend.weekend_groups?.number,
+            gender: weekend.type,
+          }),
           count,
           capacity: WEEKEND_CANDIDATE_CAPACITY,
           isFull: count >= WEEKEND_CANDIDATE_CAPACITY,

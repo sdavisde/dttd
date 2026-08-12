@@ -5,7 +5,10 @@ import { createClient } from '@/lib/supabase/server'
 import { err, fromSupabase, ok } from '@/lib/results'
 import type { Address } from '@/lib/users/validation'
 import type { BasicInfo } from '@/components/team-forms/schemas'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import {
+  formatCommunityWeekendRef,
+  toCommunityWeekendRef,
+} from '@/lib/weekend/weekend-reference'
 
 export const GetUserInfoQuery = `
   id,
@@ -199,10 +202,12 @@ export const updateUserContactInfo = async (
 export const updateUserBasicInfo = async (userId: string, data: BasicInfo) => {
   const supabase = await createClient()
 
-  const weekendAttendedStr = new WeekendReference(
-    data.weekend_attended.community,
-    parseInt(data.weekend_attended.weekend_number)
-  ).toString()
+  const weekendAttendedStr = formatCommunityWeekendRef(
+    toCommunityWeekendRef({
+      community: data.weekend_attended.community,
+      number: parseInt(data.weekend_attended.weekend_number),
+    })
+  )
 
   const response = await supabase
     .from('users')
