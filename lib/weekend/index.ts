@@ -1,8 +1,34 @@
 import { isNil } from 'lodash'
-import { capitalize } from '@/lib/utils'
-import type { Weekend, WeekendGroupWithId, WeekendStatusValue } from './types'
-import type { TeamMemberInfo } from './types'
-import { COMMUNITY_NAME } from './constants'
+import type { WeekendGroupWithId, WeekendStatusValue } from './types'
+import type { TeamMemberInfo, WeekendType } from './types'
+import {
+  formatWeekendGender,
+  formatWeekendGroupTitle,
+  getWeekendLabel,
+} from './labels'
+import { toWeekendRef } from './weekend-reference'
+
+export {
+  formatWeekendGender,
+  formatWeekendGroupTitle,
+  formatWeekendLabelFor,
+  formatWeekendTitle,
+  getWeekendLabel,
+} from './labels'
+export type { WeekendGenderStyle, WeekendLabelOptions } from './labels'
+export type {
+  AnyWeekendRef,
+  CommunityWeekendRef,
+  WeekendRef,
+} from './weekend-reference'
+export {
+  formatCommunityWeekendRef,
+  isWeekendRef,
+  parseCommunityWeekendRef,
+  toCommunityWeekendRef,
+  toWeekendRef,
+  weekendToRef,
+} from './weekend-reference'
 
 export const genderMatchesWeekend = (
   gender: string | null,
@@ -15,22 +41,6 @@ export const genderMatchesWeekend = (
   )
 }
 
-export const trimWeekendTypeFromTitle = (title: string) => {
-  return title.replace(/mens|Mens|Womens|womens/g, '')
-}
-
-export const formatWeekendTitle = (weekend: Weekend) => {
-  const weekendTypeLabel = capitalize(weekend.type.toLowerCase())
-  if (!isNil(weekend.title)) {
-    // Remove mens or womens if it's in the weekend title already so that we can add it at the beginning consistently.
-    const reducedTitle = trimWeekendTypeFromTitle(weekend.title)
-    return `${weekendTypeLabel} ${reducedTitle}`
-  }
-
-  const numberSuffix = !isNil(weekend.number) ? ` #${weekend.number}` : ''
-  return `${weekendTypeLabel}${numberSuffix}`
-}
-
 // Get the status of a weekend group (both MENS and WOMENS should have same status)
 export const getGroupStatus = (
   group: WeekendGroupWithId
@@ -40,22 +50,23 @@ export const getGroupStatus = (
 
 /**
  * Formats a display title for team forms based on the group's weekend assignments.
- * - Single assignment: e.g., "Mens DTTD #11"
+ * - Single assignment: e.g., "DTTD Mens #11"
  * - Multiple assignments: e.g., "DTTD #11" (covers both weekends)
  */
 export function formatTeamMemberTitle(teamMemberInfo: TeamMemberInfo): string {
   const { groupNumber, weekendAssignments } = teamMemberInfo
-  const numberStr = !isNil(groupNumber) ? ` #${groupNumber}` : ''
 
-  if (weekendAssignments.length === 1) {
-    const type = weekendAssignments[0].weekendType
-    const typeLabel = !isNil(type) ? capitalize(type.toLowerCase()) : null
-    return !isNil(typeLabel)
-      ? `${typeLabel} ${COMMUNITY_NAME}${numberStr}`
-      : `${COMMUNITY_NAME}${numberStr}`
+  // A volunteer serving both weekends is covered by the group-level label.
+  const gender =
+    weekendAssignments.length === 1
+      ? (weekendAssignments[0].weekendType as WeekendType | null)
+      : null
+
+  if (isNil(groupNumber) || isNil(gender)) {
+    return formatWeekendGroupTitle(groupNumber)
   }
 
-  return `${COMMUNITY_NAME}${numberStr}`
+  return getWeekendLabel(toWeekendRef({ number: groupNumber, gender }))
 }
 
 /**
@@ -80,9 +91,7 @@ export function formatTeamMemberRole(teamMemberInfo: TeamMemberInfo): string {
 
   return weekendAssignments
     .map((a) => {
-      const typeLabel = !isNil(a.weekendType)
-        ? capitalize(a.weekendType.toLowerCase())
-        : null
+      const typeLabel = formatWeekendGender(a.weekendType as WeekendType | null)
       const suffix = !isNil(typeLabel) ? ` (${typeLabel})` : ''
       return `${a.chaRole ?? 'Team Member'}${suffix}`
     })

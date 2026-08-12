@@ -1,4 +1,9 @@
+import { isNil } from 'lodash'
 import type { PaymentTransactionDTO } from '@/services/payment'
+import { formatWeekendGroupTitle, formatWeekendLabelFor } from '@/lib/weekend'
+
+/** Bucket label for payments not attached to any weekend. */
+export const NO_WEEKEND_GROUP_LABEL = 'No Weekend'
 
 /**
  * Format a number as USD currency. Returns '—' for null values.
@@ -48,20 +53,25 @@ export function formatPaymentMethod(
 
 /**
  * Build a display label for a payment's associated weekend.
- * e.g. "DTTD Mens #45 — Men's" or "Unknown"
+ * e.g. "DTTD Mens #45", or "Unknown" when the payment has no weekend.
  */
 export function formatWeekendLabel(payment: PaymentTransactionDTO): string {
-  if (payment.weekend_title === null && payment.weekend_type === null)
-    return 'Unknown'
-  const type =
-    payment.weekend_type === 'MENS'
-      ? "Men's"
-      : payment.weekend_type === 'WOMENS'
-        ? "Women's"
-        : ''
-  return payment.weekend_title !== null
-    ? `${payment.weekend_title} — ${type}`
-    : type
+  const { weekend_number: number, weekend_type: gender } = payment
+
+  if (isNil(number) && isNil(gender)) return 'Unknown'
+
+  return formatWeekendLabelFor({ number, gender })
+}
+
+/**
+ * Build the group-level label a payment rolls up under, e.g. "DTTD #45".
+ * Men's and Women's payments for the same weekend group share this label.
+ */
+export function formatWeekendGroupLabel(
+  payment: PaymentTransactionDTO
+): string {
+  if (isNil(payment.weekend_number)) return NO_WEEKEND_GROUP_LABEL
+  return formatWeekendGroupTitle(payment.weekend_number)
 }
 
 /**

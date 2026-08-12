@@ -15,8 +15,7 @@ import { isUserOnActiveTeam } from '@/lib/users'
 import {
   formatTeamMemberRole,
   formatTeamMemberTitle,
-  formatWeekendTitle,
-  trimWeekendTypeFromTitle,
+  formatWeekendGroupTitle,
 } from '@/lib/weekend'
 import { formatDateRange } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -139,13 +138,7 @@ function WeekendRow({ label, weekend, candidateCount }: WeekendRowProps) {
 }
 
 function getGroupTitle(mensWeekend: Weekend, womensWeekend: Weekend): string {
-  const number = mensWeekend.number ?? womensWeekend.number
-  if (!isNil(number)) {
-    return `${COMMUNITY_NAME} #${number}`
-  }
-
-  // Fall back to the weekend title with the Mens/Womens prefix stripped
-  return trimWeekendTypeFromTitle(formatWeekendTitle(mensWeekend)).trim()
+  return formatWeekendGroupTitle(mensWeekend.number ?? womensWeekend.number)
 }
 
 function EmptyWeekendHero() {

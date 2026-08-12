@@ -8,7 +8,7 @@ import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
 import { getWeekendRosterExperienceDistribution } from '@/services/master-roster/master-roster-service'
 import type { ExperienceDistribution } from '@/services/master-roster/types'
-import { formatWeekendTitle, trimWeekendTypeFromTitle } from '@/lib/weekend'
+import { formatWeekendGroupTitle } from '@/lib/weekend'
 import { COMMUNITY_NAME } from '@/lib/weekend/constants'
 import { logger } from '@/lib/logger'
 import type { Tables } from '@/database.types'
@@ -24,7 +24,10 @@ import type {
   UpdateWeekendGroupInput,
 } from '@/lib/weekend/types'
 import { WeekendType, WeekendStatus } from '@/lib/weekend/types'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import {
+  formatCommunityWeekendRef,
+  toCommunityWeekendRef,
+} from '@/lib/weekend/weekend-reference'
 import type {
   RawWeekendRoster,
   PaymentRecord,
@@ -117,7 +120,6 @@ function prepareInsertPayload(
     start_date: payload.start_date,
     end_date: payload.end_date,
     status: payload.status ?? WeekendStatus.PLANNING,
-    title: payload.title ?? null,
   }
 }
 
@@ -141,13 +143,14 @@ function hasDefinedUpdateValues(payload: WeekendUpdateInput): boolean {
 }
 
 /**
- * Formats a weekend label for display.
+ * Formats a group-level label for display, e.g. "DTTD #12". Gender is omitted
+ * because these labels front selectors where gender is chosen separately.
  */
 function getWeekendLabel(weekend: Weekend | null): string {
   if (isNil(weekend)) {
     return 'Unknown Weekend'
   }
-  return trimWeekendTypeFromTitle(formatWeekendTitle(weekend))
+  return formatWeekendGroupTitle(weekend.number)
 }
 
 /**
@@ -337,10 +340,9 @@ export async function transitionWeekendGroupToFinished(
       continue
     }
 
-    const weekendRef = new WeekendReference(
-      COMMUNITY_NAME,
-      groupNumber
-    ).toString()
+    const weekendRef = formatCommunityWeekendRef(
+      toCommunityWeekendRef({ community: COMMUNITY_NAME, number: groupNumber })
+    )
 
     // Primary role
     if (!isNil(record.cha_role)) {
@@ -551,19 +553,8 @@ export async function createWeekendGroup(
     return groupNumber
   }
 
-  // Auto-generate titles if not provided
-  const groupTitle = new WeekendReference(
-    COMMUNITY_NAME,
-    groupNumber.data
-  ).toString()
-  const mensInput = {
-    ...input.mens,
-    title: input.mens.title ?? `Mens ${groupTitle}`,
-  }
-  const womensInput = {
-    ...input.womens,
-    title: input.womens.title ?? `Womens ${groupTitle}`,
-  }
+  // Labels are derived from the group number and weekend type at render time —
+  // nothing is stored. See `getWeekendLabel` in lib/weekend/labels.
 
   // Create the weekend_groups parent record first (FK dependency)
   const groupResult = await WeekendRepository.insertWeekendGroupRecord(
@@ -576,8 +567,8 @@ export async function createWeekendGroup(
 
   // Prepare and insert payloads
   const insertPayload = [
-    prepareInsertPayload(input.groupId, WeekendType.MENS, mensInput),
-    prepareInsertPayload(input.groupId, WeekendType.WOMENS, womensInput),
+    prepareInsertPayload(input.groupId, WeekendType.MENS, input.mens),
+    prepareInsertPayload(input.groupId, WeekendType.WOMENS, input.womens),
   ]
 
   const result = await WeekendRepository.insertWeekendGroup(insertPayload)

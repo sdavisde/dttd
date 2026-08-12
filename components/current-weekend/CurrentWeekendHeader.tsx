@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import type { Weekend } from '@/lib/weekend/types'
-import { trimWeekendTypeFromTitle, formatWeekendTitle } from '@/lib/weekend'
+import { formatWeekendGroupTitle } from '@/lib/weekend'
 import { Typography } from '@/components/ui/typography'
 
 interface CurrentWeekendHeaderProps {
@@ -14,17 +14,14 @@ function formatDateRange(startDate: string, endDate: string): string {
   return `${format(start, 'MMM d')} - ${format(end, 'MMM d')}`
 }
 
-function getWeekendGroupTitle(weekend: Weekend): string {
-  const title = formatWeekendTitle(weekend)
-  return trimWeekendTypeFromTitle(title).trim()
-}
-
 export function CurrentWeekendHeader({
   mensWeekend,
   womensWeekend,
 }: CurrentWeekendHeaderProps) {
-  // Use the weekend title from either weekend (they share the same group title like "DTTD #11")
-  const groupTitle = getWeekendGroupTitle(mensWeekend)
+  // Both weekends share one group title, e.g. "DTTD #11"
+  const groupTitle = formatWeekendGroupTitle(
+    mensWeekend.number ?? womensWeekend.number
+  )
 
   return (
     <div className="space-y-4">

@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendStatus } from '@/lib/weekend/types'
-import { getGroupStatus } from '@/lib/weekend'
+import { formatWeekendGroupTitle, getGroupStatus } from '@/lib/weekend'
 import { setActiveWeekendGroup } from '@/services/weekend'
 import { isErr } from '@/lib/results'
 import { toast } from 'sonner'
@@ -79,10 +79,9 @@ export function SetActiveWeekendButton({
       }
 
       const selectedGroup = weekendGroups.find((g) => g.groupId === groupId)
-      const title =
-        selectedGroup?.weekends.MENS?.title
-          ?.replace(/mens|womens/gi, '')
-          .trim() ?? 'Weekend'
+      const title = !isNil(selectedGroup)
+        ? formatGroupTitle(selectedGroup)
+        : 'Weekend'
 
       toast.success('Active weekend updated', {
         description: `${title} is now the active weekend`,
@@ -98,9 +97,8 @@ export function SetActiveWeekendButton({
   }
 
   const formatGroupTitle = (group: WeekendGroupWithId): string => {
-    return (
-      group.weekends.MENS?.title?.replace(/mens|womens/gi, '').trim() ??
-      `Weekend #${group.weekends.MENS?.number ?? group.weekends.WOMENS?.number ?? '?'}`
+    return formatWeekendGroupTitle(
+      group.weekends.MENS?.number ?? group.weekends.WOMENS?.number
     )
   }
 

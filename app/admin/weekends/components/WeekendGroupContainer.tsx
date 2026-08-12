@@ -7,7 +7,7 @@ import { Typography } from '@/components/ui/typography'
 import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendCard } from './WeekendCard'
 import { WeekendStatusBadge } from '@/components/weekend/WeekendStatusBadge'
-import { getGroupStatus } from '@/lib/weekend'
+import { formatWeekendGroupTitle, getGroupStatus } from '@/lib/weekend'
 import { isNil } from 'lodash'
 
 interface WeekendGroupContainerProps {
@@ -22,7 +22,9 @@ export function WeekendGroupContainer({
   onEdit,
 }: WeekendGroupContainerProps) {
   const { MENS, WOMENS } = group.weekends
-  const groupTitle = group.weekends.MENS?.title?.replace(/mens|womens/gi, '')
+  const groupTitle = formatWeekendGroupTitle(
+    group.weekends.MENS?.number ?? group.weekends.WOMENS?.number
+  )
   const groupStatus = getGroupStatus(group)
 
   return (

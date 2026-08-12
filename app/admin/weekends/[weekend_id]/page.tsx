@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { WeekendRosterView } from '@/components/weekend'
 import { getLoggedInUser } from '@/services/identity/user'
 import { getWeekendById } from '@/services/weekend'
-import { isNil } from 'lodash'
+import { formatWeekendTitle } from '@/lib/weekend'
 
 type WeekendDetailPageProps = {
   params: Promise<{ weekend_id: string }>
@@ -25,10 +25,7 @@ export default async function WeekendDetailPage({
   // Fetch weekend info for breadcrumb title
   const weekendResult = await getWeekendById(weekend_id)
   const weekendTitle = !isErr(weekendResult)
-    ? (weekendResult.data.title ??
-      (!isNil(weekendResult.data.number)
-        ? `Group ${weekendResult.data.number} — ${weekendResult.data.type === 'MENS' ? "Men's" : "Women's"}`
-        : `${weekendResult.data.type} Weekend`))
+    ? formatWeekendTitle(weekendResult.data)
     : 'Weekend'
 
   return (

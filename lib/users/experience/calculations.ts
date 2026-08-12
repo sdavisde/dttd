@@ -10,7 +10,7 @@ import type {
   UserExperienceRecord,
 } from '@/services/master-roster/types'
 import type { UserExperience } from './validation'
-import { WeekendReference } from '@/lib/weekend/weekend-reference'
+import { parseCommunityWeekendRef } from '@/lib/weekend/weekend-reference'
 
 const DTTD_COMMUNITY = 'DTTD'
 
@@ -53,8 +53,8 @@ export function calculateRectorReadyStatus(
 ): RectorReadyStatus {
   const hasServedAsRector = records.some((r) => {
     if (r.cha_role !== CHARole.RECTOR) return false
-    const { community } = WeekendReference.fromString(r.weekend_reference)
-    return community === DTTD_COMMUNITY
+    const ref = parseCommunityWeekendRef(r.weekend_reference)
+    return ref?.community === DTTD_COMMUNITY
   })
 
   const criteria: RectorReadyCriteria = {
@@ -96,8 +96,11 @@ export function groupExperienceByCommunity(
 
   // Group by community name
   const grouped = groupBy(sortedRecords, (r) => {
-    const { community } = WeekendReference.fromString(r.weekend_reference)
-    return community
+    // Unparseable references group under their raw value rather than vanishing.
+    return (
+      parseCommunityWeekendRef(r.weekend_reference)?.community ??
+      r.weekend_reference
+    )
   })
 
   // Transform to output format
