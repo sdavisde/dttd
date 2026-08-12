@@ -931,7 +931,6 @@ export type Database = {
           id: string
           start_date: string
           status: string | null
-          title: string | null
           type: Database['public']['Enums']['weekend_type']
         }
         Insert: {
@@ -941,7 +940,6 @@ export type Database = {
           id?: string
           start_date: string
           status?: string | null
-          title?: string | null
           type: Database['public']['Enums']['weekend_type']
         }
         Update: {
@@ -951,7 +949,6 @@ export type Database = {
           id?: string
           start_date?: string
           status?: string | null
-          title?: string | null
           type?: Database['public']['Enums']['weekend_type']
         }
         Relationships: [

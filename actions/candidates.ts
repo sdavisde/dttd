@@ -517,7 +517,7 @@ export async function getMoveWeekendOptions(
     // Eligible targets: same gender, not finished, excluding the current weekend
     const { data: weekends, error: weekendsError } = await supabase
       .from('weekends')
-      .select('id, type, title, start_date, weekend_groups(number)')
+      .select('id, type, start_date, weekend_groups(number)')
       .eq('type', currentWeekend.type)
       .neq('id', currentWeekend.id)
       .in('status', [WeekendStatus.PLANNING, WeekendStatus.ACTIVE])

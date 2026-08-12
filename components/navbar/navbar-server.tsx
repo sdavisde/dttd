@@ -5,6 +5,7 @@ import { Permission } from '@/lib/security'
 import { getActiveWeekends } from '@/services/weekend'
 import { isOk } from '@/lib/results'
 import { WeekendType } from '@/lib/weekend/types'
+import { formatWeekendGroupTitle } from '@/lib/weekend'
 import { formatDate } from '@/lib/utils'
 import { isNil } from 'lodash'
 
@@ -75,7 +76,7 @@ async function getNavElements(): Promise<NavElement[]> {
       .join(' • ')
 
     featuredContent = {
-      title: `DTTD #${mensWeekend.number}`,
+      title: formatWeekendGroupTitle(mensWeekend.number),
       description:
         dateDescription !== '' ? dateDescription : 'View details and sign up',
       linkText: 'View weekend details',
