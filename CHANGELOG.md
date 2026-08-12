@@ -1,3 +1,10 @@
+## [1.47.4](https://github.com/sdavisde/dttd/compare/v1.47.3...v1.47.4) (2026-08-12)
+
+### Bug Fixes
+
+- **payments:** cast weekend type comparison to weekend_type enum in backfill ([e932510](https://github.com/sdavisde/dttd/commit/e932510ec15aa0ff197a998aa0cf24c6154cf334))
+- **payments:** tag manual cash/check payments with their weekend ([f620d80](https://github.com/sdavisde/dttd/commit/f620d8089854ce8aeeaaaa1c15b95239b477f8a1))
+
 ## [1.47.3](https://github.com/sdavisde/dttd/compare/v1.47.2...v1.47.3) (2026-08-02)
 
 ### Bug Fixes
