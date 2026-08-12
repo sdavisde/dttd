@@ -30,7 +30,7 @@ FROM weekend_group_members gm
 JOIN users u ON u.id = gm.user_id
 JOIN weekends w
   ON w.group_id = gm.group_id
-  AND w.type = CASE WHEN u.gender = 'female' THEN 'WOMENS' ELSE 'MENS' END
+  AND w.type = (CASE WHEN u.gender = 'female' THEN 'WOMENS' ELSE 'MENS' END)::weekend_type
 WHERE pt.weekend_id IS NULL
   AND pt.target_type = 'weekend_group_member'
   AND pt.target_id = gm.id;
