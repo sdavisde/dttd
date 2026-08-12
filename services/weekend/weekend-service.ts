@@ -977,6 +977,14 @@ export async function recordManualPayment(
   paymentOwner: string,
   notes?: string
 ): Promise<Result<string, PaymentTransactionRow>> {
+  // Resolve the member's weekend so the payment is tagged with it
+  const groupMemberResult =
+    await GroupMemberRepository.getGroupMemberById(groupMemberId)
+
+  if (isErr(groupMemberResult)) {
+    return err(`Failed to find group member: ${groupMemberResult.error}`)
+  }
+
   // Generate a manual payment intent ID
   const paymentIntentId = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
@@ -985,7 +993,7 @@ export async function recordManualPayment(
     type: 'fee',
     target_type: 'weekend_group_member',
     target_id: groupMemberId,
-    weekend_id: null,
+    weekend_id: groupMemberResult.data.weekendId,
     payment_intent_id: paymentIntentId,
     gross_amount: paymentAmount,
     payment_method: paymentMethod,
