@@ -1,3 +1,9 @@
+## [1.48.0](https://github.com/sdavisde/dttd/compare/v1.47.4...v1.48.0) (2026-08-21)
+
+### Features
+
+- **payments:** show who each payment was paid for and by ([d94386c](https://github.com/sdavisde/dttd/commit/d94386c60a8785e3790196aeb39c582723649647))
+
 ## [1.47.4](https://github.com/sdavisde/dttd/compare/v1.47.3...v1.47.4) (2026-08-12)
 
 ### Bug Fixes
