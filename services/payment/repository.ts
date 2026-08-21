@@ -67,6 +67,11 @@ export const PaymentTransactionQuery = `
   charge_id,
   balance_transaction_id,
   created_at,
+  updated_at,
+  updated_by,
+  voided_at,
+  voided_by,
+  void_reason,
   weekends(type, weekend_groups(number))
 `
 
@@ -149,6 +154,7 @@ export async function getPaymentsByTargetId(
     .select('*')
     .eq('target_type', targetType)
     .eq('target_id', targetId)
+    .is('voided_at', null)
     .order('created_at', { ascending: false })
   return fromSupabase(response)
 }
@@ -161,6 +167,26 @@ export async function getPaymentsByTargetId(
  * @returns Result containing array of payment transactions or an error
  */
 export async function getAllPayments(
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionWithWeekend[]>> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('payment_transaction')
+    .select(PaymentTransactionQuery)
+    .is('voided_at', null)
+    .order('created_at', { ascending: false })
+  return fromSupabase(response)
+}
+
+/**
+ * Gets all payment transactions including voided ones.
+ * Voided payments must never reach a total, so this is for the admin payments
+ * table only — it renders them struck through behind a toggle so a correction
+ * leaves a visible trail. Every other read path uses getAllPayments.
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing array of payment transactions or an error
+ */
+export async function getAllPaymentsIncludingVoided(
   options?: ServiceOptions
 ): Promise<Result<string, PaymentTransactionWithWeekend[]>> {
   const supabase = await getClient(options)
@@ -332,4 +358,216 @@ export async function getRosterIdentities(
       email: row.users?.email ?? null,
     }))
   )
+}
+
+// ============================================================================
+// Correction Mutations
+// ============================================================================
+
+/**
+ * Reassigns a payment to a different target, moving its weekend with it.
+ * @param paymentId - The payment transaction to reassign
+ * @param target - The new target type, ID, and derived weekend
+ * @param actorId - User performing the correction, stamped as updated_by
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the updated payment transaction or an error
+ */
+export async function updatePaymentTarget(
+  paymentId: string,
+  target: {
+    targetType: NonNullable<TargetType>
+    targetId: string
+    weekendId: string | null
+  },
+  actorId: string,
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionRow>> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('payment_transaction')
+    .update({
+      target_type: target.targetType,
+      target_id: target.targetId,
+      weekend_id: target.weekendId,
+      updated_at: new Date().toISOString(),
+      updated_by: actorId,
+    })
+    .eq('id', paymentId)
+    .select()
+    .single()
+  return fromSupabase(response)
+}
+
+/**
+ * Applies a detail correction (amount, method, payer, notes) to a payment.
+ * @param paymentId - The payment transaction to correct
+ * @param changes - The fields to change; omitted fields are left alone
+ * @param actorId - User performing the correction, stamped as updated_by
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the updated payment transaction or an error
+ */
+export async function updatePaymentDetails(
+  paymentId: string,
+  changes: PaymentTransactionUpdate,
+  actorId: string,
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionRow>> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('payment_transaction')
+    .update({
+      ...changes,
+      updated_at: new Date().toISOString(),
+      updated_by: actorId,
+    })
+    .eq('id', paymentId)
+    .select()
+    .single()
+  return fromSupabase(response)
+}
+
+/**
+ * Voids a payment. The row is kept — voided payments are filtered out of
+ * balances and totals by the read queries above, not deleted.
+ * @param paymentId - The payment transaction to void
+ * @param reason - Why the payment is being voided
+ * @param actorId - User performing the void, stamped as voided_by
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the voided payment transaction or an error
+ */
+export async function voidPayment(
+  paymentId: string,
+  reason: string,
+  actorId: string,
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionRow>> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('payment_transaction')
+    .update({
+      voided_at: new Date().toISOString(),
+      voided_by: actorId,
+      void_reason: reason,
+    })
+    .eq('id', paymentId)
+    .select()
+    .single()
+  return fromSupabase(response)
+}
+
+// ============================================================================
+// Reassign Target Options
+// ============================================================================
+
+/**
+ * Lists every candidate that can receive a payment, with the weekend they are
+ * assigned to. Names come from candidate_sponsorship_info.
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing candidates with name and weekend info
+ */
+export async function findCandidateTargets(options?: ServiceOptions): Promise<
+  Result<
+    string,
+    Array<{
+      id: string
+      name: string | null
+      weekendId: string | null
+      weekendNumber: number | null
+      weekendType: string | null
+    }>
+  >
+> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('candidates')
+    .select(
+      'id, weekend_id, candidate_sponsorship_info(candidate_name), weekends(type, weekend_groups(number))'
+    )
+
+  return map(fromSupabase(response), (rows) =>
+    rows.map((row) => ({
+      id: row.id,
+      name: row.candidate_sponsorship_info.at(0)?.candidate_name ?? null,
+      weekendId: row.weekend_id,
+      weekendNumber: row.weekends?.weekend_groups?.number ?? null,
+      weekendType: row.weekends?.type ?? null,
+    }))
+  )
+}
+
+/**
+ * Lists every weekend group member that can receive a payment, with the
+ * weekend group they belong to.
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing group members with name and group info
+ */
+export async function findGroupMemberTargets(options?: ServiceOptions): Promise<
+  Result<
+    string,
+    Array<{
+      id: string
+      name: string | null
+      groupNumber: number | null
+    }>
+  >
+> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('weekend_group_members')
+    .select('id, weekend_groups(number), users(first_name, last_name)')
+
+  return map(fromSupabase(response), (rows) =>
+    rows.map((row) => ({
+      id: row.id,
+      name: formatUserName(row.users),
+      groupNumber: row.weekend_groups?.number ?? null,
+    }))
+  )
+}
+
+/**
+ * Looks up the weekend a candidate is assigned to.
+ * @param candidateId - The candidate to look up
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the weekend ID, or null when the candidate does
+ * not exist (distinguished from a candidate with no weekend by `found`)
+ */
+export async function findCandidateWeekend(
+  candidateId: string,
+  options?: ServiceOptions
+): Promise<Result<string, { found: boolean; weekendId: string | null }>> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('candidates')
+    .select('weekend_id')
+    .eq('id', candidateId)
+    .maybeSingle()
+
+  return map(fromSupabase(response), (row) => ({
+    found: !isNil(row),
+    weekendId: row?.weekend_id ?? null,
+  }))
+}
+
+/**
+ * Looks up the weekend a roster entry belongs to.
+ * @param rosterId - The weekend_roster row to look up
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the weekend ID and whether the row exists
+ */
+export async function findRosterWeekend(
+  rosterId: string,
+  options?: ServiceOptions
+): Promise<Result<string, { found: boolean; weekendId: string | null }>> {
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('weekend_roster')
+    .select('weekend_id')
+    .eq('id', rosterId)
+    .maybeSingle()
+
+  return map(fromSupabase(response), (row) => ({
+    found: !isNil(row),
+    weekendId: row?.weekend_id ?? null,
+  }))
 }

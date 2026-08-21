@@ -1,11 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { isNil } from 'lodash'
 import type { PaymentTransactionDTO } from '@/services/payment'
+import type { User } from '@/lib/users/types'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import { paymentsColumns, paymentsGlobalFilterFn } from '../config/columns'
 import { PaymentsSummary } from './PaymentsSummary'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
 import { BarChart3 } from 'lucide-react'
 import {
@@ -15,21 +19,37 @@ import {
 } from '@/lib/payments/formatters'
 
 type PaymentsProps = {
+  /** Includes voided payments — they are filtered out below unless shown. */
   payments: PaymentTransactionDTO[]
+  user: User | null
 }
 
-export function Payments({ payments }: PaymentsProps) {
+export function Payments({ payments, user }: PaymentsProps) {
+  const [showVoided, setShowVoided] = useState(false)
   const urlState = useDataTableUrlState({
     defaultSort: [{ id: 'created_at', desc: true }],
     defaultPageSize: 25,
   })
 
-  // Compute which payments match current filters for summary
+  const hasVoidedPayments = payments.some((p) => !isNil(p.voided_at))
+
+  // Voided payments are hidden unless explicitly shown, so a correction stays
+  // visible on the record without cluttering the default view.
+  const visiblePayments = useMemo(
+    () => (showVoided ? payments : payments.filter((p) => isNil(p.voided_at))),
+    [payments, showVoided]
+  )
+
+  // Compute which payments match current filters for summary. Voided payments
+  // are always excluded here regardless of the toggle — voided money must
+  // never reach a total.
   const filteredPayments = useMemo(() => {
     const globalFilter = (urlState.globalFilter ?? '').trim().toLowerCase()
     const columnFilters = urlState.columnFilters ?? []
 
     return payments.filter((p) => {
+      if (!isNil(p.voided_at)) return false
+
       // Apply global filter
       if (globalFilter !== '') {
         const searchable = [
@@ -76,8 +96,8 @@ export function Payments({ payments }: PaymentsProps) {
     <div className="space-y-4">
       <DataTable
         columns={paymentsColumns}
-        data={payments}
-        user={null}
+        data={visiblePayments}
+        user={user}
         initialSort={[{ id: 'created_at', desc: true }]}
         globalFilterFn={paymentsGlobalFilterFn}
         urlState={urlState}
@@ -87,12 +107,29 @@ export function Payments({ payments }: PaymentsProps) {
           noResults: 'No payments matching your search.',
         }}
         toolbarChildren={
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/admin/payments/summary">
-              <BarChart3 className="mr-1 h-4 w-4" />
-              Report
-            </Link>
-          </Button>
+          <>
+            {hasVoidedPayments && (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="show-voided"
+                  checked={showVoided}
+                  onCheckedChange={(checked) => setShowVoided(checked === true)}
+                />
+                <Label
+                  htmlFor="show-voided"
+                  className="text-muted-foreground text-sm font-normal"
+                >
+                  Show voided
+                </Label>
+              </div>
+            )}
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/payments/summary">
+                <BarChart3 className="mr-1 h-4 w-4" />
+                Report
+              </Link>
+            </Button>
+          </>
         }
       />
       <PaymentsSummary payments={filteredPayments} isFiltered={isFiltered} />

@@ -576,11 +576,17 @@ export const moveCandidateToWeekend = authorizedAction<
       return err(`Failed to move candidate: ${updateError.message}`)
     }
 
-    // Reassign the candidate's payments to the new weekend
+    // Reassign the candidate's payments to the new weekend. This runs with
+    // RLS bypassed because it is a system-level consequence of the candidate
+    // move authorized above, not a user-initiated payment edit — payment
+    // writes now require WRITE_PAYMENTS, which a WRITE_CANDIDATES holder need
+    // not have. Without the bypass the update would match zero rows and
+    // report success, leaving the payments on the old weekend.
     const paymentsResult = await movePaymentsToWeekend(
       'candidate',
       candidateId,
-      targetWeekendId
+      targetWeekendId,
+      { dangerouslyBypassRLS: true }
     )
 
     if (isErr(paymentsResult)) {

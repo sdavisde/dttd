@@ -518,6 +518,11 @@ export type Database = {
           target_id: string | null
           target_type: string | null
           type: string
+          updated_at: string | null
+          updated_by: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
           weekend_id: string | null
         }
         Insert: {
@@ -535,6 +540,11 @@ export type Database = {
           target_id?: string | null
           target_type?: string | null
           type: string
+          updated_at?: string | null
+          updated_by?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
           weekend_id?: string | null
         }
         Update: {
@@ -552,9 +562,28 @@ export type Database = {
           target_id?: string | null
           target_type?: string | null
           type?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
           weekend_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: 'payment_transaction_updated_by_fkey'
+            columns: ['updated_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'payment_transaction_voided_by_fkey'
+            columns: ['voided_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'payment_transaction_weekend_id_fkey'
             columns: ['weekend_id']
@@ -969,7 +998,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      auth_user_has_permission: {
+        Args: { required_permission: string }
+        Returns: boolean
+      }
     }
     Enums: {
       candidate_status:

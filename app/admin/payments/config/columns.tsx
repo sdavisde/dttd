@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/popover'
 import { Info } from 'lucide-react'
 import { isNil } from 'lodash'
+import { Permission } from '@/lib/security'
+import { PaymentRowActions } from '../components/PaymentRowActions'
 import {
   formatCurrency,
   formatPersonName,
@@ -20,6 +22,7 @@ import {
   formatWeekendLabel,
   getTargetTypeBadgeVariant,
 } from '@/lib/payments/formatters'
+import { cn } from '@/lib/utils'
 import '@/components/ui/data-table/types'
 
 // ---------------------------------------------------------------------------
@@ -136,9 +139,25 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       <DataTableColumnHeader column={column} title="Paid For" />
     ),
     cell: ({ row }) => (
-      <span className="font-medium">
-        {formatPersonName(row.original.target_name)}
-      </span>
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            'font-medium',
+            !isNil(row.original.voided_at) &&
+              'text-muted-foreground line-through'
+          )}
+        >
+          {formatPersonName(row.original.target_name)}
+        </span>
+        {!isNil(row.original.voided_at) && (
+          <Badge
+            variant="outline"
+            title={row.original.void_reason ?? undefined}
+          >
+            Voided
+          </Badge>
+        )}
+      </div>
     ),
     meta: {
       showOnMobile: true,
@@ -257,6 +276,18 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
     meta: {
       showOnMobile: true,
       mobileLabel: 'Date',
+      mobilePriority: 'detail',
+    },
+  },
+  {
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => <PaymentRowActions payment={row.original} />,
+    enableSorting: false,
+    meta: {
+      requiredPermission: Permission.WRITE_PAYMENTS,
+      showOnMobile: true,
+      mobileLabel: 'Actions',
       mobilePriority: 'detail',
     },
   },
