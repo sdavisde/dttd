@@ -14,6 +14,7 @@ import { Info } from 'lucide-react'
 import { isNil } from 'lodash'
 import {
   formatCurrency,
+  formatPersonName,
   formatTargetType,
   formatPaymentMethod,
   formatWeekendLabel,
@@ -129,18 +130,37 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
     },
   },
   {
-    id: 'payer',
-    accessorKey: 'payment_owner',
+    id: 'paidFor',
+    accessorFn: (p) => p.target_name ?? '',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Payer" />
+      <DataTableColumnHeader column={column} title="Paid For" />
     ),
-    cell: ({ getValue }) => (
-      <span className="font-medium">{getValue<string | null>() ?? '—'}</span>
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {formatPersonName(row.original.target_name)}
+      </span>
     ),
     meta: {
       showOnMobile: true,
-      mobileLabel: 'Payer',
+      mobileLabel: 'Paid For',
       mobilePriority: 'primary',
+    },
+  },
+  {
+    id: 'paidBy',
+    accessorFn: (p) => p.payment_owner ?? '',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Paid By" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">
+        {formatPersonName(row.original.payment_owner)}
+      </span>
+    ),
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'Paid By',
+      mobilePriority: 'detail',
     },
   },
   {
@@ -255,7 +275,8 @@ export const paymentsGlobalFilterFn: FilterFn<PaymentTransactionDTO> = (
   if (query === '') return true
 
   const payment = row.original
-  const payer = (payment.payment_owner ?? '').toLowerCase()
+  const paidFor = (payment.target_name ?? '').toLowerCase()
+  const paidBy = (payment.payment_owner ?? '').toLowerCase()
   const targetType = formatTargetType(payment.target_type).toLowerCase()
   const method = formatPaymentMethod(payment.payment_method).toLowerCase()
   const grossAmount = formatCurrency(payment.gross_amount).toLowerCase()
@@ -264,7 +285,8 @@ export const paymentsGlobalFilterFn: FilterFn<PaymentTransactionDTO> = (
   const weekend = formatWeekendLabel(payment).toLowerCase()
 
   return (
-    payer.includes(query) ||
+    paidFor.includes(query) ||
+    paidBy.includes(query) ||
     targetType.includes(query) ||
     method.includes(query) ||
     grossAmount.includes(query) ||

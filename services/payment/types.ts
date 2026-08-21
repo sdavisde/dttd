@@ -176,6 +176,17 @@ export type RawPaymentTransaction = PaymentTransactionRow & {
 }
 
 /**
+ * Identity of a payment's target — the candidate or team member the payment
+ * was made for. Resolved separately from the payment query because target_id
+ * is a polymorphic UUID with no FK constraint.
+ */
+export type TargetIdentity = {
+  id: string
+  name: string | null
+  email: string | null
+}
+
+/**
  * Raw payment row with joined weekend data from getAllPayments query.
  */
 export type PaymentTransactionWithWeekend = PaymentTransactionRow & {
@@ -208,9 +219,11 @@ export type PaymentTransactionDTO = {
   charge_id: string | null
   balance_transaction_id: string | null
   created_at: string
-  // Derived payer info
-  payer_name: string | null
-  payer_email: string | null
+  // Resolved from target_type + target_id: the person the payment was made
+  // for (the candidate, or the team member). Null when the target can no
+  // longer be resolved (deleted record) or for untargeted payments.
+  target_name: string | null
+  target_email: string | null
   // Joined weekend info. The display label is derived from these — see
   // `formatWeekendLabel` in lib/payments/formatters.
   weekend_number: number | null

@@ -1,14 +1,16 @@
 import 'server-only'
 
+import { isNil } from 'lodash'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
-import { fromSupabase } from '@/lib/results'
+import { fromSupabase, map, ok } from '@/lib/results'
 import type {
   ServiceOptions,
   PaymentTransactionRow,
   PaymentTransactionInsert,
   PaymentTransactionUpdate,
   PaymentTransactionWithWeekend,
+  TargetIdentity,
   TargetType,
 } from './types'
 
@@ -26,6 +28,18 @@ async function getClient(options?: ServiceOptions) {
     return createAdminClient()
   }
   return createClient()
+}
+
+/**
+ * Builds a display name from a joined users row. Returns null when the user
+ * row is missing or has no name on it.
+ */
+function formatUserName(
+  user: { first_name: string | null; last_name: string | null } | null
+): string | null {
+  if (isNil(user)) return null
+  const name = `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
+  return name !== '' ? name : null
 }
 
 // ============================================================================
@@ -226,4 +240,96 @@ export async function updatePaymentByPaymentIntentId(
     .select()
     .single()
   return fromSupabase(response)
+}
+
+// ============================================================================
+// Target Identity Lookups
+// ============================================================================
+
+/**
+ * Looks up candidate names by candidate ID.
+ * Candidate names live on candidate_sponsorship_info, not on the candidates row.
+ * @param ids - Candidate IDs to resolve
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the resolved identities (missing IDs are omitted)
+ */
+export async function getCandidateIdentities(
+  ids: string[],
+  options?: ServiceOptions
+): Promise<Result<string, TargetIdentity[]>> {
+  if (ids.length === 0) return ok([])
+
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('candidate_sponsorship_info')
+    .select('candidate_id, candidate_name, candidate_email')
+    .in('candidate_id', ids)
+
+  return map(fromSupabase(response), (rows) =>
+    rows
+      .filter(
+        (row): row is typeof row & { candidate_id: string } =>
+          !isNil(row.candidate_id)
+      )
+      .map((row) => ({
+        id: row.candidate_id,
+        name: row.candidate_name,
+        email: row.candidate_email,
+      }))
+  )
+}
+
+/**
+ * Looks up team member names by weekend_group_members ID.
+ * @param ids - Group member IDs to resolve
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the resolved identities (missing IDs are omitted)
+ */
+export async function getGroupMemberIdentities(
+  ids: string[],
+  options?: ServiceOptions
+): Promise<Result<string, TargetIdentity[]>> {
+  if (ids.length === 0) return ok([])
+
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('weekend_group_members')
+    .select('id, users(first_name, last_name, email)')
+    .in('id', ids)
+
+  return map(fromSupabase(response), (rows) =>
+    rows.map((row) => ({
+      id: row.id,
+      name: formatUserName(row.users),
+      email: row.users?.email ?? null,
+    }))
+  )
+}
+
+/**
+ * Looks up team member names by weekend_roster ID.
+ * Kept for payments recorded before targets moved to weekend_group_member.
+ * @param ids - Roster IDs to resolve
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing the resolved identities (missing IDs are omitted)
+ */
+export async function getRosterIdentities(
+  ids: string[],
+  options?: ServiceOptions
+): Promise<Result<string, TargetIdentity[]>> {
+  if (ids.length === 0) return ok([])
+
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('weekend_roster')
+    .select('id, users(first_name, last_name, email)')
+    .in('id', ids)
+
+  return map(fromSupabase(response), (rows) =>
+    rows.map((row) => ({
+      id: row.id,
+      name: formatUserName(row.users),
+      email: row.users?.email ?? null,
+    }))
+  )
 }

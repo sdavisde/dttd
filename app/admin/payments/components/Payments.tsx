@@ -33,6 +33,7 @@ export function Payments({ payments }: PaymentsProps) {
       // Apply global filter
       if (globalFilter !== '') {
         const searchable = [
+          p.target_name,
           p.payment_owner,
           formatTargetType(p.target_type),
           formatPaymentMethod(p.payment_method),
@@ -80,7 +81,7 @@ export function Payments({ payments }: PaymentsProps) {
         initialSort={[{ id: 'created_at', desc: true }]}
         globalFilterFn={paymentsGlobalFilterFn}
         urlState={urlState}
-        searchPlaceholder="Search by payer, type, method, amount, weekend, or notes..."
+        searchPlaceholder="Search by who it was paid for or by, type, method, amount, weekend, or notes..."
         emptyState={{
           noData: 'No payments found.',
           noResults: 'No payments matching your search.',
