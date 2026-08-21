@@ -1,13 +1,21 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import { PaymentRecord } from '@/lib/payments/types'
 import * as PaymentService from './payment-service'
-import type { PaymentTransactionDTO } from './types'
+import type {
+  PaymentTargetOption,
+  PaymentTransactionDTO,
+  PaymentTransactionRow,
+  ReassignPaymentInput,
+  UpdatePaymentDetailsInput,
+  VoidPaymentInput,
+} from './types'
 import type { Weekend } from '@/lib/weekend/types'
 import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
-import { isErr, ok } from '@/lib/results'
+import { isErr, isOk, ok } from '@/lib/results'
 
 /**
  * Retrieves a Stripe price by its ID.
@@ -47,6 +55,77 @@ export const getAllPayments = authorizedAction<void, PaymentTransactionDTO[]>(
     return await PaymentService.getAllPayments()
   }
 )
+
+/**
+ * Retrieves all payment records including voided ones, for the admin payments
+ * table. Voided payments never reach a total — see getAllPayments for every
+ * other caller. Requires READ_PAYMENTS permission.
+ */
+export const getAllPaymentsIncludingVoided = authorizedAction<
+  void,
+  PaymentTransactionDTO[]
+>(Permission.READ_PAYMENTS, async () => {
+  return await PaymentService.getAllPaymentsIncludingVoided()
+})
+
+/**
+ * Lists the candidates and team members a payment can be reassigned to.
+ * Requires WRITE_PAYMENTS permission.
+ */
+export const getPaymentTargetOptions = authorizedAction<
+  void,
+  PaymentTargetOption[]
+>(Permission.WRITE_PAYMENTS, async () => {
+  return await PaymentService.getPaymentTargetOptions()
+})
+
+/**
+ * Reassigns a payment to a different candidate or team member, moving its
+ * weekend with it. Requires WRITE_PAYMENTS permission.
+ */
+export const reassignPayment = authorizedAction<
+  ReassignPaymentInput,
+  PaymentTransactionRow
+>(Permission.WRITE_PAYMENTS, async (input) => {
+  const result = await PaymentService.reassignPayment(input)
+  if (isOk(result)) revalidatePaymentViews()
+  return result
+})
+
+/**
+ * Voids a payment without deleting it. Requires WRITE_PAYMENTS permission.
+ */
+export const voidPayment = authorizedAction<
+  VoidPaymentInput,
+  PaymentTransactionRow
+>(Permission.WRITE_PAYMENTS, async (input) => {
+  const result = await PaymentService.voidPayment(input)
+  if (isOk(result)) revalidatePaymentViews()
+  return result
+})
+
+/**
+ * Corrects a payment's amount, method, payer, or notes.
+ * Requires WRITE_PAYMENTS permission.
+ */
+export const updatePaymentDetails = authorizedAction<
+  UpdatePaymentDetailsInput,
+  PaymentTransactionRow
+>(Permission.WRITE_PAYMENTS, async (input) => {
+  const result = await PaymentService.updatePaymentDetails(input)
+  if (isOk(result)) revalidatePaymentViews()
+  return result
+})
+
+/**
+ * Refreshes every server-rendered view whose numbers a correction can move:
+ * the payments table and report, and the candidate list where balances show.
+ */
+function revalidatePaymentViews() {
+  revalidatePath('/admin/payments')
+  revalidatePath('/admin/payments/summary')
+  revalidatePath('/review-candidates')
+}
 
 /**
  * Retrieves the team fee price from Stripe.

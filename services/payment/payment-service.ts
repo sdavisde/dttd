@@ -16,6 +16,9 @@ import {
 } from '@/lib/payments/compute-totals'
 import type Stripe from 'stripe'
 import { isNil } from 'lodash'
+import { logger } from '@/lib/logger'
+import { getLoggedInUser } from '@/services/identity/user'
+import { formatWeekendGroupTitle, formatWeekendLabelFor } from '@/lib/weekend'
 import type { Weekend } from '@/lib/weekend/types'
 import type {
   PriceInfo,
@@ -23,14 +26,25 @@ import type {
   TargetIdentity,
   CreatePaymentInput,
   BackfillStripeDataInput,
+  PaymentTargetOption,
   PaymentTransactionDTO,
   PaymentTransactionRow,
+  PaymentTransactionUpdate,
   PaymentTransactionWithWeekend,
+  ReassignPaymentInput,
   TargetType,
   PaymentType,
   PaymentMethod,
+  UpdatePaymentDetailsInput,
+  VoidPaymentInput,
 } from './types'
-import { CreatePaymentSchema, BackfillStripeDataSchema } from './types'
+import {
+  CreatePaymentSchema,
+  BackfillStripeDataSchema,
+  ReassignPaymentSchema,
+  UpdatePaymentDetailsSchema,
+  VoidPaymentSchema,
+} from './types'
 
 // ============================================================================
 // Stripe Price Functions
@@ -205,6 +219,9 @@ function normalizePaymentTransaction(
     charge_id: raw.charge_id,
     balance_transaction_id: raw.balance_transaction_id,
     created_at: raw.created_at ?? new Date().toISOString(),
+    updated_at: raw.updated_at,
+    voided_at: raw.voided_at,
+    void_reason: raw.void_reason,
     target_name: identity?.name ?? null,
     target_email: identity?.email ?? null,
     weekend_number: raw.weekends?.weekend_groups?.number ?? null,
@@ -350,6 +367,35 @@ export async function getAllPayments(
 }
 
 /**
+ * Gets all payment transactions including voided ones, for the admin payments
+ * table. Voided payments are excluded from every total, so this must not be
+ * used to compute one — see getAllPayments.
+ *
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing array of normalized payment DTOs sorted by date
+ */
+export async function getAllPaymentsIncludingVoided(
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionDTO[]>> {
+  const result = await PaymentRepository.getAllPaymentsIncludingVoided(options)
+  if (isErr(result)) {
+    return result
+  }
+
+  const targetIdentities = await buildTargetIdentityMap(result.data, options)
+  const normalizedPayments = result.data.map((raw) =>
+    normalizePaymentTransaction(raw, targetIdentities)
+  )
+
+  normalizedPayments.sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+
+  return ok(normalizedPayments)
+}
+
+/**
  * Backfills Stripe data onto an existing payment transaction.
  * Used by charge.updated webhook to add fee information after initial payment.
  *
@@ -481,4 +527,278 @@ export async function getActiveWeekendFinancials(
       activeCandidateTargetIds
     )
   )
+}
+
+// ============================================================================
+// Payment Corrections
+// ============================================================================
+
+/**
+ * Resolves the weekend a reassign target belongs to, and confirms the target
+ * exists.
+ *
+ * The weekend is re-derived rather than carried over from the old target
+ * because `weekend_id` is what the payment report and the active-weekend
+ * financials group on. Leaving a stale weekend on a reassigned payment skews
+ * per-weekend totals with nothing on screen to explain it.
+ */
+async function resolveTargetWeekend(
+  targetType: NonNullable<TargetType>,
+  targetId: string
+): Promise<Result<string, string | null>> {
+  switch (targetType) {
+    case 'candidate': {
+      const result = await PaymentRepository.findCandidateWeekend(targetId)
+      if (isErr(result)) return result
+      if (!result.data.found) return err('Candidate not found')
+      return ok(result.data.weekendId)
+    }
+    case 'weekend_group_member': {
+      // Group members belong to a group covering both weekends; this resolves
+      // the one matching the member's gender.
+      const result = await GroupMemberRepository.getGroupMemberById(targetId)
+      if (isErr(result)) return err('Team member not found')
+      return ok(result.data.weekendId)
+    }
+    case 'weekend_roster': {
+      const result = await PaymentRepository.findRosterWeekend(targetId)
+      if (isErr(result)) return result
+      if (!result.data.found) return err('Roster entry not found')
+      return ok(result.data.weekendId)
+    }
+  }
+}
+
+/**
+ * Loads a payment for correction, rejecting anything that cannot be corrected.
+ */
+async function loadCorrectablePayment(
+  paymentId: string
+): Promise<Result<string, PaymentTransactionRow>> {
+  const result = await PaymentRepository.getPaymentById(paymentId)
+  if (isErr(result)) return err(`Failed to load payment: ${result.error}`)
+  if (isNil(result.data)) return err('Payment not found')
+  if (!isNil(result.data.voided_at)) {
+    return err('This payment is voided and can no longer be changed')
+  }
+  return ok(result.data)
+}
+
+/**
+ * Resolves the acting user for a correction, used to stamp the audit columns.
+ */
+async function getActorId(): Promise<Result<string, string>> {
+  const userResult = await getLoggedInUser()
+  if (isErr(userResult)) return err('Unauthorized: User not authenticated')
+  return ok(userResult.data.id)
+}
+
+/**
+ * Reassigns a payment to a different candidate or team member.
+ *
+ * This is the fix for a payment recorded against the wrong person — the money
+ * arrived, only the credit is misfiled. It applies to Stripe payments as well
+ * as cash and check, since checkout metadata can be wrong too.
+ *
+ * @param input - The payment to move and its new target
+ * @returns Result containing the reassigned payment or an error
+ */
+export async function reassignPayment(
+  input: ReassignPaymentInput
+): Promise<Result<string, PaymentTransactionRow>> {
+  const parseResult = ReassignPaymentSchema.safeParse(input)
+  if (!parseResult.success) {
+    return err(parseResult.error.message)
+  }
+  const { paymentId, targetType, targetId } = parseResult.data
+
+  const actorResult = await getActorId()
+  if (isErr(actorResult)) return actorResult
+
+  const paymentResult = await loadCorrectablePayment(paymentId)
+  if (isErr(paymentResult)) return paymentResult
+  const payment = paymentResult.data
+
+  if (isNil(payment.target_type)) {
+    return err('This payment has no target and cannot be reassigned')
+  }
+
+  if (payment.target_type === targetType && payment.target_id === targetId) {
+    return err('This payment is already assigned to that person')
+  }
+
+  const weekendResult = await resolveTargetWeekend(targetType, targetId)
+  if (isErr(weekendResult)) return weekendResult
+
+  const updateResult = await PaymentRepository.updatePaymentTarget(
+    paymentId,
+    { targetType, targetId, weekendId: weekendResult.data },
+    actorResult.data
+  )
+  if (isErr(updateResult)) {
+    return err(`Failed to reassign payment: ${updateResult.error}`)
+  }
+
+  logger.info(
+    {
+      paymentId,
+      from: { targetType: payment.target_type, targetId: payment.target_id },
+      to: { targetType, targetId },
+      weekendId: weekendResult.data,
+      actorId: actorResult.data,
+    },
+    'Payment reassigned'
+  )
+
+  return ok(updateResult.data)
+}
+
+/**
+ * Voids a payment without deleting it.
+ *
+ * Voided payments drop out of balances and totals but stay on the record, so
+ * a bounced check or a duplicate entry leaves an explanation behind rather
+ * than an unexplained change in someone's balance.
+ *
+ * @param input - The payment to void and the reason why
+ * @returns Result containing the voided payment or an error
+ */
+export async function voidPayment(
+  input: VoidPaymentInput
+): Promise<Result<string, PaymentTransactionRow>> {
+  const parseResult = VoidPaymentSchema.safeParse(input)
+  if (!parseResult.success) {
+    return err(parseResult.error.message)
+  }
+  const { paymentId, reason } = parseResult.data
+
+  const actorResult = await getActorId()
+  if (isErr(actorResult)) return actorResult
+
+  const paymentResult = await loadCorrectablePayment(paymentId)
+  if (isErr(paymentResult)) return paymentResult
+
+  const voidResult = await PaymentRepository.voidPayment(
+    paymentId,
+    reason,
+    actorResult.data
+  )
+  if (isErr(voidResult)) {
+    return err(`Failed to void payment: ${voidResult.error}`)
+  }
+
+  logger.info(
+    {
+      paymentId,
+      grossAmount: paymentResult.data.gross_amount,
+      reason,
+      actorId: actorResult.data,
+    },
+    'Payment voided'
+  )
+
+  return ok(voidResult.data)
+}
+
+/**
+ * Corrects a payment's details — a mistyped amount, the wrong method, a
+ * misspelled payer name, or notes.
+ *
+ * @param input - The payment to correct and the fields to change
+ * @returns Result containing the corrected payment or an error
+ */
+export async function updatePaymentDetails(
+  input: UpdatePaymentDetailsInput
+): Promise<Result<string, PaymentTransactionRow>> {
+  const parseResult = UpdatePaymentDetailsSchema.safeParse(input)
+  if (!parseResult.success) {
+    return err(parseResult.error.message)
+  }
+  const { paymentId, grossAmount, paymentMethod, paymentOwner, notes } =
+    parseResult.data
+
+  const actorResult = await getActorId()
+  if (isErr(actorResult)) return actorResult
+
+  const paymentResult = await loadCorrectablePayment(paymentId)
+  if (isErr(paymentResult)) return paymentResult
+
+  const changes: PaymentTransactionUpdate = {}
+  if (!isNil(grossAmount)) changes.gross_amount = grossAmount
+  if (!isNil(paymentMethod)) changes.payment_method = paymentMethod
+  if (paymentOwner !== undefined) changes.payment_owner = paymentOwner
+  if (notes !== undefined) changes.notes = notes
+
+  const updateResult = await PaymentRepository.updatePaymentDetails(
+    paymentId,
+    changes,
+    actorResult.data
+  )
+  if (isErr(updateResult)) {
+    return err(`Failed to update payment: ${updateResult.error}`)
+  }
+
+  logger.info(
+    { paymentId, changes, actorId: actorResult.data },
+    'Payment details corrected'
+  )
+
+  return ok(updateResult.data)
+}
+
+// ============================================================================
+// Reassign Target Options
+// ============================================================================
+
+/**
+ * Lists every candidate and team member a payment can be reassigned to,
+ * sorted by name. Labelled with the weekend so two people with the same name
+ * are distinguishable in the picker.
+ */
+export async function getPaymentTargetOptions(): Promise<
+  Result<string, PaymentTargetOption[]>
+> {
+  const [candidatesResult, groupMembersResult] = await Promise.all([
+    PaymentRepository.findCandidateTargets(),
+    PaymentRepository.findGroupMemberTargets(),
+  ])
+
+  if (isErr(candidatesResult)) {
+    return err(`Failed to load candidates: ${candidatesResult.error}`)
+  }
+  if (isErr(groupMembersResult)) {
+    return err(`Failed to load team members: ${groupMembersResult.error}`)
+  }
+
+  const candidateOptions: PaymentTargetOption[] = candidatesResult.data
+    .filter((candidate) => !isNil(candidate.name))
+    .map((candidate) => ({
+      targetType: 'candidate' as const,
+      targetId: candidate.id,
+      name: candidate.name as string,
+      weekendLabel:
+        isNil(candidate.weekendNumber) && isNil(candidate.weekendType)
+          ? null
+          : formatWeekendLabelFor({
+              number: candidate.weekendNumber,
+              gender: candidate.weekendType as 'MENS' | 'WOMENS' | null,
+            }),
+    }))
+
+  const teamOptions: PaymentTargetOption[] = groupMembersResult.data
+    .filter((member) => !isNil(member.name))
+    .map((member) => ({
+      targetType: 'weekend_group_member' as const,
+      targetId: member.id,
+      name: member.name as string,
+      weekendLabel: isNil(member.groupNumber)
+        ? null
+        : formatWeekendGroupTitle(member.groupNumber),
+    }))
+
+  const options = [...candidateOptions, ...teamOptions].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  )
+
+  return ok(options)
 }
