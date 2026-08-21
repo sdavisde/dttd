@@ -20,6 +20,7 @@ import type { Weekend } from '@/lib/weekend/types'
 import type {
   PriceInfo,
   ServiceOptions,
+  TargetIdentity,
   CreatePaymentInput,
   BackfillStripeDataInput,
   PaymentTransactionDTO,
@@ -106,22 +107,87 @@ export async function getCandidateFee(): Promise<Result<string, PriceInfo>> {
 // ============================================================================
 
 /**
+ * Key for the target identity map. target_id alone is not unique across the
+ * different tables target_type can point at.
+ */
+function targetKey(
+  targetType: string | null,
+  targetId: string | null
+): string | null {
+  if (isNil(targetType) || isNil(targetId)) return null
+  return `${targetType}:${targetId}`
+}
+
+/**
+ * Resolves the person each payment was made *for* (its target).
+ *
+ * target_id is a polymorphic UUID with no FK constraint, so it cannot be
+ * joined in the payment query. Instead we bucket the IDs by target_type and
+ * issue one lookup per bucket, then index the results by `type:id`.
+ *
+ * Note this is distinct from payment_owner, which records who *paid* — for a
+ * candidate whose sponsor covers the fee, those are two different people.
+ */
+async function buildTargetIdentityMap(
+  rows: PaymentTransactionWithWeekend[],
+  options?: ServiceOptions
+): Promise<Map<string, TargetIdentity>> {
+  const idsByType = new Map<string, Set<string>>()
+  for (const row of rows) {
+    if (isNil(row.target_type) || isNil(row.target_id)) continue
+    const ids = idsByType.get(row.target_type) ?? new Set<string>()
+    ids.add(row.target_id)
+    idsByType.set(row.target_type, ids)
+  }
+
+  const idsFor = (targetType: string) => [
+    ...(idsByType.get(targetType) ?? new Set<string>()),
+  ]
+
+  const [candidates, groupMembers, rosterMembers] = await Promise.all([
+    PaymentRepository.getCandidateIdentities(idsFor('candidate'), options),
+    PaymentRepository.getGroupMemberIdentities(
+      idsFor('weekend_group_member'),
+      options
+    ),
+    PaymentRepository.getRosterIdentities(idsFor('weekend_roster'), options),
+  ])
+
+  const identities = new Map<string, TargetIdentity>()
+  const collect = (
+    targetType: string,
+    result: Result<string, TargetIdentity[]>
+  ) => {
+    for (const identity of unwrapOr(result, [])) {
+      const key = targetKey(targetType, identity.id)
+      if (!isNil(key)) identities.set(key, identity)
+    }
+  }
+
+  collect('candidate', candidates)
+  collect('weekend_group_member', groupMembers)
+  collect('weekend_roster', rosterMembers)
+
+  return identities
+}
+
+/**
  * Normalizes a payment transaction row into a PaymentTransactionDTO.
  *
- * Payer info logic:
- * - payment_owner stores the payer's name directly (e.g., "John Smith")
- * - This name is set during payment creation from Stripe checkout metadata
- * - For team payments, this is the team member's name
- * - For candidate payments, this is typically the sponsor's name or the candidate's name
- *
- * Note: We cannot use FK joins to look up payer info because target_id is a polymorphic
- * UUID without FK constraints. The payment_owner field serves as the source of truth.
+ * Two different people are tracked on a payment:
+ * - `payment_owner` is who paid (set during payment creation from Stripe
+ *   checkout metadata or the manual-entry form). For a candidate whose
+ *   sponsor covers the fee, this is the sponsor.
+ * - `target_name` is who the payment was for, resolved from target_type +
+ *   target_id via `buildTargetIdentityMap`. Null when the payment has no
+ *   target (donations) or the target record no longer exists.
  */
 function normalizePaymentTransaction(
-  raw: PaymentTransactionWithWeekend
+  raw: PaymentTransactionWithWeekend,
+  targetIdentities: Map<string, TargetIdentity>
 ): PaymentTransactionDTO {
-  // payment_owner contains the actual payer name (set during payment creation)
-  const payerName = raw.payment_owner
+  const key = targetKey(raw.target_type, raw.target_id)
+  const identity = isNil(key) ? undefined : targetIdentities.get(key)
 
   return {
     id: raw.id,
@@ -139,8 +205,8 @@ function normalizePaymentTransaction(
     charge_id: raw.charge_id,
     balance_transaction_id: raw.balance_transaction_id,
     created_at: raw.created_at ?? new Date().toISOString(),
-    payer_name: payerName,
-    payer_email: null, // Email not stored in payment_transaction; would require separate lookup
+    target_name: identity?.name ?? null,
+    target_email: identity?.email ?? null,
     weekend_number: raw.weekends?.weekend_groups?.number ?? null,
     weekend_type: (raw.weekends?.type as 'MENS' | 'WOMENS') ?? null,
   }
@@ -269,7 +335,10 @@ export async function getAllPayments(
     return result
   }
 
-  const normalizedPayments = result.data.map(normalizePaymentTransaction)
+  const targetIdentities = await buildTargetIdentityMap(result.data, options)
+  const normalizedPayments = result.data.map((raw) =>
+    normalizePaymentTransaction(raw, targetIdentities)
+  )
 
   // Sort by creation date (newest first) - already sorted by repository but ensure consistency
   normalizedPayments.sort(

@@ -17,6 +17,16 @@ export function formatCurrency(amount: number | null): string {
 }
 
 /**
+ * Format a person's name for display. Returns '—' for null names and for the
+ * empty strings that manual payment entry can leave behind when the
+ * pre-filled payer name was blank.
+ */
+export function formatPersonName(name: string | null): string {
+  if (isNil(name) || name.trim() === '') return '—'
+  return name
+}
+
+/**
  * Map target_type to a human-readable label.
  */
 export function formatTargetType(
