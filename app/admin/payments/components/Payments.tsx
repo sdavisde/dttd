@@ -27,7 +27,7 @@ type PaymentsProps = {
 export function Payments({ payments, user }: PaymentsProps) {
   const [showVoided, setShowVoided] = useState(false)
   const urlState = useDataTableUrlState({
-    defaultSort: [{ id: 'created_at', desc: true }],
+    defaultSort: [{ id: 'date', desc: true }],
     defaultPageSize: 25,
   })
 
@@ -98,7 +98,7 @@ export function Payments({ payments, user }: PaymentsProps) {
         columns={paymentsColumns}
         data={visiblePayments}
         user={user}
-        initialSort={[{ id: 'created_at', desc: true }]}
+        initialSort={[{ id: 'date', desc: true }]}
         globalFilterFn={paymentsGlobalFilterFn}
         urlState={urlState}
         searchPlaceholder="Search by who it was paid for or by, type, method, amount, weekend, or notes..."
