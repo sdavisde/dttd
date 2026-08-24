@@ -55,16 +55,6 @@ export function ContactInfoSection({
           </div>
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Email</Label>
-          <Input
-            type="email"
-            value={contact.email}
-            onChange={(e) => onChange({ ...contact, email: e.target.value })}
-            placeholder="email@example.com"
-            disabled={disabled}
-          />
-        </div>
-        <div className="space-y-1">
           <Label className="text-xs">Phone</Label>
           <PhoneInput
             value={contact.phone}

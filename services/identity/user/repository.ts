@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { isNil } from 'lodash'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { err, fromSupabase, ok } from '@/lib/results'
 import type { Address } from '@/lib/users/validation'
 import type { BasicInfo } from '@/components/team-forms/schemas'
@@ -175,13 +175,20 @@ export const removeUserRole = async (userId: string) => {
   return fromSupabase(response)
 }
 
+/**
+ * Updates the display half of a member's contact details.
+ *
+ * Email is deliberately absent: it is the address the account authenticates with, so
+ * it is owned by auth.users and reaches this table through the sync_users trigger.
+ * Writing it here would put the profile out of step with what actually logs in.
+ * Use {@link updateAuthEmail} instead.
+ */
 export const updateUserContactInfo = async (
   userId: string,
   data: {
     first_name: string | null
     last_name: string | null
     phone_number: string | null
-    email: string
     gender: string | null
   }
 ) => {
@@ -192,11 +199,57 @@ export const updateUserContactInfo = async (
       first_name: data.first_name,
       last_name: data.last_name,
       phone_number: data.phone_number,
-      email: data.email,
       gender: data.gender,
     })
     .eq('id', userId)
   return fromSupabase(response)
+}
+
+/**
+ * Reads a member's auth record, including the identities linked to it.
+ *
+ * Needs the admin client: identities are only exposed through the service-role admin
+ * API. Reading auth.users through a table query is not an option either -- Supabase
+ * treats everything in that schema beyond the primary key as internal and subject to
+ * change, so the admin API is the supported way in.
+ */
+export const getAuthUser = async (userId: string) => {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase.auth.admin.getUserById(userId)
+
+  if (!isNil(error)) {
+    return err(error.message)
+  }
+  if (isNil(data.user)) {
+    return err('No auth account found for this user')
+  }
+
+  return ok(data.user)
+}
+
+/**
+ * Changes the address a member signs in with.
+ *
+ * The password is stored as a hash in a separate column, so it is untouched here --
+ * the member keeps signing in with the same password, just against the new address.
+ *
+ * `email_confirm: true` marks the new address verified on the spot. An admin is
+ * correcting a record on someone else's behalf, so nobody is going to click a
+ * confirmation link; without it the account would be left holding an unconfirmed
+ * address, which blocks sign-in wherever confirmations are required.
+ */
+export const updateAuthEmail = async (userId: string, email: string) => {
+  const supabase = createAdminClient()
+  const { error } = await supabase.auth.admin.updateUserById(userId, {
+    email,
+    email_confirm: true,
+  })
+
+  if (!isNil(error)) {
+    return err(error.message)
+  }
+
+  return ok(undefined)
 }
 
 export const updateUserBasicInfo = async (userId: string, data: BasicInfo) => {

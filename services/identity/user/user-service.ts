@@ -2,6 +2,8 @@ import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
 import { isNil, union } from 'lodash'
+import z from 'zod'
+import { logger } from '@/lib/logger'
 import type { Result } from '@/lib/results'
 import { err, isErr, ok, Results, unwrapOr } from '@/lib/results'
 import * as UserRepository from './repository'
@@ -165,6 +167,94 @@ export async function updateUserContactInfo(
   data: Parameters<typeof UserRepository.updateUserContactInfo>[1]
 ) {
   return await UserRepository.updateUserContactInfo(userId, data)
+}
+
+/**
+ * The identity Supabase creates for an email + password account. Its presence is what
+ * tells us a member has a password to keep signing in with after their address moves.
+ */
+const PASSWORD_IDENTITY_PROVIDER = 'email'
+
+const EMAIL_TAKEN_MARKERS = [
+  'already been registered',
+  'email_exists',
+  'already exists',
+]
+
+/**
+ * Turns a raw GoTrue error into something safe to put in front of an admin. The raw
+ * text is logged by the caller; only the conflict case is worth naming specifically,
+ * since it is the one an admin can actually act on.
+ */
+function toFriendlyEmailError(rawError: string): string {
+  const normalized = rawError.toLowerCase()
+  if (EMAIL_TAKEN_MARKERS.some((marker) => normalized.includes(marker))) {
+    return 'That email address already belongs to another account.'
+  }
+  return 'Unable to update the login email. Please try again.'
+}
+
+/**
+ * Changes the email address a member signs in with.
+ *
+ * Their password is unaffected -- it lives in a separate column from the email -- so
+ * they sign in with the new address and the password they already had.
+ *
+ * Refuses accounts that authenticate only through a social provider. The admin API
+ * leaves auth.identities pointing at the old address, and for those members there is
+ * no password to fall back on, so changing the email would strand them rather than
+ * move them.
+ */
+export async function updateUserLoginEmail(
+  userId: string,
+  requestedEmail: string
+): Promise<Result<string, void>> {
+  const email = requestedEmail.trim().toLowerCase()
+
+  if (!z.email().safeParse(email).success) {
+    return err('Enter a valid email address.')
+  }
+
+  const authUserResult = await UserRepository.getAuthUser(userId)
+  if (isErr(authUserResult)) {
+    logger.error(
+      { error: authUserResult.error, userId },
+      'Could not load auth account before login email change'
+    )
+    return err('Could not load this member’s account.')
+  }
+
+  const authUser = authUserResult.data
+
+  // Nothing to do, and skipping the write avoids a pointless auth.users revision.
+  if (authUser.email?.trim().toLowerCase() === email) {
+    return ok(undefined)
+  }
+
+  const identities = authUser.identities ?? []
+  const hasPasswordIdentity = identities.some(
+    (identity) => identity.provider === PASSWORD_IDENTITY_PROVIDER
+  )
+
+  if (identities.length > 0 && !hasPasswordIdentity) {
+    const providers = identities.map((identity) => identity.provider).join(', ')
+    return err(
+      `This member signs in with ${providers}, so their email is controlled by that provider and cannot be changed here.`
+    )
+  }
+
+  const updateResult = await UserRepository.updateAuthEmail(userId, email)
+  if (isErr(updateResult)) {
+    logger.error(
+      { error: updateResult.error, userId },
+      'Failed to update login email'
+    )
+    return err(toFriendlyEmailError(updateResult.error))
+  }
+
+  // public.users.email follows via the sync_users trigger on auth.users, inside the
+  // same transaction as the write above -- see the 20260824000000 migration.
+  return ok(undefined)
 }
 
 export async function updateUserAddress(userId: string, address: Address) {

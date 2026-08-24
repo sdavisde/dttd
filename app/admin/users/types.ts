@@ -1,8 +1,12 @@
+/**
+ * Email is absent here on purpose. It is the address the member signs in with, so it
+ * is changed through its own confirmed action rather than saved alongside display
+ * fields -- see `LoginEmailSection`.
+ */
 export type ContactFields = {
   firstName: string
   lastName: string
   phone: string
-  email: string
   gender: string
 }
 

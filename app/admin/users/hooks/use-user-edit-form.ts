@@ -52,7 +52,6 @@ export function useUserEditForm({
     firstName: '',
     lastName: '',
     phone: '',
-    email: '',
     gender: '',
   })
 
@@ -102,7 +101,6 @@ export function useUserEditForm({
       firstName: member.firstName ?? '',
       lastName: member.lastName ?? '',
       phone: formatPhoneNumber(member.phoneNumber) ?? '',
-      email: member.email ?? '',
       gender: member.gender ?? '',
     })
     setAddress({
@@ -178,14 +176,17 @@ export function useUserEditForm({
     setError(null)
 
     try {
-      // 1. Contact info
+      // 1. Contact info. Email is not here -- it is the login address, changed through
+      // its own confirmed action in `LoginEmailSection`.
       const phoneDigits = contact.phone.replace(/\D/g, '')
-      const contactResult = await updateUserContactInfo(member.id, {
-        first_name: contact.firstName !== '' ? contact.firstName : null,
-        last_name: contact.lastName !== '' ? contact.lastName : null,
-        phone_number: phoneDigits !== '' ? phoneDigits : null,
-        email: contact.email,
-        gender: contact.gender !== '' ? contact.gender : null,
+      const contactResult = await updateUserContactInfo({
+        userId: member.id,
+        data: {
+          first_name: contact.firstName !== '' ? contact.firstName : null,
+          last_name: contact.lastName !== '' ? contact.lastName : null,
+          phone_number: phoneDigits !== '' ? phoneDigits : null,
+          gender: contact.gender !== '' ? contact.gender : null,
+        },
       })
       if (isErr(contactResult)) {
         setError(contactResult.error)
@@ -199,13 +200,16 @@ export function useUserEditForm({
         address.state !== '' ||
         address.zip !== ''
       if (hasAddress) {
-        const addressResult = await updateUserAddress(member.id, {
-          addressLine1: address.addressLine1,
-          addressLine2: address.addressLine2,
-          city: address.city,
-          state: address.state,
-          zip: address.zip,
-        } as Address)
+        const addressResult = await updateUserAddress({
+          userId: member.id,
+          address: {
+            addressLine1: address.addressLine1,
+            addressLine2: address.addressLine2,
+            city: address.city,
+            state: address.state,
+            zip: address.zip,
+          } as Address,
+        })
         if (isErr(addressResult)) {
           setError(addressResult.error)
           return
@@ -217,15 +221,18 @@ export function useUserEditForm({
         community.churchAffiliation !== '' ||
         community.weekendCommunity !== ''
       ) {
-        const basicInfoResult = await updateUserBasicInfo(member.id, {
-          church_affiliation: community.churchAffiliation,
-          weekend_attended: {
-            community: community.weekendCommunity,
-            weekend_number: community.weekendNumber,
+        const basicInfoResult = await updateUserBasicInfo({
+          userId: member.id,
+          data: {
+            church_affiliation: community.churchAffiliation,
+            weekend_attended: {
+              community: community.weekendCommunity,
+              weekend_number: community.weekendNumber,
+            },
+            essentials_training_date: community.essentialsDate,
+            special_gifts_and_skills:
+              community.skills.length > 0 ? community.skills : undefined,
           },
-          essentials_training_date: community.essentialsDate,
-          special_gifts_and_skills:
-            community.skills.length > 0 ? community.skills : undefined,
         })
         if (isErr(basicInfoResult)) {
           setError(basicInfoResult.error)

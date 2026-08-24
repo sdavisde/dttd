@@ -75,7 +75,10 @@ export function TeamInfoForm({
     setIsSubmitting(true)
 
     // Step 1: Update Address
-    const addressResult = await updateUserAddress(userId, data.address)
+    const addressResult = await updateUserAddress({
+      userId,
+      address: data.address,
+    })
     if (isErr(addressResult)) {
       toastError('Unable to save address. Please try again.', {
         error: addressResult.error,
@@ -85,7 +88,10 @@ export function TeamInfoForm({
     }
 
     // Step 2: Update Basic Info
-    const basicInfoResult = await updateUserBasicInfo(userId, data.basicInfo)
+    const basicInfoResult = await updateUserBasicInfo({
+      userId,
+      data: data.basicInfo,
+    })
     if (isErr(basicInfoResult)) {
       toastError('Unable to save basic information. Please try again.', {
         error: basicInfoResult.error,

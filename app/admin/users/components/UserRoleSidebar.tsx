@@ -15,6 +15,7 @@ import { useSession } from '@/components/auth/session-provider'
 import type { MasterRosterMember } from '@/services/master-roster/types'
 import { useUserEditForm } from '../hooks/use-user-edit-form'
 import { ContactInfoSection } from './contact-info-section'
+import { LoginEmailSection } from './login-email-section'
 import { AddressEditSection } from './address-edit-section'
 import { CommunityInfoSection } from './community-info-section'
 import { SkillsEditSection } from './skills-edit-section'
@@ -44,6 +45,9 @@ export function UserRoleSidebar({
   const showExperience =
     !isNil(currentUser) &&
     userHasPermission(currentUser, [Permission.READ_USER_EXPERIENCE])
+
+  const fullName = `${member?.firstName ?? ''} ${member?.lastName ?? ''}`.trim()
+  const memberName = fullName === '' ? 'This member' : fullName
 
   const {
     contact,
@@ -91,6 +95,15 @@ export function UserRoleSidebar({
             onChange={setContact}
             disabled={!canEdit}
           />
+
+          {!isNil(member) && (
+            <LoginEmailSection
+              userId={member.id}
+              memberName={memberName}
+              currentEmail={member.email}
+              canEdit={canEdit}
+            />
+          )}
 
           <AddressEditSection
             address={address}
