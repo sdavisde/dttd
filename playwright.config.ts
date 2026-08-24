@@ -1,4 +1,9 @@
+import { config as loadEnv } from 'dotenv'
 import { defineConfig, devices } from '@playwright/test'
+
+// The fixtures talk to Supabase directly, and the Playwright process does not
+// get Next.js's automatic .env.local loading.
+loadEnv({ path: '.env.local', quiet: true })
 
 /**
  * End-to-end tests for the admin payments flows.
@@ -26,6 +31,9 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    launchOptions: {
+      executablePath: process.env.E2E_CHROMIUM_PATH,
+    },
   },
 
   projects: [

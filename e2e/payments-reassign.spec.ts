@@ -15,7 +15,10 @@ test.describe('reassigning a payment to the right person', () => {
     await payments.runRowAction(testPayment.id, 'Reassign')
 
     const dialog = page.getByRole('dialog')
-    await expect(dialog.getByText('Reassign Payment')).toBeVisible()
+    // The submit button carries the same text as the title.
+    await expect(
+      dialog.getByRole('heading', { name: 'Reassign Payment' })
+    ).toBeVisible()
     await expect(dialog).toContainText(testPayment.candidate.name)
 
     await dialog.getByRole('combobox').click()

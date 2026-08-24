@@ -17,8 +17,14 @@ export class PaymentsPage {
     await expect(this.searchBox()).toBeVisible()
   }
 
+  /**
+   * The toolbar renders twice — desktop and mobile — with one hidden by CSS,
+   * so every top-level control has to be narrowed to the visible copy.
+   */
   searchBox(): Locator {
-    return this.page.getByPlaceholder(SEARCH_PLACEHOLDER)
+    return this.page.getByPlaceholder(SEARCH_PLACEHOLDER).filter({
+      visible: true,
+    })
   }
 
   /** Filters the table down to rows matching `text`. */
@@ -30,9 +36,12 @@ export class PaymentsPage {
     return this.page.getByRole('table')
   }
 
-  /** The desktop rows currently rendered. */
+  /**
+   * The data rows currently rendered. Scoped to rows carrying a payment id so
+   * the "No payments matching your search." empty-state row is not counted.
+   */
   rows(): Locator {
-    return this.table().locator('tbody tr')
+    return this.table().locator('tbody tr:has([data-payment-id])')
   }
 
   /** The one row for a payment, located by the id stamped on its cell. */
@@ -59,7 +68,7 @@ export class PaymentsPage {
   }
 
   showVoidedToggle(): Locator {
-    return this.page.getByLabel('Show voided')
+    return this.page.getByLabel('Show voided').filter({ visible: true })
   }
 
   summaryCount(): Locator {
