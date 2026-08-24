@@ -47,6 +47,14 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Playwright fixtures take a callback named `use`, which the React Hooks
+    // rule mistakes for the `use` hook.
+    files: ['e2e/**/*.ts'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
+  {
     files: ['**/actions/**/*.{ts,tsx}', '**/services/**/*.ts'],
     languageOptions: {
       parser: tsParser,

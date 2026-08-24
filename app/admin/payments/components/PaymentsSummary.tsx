@@ -22,7 +22,10 @@ export function PaymentsSummary({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle
+          className="text-sm font-medium text-muted-foreground"
+          data-testid="payments-summary-count"
+        >
           {isFiltered ? 'Filtered Totals' : 'All Payments'} — {summary.count}{' '}
           {summary.count === 1 ? 'payment' : 'payments'}
         </CardTitle>
@@ -31,7 +34,10 @@ export function PaymentsSummary({
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           <div>
             <p className="text-sm text-muted-foreground">Total Gross</p>
-            <p className="text-lg font-semibold text-green-600">
+            <p
+              className="text-lg font-semibold text-green-600"
+              data-testid="payments-summary-gross"
+            >
               {formatCurrency(summary.gross)}
             </p>
           </div>

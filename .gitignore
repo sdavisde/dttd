@@ -54,3 +54,10 @@ next-env.d.ts
 
 # SDD proof artifacts (local evidence only; spec/tasks/questions stay tracked)
 docs/specs/**/*-proofs/
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/e2e/.auth/

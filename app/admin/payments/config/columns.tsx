@@ -139,7 +139,11 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       <DataTableColumnHeader column={column} title="Paid For" />
     ),
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
+      <div
+        className="flex items-center gap-2"
+        data-testid="payment-paid-for"
+        data-payment-id={row.original.id}
+      >
         <span
           className={cn(
             'font-medium',
@@ -153,6 +157,7 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
           <Badge
             variant="outline"
             title={row.original.void_reason ?? undefined}
+            data-testid="payment-voided-badge"
           >
             Voided
           </Badge>
@@ -172,7 +177,7 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       <DataTableColumnHeader column={column} title="Paid By" />
     ),
     cell: ({ row }) => (
-      <span className="text-muted-foreground">
+      <span className="text-muted-foreground" data-testid="payment-paid-by">
         {formatPersonName(row.original.payment_owner)}
       </span>
     ),
@@ -189,7 +194,7 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       <DataTableColumnHeader column={column} title="Gross" />
     ),
     cell: ({ getValue }) => (
-      <span className="font-medium text-green-600">
+      <span className="font-medium text-green-600" data-testid="payment-gross">
         {formatCurrency(getValue<number>())}
       </span>
     ),
