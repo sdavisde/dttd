@@ -1,3 +1,13 @@
+## [1.49.0](https://github.com/sdavisde/dttd/compare/v1.48.0...v1.49.0) (2026-08-29)
+
+### Features
+
+- **payments:** reassign, edit, and void payments from the admin table ([86ca1b8](https://github.com/sdavisde/dttd/commit/86ca1b8f59728b1fe11c32350ae0eba3b34a3c49))
+
+### Bug Fixes
+
+- **payments:** point the default sort at the column that exists ([1067203](https://github.com/sdavisde/dttd/commit/106720348798cf031a19cc6192ac3238a17ca401))
+
 ## [1.48.0](https://github.com/sdavisde/dttd/compare/v1.47.4...v1.48.0) (2026-08-21)
 
 ### Features
