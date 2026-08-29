@@ -61,3 +61,6 @@ docs/specs/**/*-proofs/
 /blob-report/
 /playwright/.cache/
 /e2e/.auth/
+
+# Claude Code local worktrees
+.claude/worktrees/
