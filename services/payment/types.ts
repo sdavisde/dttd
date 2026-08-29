@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isNil } from 'lodash'
 import type { Database } from '@/database.types'
 
 /**
@@ -129,6 +130,59 @@ export const BackfillStripeDataSchema = z.object({
 
 export type BackfillStripeDataInput = z.infer<typeof BackfillStripeDataSchema>
 
+/**
+ * Schema for reassigning a payment to a different candidate or team member.
+ * The weekend is deliberately not accepted from the caller — it is re-derived
+ * from the new target so per-weekend totals stay correct.
+ */
+export const ReassignPaymentSchema = z.object({
+  paymentId: uuidFormat,
+  targetType: TargetTypeSchema.unwrap(),
+  targetId: uuidFormat,
+})
+
+export type ReassignPaymentInput = z.infer<typeof ReassignPaymentSchema>
+
+/**
+ * Schema for voiding a payment. A reason is required — the whole point of a
+ * soft void is that someone can later see why the balance changed.
+ */
+export const VoidPaymentSchema = z.object({
+  paymentId: uuidFormat,
+  reason: z.string().trim().min(1, 'A reason is required to void a payment'),
+})
+
+export type VoidPaymentInput = z.infer<typeof VoidPaymentSchema>
+
+/**
+ * Schema for correcting a payment's details (a mistyped amount, the wrong
+ * method, a misspelled payer). Every field is optional; at least one must be
+ * present or there is nothing to do.
+ */
+export const UpdatePaymentDetailsSchema = z
+  .object({
+    paymentId: uuidFormat,
+    grossAmount: z
+      .number()
+      .positive('Gross amount must be positive')
+      .optional(),
+    paymentMethod: PaymentMethodSchema.optional(),
+    paymentOwner: z.string().nullable().optional(),
+    notes: z.string().nullable().optional(),
+  })
+  .refine(
+    (data) =>
+      !isNil(data.grossAmount) ||
+      !isNil(data.paymentMethod) ||
+      data.paymentOwner !== undefined ||
+      data.notes !== undefined,
+    { message: 'No changes provided' }
+  )
+
+export type UpdatePaymentDetailsInput = z.infer<
+  typeof UpdatePaymentDetailsSchema
+>
+
 // ============================================================================
 // Raw Types (from database with joins)
 // ============================================================================
@@ -196,6 +250,18 @@ export type PaymentTransactionWithWeekend = PaymentTransactionRow & {
   } | null
 }
 
+/**
+ * One selectable target in the reassign picker: a candidate or a team member,
+ * labelled with the weekend they belong to so same-named people are
+ * distinguishable.
+ */
+export type PaymentTargetOption = {
+  targetType: NonNullable<TargetType>
+  targetId: string
+  name: string
+  weekendLabel: string | null
+}
+
 // ============================================================================
 // DTOs (Data Transfer Objects)
 // ============================================================================
@@ -219,6 +285,11 @@ export type PaymentTransactionDTO = {
   charge_id: string | null
   balance_transaction_id: string | null
   created_at: string
+  // Correction audit. updated_at/updated_by are stamped by reassign and edit;
+  // voided_* are set by a void, which never deletes the row.
+  updated_at: string | null
+  voided_at: string | null
+  void_reason: string | null
   // Resolved from target_type + target_id: the person the payment was made
   // for (the candidate, or the team member). Null when the target can no
   // longer be resolved (deleted record) or for untargeted payments.

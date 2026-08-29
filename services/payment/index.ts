@@ -6,6 +6,7 @@ export type { PaymentRecord, PaymentType } from '@/lib/payments/types'
 export type {
   ServiceOptions,
   PriceInfo,
+  PaymentTargetOption,
   PaymentTransactionDTO,
   PaymentTransactionRow,
   PaymentTransactionInsert,
@@ -16,12 +17,21 @@ export type {
   TargetType,
 } from './types'
 
+export type {
+  ReassignPaymentInput,
+  UpdatePaymentDetailsInput,
+  VoidPaymentInput,
+} from './types'
+
 export {
   PaymentTypeSchema,
   TargetTypeSchema,
   PaymentMethodSchema,
   CreatePaymentSchema,
   BackfillStripeDataSchema,
+  ReassignPaymentSchema,
+  UpdatePaymentDetailsSchema,
+  VoidPaymentSchema,
 } from './types'
 
 // Service functions for payment_transaction table (used by webhooks with dangerouslyBypassRLS)

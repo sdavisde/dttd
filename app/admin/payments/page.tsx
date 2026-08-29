@@ -1,7 +1,7 @@
 import { Permission, userHasPermission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getAllPayments } from '@/services/payment'
+import { getAllPaymentsIncludingVoided } from '@/services/payment'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Payments } from './components/Payments'
@@ -24,8 +24,9 @@ export default async function PaymentsPage() {
     redirect('/admin')
   }
 
-  // Fetch payments data from the new payment service
-  const paymentsResult = await getAllPayments()
+  // Includes voided payments so corrections stay visible behind a toggle.
+  // The table hides them by default and never counts them in totals.
+  const paymentsResult = await getAllPaymentsIncludingVoided()
 
   if (isErr(paymentsResult)) {
     throw new Error(`Failed to fetch payments: ${paymentsResult.error}`)
@@ -38,7 +39,7 @@ export default async function PaymentsPage() {
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
       <div className="container mx-auto px-8">
-        <Payments payments={paymentsResult.data} />
+        <Payments payments={paymentsResult.data} user={user} />
       </div>
     </>
   )
