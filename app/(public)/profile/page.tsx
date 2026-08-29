@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, MailQuestion } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Card,
   CardContent,
@@ -42,6 +43,7 @@ import { sendPasswordResetEmail } from '@/actions/password-reset'
 import { isErr } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import { toast } from 'sonner'
+import { ChangeEmailDialog } from './change-email-dialog'
 
 const profileFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -100,6 +102,7 @@ export default function ProfilePage() {
   const [cropperOpen, setCropperOpen] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [resetBusy, setResetBusy] = useState(false)
+  const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null)
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -108,6 +111,54 @@ export default function ProfilePage() {
       phoneNumber: user?.phoneNumber ?? '',
     },
   })
+
+  // A staged email change keeps auth.users.new_email set until both
+  // confirmation links are clicked — surface it as a pending banner.
+  const refreshPendingEmail = useCallback(async () => {
+    const supabase = createClient()
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+    setPendingNewEmail(authUser?.new_email ?? null)
+  }, [])
+
+  useEffect(() => {
+    refreshPendingEmail()
+  }, [refreshPendingEmail])
+
+  // Handle redirects back from /auth/confirm email change links
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('emailChange')
+    if (isNil(status)) {
+      return
+    }
+
+    if (status === 'complete') {
+      toast.success('Your email has been updated.')
+      refreshSession()
+      router.refresh()
+    } else if (status === 'pending') {
+      toast.info(
+        'Almost there — click the link in your new email address’s inbox to finish changing your email.'
+      )
+    } else if (status === 'error') {
+      toastError(
+        'That confirmation link is invalid or has expired. Please request the email change again.'
+      )
+    }
+
+    params.delete('emailChange')
+    const query = params.toString()
+    window.history.replaceState(
+      null,
+      '',
+      query !== ''
+        ? `${window.location.pathname}?${query}`
+        : window.location.pathname
+    )
+    refreshPendingEmail()
+  }, [refreshSession, router, refreshPendingEmail])
 
   useEffect(() => {
     if (!sessionLoading && !isAuthenticated) {
@@ -358,16 +409,32 @@ export default function ProfilePage() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-muted-foreground text-sm">{user?.email}</p>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Email</p>
+                  <p className="text-muted-foreground text-sm">{user?.email}</p>
+                </div>
+                <ChangeEmailDialog
+                  currentEmail={user?.email ?? ''}
+                  onRequested={refreshPendingEmail}
+                />
               </div>
-              {/* Trailing slot reserved for the change-email action */}
+              <p className="text-muted-foreground text-xs">
+                Changing your email requires your password and a confirmation
+                from the new address.
+              </p>
+              {!isNil(pendingNewEmail) && (
+                <Alert>
+                  <MailQuestion />
+                  <AlertTitle>Email change pending</AlertTitle>
+                  <AlertDescription>
+                    A change to {pendingNewEmail} is awaiting confirmation.
+                    Click the link we sent to that inbox to complete it.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
-            <p className="text-muted-foreground text-xs">
-              Contact an admin if you need to change your email.
-            </p>
 
             <Separator />
 
