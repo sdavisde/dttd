@@ -22,7 +22,6 @@ function makeWeekend(overrides: Partial<Weekend> = {}): Weekend {
     end_date: '2026-03-15',
     number: 12,
     status: WeekendStatus.PLANNING,
-    title: null,
     type: WeekendType.MENS,
     groupId: 'group-id',
     ...overrides,
@@ -68,9 +67,11 @@ describe('getWeekendLabel', () => {
 })
 
 describe('formatWeekendTitle', () => {
-  it('derives the label from the weekend record, ignoring any stored title', () => {
-    const weekend = makeWeekend({ title: 'Mens DTTD#12' })
-    expect(formatWeekendTitle(weekend)).toBe('DTTD Mens #12')
+  it('derives the label from the weekend record', () => {
+    expect(formatWeekendTitle(makeWeekend())).toBe('DTTD Mens #12')
+    expect(formatWeekendTitle(makeWeekend({ type: WeekendType.WOMENS }))).toBe(
+      'DTTD Womens #12'
+    )
   })
 
   it('degrades gracefully when the weekend has no group number', () => {

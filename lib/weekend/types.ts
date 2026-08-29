@@ -51,7 +51,6 @@ export type Weekend = {
   /** Weekend number, sourced from weekend_groups.number via join. Null until Task 3 join is added. */
   number: number | null
   status: WeekendStatusValue | null
-  title: string | null
   type: WeekendType
   groupId: string | null
 }
