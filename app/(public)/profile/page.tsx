@@ -4,13 +4,18 @@ import { useState, useEffect } from 'react'
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2 } from 'lucide-react'
-import { Typography } from '@/components/ui/typography'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Loader2 } from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,6 +23,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { PageHeader } from '@/components/ui/page-header'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -30,14 +38,14 @@ import {
   updateUserProfilePhoto,
   removeUserProfilePhoto,
 } from '@/services/identity/user'
+import { sendPasswordResetEmail } from '@/actions/password-reset'
 import { isErr } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import { toast } from 'sonner'
 
 const profileFormSchema = z.object({
-  email: z.email(),
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
   phoneNumber: z
     .string()
     .min(1, 'Phone number is required')
@@ -48,6 +56,38 @@ const profileFormSchema = z.object({
 })
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
+function ProfilePageSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-10">
+      <div className="mb-8 space-y-2 border-b border-border pb-6">
+        <Skeleton className="h-9 w-56" />
+        <Skeleton className="h-5 w-80 max-w-full" />
+      </div>
+      <div className="space-y-8">
+        <div className="space-y-6 rounded-xl border bg-card p-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="size-20 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-40" />
+              <Skeleton className="h-4 w-52" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <Skeleton className="h-9 w-full" />
+        </div>
+        <div className="space-y-6 rounded-xl border bg-card p-6">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   const {
     user,
@@ -57,13 +97,12 @@ export default function ProfilePage() {
   } = useSession()
   const router = useRouter()
   const [isUpdating, setIsUpdating] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
   const [cropperOpen, setCropperOpen] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false)
+  const [resetBusy, setResetBusy] = useState(false)
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      email: user?.email ?? '',
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
       phoneNumber: user?.phoneNumber ?? '',
@@ -77,7 +116,6 @@ export default function ProfilePage() {
     }
 
     if (!isNil(user)) {
-      form.setValue('email', user.email ?? '')
       form.setValue('firstName', user.firstName ?? '')
       form.setValue('lastName', user.lastName ?? '')
       form.setValue('phoneNumber', user.phoneNumber ?? '')
@@ -136,52 +174,57 @@ export default function ProfilePage() {
     }
   }
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleUpdateProfile = async (values: ProfileFormValues) => {
     setIsUpdating(true)
-    setMessage(null)
-
     try {
-      const supabase = createClient()
-
       if (isNil(user?.id)) {
-        form.setError('root', {
-          message:
-            'Looks like you have been automatically logged out. Please log in again.',
-        })
+        toastError(
+          'Looks like you have been automatically logged out. Please log in again.'
+        )
         return
       }
 
+      const supabase = createClient()
       const { error } = await supabase
         .from('users')
         .update({
-          // Intentionally do not set email here because it is readonly
-          first_name: form.getValues('firstName'),
-          last_name: form.getValues('lastName'),
-          phone_number: form.getValues('phoneNumber'),
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone_number: values.phoneNumber,
         })
-        .eq('id', user?.id)
+        .eq('id', user.id)
 
       if (!isNil(error)) {
-        form.setError('root', { message: error.message })
+        toastError('Unable to save your profile. Please try again.', { error })
+        return
       }
 
-      setMessage('Profile updated successfully!')
-    } catch (error) {
-      form.setError('root', {
-        message: error instanceof Error ? error.message : 'An error occurred',
-      })
+      toast.success('Profile updated')
+      refreshSession()
     } finally {
       setIsUpdating(false)
     }
   }
 
+  const handleSendPasswordReset = async () => {
+    if (isNil(user?.email)) return
+    setResetBusy(true)
+    try {
+      const result = await sendPasswordResetEmail(user.email)
+      if (isErr(result)) {
+        toastError('Unable to send the reset email. Please try again.', {
+          error: result.error,
+        })
+        return
+      }
+      toast.success('Password reset email sent — check your inbox.')
+    } finally {
+      setResetBusy(false)
+    }
+  }
+
   if (sessionLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <Loader2 className="w-10 h-10 animate-spin" />
-      </div>
-    )
+    return <ProfilePageSkeleton />
   }
 
   if (!isAuthenticated) {
@@ -189,162 +232,175 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto">
-      <div className="my-4">
-        <Typography variant="h1">Profile</Typography>
-        <Typography variant="p">Manage your account information</Typography>
+    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-10">
+      <PageHeader
+        title="Account settings"
+        description="Manage your profile and how you sign in."
+      />
 
-        {!isNil(user) && (
-          <div className="my-6 flex items-center gap-4">
-            <UserAvatar user={avatarUserFromDto(user)} size={96} />
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCropperOpen(true)}
-                  disabled={photoBusy}
-                >
-                  Edit photo
-                </Button>
-                {!isNil(user.profilePhotoPath) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemovePhoto}
-                    disabled={photoBusy}
-                  >
-                    {photoBusy ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Remove photo'
-                    )}
-                  </Button>
-                )}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                JPEG, PNG, or WebP. Up to 5MB.
-              </p>
-            </div>
-          </div>
-        )}
-
-        <AvatarCropperDialog
-          open={cropperOpen}
-          onOpenChange={setCropperOpen}
-          onConfirm={handleCroppedPhoto}
-        />
-
-        <div className="">
-          {!isNil(message) && (
-            <Alert variant="default" className="mb-3">
-              <CheckCircle2 />
-              <AlertTitle>Profile updated successfully!</AlertTitle>
-              <AlertDescription>
-                Your profile has been updated successfully.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {Object.values(form.formState.errors).length > 0 && (
-            <Alert variant="destructive" className="mb-3">
-              {Object.values(form.formState.errors)
-                .map((error) => error.message)
-                .join(', ')}
-            </Alert>
-          )}
+      <div className="space-y-8">
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>
+              Your name, photo, and contact details as they appear to the
+              community.
+            </CardDescription>
+          </CardHeader>
 
           <Form {...form}>
-            <form
-              onSubmit={handleUpdateProfile}
-              className="flex flex-col gap-3"
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="example@gmail.com"
-                        disabled
-                        className="w-full"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Email cannot be changed</FormDescription>
-                    <FormMessage />
-                  </FormItem>
+            <form onSubmit={form.handleSubmit(handleUpdateProfile)}>
+              <CardContent className="space-y-6">
+                {!isNil(user) && (
+                  <div className="flex items-center gap-4">
+                    <UserAvatar user={avatarUserFromDto(user)} size={80} />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCropperOpen(true)}
+                          disabled={photoBusy}
+                        >
+                          Edit photo
+                        </Button>
+                        {!isNil(user.profilePhotoPath) && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemovePhoto}
+                            disabled={photoBusy}
+                          >
+                            {photoBusy ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Remove photo'
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground text-xs">
+                        JPEG, PNG, or WebP. Up to 5MB.
+                      </p>
+                    </div>
+                  </div>
                 )}
-              />
 
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="John"
-                        required
-                        className="w-full"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <Separator />
 
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Doe"
-                        required
-                        className="w-full"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <PhoneInput className="w-full" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-              <Button type="submit" disabled={isUpdating} className="mt-2">
-                {isUpdating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Update Profile'
-                )}
-              </Button>
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone number</FormLabel>
+                      <FormControl>
+                        <PhoneInput className="w-full" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+
+              <CardFooter className="mt-6 justify-end border-t">
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving…
+                    </>
+                  ) : (
+                    'Save changes'
+                  )}
+                </Button>
+              </CardFooter>
             </form>
           </Form>
-        </div>
+        </Card>
+
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>Sign-in &amp; security</CardTitle>
+            <CardDescription>How you access your account.</CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Email</p>
+                <p className="text-muted-foreground text-sm">{user?.email}</p>
+              </div>
+              {/* Trailing slot reserved for the change-email action */}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Contact an admin if you need to change your email.
+            </p>
+
+            <Separator />
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Password</p>
+                <p className="text-muted-foreground text-sm">
+                  We&apos;ll email you a secure link to set a new password.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSendPasswordReset}
+                disabled={resetBusy}
+              >
+                {resetBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Send reset email'
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <AvatarCropperDialog
+        open={cropperOpen}
+        onOpenChange={setCropperOpen}
+        onConfirm={handleCroppedPhoto}
+      />
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Nunito } from 'next/font/google'
+import { Fraunces, Source_Sans_3 } from 'next/font/google'
 import './globals.css'
 import Head from 'next/head'
 import { SessionProvider } from '@/components/auth/session-provider'
@@ -7,9 +7,15 @@ import { QueryProvider } from '@/components/providers/query-provider'
 import { Toastbox } from '@/components/toastbox'
 import { Analytics } from '@vercel/analytics/next'
 
-const nunito = Nunito({
+const sourceSans = Source_Sans_3({
   subsets: ['latin'],
-  weight: ['400', '700'],
+  variable: '--font-source-sans',
+})
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  axes: ['opsz'],
+  variable: '--font-fraunces',
 })
 
 export const metadata: Metadata = {
@@ -28,7 +34,9 @@ export default function RootLayout({
       <Head>
         <meta name="apple-mobile-web-app-title" content="DTTD" />
       </Head>
-      <body className={`font-sans antialiased ${nunito.className}`}>
+      <body
+        className={`font-sans antialiased ${sourceSans.variable} ${fraunces.variable}`}
+      >
         <QueryProvider>
           <SessionProvider>
             <Analytics />

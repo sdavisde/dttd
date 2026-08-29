@@ -14,11 +14,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div
-      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
-    >
+    <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main style={{ flex: 1 }}>{children}</main>
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   )
