@@ -34,6 +34,14 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
+      # Applies supabase/config.toml (with the [remotes.production] overrides)
+      # to the hosted project — config.toml is the source of truth for auth
+      # settings; dashboard edits to sections it defines will be overwritten.
+      - name: Push Config
+        run: supabase config push --yes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
   release:
     name: Release
     runs-on: ubuntu-latest
