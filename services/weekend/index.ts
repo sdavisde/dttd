@@ -27,6 +27,7 @@ export {
   deleteWeekendGroup,
   saveWeekendGroupFromSidebar,
   addUserToWeekendRoster,
+  updateWeekendRosterMember,
 } from './actions'
 
 // Service types

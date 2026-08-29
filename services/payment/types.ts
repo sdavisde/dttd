@@ -80,13 +80,16 @@ export type PaymentMethod = z.infer<typeof PaymentMethodSchema>
 /**
  * Schema for creating a new payment transaction.
  * Used by recordPayment service function.
+ *
+ * `weekend_id` is deliberately absent: it is derived from the target inside
+ * recordPayment so no caller can supply a wrong weekend. See
+ * resolveTargetWeekend in payment-service.
  */
 export const CreatePaymentSchema = z
   .object({
     type: PaymentTypeSchema,
     target_type: TargetTypeSchema,
     target_id: uuidFormat.nullable(),
-    weekend_id: uuidFormat.nullable(),
     payment_intent_id: z.string().nullable().optional(),
     gross_amount: z.number().positive('Gross amount must be positive'),
     net_amount: z.number().nullable().optional(),

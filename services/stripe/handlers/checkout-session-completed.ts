@@ -9,12 +9,8 @@ import {
 } from '@/services/notifications'
 import { isNil } from 'lodash'
 import { getTransactionData } from '../stripe-service'
-import type {
-  WebhookHandler,
-  WebhookHandlerContext} from './types';
-import {
-  WebhookErrorCodes,
-} from './types'
+import type { WebhookHandler, WebhookHandlerContext } from './types'
+import { WebhookErrorCodes } from './types'
 import { webhookErr } from '../webhook-context'
 import * as PaymentService from '@/services/payment/payment-service'
 import { getGroupMemberById } from '@/services/weekend-group-member/repository'
@@ -44,7 +40,9 @@ export const checkoutSessionCompletedHandler: WebhookHandler<Stripe.CheckoutSess
 
       ctx.updateContext({
         paymentIntentId: session.payment_intent,
-        amount: !isNil(session.amount_total) ? session.amount_total / 100 : undefined,
+        amount: !isNil(session.amount_total)
+          ? session.amount_total / 100
+          : undefined,
       })
 
       logger.info(
@@ -118,7 +116,9 @@ async function handleCandidatePayment(
 
   // Record the payment using PaymentService
   const paymentIntentId = session.payment_intent as string
-  const grossAmount = !isNil(session.amount_total) ? session.amount_total / 100 : 0
+  const grossAmount = !isNil(session.amount_total)
+    ? session.amount_total / 100
+    : 0
 
   // Try to fetch Stripe fee data (may not be available at checkout time)
   const transactionResult = await getTransactionData(paymentIntentId)
@@ -135,7 +135,7 @@ async function handleCandidatePayment(
       type: 'fee',
       target_type: 'candidate',
       target_id: candidateId,
-      weekend_id: candidateInfo.weekend_id,
+      // weekend_id is derived inside recordPayment from the candidate
       payment_intent_id: paymentIntentId,
       gross_amount: grossAmount,
       net_amount: transaction?.netAmount ?? null,
@@ -254,7 +254,9 @@ async function handleTeamPayment(
 
   // Record the payment using PaymentService
   const paymentIntentId = session.payment_intent as string
-  const grossAmount = !isNil(session.amount_total) ? session.amount_total / 100 : 0
+  const grossAmount = !isNil(session.amount_total)
+    ? session.amount_total / 100
+    : 0
 
   // Try to fetch Stripe fee data (may not be available at checkout time)
   const transactionResult = await getTransactionData(paymentIntentId)
@@ -271,7 +273,8 @@ async function handleTeamPayment(
       type: 'fee',
       target_type: 'weekend_group_member',
       target_id: groupMemberId,
-      weekend_id: groupMember.weekendId ?? null,
+      // weekend_id is derived inside recordPayment from the member's roster;
+      // a member on no roster fails the recording rather than guessing
       payment_intent_id: paymentIntentId,
       gross_amount: grossAmount,
       net_amount: transaction?.netAmount ?? null,

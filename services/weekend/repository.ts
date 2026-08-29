@@ -403,6 +403,52 @@ export async function insertWeekendRosterMember(data: {
 }
 
 /**
+ * Fetches a single weekend roster row by its ID.
+ */
+export async function findWeekendRosterMemberById(
+  rosterId: string
+): Promise<Result<string, Tables<'weekend_roster'> | null>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select('*')
+    .eq('id', rosterId)
+    .maybeSingle()
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data)
+}
+
+/**
+ * Updates a weekend roster member's editable fields (status, role, rollo).
+ */
+export async function updateWeekendRosterMember(
+  rosterId: string,
+  updates: {
+    status?: string
+    cha_role?: string
+    rollo?: string | null
+  }
+): Promise<Result<string, void>> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('weekend_roster')
+    .update(updates)
+    .eq('id', rosterId)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(undefined)
+}
+
+/**
  * Updates a weekend roster member's status to 'drop'.
  */
 export async function dropWeekendRosterMember(

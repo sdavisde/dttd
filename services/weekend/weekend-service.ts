@@ -922,6 +922,67 @@ export async function addUserToWeekendRoster(
     return rosterResult
   }
 
+  // Step 3: Auto-follow — if the member already has payments (e.g. paid, was
+  // dropped, and is being re-added to the other weekend), re-point them at
+  // the weekend they now serve on. Never fails the roster operation.
+  const syncResult = await PaymentService.syncGroupMemberPaymentsToRoster(
+    groupMemberResult.data
+  )
+  if (isErr(syncResult)) {
+    logger.warn(
+      { groupMemberId: groupMemberResult.data, error: syncResult.error },
+      'Failed to auto-follow payments after roster add'
+    )
+  }
+
+  return ok(undefined)
+}
+
+/**
+ * Updates a weekend roster member's status, role, and rollo.
+ *
+ * After the update, the member's payments auto-follow their roster placement
+ * (see PaymentService.syncGroupMemberPaymentsToRoster) — dropping someone who
+ * still serves the group's other weekend re-points their payments there. A
+ * failed auto-follow logs a warning but never fails the roster edit.
+ */
+export async function updateWeekendRosterMember(
+  rosterId: string,
+  updates: {
+    status?: string
+    cha_role?: string
+    rollo?: string | null
+  }
+): Promise<Result<string, void>> {
+  const rosterResult =
+    await WeekendRepository.findWeekendRosterMemberById(rosterId)
+  if (isErr(rosterResult)) {
+    return err(`Failed to load roster member: ${rosterResult.error}`)
+  }
+  if (isNil(rosterResult.data)) {
+    return err('Roster member not found')
+  }
+
+  const updateResult = await WeekendRepository.updateWeekendRosterMember(
+    rosterId,
+    updates
+  )
+  if (isErr(updateResult)) {
+    return updateResult
+  }
+
+  const groupMemberId = rosterResult.data.group_member_id
+  if (!isNil(groupMemberId)) {
+    const syncResult =
+      await PaymentService.syncGroupMemberPaymentsToRoster(groupMemberId)
+    if (isErr(syncResult)) {
+      logger.warn(
+        { rosterId, groupMemberId, error: syncResult.error },
+        'Failed to auto-follow payments after roster edit'
+      )
+    }
+  }
+
   return ok(undefined)
 }
 
@@ -968,23 +1029,15 @@ export async function recordManualPayment(
   paymentOwner: string,
   notes?: string
 ): Promise<Result<string, PaymentTransactionRow>> {
-  // Resolve the member's weekend so the payment is tagged with it
-  const groupMemberResult =
-    await GroupMemberRepository.getGroupMemberById(groupMemberId)
-
-  if (isErr(groupMemberResult)) {
-    return err(`Failed to find group member: ${groupMemberResult.error}`)
-  }
-
   // Generate a manual payment intent ID
   const paymentIntentId = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
-  // Record payment in the payment_transaction table
+  // Record payment in the payment_transaction table. The member's weekend is
+  // derived inside recordPayment from their roster placement.
   const result = await PaymentService.recordPayment({
     type: 'fee',
     target_type: 'weekend_group_member',
     target_id: groupMemberId,
-    weekend_id: groupMemberResult.data.weekendId,
     payment_intent_id: paymentIntentId,
     gross_amount: paymentAmount,
     payment_method: paymentMethod,

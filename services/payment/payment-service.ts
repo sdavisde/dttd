@@ -237,6 +237,10 @@ function normalizePaymentTransaction(
  * Records a new payment transaction with validation.
  * This is the primary function for creating payments from webhooks and manual entry.
  *
+ * The payment's weekend is derived here from the target — callers cannot
+ * supply it. A team-fee payment for a member who is on no roster fails
+ * loudly rather than guessing a weekend.
+ *
  * @param data - The payment data to validate and insert
  * @param options - Service options including RLS bypass flag
  * @returns Result containing the created payment transaction or a validation/database error
@@ -253,13 +257,39 @@ export async function recordPayment(
 
   const validatedData = parseResult.data
 
+  // Derive the weekend from the target. Donations have no target and no
+  // weekend; fees always have a target (enforced by the schema).
+  let weekendId: string | null = null
+  if (!isNil(validatedData.target_type) && !isNil(validatedData.target_id)) {
+    const weekendResult = await resolveTargetWeekend(
+      validatedData.target_type,
+      validatedData.target_id,
+      options
+    )
+    if (isErr(weekendResult)) return weekendResult
+    weekendId = weekendResult.data
+  }
+
+  // A team fee with no derivable weekend means the member is on no roster.
+  // Never guess a weekend for money — surface the real problem instead.
+  // (Candidate fees may legitimately have no weekend while unassigned.)
+  if (
+    validatedData.type === 'fee' &&
+    validatedData.target_type === 'weekend_group_member' &&
+    isNil(weekendId)
+  ) {
+    return err(
+      'This team member is not on a weekend roster, so the payment cannot be assigned to a weekend. Add them to a roster first.'
+    )
+  }
+
   // Create the payment transaction
   return PaymentRepository.createPayment(
     {
       type: validatedData.type,
       target_type: validatedData.target_type,
       target_id: validatedData.target_id,
-      weekend_id: validatedData.weekend_id,
+      weekend_id: weekendId,
       payment_intent_id: validatedData.payment_intent_id ?? null,
       gross_amount: validatedData.gross_amount,
       net_amount: validatedData.net_amount ?? null,
@@ -312,6 +342,65 @@ export async function movePaymentsToWeekend(
     weekendId,
     options
   )
+}
+
+/**
+ * Auto-follow: re-points a group member's payments at the weekend they are
+ * actually rostered on, after a roster change.
+ *
+ * Only acts when the member resolves to exactly ONE active weekend — a
+ * dual-server's attribution is ambiguous and a rosterless member has no
+ * weekend, so both are left alone. Only live (non-voided) payments whose
+ * weekend differs are touched; a voided payment records a refund or mistake
+ * and must not follow anyone.
+ *
+ * Runs with RLS bypassed for the payment write: this is a system-level
+ * consequence of a roster change authorized upstream, not a user-initiated
+ * payment edit — payment writes require WRITE_PAYMENTS, which a roster
+ * editor need not have. The acting user (when there is one) is stamped on
+ * updated_by so the change stays auditable.
+ *
+ * @param groupMemberId - The weekend_group_members row whose payments to sync
+ * @returns Result containing the payments that were moved (often empty)
+ */
+export async function syncGroupMemberPaymentsToRoster(
+  groupMemberId: string
+): Promise<Result<string, PaymentTransactionRow[]>> {
+  const resolutionResult =
+    await GroupMemberRepository.getGroupMemberWeekendResolution(groupMemberId)
+  if (isErr(resolutionResult)) return resolutionResult
+
+  const { rosterWeekendIds, weekendId } = resolutionResult.data
+  if (rosterWeekendIds.length !== 1 || isNil(weekendId)) {
+    return ok([])
+  }
+
+  // Stamp the acting user when available; webhook/system contexts have none.
+  const actorResult = await getActorId()
+  const actorId = isErr(actorResult) ? null : actorResult.data
+
+  const moveResult = await PaymentRepository.updatePaymentsWeekendByTarget(
+    'weekend_group_member',
+    groupMemberId,
+    weekendId,
+    { dangerouslyBypassRLS: true },
+    { onlyLiveMismatched: true, actorId }
+  )
+  if (isErr(moveResult)) return moveResult
+
+  if (moveResult.data.length > 0) {
+    logger.info(
+      {
+        groupMemberId,
+        weekendId,
+        paymentIds: moveResult.data.map((p) => p.id),
+        actorId,
+      },
+      'Payments auto-followed group member to rostered weekend'
+    )
+  }
+
+  return moveResult
 }
 
 /**
@@ -534,34 +623,44 @@ export async function getActiveWeekendFinancials(
 // ============================================================================
 
 /**
- * Resolves the weekend a reassign target belongs to, and confirms the target
- * exists.
+ * Resolves the weekend a payment target belongs to, and confirms the target
+ * exists. This is the single derivation every payment write goes through —
+ * recordPayment and reassignPayment both use it, so no caller can supply a
+ * wrong weekend.
  *
- * The weekend is re-derived rather than carried over from the old target
- * because `weekend_id` is what the payment report and the active-weekend
- * financials group on. Leaving a stale weekend on a reassigned payment skews
- * per-weekend totals with nothing on screen to explain it.
+ * The weekend is derived rather than accepted from the caller because
+ * `weekend_id` is what the payment report and the active-weekend financials
+ * group on. A wrong or stale weekend skews per-weekend totals with nothing
+ * on screen to explain it.
  */
-async function resolveTargetWeekend(
+export async function resolveTargetWeekend(
   targetType: NonNullable<TargetType>,
-  targetId: string
+  targetId: string,
+  options?: ServiceOptions
 ): Promise<Result<string, string | null>> {
   switch (targetType) {
     case 'candidate': {
-      const result = await PaymentRepository.findCandidateWeekend(targetId)
+      const result = await PaymentRepository.findCandidateWeekend(
+        targetId,
+        options
+      )
       if (isErr(result)) return result
       if (!result.data.found) return err('Candidate not found')
       return ok(result.data.weekendId)
     }
     case 'weekend_group_member': {
       // Group members belong to a group covering both weekends; this resolves
-      // the one matching the member's gender.
+      // the weekend the member is actively rostered on (gender only breaks a
+      // dual-server tie). Uses the admin client internally.
       const result = await GroupMemberRepository.getGroupMemberById(targetId)
       if (isErr(result)) return err('Team member not found')
       return ok(result.data.weekendId)
     }
     case 'weekend_roster': {
-      const result = await PaymentRepository.findRosterWeekend(targetId)
+      const result = await PaymentRepository.findRosterWeekend(
+        targetId,
+        options
+      )
       if (isErr(result)) return result
       if (!result.data.found) return err('Roster entry not found')
       return ok(result.data.weekendId)
@@ -629,6 +728,18 @@ export async function reassignPayment(
 
   const weekendResult = await resolveTargetWeekend(targetType, targetId)
   if (isErr(weekendResult)) return weekendResult
+
+  // Mirror recordPayment: a fee cannot land on a team member who is on no
+  // roster — there would be no weekend to count it under.
+  if (
+    payment.type === 'fee' &&
+    targetType === 'weekend_group_member' &&
+    isNil(weekendResult.data)
+  ) {
+    return err(
+      'That team member is not on a weekend roster, so the payment cannot be assigned to a weekend. Add them to a roster first.'
+    )
+  }
 
   const updateResult = await PaymentRepository.updatePaymentTarget(
     paymentId,

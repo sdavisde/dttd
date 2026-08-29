@@ -17,6 +17,7 @@ import { computeEligibility } from './eligibility'
 import * as RosterBuilderRepository from './repository'
 import * as WeekendRepository from '@/services/weekend/repository'
 import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
+import * as PaymentService from '@/services/payment/payment-service'
 import * as MasterRosterService from '@/services/master-roster/master-roster-service'
 import type {
   RosterBuilderCommunityMember,
@@ -301,6 +302,18 @@ export async function finalizeDraftRosterMember(
     )
   }
 
+  // Step 4: Auto-follow — re-point any existing payments at the weekend the
+  // member now serves on. Never fails the finalization.
+  const syncResult = await PaymentService.syncGroupMemberPaymentsToRoster(
+    groupResult.data
+  )
+  if (isErr(syncResult)) {
+    logger.warn(
+      { draftId, groupMemberId: groupResult.data, error: syncResult.error },
+      'Failed to auto-follow payments after roster finalization'
+    )
+  }
+
   return ok(rosterId)
 }
 
@@ -311,11 +324,39 @@ export async function finalizeDraftRosterMember(
 /**
  * Drops a finalized roster member by setting their status to 'drop'.
  * The member returns to the community pool.
+ *
+ * After the drop, the member's payments auto-follow their remaining roster
+ * placement — a dual-server dropped from one weekend has their payments
+ * re-pointed at the weekend they still serve. A failed auto-follow logs a
+ * warning but never fails the drop.
  */
 export async function dropFinalizedRosterMember(
   rosterId: string
 ): Promise<Result<string, void>> {
-  return WeekendRepository.dropWeekendRosterMember(rosterId)
+  // Read the row before dropping so the group member is known afterwards.
+  const rosterResult =
+    await WeekendRepository.findWeekendRosterMemberById(rosterId)
+
+  const dropResult = await WeekendRepository.dropWeekendRosterMember(rosterId)
+  if (isErr(dropResult)) {
+    return dropResult
+  }
+
+  const groupMemberId = isErr(rosterResult)
+    ? null
+    : (rosterResult.data?.group_member_id ?? null)
+  if (!isNil(groupMemberId)) {
+    const syncResult =
+      await PaymentService.syncGroupMemberPaymentsToRoster(groupMemberId)
+    if (isErr(syncResult)) {
+      logger.warn(
+        { rosterId, groupMemberId, error: syncResult.error },
+        'Failed to auto-follow payments after roster drop'
+      )
+    }
+  }
+
+  return ok(undefined)
 }
 
 /**

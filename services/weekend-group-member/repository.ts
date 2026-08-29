@@ -5,6 +5,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { err, ok, isErr } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
+import { chooseGroupMemberWeekend } from './resolve-weekend'
 import type {
   RawGroupMember,
   RawFormCompletion,
@@ -108,13 +109,39 @@ export async function getActiveGroupMemberForUser(
 }
 
 /**
- * Finds a weekend_group_member by its ID.
- * Also resolves the weekend_id within the group that matches the member's gender.
+ * Resolution of a group member's payment weekend from their roster placement.
+ */
+export type GroupMemberWeekendResolution = {
+  member: RawGroupMember
+  /**
+   * Distinct weekends (within the member's group) that the member is actively
+   * rostered on. Empty when they are on no roster; two entries for a
+   * dual-server.
+   */
+  rosterWeekendIds: string[]
+  /**
+   * The weekend the member's payments belong to — see
+   * chooseGroupMemberWeekend for the 0/1/2-roster rules. Null when they are
+   * on no roster.
+   */
+  weekendId: string | null
+}
+
+/**
+ * Resolves a group member's weekend from their active roster rows.
+ *
+ * weekend_group_members is group-scoped, so something must choose the MENS or
+ * WOMENS weekend when attributing a payment. The roster is the source of
+ * truth: roster rows are matched via group_member_id, or via user_id for
+ * legacy rows created before the group_member_id column, restricted to the
+ * member's group and excluding dropped rows. Gender is only consulted as a
+ * dual-server tiebreak (see chooseGroupMemberWeekend).
+ *
  * Uses admin client to bypass RLS — for use in webhook handlers.
  */
-export async function getGroupMemberById(
+export async function getGroupMemberWeekendResolution(
   groupMemberId: string
-): Promise<Result<string, RawGroupMember & { weekendId: string | null }>> {
+): Promise<Result<string, GroupMemberWeekendResolution>> {
   const supabase = createAdminClient()
 
   const { data: member, error: memberError } = await supabase
@@ -127,37 +154,86 @@ export async function getGroupMemberById(
     return err('Weekend group member not found')
   }
 
-  // A group contains both a MENS and WOMENS weekend. Resolve the weekend that
-  // matches the member's gender — otherwise we'd always return the MENS weekend
-  // (inserted first), mis-tagging women's payments as men's.
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('gender')
-    .eq('id', member.user_id)
-    .maybeSingle()
+  const { data: groupWeekends, error: weekendsError } = await supabase
+    .from('weekends')
+    .select('id, type')
+    .eq('group_id', member.group_id)
 
-  if (isSupabaseError(userError)) {
-    return err('Failed to fetch user for group member')
+  if (isSupabaseError(weekendsError)) {
+    return err('Failed to fetch weekends for group member')
   }
 
-  const weekendType = user?.gender === 'female' ? 'WOMENS' : 'MENS'
+  const weekendIds = (groupWeekends ?? []).map((w) => w.id)
+  if (weekendIds.length === 0) {
+    return ok({
+      member: member as RawGroupMember,
+      rosterWeekendIds: [],
+      weekendId: null,
+    })
+  }
 
-  const { data: weekend, error: weekendError } = await supabase
-    .from('weekends')
-    .select('id')
-    .eq('group_id', member.group_id)
-    .eq('type', weekendType)
-    .limit(1)
-    .maybeSingle()
+  const { data: rosterRows, error: rosterError } = await supabase
+    .from('weekend_roster')
+    .select('weekend_id')
+    .in('weekend_id', weekendIds)
+    .or(`group_member_id.eq.${member.id},user_id.eq.${member.user_id}`)
+    .or('status.is.null,status.neq.drop')
 
-  if (isSupabaseError(weekendError)) {
-    return err('Failed to fetch weekend for group member')
+  if (isSupabaseError(rosterError)) {
+    return err('Failed to fetch roster rows for group member')
+  }
+
+  const rosterWeekendIds = [
+    ...new Set(
+      (rosterRows ?? [])
+        .map((row) => row.weekend_id)
+        .filter((id): id is string => !isNil(id))
+    ),
+  ]
+
+  // Gender is only needed for the dual-server tiebreak — skip the lookup in
+  // the common single-roster case.
+  let gender: string | null = null
+  if (rosterWeekendIds.length > 1) {
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('gender')
+      .eq('id', member.user_id)
+      .maybeSingle()
+
+    if (isSupabaseError(userError)) {
+      return err('Failed to fetch user for group member')
+    }
+    gender = user?.gender ?? null
   }
 
   return ok({
-    ...(member as RawGroupMember),
-    weekendId: weekend?.id ?? null,
+    member: member as RawGroupMember,
+    rosterWeekendIds,
+    weekendId: chooseGroupMemberWeekend(
+      rosterWeekendIds,
+      groupWeekends ?? [],
+      gender
+    ),
   })
+}
+
+/**
+ * Finds a weekend_group_member by its ID.
+ * Also resolves the weekend the member's payments belong to, from their
+ * active roster rows — see getGroupMemberWeekendResolution.
+ * Uses admin client to bypass RLS — for use in webhook handlers.
+ */
+export async function getGroupMemberById(
+  groupMemberId: string
+): Promise<Result<string, RawGroupMember & { weekendId: string | null }>> {
+  const resolutionResult = await getGroupMemberWeekendResolution(groupMemberId)
+  if (isErr(resolutionResult)) {
+    return resolutionResult
+  }
+
+  const { member, weekendId } = resolutionResult.data
+  return ok({ ...member, weekendId })
 }
 
 /**

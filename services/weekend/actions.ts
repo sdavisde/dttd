@@ -230,6 +230,27 @@ export const addUserToWeekendRoster = authorizedAction<
   return WeekendService.addUserToWeekendRoster(weekendId, userId, role, rollo)
 })
 
+type UpdateWeekendRosterMemberRequest = {
+  rosterId: string
+  updates: {
+    status?: string
+    cha_role?: string
+    rollo?: string | null
+  }
+}
+
+/**
+ * Updates a weekend roster member's status, role, and rollo. The member's
+ * payments auto-follow their roster placement after the edit.
+ * Requires WRITE_TEAM_ROSTER permission.
+ */
+export const updateWeekendRosterMember = authorizedAction<
+  UpdateWeekendRosterMemberRequest,
+  void
+>(Permission.WRITE_TEAM_ROSTER, async ({ rosterId, updates }) => {
+  return WeekendService.updateWeekendRosterMember(rosterId, updates)
+})
+
 /**
  * Fetches all data required for the WeekendRosterView component.
  * Public - performs permission-based conditional fetching internally.

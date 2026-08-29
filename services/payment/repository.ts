@@ -227,21 +227,42 @@ export async function updatePayment(
  * @param targetId - The ID of the target entity
  * @param weekendId - The weekend to reassign the payments to
  * @param options - Service options including RLS bypass flag
+ * @param follow - Optional narrowing for the auto-follow flow:
+ *   `onlyLiveMismatched` restricts the update to non-voided payments whose
+ *   weekend actually differs; `actorId` stamps updated_at/updated_by so the
+ *   correction is auditable
  * @returns Result containing the updated payment transactions or an error
  */
 export async function updatePaymentsWeekendByTarget(
   targetType: NonNullable<TargetType>,
   targetId: string,
   weekendId: string,
-  options?: ServiceOptions
+  options?: ServiceOptions,
+  follow?: { onlyLiveMismatched?: boolean; actorId?: string | null }
 ): Promise<Result<string, PaymentTransactionRow[]>> {
   const supabase = await getClient(options)
-  const response = await supabase
+
+  const changes: PaymentTransactionUpdate = { weekend_id: weekendId }
+  if (!isNil(follow?.actorId)) {
+    changes.updated_at = new Date().toISOString()
+    changes.updated_by = follow.actorId
+  }
+
+  let query = supabase
     .from('payment_transaction')
-    .update({ weekend_id: weekendId })
+    .update(changes)
     .eq('target_type', targetType)
     .eq('target_id', targetId)
-    .select()
+
+  if (follow?.onlyLiveMismatched === true) {
+    query = query
+      .is('voided_at', null)
+      // .neq alone would skip rows with a NULL weekend, which are exactly
+      // the ones most in need of the fix.
+      .or(`weekend_id.is.null,weekend_id.neq.${weekendId}`)
+  }
+
+  const response = await query.select()
   return fromSupabase(response)
 }
 

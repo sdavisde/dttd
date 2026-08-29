@@ -30,8 +30,8 @@ import type { SubmitHandler } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/client'
-import { isSupabaseError } from '@/lib/supabase/utils'
+import { updateWeekendRosterMember } from '@/services/weekend'
+import { isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
@@ -123,19 +123,17 @@ export function EditTeamMemberModal({
     setIsSubmitting(true)
 
     try {
-      const client = createClient()
-
-      const { error } = await client
-        .from('weekend_roster')
-        .update({
+      const result = await updateWeekendRosterMember({
+        rosterId: rosterMember.id,
+        updates: {
           status,
           cha_role,
           rollo: rollo ?? null,
-        })
-        .eq('id', rosterMember.id)
+        },
+      })
 
-      if (isSupabaseError(error)) {
-        logger.error(`💢 failed to update roster member: ${error.message}`)
+      if (isErr(result)) {
+        logger.error(`💢 failed to update roster member: ${result.error}`)
         setError('root', { message: 'Failed to update roster member' })
         return
       }
@@ -158,47 +156,14 @@ export function EditTeamMemberModal({
     setIsSubmitting(true)
 
     try {
-      const client = createClient()
+      const result = await updateWeekendRosterMember({
+        rosterId: rosterMember.id,
+        updates: { status: 'drop' },
+      })
 
-      const { error } = await client
-        .from('weekend_roster')
-        .update({ status: 'drop' })
-        .eq('id', rosterMember.id)
-
-      if (isSupabaseError(error)) {
-        logger.error(`💢 failed to drop roster member: ${error.message}`)
+      if (isErr(result)) {
+        logger.error(`💢 failed to drop roster member: ${result.error}`)
         setError('root', { message: 'Failed to drop roster member' })
-        return
-      }
-
-      router.refresh()
-      handleClose()
-    } catch (error) {
-      setError('root', { message: 'An unexpected error occurred' })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (isNil(rosterMember)) {
-      setError('root', { message: 'No roster member selected' })
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      const client = createClient()
-
-      const { error } = await client
-        .from('weekend_roster')
-        .delete()
-        .eq('id', rosterMember.id)
-
-      if (isSupabaseError(error)) {
-        logger.error(`💢 failed to delete roster member: ${error.message}`)
-        setError('root', { message: 'Failed to delete roster member' })
         return
       }
 
@@ -241,17 +206,6 @@ export function EditTeamMemberModal({
               name="rollo"
               selectedRole={selectedRole}
             />
-
-            {/*<Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              <Trash className="w-4 h-4 mr-2" />
-              Remove from Roster
-            </Button>*/}
 
             {!isNil(form.formState.errors.root) && (
               <Alert variant="destructive">
