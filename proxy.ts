@@ -19,6 +19,7 @@ export const PUBLIC_REGEX_ROUTES = [
   /^\/login$/,
   /^\/join$/,
   /^\/auth\/callback$/,
+  /^\/auth\/confirm$/,
   /^\/secuela-signin$/,
   /^\/$/,
 ]

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { CheckCircle2, Loader2, MailQuestion } from 'lucide-react'
 import { Typography } from '@/components/ui/typography'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
@@ -33,6 +33,7 @@ import {
 import { isErr } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import { toast } from 'sonner'
+import { ChangeEmailDialog } from './change-email-dialog'
 
 const profileFormSchema = z.object({
   email: z.email(),
@@ -60,6 +61,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState<string | null>(null)
   const [cropperOpen, setCropperOpen] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false)
+  const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null)
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -69,6 +71,54 @@ export default function ProfilePage() {
       phoneNumber: user?.phoneNumber ?? '',
     },
   })
+
+  // A staged email change keeps auth.users.new_email set until both
+  // confirmation links are clicked — surface it as a pending banner.
+  const refreshPendingEmail = useCallback(async () => {
+    const supabase = createClient()
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+    setPendingNewEmail(authUser?.new_email ?? null)
+  }, [])
+
+  useEffect(() => {
+    refreshPendingEmail()
+  }, [refreshPendingEmail])
+
+  // Handle redirects back from /auth/confirm email change links
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('emailChange')
+    if (isNil(status)) {
+      return
+    }
+
+    if (status === 'complete') {
+      toast.success('Your email has been updated.')
+      refreshSession()
+      router.refresh()
+    } else if (status === 'pending') {
+      toast.info(
+        'Almost there — click the link in your new email address’s inbox to finish changing your email.'
+      )
+    } else if (status === 'error') {
+      toastError(
+        'That confirmation link is invalid or has expired. Please request the email change again.'
+      )
+    }
+
+    params.delete('emailChange')
+    const query = params.toString()
+    window.history.replaceState(
+      null,
+      '',
+      query !== ''
+        ? `${window.location.pathname}?${query}`
+        : window.location.pathname
+    )
+    refreshPendingEmail()
+  }, [refreshSession, router, refreshPendingEmail])
 
   useEffect(() => {
     if (!sessionLoading && !isAuthenticated) {
@@ -238,6 +288,17 @@ export default function ProfilePage() {
         />
 
         <div className="">
+          {!isNil(pendingNewEmail) && (
+            <Alert variant="default" className="mb-3">
+              <MailQuestion />
+              <AlertTitle>Email change pending</AlertTitle>
+              <AlertDescription>
+                A change to {pendingNewEmail} is awaiting confirmation. Click
+                the link we sent to that inbox to complete it.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {!isNil(message) && (
             <Alert variant="default" className="mb-3">
               <CheckCircle2 />
@@ -267,16 +328,25 @@ export default function ProfilePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="example@gmail.com"
-                        disabled
-                        className="w-full"
-                        {...field}
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="example@gmail.com"
+                          disabled
+                          className="w-full"
+                          {...field}
+                        />
+                      </FormControl>
+                      <ChangeEmailDialog
+                        currentEmail={user?.email ?? ''}
+                        onRequested={refreshPendingEmail}
                       />
-                    </FormControl>
-                    <FormDescription>Email cannot be changed</FormDescription>
+                    </div>
+                    <FormDescription>
+                      Changing your email requires your password and a
+                      confirmation from the new address
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
