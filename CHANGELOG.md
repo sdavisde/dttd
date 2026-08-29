@@ -1,3 +1,9 @@
+## [1.49.1](https://github.com/sdavisde/dttd/compare/v1.49.0...v1.49.1) (2026-08-29)
+
+### Bug Fixes
+
+- **payments:** derive payment weekends from roster placement, not gender ([795aca2](https://github.com/sdavisde/dttd/commit/795aca234c0651cfe75a7ed2e7fd05cd4b201827))
+
 ## [1.49.0](https://github.com/sdavisde/dttd/compare/v1.48.0...v1.49.0) (2026-08-29)
 
 ### Features
