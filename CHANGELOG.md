@@ -1,3 +1,16 @@
+## [1.50.0](https://github.com/sdavisde/dttd/compare/v1.49.1...v1.50.0) (2026-08-31)
+
+### Features
+
+- **auth:** let users change their account email ([79c673d](https://github.com/sdavisde/dttd/commit/79c673d130f5f89cfded273b1906917f835041b2))
+- **security:** allow anyone to export candidate and roster lists ([8f258d1](https://github.com/sdavisde/dttd/commit/8f258d1caac6585a632ca5481a599195cdff8e64))
+- **ui:** warm design foundation and profile settings redesign ([448bdc3](https://github.com/sdavisde/dttd/commit/448bdc31e41299e843d39144d9f2f193c7bb0730))
+
+### Bug Fixes
+
+- **auth:** keep public.users email in sync when auth email changes ([8edc7ca](https://github.com/sdavisde/dttd/commit/8edc7ca49f1fda2edda9832526e02ccd58d24734))
+- **supabase:** unblock release config push and keep Resend SMTP in sync ([ef8c699](https://github.com/sdavisde/dttd/commit/ef8c699e4a30a0a13646be5be2a99afb765e2acf))
+
 ## [1.49.1](https://github.com/sdavisde/dttd/compare/v1.49.0...v1.49.1) (2026-08-29)
 
 ### Bug Fixes
