@@ -116,6 +116,12 @@ file_size_limit = "50MiB"
 # allowed_mime_types = ["image/png", "image/jpeg"]
 # objects_path = "./images"
 
+# Vector buckets default to enabled in the CLI's config template, but they are a
+# paid-tier feature — pushing enabled = true to our free-tier project fails the
+# release workflow's `config push` with a 402. Keep this explicitly off.
+[storage.vector]
+enabled = false
+
 [auth]
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
@@ -383,3 +389,20 @@ additional_redirect_urls = [
   "https://dustytrailstresdias.org/auth/confirm",
   "https://dustytrailstresdias.org/reset-password",
 ]
+
+[remotes.production.auth.rate_limit]
+# Custom SMTP lifts the built-in 2/hour cap; match the Supabase default for custom SMTP.
+email_sent = 30
+
+# Mirrors the Resend SMTP setup entered in the Supabase dashboard (2026-08-31).
+# `config push` overwrites the whole auth section on every release, so this block
+# must stay in sync or the dashboard values get wiped. Prod-only: local keeps the
+# bundled test mail server.
+[remotes.production.auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "admin@dustytrailstresdias.org"
+sender_name = "Dusty Trails Tres Dias"
