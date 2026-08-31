@@ -132,7 +132,6 @@ export async function WeekendRosterView({
             <div className="flex gap-2">
               <ExportRosterButton
                 roster={roster}
-                canExport={canEditRoster}
                 options={{
                   includePaymentInformation: canViewPaymentInfo,
                   includeEmergencyContact: canViewEmergencyContact,

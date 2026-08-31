@@ -18,8 +18,6 @@ import {
 
 type ExportRosterButtonProps = {
   roster: WeekendRosterMember[]
-  /** Whether the viewer is allowed to export (mirrors WRITE_TEAM_ROSTER) */
-  canExport: boolean
   /** Permission-gated columns to include in the export */
   options: RosterExportOptions
   weekendName?: string
@@ -27,14 +25,9 @@ type ExportRosterButtonProps = {
 
 export function ExportRosterButton({
   roster,
-  canExport,
   options,
   weekendName,
 }: ExportRosterButtonProps) {
-  if (!canExport) {
-    return null
-  }
-
   const handleExportCsv = () => {
     // Exclude dropped members so the export matches the active roster table
     const activeRoster = roster.filter((member) => member.status !== 'drop')
