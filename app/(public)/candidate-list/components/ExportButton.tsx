@@ -10,8 +10,6 @@ import {
 import { Download, FileText } from 'lucide-react'
 import type { HydratedCandidate } from '@/lib/candidates/types'
 import type { User } from '@/lib/users/types'
-import { userHasPermission, Permission } from '@/lib/security'
-import { isNil } from 'lodash'
 import {
   generateCandidateListCsv,
   downloadCandidateListCsv,
@@ -29,14 +27,6 @@ export function ExportButton({
   user,
   weekendName,
 }: ExportButtonProps) {
-  // Check if user has permission to export
-  const canExport =
-    !isNil(user) && userHasPermission(user, [Permission.EXPORT_CANDIDATE_LIST])
-
-  if (!canExport) {
-    return null
-  }
-
   const handleExportCsv = () => {
     const csvContent = generateCandidateListCsv(candidates, user)
     const filename = generateCsvFilename(weekendName)
