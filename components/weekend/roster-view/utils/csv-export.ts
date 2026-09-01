@@ -1,4 +1,5 @@
 import type { WeekendRosterMember } from '@/services/weekend'
+import { sortRosterByRole } from '@/lib/weekend/roster-utils'
 import { isNil } from 'lodash'
 
 /**
@@ -9,6 +10,7 @@ export type RosterExportOptions = {
   includePaymentInformation?: boolean
   includeEmergencyContact?: boolean
   includeSpecialNeeds?: boolean
+  includeChurch?: boolean
 }
 
 type RosterExportColumn = {
@@ -52,13 +54,23 @@ function buildRosterExportColumns(
     { header: 'Name', accessor: getMemberName },
     { header: 'Email', accessor: (m) => m.users?.email },
     { header: 'Phone', accessor: (m) => m.users?.phone_number },
+  ]
+
+  if (options.includeChurch === true) {
+    columns.push({
+      header: 'Church',
+      accessor: (m) => m.users?.church_affiliation,
+    })
+  }
+
+  columns.push(
     { header: 'Role', accessor: (m) => m.cha_role },
     { header: 'Rollo', accessor: (m) => m.rollo },
     {
       header: 'Forms',
       accessor: (m) => (m.forms_complete ? 'Complete' : 'Incomplete'),
-    },
-  ]
+    }
+  )
 
   if (options.includeEmergencyContact === true) {
     columns.push(
@@ -100,9 +112,12 @@ export function generateRosterCsv(
 ): string {
   const columns = buildRosterExportColumns(options)
 
+  // Match the table's default ordering so the export reads in CHA role order
+  const sortedRoster = sortRosterByRole(roster)
+
   const headerRow = columns.map((col) => escapeCsvField(col.header)).join(',')
 
-  const dataRows = roster.map((member) =>
+  const dataRows = sortedRoster.map((member) =>
     columns.map((col) => escapeCsvField(col.accessor(member))).join(',')
   )
 

@@ -172,6 +172,7 @@ const CHA_ROLE_PERMISSIONS: Readonly<Record<CHARole, readonly Permission[]>> = {
     Permission.READ_CANDIDATE_CONTACT_INFO,
     Permission.READ_CANDIDATE_ADDRESS,
     Permission.READ_CANDIDATE_CHURCH,
+    Permission.READ_TEAM_FORM_INFO,
   ],
   [CHARole.TECH]: [],
   [CHARole.HEAD_ROLLISTA]: [],

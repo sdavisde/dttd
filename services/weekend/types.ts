@@ -35,6 +35,7 @@ export type RawWeekendRoster = {
     last_name: string | null
     email: string | null
     phone_number: string | null
+    church_affiliation: string | null
     profile_photo_path: string | null
     profile_photo_updated_at: string | null
   } | null
@@ -63,6 +64,7 @@ export type WeekendRosterMember = {
     last_name: string | null
     email: string | null
     phone_number: string | null
+    church_affiliation: string | null
     profile_photo_path: string | null
     profile_photo_updated_at: string | null
   } | null

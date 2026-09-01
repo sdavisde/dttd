@@ -136,6 +136,7 @@ export async function WeekendRosterView({
                   includePaymentInformation: canViewPaymentInfo,
                   includeEmergencyContact: canViewEmergencyContact,
                   includeSpecialNeeds: canViewSpecialNeeds,
+                  includeChurch: canViewTeamFormInfo,
                 }}
                 weekendName={weekendTitle}
               />

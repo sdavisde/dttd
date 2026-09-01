@@ -1116,6 +1116,9 @@ export async function getWeekendRosterViewData(
   const canViewExperienceDistribution = userHasPermission(user, [
     Permission.READ_USER_EXPERIENCE,
   ])
+  const canViewTeamFormInfo = userHasPermission(user, [
+    Permission.READ_TEAM_FORM_INFO,
+  ])
 
   const [weekendResult, rosterResult, usersResult, experienceResult] =
     await Promise.all([
@@ -1136,7 +1139,16 @@ export async function getWeekendRosterViewData(
   }
 
   const weekend = weekendResult.data
-  const roster = rosterResult.data
+  // Church affiliation is permission-gated, so drop it before it reaches the
+  // client for viewers who aren't allowed to see team form info.
+  const roster = canViewTeamFormInfo
+    ? rosterResult.data
+    : rosterResult.data.map((member) => ({
+        ...member,
+        users: isNil(member.users)
+          ? null
+          : { ...member.users, church_affiliation: null },
+      }))
   const users = unwrapOr(usersResult, [])
   const experienceDistribution = unwrapOr(experienceResult, null)
 

@@ -1,4 +1,6 @@
+import { isNil } from 'lodash'
 import type { WeekendRosterMember } from '@/services/weekend'
+import { CHARole } from './types'
 
 /**
  * Filters roster members by their status
@@ -49,4 +51,27 @@ export function getRosterCounts(roster: Array<WeekendRosterMember>) {
     dropped: droppedRoster.length,
     total: roster.length,
   }
+}
+
+/**
+ * Returns the canonical ordering index for a CHA role, matching the order the
+ * roles are declared in the CHARole enum. Unknown roles sort just before
+ * members with no role at all.
+ */
+export function getRoleSortOrder(role: string | null | undefined): number {
+  if (isNil(role)) return 999
+  const index = Object.values(CHARole).indexOf(role as CHARole)
+  return index === -1 ? 998 : index
+}
+
+/**
+ * Sorts roster members by CHA role using the canonical role ordering. Sorting
+ * is stable, so members sharing a role keep their incoming order.
+ */
+export function sortRosterByRole<T extends { cha_role: string | null }>(
+  roster: Array<T>
+): Array<T> {
+  return [...roster].sort(
+    (a, b) => getRoleSortOrder(a.cha_role) - getRoleSortOrder(b.cha_role)
+  )
 }

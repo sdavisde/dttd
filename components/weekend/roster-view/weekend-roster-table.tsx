@@ -100,6 +100,7 @@ export function WeekendRosterTable({
         columnVisibility={{
           forms: !includeTeamFormInfo,
           team_form_info: includeTeamFormInfo,
+          church: includeTeamFormInfo,
           emergency: includeEmergencyContact,
           special_needs: includeSpecialNeeds,
           payment: includePaymentInformation,

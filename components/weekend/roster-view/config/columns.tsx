@@ -3,7 +3,7 @@
 import type { ColumnDef, FilterFn, SortingFn } from '@tanstack/react-table'
 import { Row } from '@tanstack/react-table'
 import type { WeekendRosterMember } from '@/services/weekend'
-import { CHARole } from '@/lib/weekend/types'
+import { getRoleSortOrder } from '@/lib/weekend/roster-utils'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,12 +17,6 @@ import { UserAvatarWithPreview } from '@/components/user-avatar'
 // ---------------------------------------------------------------------------
 // Role sorting helper
 // ---------------------------------------------------------------------------
-
-const getRoleSortOrder = (role: string | null) => {
-  if (isNil(role)) return 999
-  const index = Object.values(CHARole).indexOf(role as CHARole)
-  return index === -1 ? 998 : index
-}
 
 const roleSortingFn: SortingFn<WeekendRosterMember> = (rowA, rowB) => {
   const a = getRoleSortOrder(rowA.original.cha_role)
@@ -124,6 +118,24 @@ export function getWeekendRosterColumns(
       meta: {
         showOnMobile: true,
         mobileLabel: 'Phone',
+        mobilePriority: 'detail',
+      },
+    },
+    {
+      id: 'church',
+      accessorFn: (m) => m.users?.church_affiliation ?? null,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Church" />
+      ),
+      cell: ({ getValue }) => (
+        <span className="text-muted-foreground">
+          {getValue<string | null>() ?? '-'}
+        </span>
+      ),
+      meta: {
+        filterType: 'select',
+        showOnMobile: true,
+        mobileLabel: 'Church',
         mobilePriority: 'detail',
       },
     },
