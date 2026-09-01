@@ -1,3 +1,14 @@
+## [1.52.1](https://github.com/sdavisde/dttd/compare/v1.52.0...v1.52.1) (2026-09-01)
+
+### Bug Fixes
+
+- **navbar:** stop toast listener router dispatch crashing Next router ([88ea77a](https://github.com/sdavisde/dttd/commit/88ea77a8250096b1bbd34116bebd3f0ee20361ac))
+- **routing:** remove post-flush redirects and unflagged history dispatches ([62c6b8d](https://github.com/sdavisde/dttd/commit/62c6b8d7a989a70b60e42764570d77d0fa4d7327))
+
+### Performance Improvements
+
+- **loading:** stream public shell and dedupe per-request auth fetches ([5f8ed79](https://github.com/sdavisde/dttd/commit/5f8ed79dbec9f66028ff3d524336f8f157db01d4))
+
 ## [1.52.0](https://github.com/sdavisde/dttd/compare/v1.51.0...v1.52.0) (2026-09-01)
 
 ### Features
