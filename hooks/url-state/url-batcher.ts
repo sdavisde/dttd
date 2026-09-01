@@ -53,8 +53,10 @@ function flush(): void {
 
   const qs = params.toString()
   const url = `${window.location.pathname}${qs !== '' ? `?${qs}` : ''}`
-  // Spread history.state so we don't clobber Next.js internals
-  const state = { ...window.history.state }
+  // Spread history.state so we don't clobber Next.js internals. The `_N: true`
+  // flag keeps Next's patched history methods from dispatching a router action
+  // (history.state can be null, in which case the spread alone is `{}`).
+  const state = { ...window.history.state, _N: true }
 
   if (useReplace) window.history.replaceState(state, '', url)
   else window.history.pushState(state, '', url)

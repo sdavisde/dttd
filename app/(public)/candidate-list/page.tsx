@@ -18,7 +18,13 @@ interface PageProps {
 
 export default async function CandidateListPage({ searchParams }: PageProps) {
   const pageData = await getCandidateListPageData(searchParams)
-  const { candidates, weekendOptions, currentWeekendId, user } = pageData
+  const {
+    candidates,
+    weekendOptions,
+    currentWeekendId,
+    currentWeekendType,
+    user,
+  } = pageData
 
   // Filter out rejected and sponsored candidates so both the table and export
   // show the same set of active candidates.
@@ -52,7 +58,11 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <WeekendFilterSelector weekendOptions={weekendOptions} />
+        <WeekendFilterSelector
+          weekendOptions={weekendOptions}
+          currentWeekendId={currentWeekendId}
+          currentWeekendType={currentWeekendType}
+        />
 
         {!isNil(currentWeekendId) ? (
           <CandidateListTable candidates={activeCandidates} user={user} />

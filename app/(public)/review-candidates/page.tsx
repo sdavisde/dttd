@@ -23,7 +23,8 @@ export default async function ReviewCandidatePage({ searchParams }: PageProps) {
     getLoggedInUser(),
   ])
 
-  const { candidates, weekendOptions, currentWeekendId } = pageData
+  const { candidates, weekendOptions, currentWeekendId, currentWeekendType } =
+    pageData
 
   // Check if user has permission to record payments
   const canEditPayments =
@@ -38,7 +39,11 @@ export default async function ReviewCandidatePage({ searchParams }: PageProps) {
           A list of candidates for the upcoming weekends.
         </Typography>
 
-        <WeekendFilterSelector weekendOptions={weekendOptions} />
+        <WeekendFilterSelector
+          weekendOptions={weekendOptions}
+          currentWeekendId={currentWeekendId}
+          currentWeekendType={currentWeekendType}
+        />
 
         {!isNil(currentWeekendId) ? (
           <CandidateReviewTable

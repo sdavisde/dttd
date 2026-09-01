@@ -1,6 +1,5 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { isNil } from 'lodash'
 import { getActiveWeekends, getWeekendOptions } from '@/services/weekend'
 import { getAllCandidatesWithDetails } from '@/actions/candidates'
@@ -57,21 +56,15 @@ export async function getCandidateListPageData(
     throw new Error('Could not load candidate list')
   }
 
-  // Handle defaults and redirection
+  // Resolve defaults in place. We deliberately do NOT redirect to decorate the
+  // URL with the defaults: a redirect dispatched from a deferred commit (the
+  // Suspense/loading.tsx shell flushes before this page finishes rendering)
+  // replays client-side and crashes Next's router. The URL simply stays bare
+  // until the user changes a filter.
   const targetWeekend = weekend ?? activeWeekendGroupId
   const targetType = weekendType ?? WeekendType.MENS
 
-  const isWeekendMissingButAvailable = isNil(weekend) && !isNil(targetWeekend)
-  const isTypeMissing = isNil(weekendType)
-
-  if (isWeekendMissingButAvailable || isTypeMissing) {
-    const params = new URLSearchParams()
-    params.set('weekend', targetWeekend)
-    params.set('weekendType', targetType)
-    redirect(`/candidate-list?${params.toString()}`)
-  }
-
-  // Fetch candidates if we have a weekend selected
+  // Fetch candidates for the resolved weekend
   const candidatesResult = await getAllCandidatesWithDetails({
     weekendGroupId: targetWeekend,
     weekendType: targetType,
@@ -82,7 +75,7 @@ export async function getCandidateListPageData(
   return {
     candidates,
     weekendOptions,
-    currentWeekendId: weekend,
+    currentWeekendId: targetWeekend,
     currentWeekendType: targetType,
     user,
   }

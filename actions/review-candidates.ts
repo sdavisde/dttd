@@ -1,6 +1,5 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { isNil } from 'lodash'
 import { getActiveWeekends, getWeekendOptions } from '@/services/weekend'
 import { getAllCandidatesWithDetails } from '@/actions/candidates'
@@ -33,32 +32,25 @@ export async function getReviewPageData(
     ? weekendOptionsResult.data
     : []
 
-  let activeWeekendGroupId = Results.unwrap(activeWeekendsResult).MENS.groupId
+  const activeWeekendGroupId = Results.unwrap(activeWeekendsResult).MENS.groupId
 
-  // Handle defaults and redirection
-  // 1. If no weekend selected, and we have an active one -> redirect to active
+  // Resolve defaults in place:
+  // 1. If no weekend selected, fall back to the active one
   // 2. If 'weekendType' is missing, default to MENS
-  const targetWeekend = weekend ?? activeWeekendGroupId
+  //
+  // We deliberately do NOT redirect to decorate the URL with the defaults: a
+  // redirect dispatched from a deferred commit (the Suspense/loading.tsx shell
+  // flushes before this page finishes rendering) replays client-side and
+  // crashes Next's router. The URL simply stays bare until the user changes a
+  // filter.
+  const targetWeekend = weekend ?? activeWeekendGroupId ?? undefined
   const targetType = weekendType ?? WeekendType.MENS
 
-  // If we have a target weekend but it's not in the params, OR match missing type, redirect
-  // The original logic was: if ((!weekend && targetWeekend) || !weekendType)
-  // We want to preserve that behavior but using our new vars.
-  const isWeekendMissingButAvailable = isNil(weekend) && !isNil(targetWeekend)
-  const isTypeMissing = isNil(weekendType)
-
-  if (isWeekendMissingButAvailable || isTypeMissing) {
-    const params = new URLSearchParams()
-    if (!isNil(targetWeekend)) params.set('weekend', targetWeekend)
-    params.set('weekendType', targetType)
-    redirect(`/review-candidates?${params.toString()}`)
-  }
-
-  // Fetch candidates if we have a weekend selected
+  // Fetch candidates if we have a weekend resolved
   let candidates: HydratedCandidate[] = []
-  if (!isNil(weekend)) {
+  if (!isNil(targetWeekend)) {
     const candidatesResult = await getAllCandidatesWithDetails({
-      weekendGroupId: weekend,
+      weekendGroupId: targetWeekend,
       weekendType: targetType,
     })
 
@@ -72,7 +64,7 @@ export async function getReviewPageData(
   return {
     candidates,
     weekendOptions,
-    currentWeekendId: weekend,
+    currentWeekendId: targetWeekend,
     currentWeekendType: targetType,
   }
 }
