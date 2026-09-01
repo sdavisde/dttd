@@ -1,19 +1,27 @@
 'use client'
 
 import { Errors, getErrorMessage } from '@/lib/error'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Suspense, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Toaster } from './ui/sonner'
 import { isNil } from 'lodash'
 
 export function Toastbox() {
-  return <Toaster position="top-center" richColors />
+  return (
+    <>
+      <Suspense fallback={null}>
+        <ToastListener />
+      </Suspense>
+      <Toaster position="top-center" richColors />
+    </>
+  )
 }
 
-export function useToastListener() {
+// Isolated in its own Suspense boundary so that using useSearchParams() here
+// doesn't force the whole root layout to bail out of static rendering.
+function ToastListener() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const error = searchParams.get('error')
 
   useEffect(() => {
@@ -26,6 +34,12 @@ export function useToastListener() {
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.delete('error')
     const newUrl = `${window.location.pathname}${newSearchParams.toString() !== '' ? '?' + newSearchParams.toString() : ''}`
-    router.replace(newUrl)
-  }, [error, searchParams, router])
+    // The `_N: true` state flag makes Next's patched history.replaceState
+    // skip its internal router dispatch, avoiding a late-commit router
+    // update from a Suspense-deferred subtree.
+    window.history.replaceState({ _N: true }, '', newUrl)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only rerun when the error param itself changes, not on every searchParams identity change
+  }, [error])
+
+  return null
 }

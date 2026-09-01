@@ -77,12 +77,18 @@ async function getNavElements(): Promise<NavElement[]> {
       .filter(Boolean)
       .join(' • ')
 
-    featuredContent = {
-      title: `DTTD #${mensWeekend.number}`,
-      description:
-        dateDescription !== '' ? dateDescription : 'View details and sign up',
-      linkText: 'View weekend details',
-      linkHref: '/current-weekend',
+    // Fall back to whichever weekend exists in case the active group is
+    // women's-only (mensWeekend nil) or men's-only (womensWeekend nil).
+    const weekendForTitle = isNil(mensWeekend) ? womensWeekend : mensWeekend
+
+    if (!isNil(weekendForTitle)) {
+      featuredContent = {
+        title: `DTTD #${weekendForTitle.number}`,
+        description:
+          dateDescription !== '' ? dateDescription : 'View details and sign up',
+        linkText: 'View weekend details',
+        linkHref: '/current-weekend',
+      }
     }
   }
 

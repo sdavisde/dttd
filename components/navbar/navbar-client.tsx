@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useSession } from '@/components/auth/session-provider'
-import { useToastListener } from '@/components/toastbox'
 import { permissionLock, Permission } from '@/lib/security'
 import type { NavElement } from './navbar-server'
 import { NavLogo } from './nav-logo'
@@ -16,7 +15,6 @@ type NavbarClientProps = {
 }
 
 export function Navbar({ navElements }: NavbarClientProps) {
-  useToastListener()
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const { isAuthenticated, user } = useSession()
 
