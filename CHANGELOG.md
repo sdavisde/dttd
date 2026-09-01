@@ -1,3 +1,9 @@
+## [1.52.0](https://github.com/sdavisde/dttd/compare/v1.51.0...v1.52.0) (2026-09-01)
+
+### Features
+
+- **roster:** expand team forms column into filterable sub-columns ([6be8c28](https://github.com/sdavisde/dttd/commit/6be8c287b8c9b8c2def690a9090ebe3ebef3544e))
+
 ## [1.51.0](https://github.com/sdavisde/dttd/compare/v1.50.0...v1.51.0) (2026-09-01)
 
 ### Features
