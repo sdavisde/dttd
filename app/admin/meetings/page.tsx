@@ -20,7 +20,21 @@ import { redirect } from 'next/navigation'
 import { isNil } from 'lodash'
 
 export default async function MeetingsPage() {
-  const userResult = await getLoggedInUser()
+  // Auth, active weekends, community events, and weekend options are all
+  // independent — fetch them together. The redirect below still fires before
+  // anything renders. The weekend-group events fetch stays serial because it
+  // depends on the resolved group id.
+  const [
+    userResult,
+    activeWeekendsResult,
+    communityEventsResult,
+    weekendOptionsResult,
+  ] = await Promise.all([
+    getLoggedInUser(),
+    getActiveWeekends(),
+    getCommunityEvents(),
+    getWeekendOptions(),
+  ])
   const user = userResult?.data
 
   try {
@@ -35,14 +49,6 @@ export default async function MeetingsPage() {
   }
 
   const canEdit = userHasPermission(user, [Permission.WRITE_EVENTS])
-
-  // Fetch active weekends and community events in parallel
-  const [activeWeekendsResult, communityEventsResult, weekendOptionsResult] =
-    await Promise.all([
-      getActiveWeekends(),
-      getCommunityEvents(),
-      getWeekendOptions(),
-    ])
 
   const communityEvents = isErr(communityEventsResult)
     ? []

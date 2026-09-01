@@ -1,4 +1,5 @@
 export { CurrentWeekendView } from './CurrentWeekendView'
+export { CurrentWeekendViewSkeleton } from './CurrentWeekendViewSkeleton'
 export { CurrentWeekendHeader } from './CurrentWeekendHeader'
 export { CandidateProgressBar } from './CandidateProgressBar'
 export { PrayerWheelButtons } from './PrayerWheelButtons'

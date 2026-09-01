@@ -9,7 +9,13 @@ import { getMasterRoster } from '@/services/master-roster'
 import { isNil } from 'lodash'
 
 export default async function MasterRosterPage() {
-  const userResult = await getLoggedInUser()
+  // Auth runs concurrently with the page data; the redirect below still fires
+  // before anything renders.
+  const [userResult, masterRosterResult, rolesResult] = await Promise.all([
+    getLoggedInUser(),
+    getMasterRoster(),
+    getRoles(),
+  ])
   const user = userResult?.data
 
   try {
@@ -19,12 +25,6 @@ export default async function MasterRosterPage() {
   } catch (error) {
     redirect('/')
   }
-
-  // Fetch users and roles data on the server
-  const [masterRosterResult, rolesResult] = await Promise.all([
-    getMasterRoster(),
-    getRoles(),
-  ])
 
   if (isErr(masterRosterResult)) {
     throw new Error(

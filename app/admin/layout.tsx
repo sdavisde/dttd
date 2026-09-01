@@ -9,7 +9,6 @@ import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import type { User } from '@/lib/users/types'
 import { getFilteredNavData } from '@/lib/admin/navigation'
 import { isNil } from 'lodash'
 
@@ -17,12 +16,14 @@ type AdminLayoutProps = {
   children: React.ReactNode
 }
 
-async function getSidebarData(user: User) {
-  const fileFolders = await getFileFolders(true)
-  return getFilteredNavData(user, fileFolders)
-}
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  const userResult = await getLoggedInUser()
+  // The file folders don't depend on the user — the user only filters the nav
+  // items afterwards — so fetch them alongside auth instead of after it. The
+  // redirect below still fires before anything renders.
+  const [userResult, fileFolders] = await Promise.all([
+    getLoggedInUser(),
+    getFileFolders(true),
+  ])
   const user = userResult?.data
   try {
     if (Results.isErr(userResult) || isNil(user)) {
@@ -33,7 +34,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     redirect(`/?error=${(error as Error).message}`)
   }
 
-  const sidebarData = await getSidebarData(user)
+  const sidebarData = getFilteredNavData(user, fileFolders)
 
   return (
     <SidebarProvider>

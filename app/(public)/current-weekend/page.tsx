@@ -1,17 +1,15 @@
-import { isErr } from '@/lib/results'
-import { getLoggedInUser } from '@/services/identity/user'
-import { CurrentWeekendView } from '@/components/current-weekend/CurrentWeekendView'
+import { Suspense } from 'react'
+import {
+  CurrentWeekendView,
+  CurrentWeekendViewSkeleton,
+} from '@/components/current-weekend'
 
-export default async function CurrentWeekendPage() {
-  const user = await getLoggedInUser()
-
-  if (isErr(user)) {
-    return <div>Error: {user.error}</div>
-  }
-
+export default function CurrentWeekendPage() {
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <CurrentWeekendView />
+      <Suspense fallback={<CurrentWeekendViewSkeleton />}>
+        <CurrentWeekendView />
+      </Suspense>
     </div>
   )
 }

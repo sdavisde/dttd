@@ -8,7 +8,12 @@ import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { isNil } from 'lodash'
 
 export default async function RolesPage() {
-  const userResult = await getLoggedInUser()
+  // Auth runs concurrently with the roles fetch; the redirect below still fires
+  // before anything renders.
+  const [userResult, rolesResult] = await Promise.all([
+    getLoggedInUser(),
+    getRoles(),
+  ])
   const user = userResult?.data
 
   try {
@@ -21,9 +26,6 @@ export default async function RolesPage() {
   }
 
   const canWrite = userHasPermission(user, [Permission.WRITE_USER_ROLES])
-
-  // Fetch roles data on the server
-  const rolesResult = await getRoles()
 
   if (isErr(rolesResult)) {
     throw new Error(`Failed to fetch roles: ${rolesResult.error}`)

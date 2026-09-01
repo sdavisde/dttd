@@ -9,9 +9,10 @@ import { redirect } from 'next/navigation'
 import { isNil } from 'lodash'
 
 export default async function WeekendsPage() {
-  const weekendGroupsResult = await getWeekendGroupsByStatus({})
-
-  const userResult = await getLoggedInUser()
+  const [weekendGroupsResult, userResult] = await Promise.all([
+    getWeekendGroupsByStatus({}),
+    getLoggedInUser(),
+  ])
   const user = userResult?.data
 
   try {

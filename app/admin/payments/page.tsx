@@ -8,7 +8,14 @@ import { Payments } from './components/Payments'
 import { isNil } from 'lodash'
 
 export default async function PaymentsPage() {
-  const userResult = await getLoggedInUser()
+  // Auth runs concurrently with the payments fetch; the redirects below still
+  // fire before anything renders.
+  // Payments include voided rows so corrections stay visible behind a toggle.
+  // The table hides them by default and never counts them in totals.
+  const [userResult, paymentsResult] = await Promise.all([
+    getLoggedInUser(),
+    getAllPaymentsIncludingVoided(),
+  ])
   const user = userResult?.data
 
   try {
@@ -23,10 +30,6 @@ export default async function PaymentsPage() {
   if (!userHasPermission(user, [Permission.READ_PAYMENTS])) {
     redirect('/admin')
   }
-
-  // Includes voided payments so corrections stay visible behind a toggle.
-  // The table hides them by default and never counts them in totals.
-  const paymentsResult = await getAllPaymentsIncludingVoided()
 
   if (isErr(paymentsResult)) {
     throw new Error(`Failed to fetch payments: ${paymentsResult.error}`)

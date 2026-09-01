@@ -8,7 +8,13 @@ import Files from './components/Files'
 import { isNil } from 'lodash'
 
 export default async function FilesPage() {
-  const userResult = await getLoggedInUser()
+  // Auth runs concurrently with the storage reads; the redirect below still
+  // fires before anything renders.
+  const [userResult, buckets, usedBytes] = await Promise.all([
+    getLoggedInUser(),
+    getBuckets(),
+    getStorageUsage(),
+  ])
   const user = userResult?.data
 
   try {
@@ -19,8 +25,6 @@ export default async function FilesPage() {
     redirect('/')
   }
 
-  const buckets = await getBuckets()
-  const usedBytes = await getStorageUsage()
   const totalBytes = 1024 * 1024 * 1024 // 1 GB in bytes
 
   return (

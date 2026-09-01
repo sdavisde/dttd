@@ -1,29 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
 import { PrayerWheelSettings } from './components/PrayerWheelSettings'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Typography } from '@/components/ui/typography'
 import { getPrayerWheelUrls } from '@/services/settings'
-import { isErr, Results } from '@/lib/results'
-import { isNil } from 'lodash'
-
-async function getContactInformation() {
-  const supabase = await createClient()
-  // TODO: want to move pre-weekend couple to the board page
-  const { data, error } = await supabase
-    .from('contact_information')
-    .select('*')
-    .order('label')
-
-  if (!isNil(error)) {
-    console.error('Error fetching contact information:', error)
-    return []
-  }
-
-  return data ?? []
-}
+import { Results } from '@/lib/results'
 
 export default async function SettingsPage() {
-  const contactInformation = await getContactInformation()
   const prayerWheelResult = await getPrayerWheelUrls()
   const prayerWheelUrls = Results.unwrapOr(prayerWheelResult, {
     mens: '',

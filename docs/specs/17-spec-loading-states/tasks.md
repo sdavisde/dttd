@@ -31,10 +31,10 @@ Background/context: research findings from 2026-08-31 session. Key facts:
 
 ## Tier 2 — Free wins: waterfalls, dead fetches, one-line Suspense wraps (~2–4 hours)
 
-- [ ] 2.1 Remove dead awaits:
+- [x] 2.1 Remove dead awaits:
   - `app/(public)/current-weekend/page.tsx` — `getLoggedInUser()` awaited, data never used.
   - `app/admin/settings/page.tsx` — `contactInformation` fetched, never rendered.
-- [ ] 2.2 Parallelize pure waterfalls with `Promise.all`:
+- [x] 2.2 Parallelize pure waterfalls with `Promise.all`:
   - `app/admin/weekends/page.tsx` (`getWeekendGroupsByStatus` then `getLoggedInUser`)
   - `app/admin/users/page.tsx` (auth serial before the existing `Promise.all`)
   - `app/admin/roles/page.tsx` (auth → `getRoles`)
@@ -42,12 +42,12 @@ Background/context: research findings from 2026-08-31 session. Key facts:
   - `app/admin/payments/page.tsx` (auth → `getAllPaymentsIncludingVoided`)
   - `app/admin/meetings/page.tsx` (auth → `Promise.all(3)` → nested `getEventsForWeekendGroup`)
   - `app/(public)/roster/page.tsx` (auth → `getActiveWeekends`)
-- [ ] 2.3 One-line Suspense wraps around already-async self-contained components:
+- [x] 2.3 One-line Suspense wraps around already-async self-contained components:
   - `components/current-weekend/CurrentWeekendView.tsx` usage in `app/(public)/current-weekend/page.tsx`
   - `components/weekend/weekend-roster-view.tsx` usage in `app/(public)/roster/page.tsx` and
     `app/admin/weekends/[weekend_id]/page.tsx`
-- [ ] 2.4 Also parallelize the admin layout's serial `getLoggedInUser()` → `getSidebarData()` awaits.
-- [ ] 2.5 Verify: `npx tsc --noEmit` and `yarn lint` pass.
+- [x] 2.4 Also parallelize the admin layout's serial `getLoggedInUser()` → `getSidebarData()` awaits.
+- [x] 2.5 Verify: `npx tsc --noEmit` and `yarn lint` pass.
 
 ## Tier 3 — Push data fetching down per page (~30–60 min/page, ~13 pages)
 
