@@ -84,6 +84,11 @@ a segment `error.tsx` so failures don't bubble to root and blow away the shell.
   - [ ] Audit `notFound()` under `(public)` for the same mechanism (vercel/next.js#63388):
         `candidate/[candidateId]/forms`, `review-candidates/[candidate_id]`, `files/[...path]`,
         `payment/team-fee`.
+  - [ ] Add `unstable_rethrow(error)` at the top of the catch in `lib/actions/authorized-action.ts:35` —
+        it currently swallows Next control-flow throws (`redirect()`, `notFound()`, dynamic-usage).
+  - [ ] Consider removing the `_N: true` flags once the upgrade (Next 16.3.4, commit 8f94685) is
+        empirically confirmed to fix the deferred-dispatch crash — the vendored React now contains the
+        upstream fix (facebook/react PR 36911), making the flags optional.
   - [ ] Rule for all remaining tiers: never dispatch a router action (router.push/replace/refresh, or
         unflagged History API) from a mount effect, and never leave an always-firing `redirect()` in a
         page/action that renders behind a Suspense or loading.tsx boundary.
