@@ -12,6 +12,7 @@ import {
   intMarshaller,
   booleanMarshaller,
   pageMarshaller,
+  arrayMarshaller,
 } from '@/lib/marshallers'
 import {
   useQueryParam,
@@ -38,6 +39,9 @@ export interface DataTableUrlState {
   onGlobalFilterChange: OnChangeFn<string>
   pagination: PaginationState
   onPaginationChange: OnChangeFn<PaginationState>
+  /** Ids of expandable column groups currently expanded */
+  expandedGroups: string[]
+  onExpandedGroupsChange: (groupIds: string[]) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -91,11 +95,15 @@ export function useDataTableUrlState(
     prefix: 'filter.',
   })
 
+  const [expandedGroups, setExpandedGroups] = useQueryParam(
+    'expanded',
+    arrayMarshaller()
+  )
+
   // --- Derived TanStack Table state ---
 
-  const sorting: SortingState = sortColumn !== ''
-    ? [{ id: sortColumn, desc: sortDesc }]
-    : defaultSort
+  const sorting: SortingState =
+    sortColumn !== '' ? [{ id: sortColumn, desc: sortDesc }] : defaultSort
 
   const pagination: PaginationState = { pageIndex, pageSize }
 
@@ -146,5 +154,7 @@ export function useDataTableUrlState(
     onGlobalFilterChange,
     pagination,
     onPaginationChange,
+    expandedGroups,
+    onExpandedGroupsChange: setExpandedGroups,
   }
 }

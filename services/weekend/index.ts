@@ -33,6 +33,7 @@ export {
 // Service types
 export type {
   WeekendRosterMember,
+  TeamFormSummary,
   WeekendSidebarPayload,
   LeadershipTeamMember,
   LeadershipTeamData,

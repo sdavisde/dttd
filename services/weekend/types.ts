@@ -46,6 +46,29 @@ export type RawWeekendRoster = {
 }
 
 /**
+ * Read-only summary of a team member's info sheet submission.
+ * Excludes medical information (shown separately via the medical column).
+ */
+export type TeamFormSummary = {
+  address: {
+    addressLine1: string
+    addressLine2?: string
+    city: string
+    state: string
+    zip: string
+  } | null
+  churchAffiliation: string | null
+  weekendAttended: string | null
+  essentialsTrainingDate: string | null
+  specialGiftsAndSkills: string[] | null
+  experience: Array<{
+    chaRole: string
+    weekendReference: string
+    rollo: string | null
+  }>
+}
+
+/**
  * Normalized weekend roster member with computed fields.
  * Returned by the service layer after processing raw data.
  */
@@ -86,6 +109,11 @@ export type WeekendRosterMember = {
     emergency_contact_phone: string | null
     medical_conditions: string | null
   } | null
+  /**
+   * Info sheet summary (populated only for viewers with READ_TEAM_FORM_INFO
+   * and only for members whose forms are complete)
+   */
+  team_form_summary: TeamFormSummary | null
 }
 
 /**
