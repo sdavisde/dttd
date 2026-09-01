@@ -32,11 +32,13 @@ import {
 import type {
   RawWeekendRoster,
   PaymentRecord,
+  TeamFormSummary,
   WeekendRosterMember,
   WeekendSidebarPayload,
   LeadershipTeamMember,
   LeadershipTeamData,
 } from './types'
+import { addressSchema } from '@/lib/users/validation'
 import * as PaymentService from '@/services/payment/payment-service'
 import { getPaymentSummary } from '@/lib/payments/utils'
 import type { PaymentTransactionRow } from '@/services/payment/types'
@@ -183,7 +185,50 @@ function normalizeRosterMember(
     paymentSummary: getPaymentSummary(all_payments, baseFee),
     forms_complete: raw.forms_complete,
     medical_profile: medicalProfile,
+    team_form_summary: null,
   }
+}
+
+/**
+ * Batch-fetches team form summaries for a set of users (two queries total).
+ * Returns a map keyed by user id.
+ */
+async function getTeamFormSummariesForUsers(
+  userIds: string[]
+): Promise<Result<string, Map<string, TeamFormSummary>>> {
+  const [infoResult, experienceResult] = await Promise.all([
+    WeekendRepository.findTeamFormInfoForUsers(userIds),
+    WeekendRepository.findExperienceForUsers(userIds),
+  ])
+
+  if (isErr(infoResult)) {
+    return infoResult
+  }
+
+  const experienceByUser = new Map<string, TeamFormSummary['experience']>()
+  for (const record of unwrapOr(experienceResult, [])) {
+    const entries = experienceByUser.get(record.user_id) ?? []
+    entries.push({
+      chaRole: record.cha_role,
+      weekendReference: record.weekend_reference,
+      rollo: record.rollo,
+    })
+    experienceByUser.set(record.user_id, entries)
+  }
+
+  const summaries = new Map<string, TeamFormSummary>()
+  for (const user of infoResult.data) {
+    summaries.set(user.id, {
+      address: unwrapOr(addressSchema.safeParse(user.address), null) ?? null,
+      churchAffiliation: user.church_affiliation,
+      weekendAttended: user.weekend_attended,
+      essentialsTrainingDate: user.essentials_training_date,
+      specialGiftsAndSkills: user.special_gifts_and_skills,
+      experience: experienceByUser.get(user.id) ?? [],
+    })
+  }
+
+  return ok(summaries)
 }
 
 // ============================================================================
@@ -1143,14 +1188,34 @@ export async function getWeekendRosterViewData(
   const weekend = weekendResult.data
   // Church affiliation is permission-gated, so drop it before it reaches the
   // client for viewers who aren't allowed to see team form info.
-  const roster = canViewTeamFormInfo
-    ? rosterResult.data
-    : rosterResult.data.map((member) => ({
-        ...member,
-        users: isNil(member.users)
-          ? null
-          : { ...member.users, church_affiliation: null },
-      }))
+  let roster: WeekendRosterMember[]
+  if (canViewTeamFormInfo) {
+    // Attach info-sheet summaries for members with completed forms (batched:
+    // two queries total, never per-row).
+    const completedUserIds = rosterResult.data
+      .filter((member) => member.forms_complete)
+      .map((member) => member.user_id)
+      .filter((id): id is string => !isNil(id))
+    const summariesResult = await getTeamFormSummariesForUsers(completedUserIds)
+    const summaries = unwrapOr(
+      summariesResult,
+      new Map<string, TeamFormSummary>()
+    )
+    roster = rosterResult.data.map((member) => ({
+      ...member,
+      team_form_summary:
+        member.forms_complete && !isNil(member.user_id)
+          ? (summaries.get(member.user_id) ?? null)
+          : null,
+    }))
+  } else {
+    roster = rosterResult.data.map((member) => ({
+      ...member,
+      users: isNil(member.users)
+        ? null
+        : { ...member.users, church_affiliation: null },
+    }))
+  }
   const users = unwrapOr(usersResult, [])
   const experienceDistribution = unwrapOr(experienceResult, null)
 

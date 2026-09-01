@@ -1,14 +1,17 @@
 'use client'
 
-import type { ReactNode} from 'react';
+import type { ReactNode } from 'react'
 import { useCallback, useMemo, useState } from 'react'
 import type {
+  Column,
   ColumnDef,
   ColumnFiltersState,
   FilterFn,
+  Header,
   Row,
   SortingState,
-  VisibilityState} from '@tanstack/react-table';
+  VisibilityState,
+} from '@tanstack/react-table'
 import {
   flexRender,
   getCoreRowModel,
@@ -33,6 +36,10 @@ import {
 } from '@/components/ui/table'
 
 import type { DataTableUrlState } from '@/hooks/use-data-table-url-state'
+import {
+  CollapsedGroupHeader,
+  ExpandedGroupHeader,
+} from './data-table-group-header'
 import { DataTableMobileCard } from './data-table-mobile-card'
 import { DataTableMobileToolbar } from './data-table-mobile-toolbar'
 import { DataTablePagination } from './data-table-pagination'
@@ -51,6 +58,48 @@ const arrIncludesFilter: FilterFn<unknown> = (
 }
 
 arrIncludesFilter.autoRemove = (val: unknown) => isNil(val) || isEmpty(val)
+
+// ---------------------------------------------------------------------------
+// Expandable column-group helpers
+// ---------------------------------------------------------------------------
+
+function getColumnId<TData, TValue>(
+  col: ColumnDef<TData, TValue>
+): string | undefined {
+  return 'accessorKey' in col
+    ? String(col.accessorKey)
+    : 'id' in col
+      ? col.id
+      : undefined
+}
+
+function getChildColumns<TData, TValue>(
+  col: ColumnDef<TData, TValue>
+): ColumnDef<TData, TValue>[] | undefined {
+  return 'columns' in col
+    ? (col.columns as ColumnDef<TData, TValue>[] | undefined)
+    : undefined
+}
+
+/** Cell/header tint classes for children of an expanded group */
+function expandedGroupCellClasses<TData, TValue>(
+  column: Column<TData, TValue>,
+  expandedGroupIds: string[]
+): string | undefined {
+  const parent = column.parent
+  const groupMeta = parent?.columnDef.meta?.expandableGroup
+  if (isNil(parent) || isNil(groupMeta)) return undefined
+  if (!expandedGroupIds.includes(parent.id)) return undefined
+
+  const visibleChildren = parent.columns.filter((c) => c.getIsVisible())
+  const isFirst = visibleChildren[0]?.id === column.id
+  const isLast = visibleChildren[visibleChildren.length - 1]?.id === column.id
+  return cn(
+    'bg-primary/5',
+    isFirst && 'border-l-2 border-l-primary/20',
+    isLast && 'border-r-2 border-r-primary/20'
+  )
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -107,16 +156,33 @@ export function DataTable<TData, TValue>({
   const onPaginationChange =
     urlState?.onPaginationChange ?? setInternalPagination
 
+  // Expandable column-group state (URL-synced when urlState is provided)
+  const [internalExpandedGroups, setInternalExpandedGroups] = useState<
+    string[]
+  >([])
+  const expandedGroups = urlState?.expandedGroups ?? internalExpandedGroups
+  const setExpandedGroups =
+    urlState?.onExpandedGroupsChange ?? setInternalExpandedGroups
+  const toggleGroup = useCallback(
+    (groupId: string) => {
+      setExpandedGroups(
+        expandedGroups.includes(groupId)
+          ? expandedGroups.filter((id) => id !== groupId)
+          : [...expandedGroups, groupId]
+      )
+    },
+    [expandedGroups, setExpandedGroups]
+  )
+
   const columnVisibility = useMemo<VisibilityState>(() => {
     const visibility: VisibilityState = {}
-    for (const col of columns) {
-      const colId =
-        'accessorKey' in col
-          ? String(col.accessorKey)
-          : 'id' in col
-            ? col.id
-            : undefined
-      if (isNil(colId)) continue
+
+    const applyRestrictions = (
+      col: ColumnDef<TData, TValue>,
+      hiddenByCollapse: boolean
+    ) => {
+      const colId = getColumnId(col)
+      if (isNil(colId)) return
 
       const permission = col.meta?.requiredPermission
       const permissionVisible = isNil(permission)
@@ -127,20 +193,53 @@ export function DataTable<TData, TValue>({
 
       const propVisible = columnVisibilityProp?.[colId] ?? true
 
-      // Only set visibility if either source restricts it
-      if (!permissionVisible || !propVisible) {
+      // Only set visibility if any source restricts it
+      if (!permissionVisible || !propVisible || hiddenByCollapse) {
         visibility[colId] = false
       } else if (!isNil(permission)) {
         // Preserve explicit true for permission-controlled columns
         visibility[colId] = true
       }
     }
-    return visibility
-  }, [columns, user, columnVisibilityProp])
 
-  // Auto-assign arrIncludesFilter for select-type columns
+    for (const col of columns) {
+      const children = getChildColumns(col)
+      const groupMeta = col.meta?.expandableGroup
+      const groupId = getColumnId(col)
+
+      if (isNil(children)) {
+        applyRestrictions(col, false)
+        continue
+      }
+
+      // Group column: restrictions apply per child. For collapsed expandable
+      // groups, every child except the summary column is hidden.
+      const collapsed =
+        !isNil(groupMeta) &&
+        !isNil(groupId) &&
+        !expandedGroups.includes(groupId)
+      for (const child of children) {
+        const childId = getColumnId(child)
+        const hiddenByCollapse =
+          collapsed && childId !== groupMeta?.summaryColumnId
+        applyRestrictions(child, hiddenByCollapse)
+      }
+    }
+    return visibility
+  }, [columns, user, columnVisibilityProp, expandedGroups])
+
+  // Auto-assign arrIncludesFilter for select-type columns (including group children)
   const processedColumns = useMemo(() => {
-    return columns.map((col) => {
+    const process = (
+      col: ColumnDef<TData, TValue>
+    ): ColumnDef<TData, TValue> => {
+      const children = getChildColumns(col)
+      if (!isNil(children)) {
+        return { ...col, columns: children.map(process) } as ColumnDef<
+          TData,
+          TValue
+        >
+      }
       if (col.meta?.filterType === 'select' && isNil(col.filterFn)) {
         return { ...col, filterFn: arrIncludesFilter } as ColumnDef<
           TData,
@@ -148,7 +247,8 @@ export function DataTable<TData, TValue>({
         >
       }
       return col
-    })
+    }
+    return columns.map(process)
   }, [columns])
 
   const table = useReactTable({
@@ -181,6 +281,131 @@ export function DataTable<TData, TValue>({
     setExpandedRowId((prev) => (prev === rowId ? null : rowId))
   }, [])
 
+  const headerGroups = table.getHeaderGroups()
+  // Column groups produce a two-row header tree (deeper nesting unsupported).
+  const isNested = headerGroups.length > 1
+
+  const renderNestedHeaderRows = () => {
+    const topHeaders = headerGroups[0].headers
+    const leafHeaders = headerGroups[headerGroups.length - 1].headers
+    const leafHeaderById = new Map<string, Header<TData, unknown>>(
+      leafHeaders.map((h) => [h.column.id, h])
+    )
+
+    // Leaf headers that belong in the second row: children of expanded
+    // expandable groups and of plain (always-grouped) columns.
+    const secondRowIds = new Set<string>()
+    for (const header of topHeaders) {
+      if (header.isPlaceholder) continue
+      const column = header.column
+      if (column.columns.length === 0) continue
+      const groupMeta = column.columnDef.meta?.expandableGroup
+      const collapsed = !isNil(groupMeta) && !expandedGroups.includes(column.id)
+      if (collapsed) continue
+      for (const child of column.columns) {
+        if (child.getIsVisible()) secondRowIds.add(child.id)
+      }
+    }
+    const hasSecondRow = secondRowIds.size > 0
+    const rowSpan = hasSecondRow ? 2 : undefined
+
+    return (
+      <>
+        <TableRow>
+          {topHeaders.map((header) => {
+            const column = header.column
+            const groupMeta = column.columnDef.meta?.expandableGroup
+
+            // Ungrouped column lifted into the top row (placeholder header)
+            if (header.isPlaceholder) {
+              const leaf = leafHeaderById.get(column.id)
+              return (
+                <TableHead
+                  key={header.id}
+                  rowSpan={rowSpan}
+                  className="align-middle"
+                >
+                  {isNil(leaf)
+                    ? null
+                    : flexRender(
+                        leaf.column.columnDef.header,
+                        leaf.getContext()
+                      )}
+                </TableHead>
+              )
+            }
+
+            if (!isNil(groupMeta)) {
+              if (expandedGroups.includes(column.id)) {
+                return (
+                  <TableHead
+                    key={header.id}
+                    colSpan={header.colSpan}
+                    className="border-l-2 border-r-2 border-b border-l-primary/20 border-r-primary/20 border-b-primary/20 bg-primary/5"
+                  >
+                    <ExpandedGroupHeader
+                      label={groupMeta.label}
+                      onCollapse={() => toggleGroup(column.id)}
+                    />
+                  </TableHead>
+                )
+              }
+              const summaryHeader = leafHeaderById.get(
+                groupMeta.summaryColumnId
+              )
+              return (
+                <TableHead
+                  key={header.id}
+                  rowSpan={rowSpan}
+                  className="align-middle"
+                >
+                  {isNil(summaryHeader) ? null : (
+                    <CollapsedGroupHeader
+                      label={groupMeta.label}
+                      summaryColumn={summaryHeader.column}
+                      onExpand={() => toggleGroup(column.id)}
+                    />
+                  )}
+                </TableHead>
+              )
+            }
+
+            // Plain group column (always grouped, not expandable)
+            return (
+              <TableHead
+                key={header.id}
+                colSpan={header.colSpan}
+                className="text-center"
+              >
+                {flexRender(column.columnDef.header, header.getContext())}
+              </TableHead>
+            )
+          })}
+        </TableRow>
+        {hasSecondRow && (
+          <TableRow>
+            {leafHeaders
+              .filter((h) => secondRowIds.has(h.column.id))
+              .map((header) => (
+                <TableHead
+                  key={header.id}
+                  className={expandedGroupCellClasses(
+                    header.column,
+                    expandedGroups
+                  )}
+                >
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                </TableHead>
+              ))}
+          </TableRow>
+        )}
+      </>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {/* ── Desktop layout ─────────────────────────────────── */}
@@ -192,26 +417,28 @@ export function DataTable<TData, TValue>({
         <div className="rounded-md border">
           <Table>
             <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
+              {isNested
+                ? renderNestedHeaderRows()
+                : headerGroups.map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))}
             </TableHeader>
             <TableBody>
               {data.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length}
+                    colSpan={Math.max(table.getVisibleLeafColumns().length, 1)}
                     className="h-24 text-center"
                   >
                     {emptyState?.noData ?? 'No data.'}
@@ -220,7 +447,7 @@ export function DataTable<TData, TValue>({
               ) : table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length}
+                    colSpan={Math.max(table.getVisibleLeafColumns().length, 1)}
                     className="h-24 text-center"
                   >
                     {emptyState?.noResults ?? 'No results found.'}
@@ -235,11 +462,19 @@ export function DataTable<TData, TValue>({
                       !isNil(onRowClick) && 'cursor-pointer'
                     )}
                     onClick={
-                      !isNil(onRowClick) ? () => onRowClick(row.original) : undefined
+                      !isNil(onRowClick)
+                        ? () => onRowClick(row.original)
+                        : undefined
                     }
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell
+                        key={cell.id}
+                        className={expandedGroupCellClasses(
+                          cell.column,
+                          expandedGroups
+                        )}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

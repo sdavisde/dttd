@@ -726,6 +726,77 @@ export async function insertUserExperienceRecords(
 }
 
 /**
+ * Batch-fetches the info-sheet fields for a set of users in one query.
+ * Used to populate team form summaries on the roster without per-row calls.
+ */
+export async function findTeamFormInfoForUsers(userIds: string[]): Promise<
+  Result<
+    string,
+    Array<{
+      id: string
+      address: unknown
+      church_affiliation: string | null
+      weekend_attended: string | null
+      essentials_training_date: string | null
+      special_gifts_and_skills: string[] | null
+    }>
+  >
+> {
+  if (isEmpty(userIds)) {
+    return ok([])
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('users')
+    .select(
+      'id, address, church_affiliation, weekend_attended, essentials_training_date, special_gifts_and_skills'
+    )
+    .in('id', userIds)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data ?? [])
+}
+
+/**
+ * Batch-fetches users_experience records for a set of users in one query,
+ * ordered oldest-first so the last entry is the most recent service.
+ */
+export async function findExperienceForUsers(userIds: string[]): Promise<
+  Result<
+    string,
+    Array<{
+      user_id: string
+      cha_role: string
+      weekend_reference: string
+      rollo: string | null
+    }>
+  >
+> {
+  if (isEmpty(userIds)) {
+    return ok([])
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('users_experience')
+    .select('user_id, cha_role, weekend_reference, rollo')
+    .in('user_id', userIds)
+    .order('created_at', { ascending: true })
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data ?? [])
+}
+
+/**
  * Fetches weekend IDs for a given group.
  */
 export async function findWeekendIdsByGroupId(

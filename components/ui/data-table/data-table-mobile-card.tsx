@@ -1,6 +1,6 @@
 'use client'
 
-import type { Row} from '@tanstack/react-table';
+import type { Row } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { ChevronDown } from 'lucide-react'
 
@@ -27,7 +27,17 @@ export function DataTableMobileCard<TData>({
   onCardClick,
 }: DataTableMobileCardProps<TData>) {
   const isExpanded = expandedRowId === row.id
-  const visibleCells = row.getVisibleCells()
+  // Include children of expandable groups even while the group is collapsed on
+  // desktop — the expand/collapse mechanism is desktop-only, so mobile cards
+  // always show a visible group's full content. Columns hidden for other
+  // reasons (permissions, visibility props) hide the whole group and stay out.
+  const visibleCells = row.getAllCells().filter((cell) => {
+    if (cell.column.getIsVisible()) return true
+    const parent = cell.column.parent
+    return (
+      !isNil(parent?.columnDef.meta?.expandableGroup) && parent.getIsVisible()
+    )
+  })
 
   const primaryCells = visibleCells.filter(
     (cell) => cell.column.columnDef.meta?.mobilePriority === 'primary'
@@ -49,8 +59,13 @@ export function DataTableMobileCard<TData>({
     >
       <div className="flex w-full items-center gap-2 p-4 text-left">
         <div
-          className={cn('min-w-0 flex-1', !isNil(onCardClick) && 'cursor-pointer')}
-          onClick={!isNil(onCardClick) ? () => onCardClick(row.original) : undefined}
+          className={cn(
+            'min-w-0 flex-1',
+            !isNil(onCardClick) && 'cursor-pointer'
+          )}
+          onClick={
+            !isNil(onCardClick) ? () => onCardClick(row.original) : undefined
+          }
         >
           {/* Primary field (name) */}
           {primaryCells.map((cell) => (

@@ -6,7 +6,6 @@ import { DataTable } from '@/components/ui/data-table'
 import { useDataTableUrlState } from '@/hooks/use-data-table-url-state'
 import { EditTeamMemberModal } from './edit-team-member-modal'
 import { MedicalInfoModal } from './medical-info-modal'
-import { TeamFormInfoModal } from './team-form-info-modal'
 import { getWeekendRosterColumns, rosterGlobalFilterFn } from './config/columns'
 
 type WeekendRosterTableProps = {
@@ -32,7 +31,6 @@ export function WeekendRosterTable({
 }: WeekendRosterTableProps) {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [medicalModalOpen, setMedicalModalOpen] = useState(false)
-  const [formInfoModalOpen, setFormInfoModalOpen] = useState(false)
   const [selectedRosterMember, setSelectedRosterMember] =
     useState<WeekendRosterMember | null>(null)
 
@@ -56,16 +54,6 @@ export function WeekendRosterTable({
     setSelectedRosterMember(null)
   }
 
-  const handleOpenFormInfoModal = (rosterMember: WeekendRosterMember) => {
-    setSelectedRosterMember(rosterMember)
-    setFormInfoModalOpen(true)
-  }
-
-  const handleCloseFormInfoModal = () => {
-    setFormInfoModalOpen(false)
-    setSelectedRosterMember(null)
-  }
-
   // Filter out dropped members
   const filteredRoster = useMemo(() => {
     return roster.filter((member) => member.status !== 'drop')
@@ -82,7 +70,6 @@ export function WeekendRosterTable({
       getWeekendRosterColumns({
         onEdit: handleEditRosterMember,
         onMedical: handleOpenMedicalModal,
-        onViewFormInfo: handleOpenFormInfoModal,
         isEditable,
       }),
     [isEditable]
@@ -100,6 +87,11 @@ export function WeekendRosterTable({
         columnVisibility={{
           forms: !includeTeamFormInfo,
           team_form_info: includeTeamFormInfo,
+          tf_weekend_attended: includeTeamFormInfo,
+          tf_essentials_training: includeTeamFormInfo,
+          tf_gifts_skills: includeTeamFormInfo,
+          tf_address: includeTeamFormInfo,
+          tf_experience: includeTeamFormInfo,
           church: includeTeamFormInfo,
           emergency: includeEmergencyContact,
           special_needs: includeSpecialNeeds,
@@ -121,12 +113,6 @@ export function WeekendRosterTable({
       <MedicalInfoModal
         open={medicalModalOpen}
         onClose={handleCloseMedicalModal}
-        member={selectedRosterMember}
-      />
-
-      <TeamFormInfoModal
-        open={formInfoModalOpen}
-        onClose={handleCloseFormInfoModal}
         member={selectedRosterMember}
       />
     </>
