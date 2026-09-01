@@ -41,15 +41,21 @@ export function DataTableMobileToolbar<TData>({
   const sortDesc = sorting[0]?.desc ?? false
 
   const sortableColumns = useMemo(
-    () => table.getAllColumns().filter((c) => c.getCanSort()),
+    () => table.getAllLeafColumns().filter((c) => c.getCanSort()),
     [table]
   )
 
   const filterableColumns = useMemo(
     () =>
-      table
-        .getAllColumns()
-        .filter((c) => !isNil(c.columnDef.meta?.filterType) && c.getIsVisible()),
+      table.getAllLeafColumns().filter(
+        (c) =>
+          !isNil(c.columnDef.meta?.filterType) &&
+          (c.getIsVisible() ||
+            // Children of visible expandable groups stay filterable on
+            // mobile while the group is collapsed on desktop
+            (!isNil(c.parent?.columnDef.meta?.expandableGroup) &&
+              c.parent.getIsVisible()))
+      ),
     [table]
   )
 
@@ -201,7 +207,11 @@ function MobileTextFilter<TData, TValue>({
       <Input
         placeholder={`Filter ${title.toLowerCase()}...`}
         value={filterValue}
-        onChange={(e) => column.setFilterValue(e.target.value !== '' ? e.target.value : undefined)}
+        onChange={(e) =>
+          column.setFilterValue(
+            e.target.value !== '' ? e.target.value : undefined
+          )
+        }
         className="h-8"
       />
     </div>
