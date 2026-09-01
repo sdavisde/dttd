@@ -47,15 +47,18 @@ export type NavElement = {
 
 async function getNavElements(): Promise<NavElement[]> {
   const supabase = await createClient()
-  const { error: bucketsError } = await supabase.storage.listBuckets()
+
+  // Storage liveness check runs alongside the weekends fetch for the featured content
+  const [{ error: bucketsError }, weekendsResult] = await Promise.all([
+    supabase.storage.listBuckets(),
+    getActiveWeekends(),
+  ])
 
   if (!isNil(bucketsError)) {
     logger.error(`Error fetching buckets: ${bucketsError.message}`)
     return []
   }
 
-  // Fetch active weekends for the featured content
-  const weekendsResult = await getActiveWeekends()
   let featuredContent: NavFeaturedContent | undefined
 
   if (isOk(weekendsResult)) {

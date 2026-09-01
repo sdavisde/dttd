@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { cache } from 'react'
 import { randomUUID } from 'crypto'
 import { isEmpty, isNil, sumBy } from 'lodash'
 import type { Result } from '@/lib/results'
@@ -190,25 +191,26 @@ function normalizeRosterMember(
 // ============================================================================
 
 /**
- * Fetches active weekends grouped by type.
+ * Fetches active weekends grouped by type. Wrapped in `cache()` so the navbar
+ * and the pages beneath it share a single query per server render.
  */
-export async function getActiveWeekends(): Promise<
-  Result<string, Record<WeekendType, Weekend>>
-> {
-  const result = await WeekendRepository.findActiveWeekends()
+export const getActiveWeekends = cache(
+  async (): Promise<Result<string, Record<WeekendType, Weekend>>> => {
+    const result = await WeekendRepository.findActiveWeekends()
 
-  if (isErr(result)) {
-    return result
+    if (isErr(result)) {
+      return result
+    }
+
+    const data = result.data
+    if (isEmpty(data)) {
+      return err('No active weekends found')
+    }
+
+    const normalizedGroups = data.map(normalizeWeekend)
+    return toWeekendGroup(normalizedGroups)
   }
-
-  const data = result.data
-  if (isEmpty(data)) {
-    return err('No active weekends found')
-  }
-
-  const normalizedGroups = data.map(normalizeWeekend)
-  return toWeekendGroup(normalizedGroups)
-}
+)
 
 /**
  * Fetches a weekend group by its group ID.

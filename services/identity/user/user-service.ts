@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { isNil, union } from 'lodash'
 import type { Result } from '@/lib/results'
@@ -112,12 +113,11 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
 }
 
 /**
- * Gets the logged in user's session using middleware server session,
- * then returns the normalized user information by id.
+ * Resolves the authenticated user for the current request. Wrapped in
+ * `cache()` so the layout/page/action calls within a single server render
+ * share one Supabase round-trip instead of re-fetching per caller.
  */
-export async function getLoggedInUser(
-  impersonatingUser: User | null
-): Promise<Result<string, User>> {
+const getAuthenticatedUser = cache(async (): Promise<Result<string, User>> => {
   const supabase = await createClient()
 
   const {
@@ -126,7 +126,17 @@ export async function getLoggedInUser(
 
   if (isNil(authUser)) return err('User not logged in')
 
-  const loggedInUser = await getUserById(authUser.id)
+  return await getUserById(authUser.id)
+})
+
+/**
+ * Gets the logged in user's session using middleware server session,
+ * then returns the normalized user information by id.
+ */
+export async function getLoggedInUser(
+  impersonatingUser: User | null
+): Promise<Result<string, User>> {
+  const loggedInUser = await getAuthenticatedUser()
   if (isNil(impersonatingUser)) {
     return loggedInUser
   }
