@@ -47,6 +47,10 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: migrate
+    outputs:
+      # SHA of the commit to deploy: the semantic-release version bump when a
+      # release was cut, otherwise the pushed commit itself.
+      sha: ${{ steps.release.outputs.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -64,6 +68,43 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Release
+        id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn semantic-release
+        run: |
+          yarn semantic-release
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: release
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      # Deploy the released commit so the shipped build carries the bumped
+      # version, not the pre-release one.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@59.10.0
+
+      # Source is uploaded and built by Vercel, so the build sees every project
+      # env var (including ones marked Sensitive, which `vercel pull` cannot
+      # read) and reuses Vercel's remote build cache. Blocks until ready, so a
+      # failed build fails this job.
+      - name: Deploy
+        run: |
+          url=$(vercel deploy --prod --yes)
+          echo "Deployed to $url"
+          echo "### Deployed to [$url]($url)" >> "$GITHUB_STEP_SUMMARY"
