@@ -34,10 +34,7 @@ function ToastListener() {
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.delete('error')
     const newUrl = `${window.location.pathname}${newSearchParams.toString() !== '' ? '?' + newSearchParams.toString() : ''}`
-    // The `_N: true` state flag makes Next's patched history.replaceState
-    // skip its internal router dispatch, avoiding a late-commit router
-    // update from a Suspense-deferred subtree.
-    window.history.replaceState({ _N: true }, '', newUrl)
+    window.history.replaceState(null, '', newUrl)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only rerun when the error param itself changes, not on every searchParams identity change
   }, [error])
 

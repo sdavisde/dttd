@@ -86,9 +86,11 @@ a segment `error.tsx` so failures don't bubble to root and blow away the shell.
         `payment/team-fee`.
   - [ ] Add `unstable_rethrow(error)` at the top of the catch in `lib/actions/authorized-action.ts:35` —
         it currently swallows Next control-flow throws (`redirect()`, `notFound()`, dynamic-usage).
-  - [ ] Consider removing the `_N: true` flags once the upgrade (Next 16.3.4, commit 8f94685) is
+  - [x] Consider removing the `_N: true` flags once the upgrade (Next 16.3.4, commit 8f94685) is
         empirically confirmed to fix the deferred-dispatch crash — the vendored React now contains the
-        upstream fix (facebook/react PR 36911), making the flags optional.
+        upstream fix (facebook/react PR 36911), making the flags optional. (removed 2026-09-01 after
+        user confirmed the fix; kept intentionally in url-batcher.ts for perf — router must not
+        re-render per table-state sync)
   - [ ] Rule for all remaining tiers: never dispatch a router action (router.push/replace/refresh, or
         unflagged History API) from a mount effect, and never leave an always-firing `redirect()` in a
         page/action that renders behind a Suspense or loading.tsx boundary.

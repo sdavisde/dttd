@@ -150,10 +150,8 @@ export default function ProfilePage() {
 
     params.delete('emailChange')
     const query = params.toString()
-    // The `_N: true` state flag makes Next's patched history.replaceState skip
-    // dispatching a router action, which would crash from this mount effect.
     window.history.replaceState(
-      { _N: true },
+      null,
       '',
       query !== ''
         ? `${window.location.pathname}?${query}`

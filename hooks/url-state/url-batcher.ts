@@ -53,9 +53,11 @@ function flush(): void {
 
   const qs = params.toString()
   const url = `${window.location.pathname}${qs !== '' ? `?${qs}` : ''}`
-  // Spread history.state so we don't clobber Next.js internals. The `_N: true`
-  // flag keeps Next's patched history methods from dispatching a router action
+  // Spread history.state so we don't clobber Next.js internals
   // (history.state can be null, in which case the spread alone is `{}`).
+  // _N tells Next's patched History API to skip its router sync — table URL
+  // state is client-owned and synced at high frequency, so the router must
+  // not re-render per update.
   const state = { ...window.history.state, _N: true }
 
   if (useReplace) window.history.replaceState(state, '', url)

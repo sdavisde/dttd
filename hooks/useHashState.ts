@@ -34,13 +34,11 @@ export function useHashState(): [string | null, (hash: string | null) => void] {
   }, [])
 
   const setHash = useCallback((newHash: string | null) => {
-    // The `_N: true` state flag makes Next's patched history.pushState treat
-    // this as an internal navigation, so it skips dispatching a router action.
     if (!isNil(newHash)) {
-      window.history.pushState({ _N: true }, '', `#${newHash}`)
+      window.history.pushState(null, '', `#${newHash}`)
     } else {
       // Remove hash without triggering a scroll
-      window.history.pushState({ _N: true }, '', window.location.pathname)
+      window.history.pushState(null, '', window.location.pathname)
     }
     setHashState(newHash)
   }, [])
