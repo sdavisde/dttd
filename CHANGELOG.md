@@ -1,3 +1,9 @@
+## [1.51.0](https://github.com/sdavisde/dttd/compare/v1.50.0...v1.51.0) (2026-09-01)
+
+### Features
+
+- **roster:** show team member church and sort export by CHA role ([017a823](https://github.com/sdavisde/dttd/commit/017a823281dd2c14c43bffcbc197bdb7297b1442))
+
 ## [1.50.0](https://github.com/sdavisde/dttd/compare/v1.49.1...v1.50.0) (2026-08-31)
 
 ### Features
