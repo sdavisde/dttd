@@ -1,3 +1,9 @@
+## [1.52.2](https://github.com/sdavisde/dttd/compare/v1.52.1...v1.52.2) (2026-09-02)
+
+### Performance Improvements
+
+- **loading:** parallelize page waterfalls and stream roster views ([8fb16cf](https://github.com/sdavisde/dttd/commit/8fb16cf53a7ee3edf4e6950765433282e582117a))
+
 ## [1.52.1](https://github.com/sdavisde/dttd/compare/v1.52.0...v1.52.1) (2026-09-01)
 
 ### Bug Fixes
