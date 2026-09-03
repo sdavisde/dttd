@@ -7,11 +7,8 @@ import type { User } from '@/lib/users/types'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import { paymentsColumns, paymentsGlobalFilterFn } from '../config/columns'
 import { PaymentsSummary } from './PaymentsSummary'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import Link from 'next/link'
-import { BarChart3 } from 'lucide-react'
 import {
   formatTargetType,
   formatPaymentMethod,
@@ -94,6 +91,7 @@ export function Payments({ payments, user }: PaymentsProps) {
 
   return (
     <div className="space-y-4">
+      <PaymentsSummary payments={filteredPayments} isFiltered={isFiltered} />
       <DataTable
         columns={paymentsColumns}
         data={visiblePayments}
@@ -106,33 +104,30 @@ export function Payments({ payments, user }: PaymentsProps) {
           noData: 'No payments found.',
           noResults: 'No payments matching your search.',
         }}
+        appearance={{
+          zebra: false,
+          container: 'bg-card overflow-hidden [&_tbody_tr]:border-divider',
+          header:
+            'h-auto px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground [&_button]:h-7 [&_button]:text-xs [&_button]:font-semibold [&_button]:uppercase [&_button]:tracking-wider [&_button]:text-muted-foreground',
+        }}
         toolbarChildren={
-          <>
-            {hasVoidedPayments && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="show-voided"
-                  checked={showVoided}
-                  onCheckedChange={(checked) => setShowVoided(checked === true)}
-                />
-                <Label
-                  htmlFor="show-voided"
-                  className="text-muted-foreground text-sm font-normal"
-                >
-                  Show voided
-                </Label>
-              </div>
-            )}
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/admin/payments/summary">
-                <BarChart3 className="mr-1 h-4 w-4" />
-                Report
-              </Link>
-            </Button>
-          </>
+          hasVoidedPayments ? (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="show-voided"
+                checked={showVoided}
+                onCheckedChange={(checked) => setShowVoided(checked === true)}
+              />
+              <Label
+                htmlFor="show-voided"
+                className="text-muted-foreground text-sm font-normal"
+              >
+                Show voided
+              </Label>
+            </div>
+          ) : undefined
         }
       />
-      <PaymentsSummary payments={filteredPayments} isFiltered={isFiltered} />
     </div>
   )
 }

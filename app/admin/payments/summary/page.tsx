@@ -9,6 +9,7 @@ import {
 import { getActiveWeekends } from '@/services/weekend'
 import { isErr, isOk } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 import { isNil } from 'lodash'
 import { PaymentReport } from './components/PaymentReport'
 
@@ -54,7 +55,11 @@ export default async function PaymentSummaryPage() {
           { label: 'Payments', href: '/admin/payments' },
         ]}
       />
-      <div className="container mx-auto px-8">
+      <div className="container mx-auto px-4 py-6 sm:px-8">
+        <PageHeader
+          title="Payment summary"
+          description="How each weekend's fees are coming in — collection by weekend, with the active group's totals."
+        />
         <PaymentReport
           payments={paymentsResult.data}
           activeWeekendFinancials={activeWeekendFinancials}

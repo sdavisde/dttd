@@ -99,6 +99,55 @@ function MetadataPopover({ payment }: { payment: PaymentTransactionDTO }) {
 
 export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
   {
+    id: 'paidBy',
+    accessorFn: (p) => p.payment_owner ?? '',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Paid By" />
+    ),
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {formatPersonName(row.original.payment_owner)}
+      </span>
+    ),
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'Paid By',
+      mobilePriority: 'detail',
+    },
+  },
+  {
+    id: 'paidFor',
+    accessorFn: (p) => p.target_name ?? '',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Paid For" />
+    ),
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            !isNil(row.original.voided_at) &&
+              'text-muted-foreground line-through'
+          )}
+        >
+          {formatPersonName(row.original.target_name)}
+        </span>
+        {!isNil(row.original.voided_at) && (
+          <Badge
+            variant="outline"
+            title={row.original.void_reason ?? undefined}
+          >
+            Voided
+          </Badge>
+        )}
+      </div>
+    ),
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'Paid For',
+      mobilePriority: 'primary',
+    },
+  },
+  {
     id: 'type',
     accessorFn: (p) => formatTargetType(p.target_type),
     header: ({ column }) => (
@@ -133,63 +182,13 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
     },
   },
   {
-    id: 'paidFor',
-    accessorFn: (p) => p.target_name ?? '',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Paid For" />
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            'font-medium',
-            !isNil(row.original.voided_at) &&
-              'text-muted-foreground line-through'
-          )}
-        >
-          {formatPersonName(row.original.target_name)}
-        </span>
-        {!isNil(row.original.voided_at) && (
-          <Badge
-            variant="outline"
-            title={row.original.void_reason ?? undefined}
-          >
-            Voided
-          </Badge>
-        )}
-      </div>
-    ),
-    meta: {
-      showOnMobile: true,
-      mobileLabel: 'Paid For',
-      mobilePriority: 'primary',
-    },
-  },
-  {
-    id: 'paidBy',
-    accessorFn: (p) => p.payment_owner ?? '',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Paid By" />
-    ),
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {formatPersonName(row.original.payment_owner)}
-      </span>
-    ),
-    meta: {
-      showOnMobile: true,
-      mobileLabel: 'Paid By',
-      mobilePriority: 'detail',
-    },
-  },
-  {
     id: 'gross',
     accessorKey: 'gross_amount',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Gross" />
     ),
     cell: ({ getValue }) => (
-      <span className="font-medium text-green-600">
+      <span className="font-medium text-success tabular-nums">
         {formatCurrency(getValue<number>())}
       </span>
     ),
@@ -206,7 +205,7 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       <DataTableColumnHeader column={column} title="Net" />
     ),
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">
+      <span className="text-muted-foreground tabular-nums">
         {formatCurrency(getValue<number | null>())}
       </span>
     ),
@@ -269,7 +268,7 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       <DataTableColumnHeader column={column} title="Date" />
     ),
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">
+      <span className="text-muted-foreground tabular-nums">
         {formatDate(getValue<string>())}
       </span>
     ),
