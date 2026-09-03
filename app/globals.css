@@ -60,6 +60,7 @@
   --nav-foreground: oklch(0.4 0.025 85);
   --selected: oklch(0.965 0.008 85);
   --secondary-border: oklch(0.92 0.045 95);
+  --divider: oklch(0.93 0.009 80);
 
   --font-sans:
     var(--font-source-sans), ui-sans-serif, system-ui, -apple-system,
@@ -140,6 +141,7 @@
   --nav-foreground: oklch(0.8 0.012 75);
   --selected: oklch(0.31 0.012 65);
   --secondary-border: oklch(0.38 0.03 80);
+  --divider: oklch(0.25 0.01 65);
 
   --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
   --shadow-xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
@@ -205,6 +207,7 @@
   --color-nav-foreground: var(--nav-foreground);
   --color-selected: var(--selected);
   --color-secondary-border: var(--secondary-border);
+  --color-divider: var(--divider);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);

@@ -96,7 +96,7 @@ export default function PeopleTable({
         user={null}
         globalFilterFn={masterRosterGlobalFilterFn}
         urlState={urlState}
-        searchPlaceholder="Search users by name, email, phone, or role"
+        searchPlaceholder="Find a person…"
         onRowClick={handleMemberClick}
         columnVisibility={{
           level: canViewExperience,
@@ -106,18 +106,23 @@ export default function PeopleTable({
           noData: 'No users found in the system.',
           noResults: 'No users found matching your search.',
         }}
+        appearance={{
+          zebra: false,
+          container: 'bg-card overflow-hidden [&_tbody_tr]:border-divider',
+          header:
+            'h-auto px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground [&_button]:h-7 [&_button]:text-xs [&_button]:font-semibold [&_button]:uppercase [&_button]:tracking-wider [&_button]:text-muted-foreground',
+        }}
       />
 
-      <p className="mt-4 text-sm text-muted-foreground">
-        {masterRoster.members.length} people · Role and permission definitions
-        live on the{' '}
+      <p className="mt-3 text-[13px] text-muted-foreground">
+        {masterRoster.members.length} people · roles &amp; permissions are
+        defined on the{' '}
         <Link
           href="/admin/roles"
-          className="text-primary underline-offset-4 hover:underline"
+          className="font-semibold text-primary hover:text-primary-hover"
         >
-          Security page
+          Security page →
         </Link>
-        .
       </p>
 
       <UserRoleSidebar

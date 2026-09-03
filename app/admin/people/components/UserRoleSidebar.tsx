@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Permission, userHasPermission } from '@/lib/security'
 import { useSession } from '@/components/auth/session-provider'
+import { UserAvatar } from '@/components/user-avatar'
 import type { MasterRosterMember } from '@/services/master-roster/types'
 import { useUserEditForm } from '../hooks/use-user-edit-form'
 import { ContactInfoSection } from './contact-info-section'
@@ -74,15 +75,35 @@ export function UserRoleSidebar({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="overflow-y-auto sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>
-            {canEdit ? 'Edit User' : 'View User'}
-            {!isNil(member?.firstName) && member.firstName !== '' && (
-              <span className="text-muted-foreground font-normal">
-                {' '}
-                &mdash; {member.firstName} {member.lastName}
-              </span>
+          <div className="flex items-center gap-3">
+            {!isNil(member) && (
+              <UserAvatar
+                user={{
+                  id: member.id,
+                  first_name: member.firstName,
+                  last_name: member.lastName,
+                  email: member.email,
+                  profilePhoto: member.profilePhoto,
+                }}
+                size={42}
+              />
             )}
-          </SheetTitle>
+            <div className="min-w-0">
+              <SheetTitle className="truncate font-serif text-xl font-semibold tracking-tight">
+                {isNil(member) || `${member.firstName ?? ''}`.trim() === ''
+                  ? canEdit
+                    ? 'Edit User'
+                    : 'View User'
+                  : `${member.firstName} ${member.lastName}`}
+              </SheetTitle>
+              {!isNil(member?.email) && (
+                <p className="truncate text-[13px] text-muted-foreground">
+                  {member.email}
+                  {!canEdit && ' · view only'}
+                </p>
+              )}
+            </div>
+          </div>
         </SheetHeader>
 
         <div className="space-y-6 px-4">
