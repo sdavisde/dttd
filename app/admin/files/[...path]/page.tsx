@@ -4,6 +4,7 @@ import { isErr } from '@/lib/results'
 import { unslugify } from '@/lib/url'
 import FilesFolderContent from '@/components/file-management/FilesFolderContent'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function FilesNestedPage({
   params,
@@ -31,7 +32,12 @@ export default async function FilesNestedPage({
           { label: 'Files', href: '/admin/files' },
         ]}
       />
-      <div className="container mx-auto px-8">
+      <div className="container mx-auto px-4 sm:px-8 py-6">
+        <PageHeader
+          title={folderName}
+          description="Files in this folder — upload, download, or remove them."
+          className="capitalize [&_p]:normal-case"
+        />
         <FilesFolderContent
           files={contentsResult.data}
           folderName={folderName}

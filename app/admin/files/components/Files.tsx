@@ -2,18 +2,11 @@
 
 import { useState } from 'react'
 import { StorageUsage } from '@/components/storage-usage'
+import { PageHeader } from '@/components/ui/page-header'
 import { Typography } from '@/components/ui/typography'
 import { Card, CardContent } from '@/components/ui/card'
 import { Folder, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { CreateFolderSidebar } from '@/components/file-management/CreateFolderSidebar'
 import { deleteFolder } from '@/actions/file-management'
@@ -64,21 +57,13 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
   }
 
   return (
-    <div className="my-4">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <Typography variant="h4" className="mb-2">
-            File Management
-          </Typography>
-          <Typography variant="muted">
-            Manage files and folders organized by bucket.
-          </Typography>
-        </div>
-      </div>
-
-      <div className="mb-6">
+    <div className="py-6">
+      <PageHeader
+        title="Files"
+        description="Upload, organize, and browse the community's files by folder."
+      >
         <StorageUsage usedBytes={usedBytes} totalBytes={totalBytes} />
-      </div>
+      </PageHeader>
 
       {buckets.length === 0 ? (
         <Card>
@@ -91,68 +76,62 @@ export default function Files({ buckets, usedBytes, totalBytes }: FilesProps) {
       ) : (
         <div className="space-y-6">
           {buckets.map((bucket) => (
-            <Table key={bucket.name}>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{bucket.name}</TableHead>
-                  <TableHead className="sticky right-0 bg-background text-right border-l">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bucket.folders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={2} className="p-4 text-center">
-                      <Typography variant="muted" className="italic">
-                        No folders available
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  bucket.folders.map((folder) => (
-                    <TableRow key={folder.slug}>
-                      <TableCell>
+            <div key={bucket.name}>
+              <div className="px-1 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {bucket.name}
+              </div>
+              <Card className="gap-0 py-0">
+                <CardContent className="px-5 py-2">
+                  {bucket.folders.length === 0 ? (
+                    <Typography
+                      variant="muted"
+                      className="italic py-3 text-center"
+                    >
+                      No folders available
+                    </Typography>
+                  ) : (
+                    bucket.folders.map((folder) => (
+                      <div
+                        key={folder.slug}
+                        className="group flex items-center gap-3 border-b border-divider py-1.5 last:border-b-0"
+                      >
                         <Link
-                          key={folder.slug}
                           href={`/admin/files/${folder.slug}`}
-                          className="flex items-center gap-3 hover:bg-muted/50 transition-colors"
+                          className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-1 py-1.5 text-foreground hover:bg-muted/60"
                         >
-                          <Folder className="h-5 w-5 text-muted-foreground" />
-                          <span className="capitalize font-medium">
+                          <Folder className="h-4.5 w-4.5 shrink-0 text-primary" />
+                          <span className="truncate text-sm font-medium capitalize">
                             {folder.name}
                           </span>
                         </Link>
-                      </TableCell>
-                      <TableCell className="sticky right-0 bg-background text-right border-l">
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="shrink-0 text-muted-foreground hover:text-destructive"
                           onClick={() =>
                             handleDeleteFolder(bucket.name, folder.name)
                           }
                         >
-                          <Trash2 className="h-4 w-4 text-red-700" />
+                          <Trash2 className="h-4 w-4" />
                           <span className="sr-only">Delete folder</span>
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-                <TableRow>
-                  <TableCell colSpan={2} className="text-center">
+                      </div>
+                    ))
+                  )}
+                  <div className="border-t border-divider py-2">
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="text-primary"
                       onClick={() => handleCreateFolder(bucket.name)}
                     >
                       <Plus className="h-4 w-4" />
                       Create folder
                     </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
       )}
