@@ -1,5 +1,5 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Typography } from '@/components/ui/typography'
+import { PageHeader } from '@/components/ui/page-header'
 import { getCommunityBoardData } from '@/services/community/board'
 import { getMeetingMinutesPage } from '@/services/files/file-service'
 import { isErr } from '@/lib/results'
@@ -46,30 +46,28 @@ export default async function CommunityBoardPage() {
         title="Community Board"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
-      <div className="container mx-auto px-8 pb-10 space-y-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <Typography variant="h2" className="border-0 pb-0">
-              Community Board
-            </Typography>
-            <Typography variant="muted">
-              Org-level roles, leadership assignments, and board meeting
-              minutes.
-            </Typography>
-          </div>
-        </div>
+      <div className="container mx-auto px-4 pb-10 sm:px-8 py-6">
+        <PageHeader
+          title="Community Board"
+          description="Who holds each position — the board and its committees — and the board's meeting minutes."
+        />
 
         <RoleAssignments
           boardRoles={boardRoles}
           committeeRoles={committeeRoles}
           members={members}
           preWeekendCoupleContact={preWeekendCoupleContact}
-        />
+        >
+          <MeetingMinutes
+            initialPageData={meetingMinutesInitialPageData}
+            loadError={meetingMinutesLoadError}
+          />
+        </RoleAssignments>
 
-        <MeetingMinutes
-          initialPageData={meetingMinutesInitialPageData}
-          loadError={meetingMinutesLoadError}
-        />
+        <p className="mt-4 text-[13px] text-muted-foreground">
+          Positions here are community-wide · weekend team roles live on each
+          weekend&apos;s roster
+        </p>
       </div>
     </>
   )
