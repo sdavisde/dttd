@@ -42,11 +42,27 @@ const groupDateRange = (group: WeekendGroupWithId): string =>
     group.weekends.WOMENS?.end_date ?? group.weekends.MENS?.end_date
   )
 
-function StatTile({ value, label }: { value: string; label: string }) {
+function StatTile({
+  value,
+  suffix,
+  label,
+}: {
+  value: string
+  suffix?: string
+  label: string
+}) {
   return (
     <div className="min-w-0">
-      <p className="font-serif text-xl font-semibold tabular-nums">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-serif text-xl font-semibold tabular-nums">
+        {value}
+        {!isNil(suffix) && (
+          <span className="font-sans text-[13px] font-normal text-muted-foreground">
+            {' '}
+            {suffix}
+          </span>
+        )}
+      </p>
+      <p className="text-[12.5px] text-muted-foreground">{label}</p>
     </div>
   )
 }
@@ -60,9 +76,9 @@ function WeekendSubCard({
 }) {
   const genderTitle = formatWeekendGender(weekend.type, 'possessive')
   return (
-    <div className="flex flex-col gap-4 rounded-lg border bg-card p-4">
-      <div>
-        <p className="font-medium">
+    <div className="flex flex-col gap-3.5 rounded-lg border bg-card px-5 py-4">
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+        <p className="text-base font-semibold">
           {isNil(genderTitle) ? 'Weekend' : `${genderTitle} Weekend`}
         </p>
         <p className="text-sm text-muted-foreground">
@@ -70,10 +86,11 @@ function WeekendSubCard({
         </p>
       </div>
       {!isNil(stats) && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="flex flex-wrap gap-x-7 gap-y-3">
           {!isNil(stats.candidatesConfirmed) && (
             <StatTile
-              value={`${stats.candidatesConfirmed} / ${stats.candidateCapacity}`}
+              value={`${stats.candidatesConfirmed}`}
+              suffix={`/ ${stats.candidateCapacity}`}
               label="Candidates"
             />
           )}
@@ -85,13 +102,13 @@ function WeekendSubCard({
           )}
         </div>
       )}
-      <div className="mt-auto space-y-1.5">
-        <Button asChild variant="outline" className="w-full">
+      <div className="mt-auto flex flex-wrap items-center gap-2.5">
+        <Button asChild variant="outline">
           <Link href={`/admin/weekends/${weekend.id}`}>
             Open the weekend hub
           </Link>
         </Button>
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-[13px] text-muted-foreground">
           Candidates, roster, and schedule live there
         </p>
       </div>
@@ -101,7 +118,7 @@ function WeekendSubCard({
 
 function GroupLinks({ group }: { group: WeekendGroupWithId }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-4">
       {(
         [
           [WeekendType.MENS, group.weekends.MENS],
@@ -109,11 +126,13 @@ function GroupLinks({ group }: { group: WeekendGroupWithId }) {
         ] as const
       ).map(([type, weekend]) =>
         isNil(weekend) ? null : (
-          <Button key={type} asChild variant="ghost" size="sm">
-            <Link href={`/admin/weekends/${weekend.id}`}>
-              {formatWeekendGender(type, 'possessive')}
-            </Link>
-          </Button>
+          <Link
+            key={type}
+            href={`/admin/weekends/${weekend.id}`}
+            className="text-[13.5px] font-semibold text-primary hover:text-primary-hover"
+          >
+            {formatWeekendGender(type, 'possessive')}
+          </Link>
         )
       )}
     </div>
@@ -176,12 +195,12 @@ export function Weekends({
           No active weekend group right now.
         </div>
       ) : (
-        <section className="rounded-lg border bg-card p-4 sm:p-5">
+        <section className="rounded-lg border bg-card px-6 py-5">
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <Typography variant="h4" as="h2">
               {formatWeekendGroupTitle(groupNumber(activeGroup))}
             </Typography>
-            <Badge className="border-transparent bg-success/15 text-success">
+            <Badge className="rounded-full border-transparent bg-success/15 px-3 font-semibold text-success">
               Active
             </Badge>
             {canEdit && (
@@ -216,37 +235,46 @@ export function Weekends({
       {buckets.upcoming.map((group) => (
         <section
           key={group.groupId}
-          className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4"
+          className="flex flex-wrap items-center gap-x-3.5 gap-y-1 rounded-lg border bg-card px-6 py-4"
         >
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">
-              {formatWeekendGroupTitle(groupNumber(group))}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {groupDateRange(group)} · planning
-            </p>
+          <p className="text-[15px] font-semibold">
+            {formatWeekendGroupTitle(groupNumber(group))}
+          </p>
+          <p className="text-[13.5px] text-muted-foreground">
+            {groupDateRange(group)} · planning
+          </p>
+          <div className="ml-auto flex items-center gap-4">
+            <GroupLinks group={group} />
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openEdit(group)}
+              >
+                <Settings2 className="h-4 w-4" />
+                Group settings
+              </Button>
+            )}
           </div>
-          <GroupLinks group={group} />
-          {canEdit && (
-            <Button variant="outline" size="sm" onClick={() => openEdit(group)}>
-              <Settings2 className="h-4 w-4" />
-              Group settings
-            </Button>
-          )}
         </section>
       ))}
 
       {showStartPlanningRow(buckets) && (
-        <section className="rounded-lg border-2 border-dashed p-6 text-center">
-          <p className="font-medium">
-            {formatWeekendGroupTitle(nextGroupNumber(allGroups))}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Not scheduled yet — set dates to open planning.
-          </p>
+        <section className="flex flex-wrap items-center gap-3.5 rounded-lg border border-dashed bg-card px-6 py-4">
+          <CalendarPlus
+            className="h-[18px] w-[18px] shrink-0 text-muted-foreground"
+            aria-hidden
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold">
+              {formatWeekendGroupTitle(nextGroupNumber(allGroups))}
+            </p>
+            <p className="text-[13.5px] text-muted-foreground">
+              Not scheduled yet — set dates and leadership to open planning
+            </p>
+          </div>
           {canEdit && (
-            <Button variant="outline" className="mt-4" onClick={openCreate}>
-              <CalendarPlus className="h-4 w-4" />
+            <Button variant="outline" onClick={openCreate}>
               Start planning
             </Button>
           )}
@@ -254,25 +282,25 @@ export function Weekends({
       )}
 
       {buckets.past.length > 0 && (
-        <section className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <section className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             Past weekends
           </p>
-          <div className="space-y-2">
+          <div className="rounded-lg border bg-card">
             {buckets.past.map((group) => (
               <div
                 key={group.groupId}
-                className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4"
+                className="flex flex-wrap items-center gap-x-3.5 gap-y-1 border-b border-divider px-5 py-3 last:border-b-0"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">
-                    {formatWeekendGroupTitle(groupNumber(group))}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {groupDateRange(group)}
-                  </p>
+                <p className="text-sm font-semibold">
+                  {formatWeekendGroupTitle(groupNumber(group))}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {groupDateRange(group)}
+                </p>
+                <div className="ml-auto">
+                  <GroupLinks group={group} />
                 </div>
-                <GroupLinks group={group} />
               </div>
             ))}
           </div>
