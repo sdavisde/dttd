@@ -110,7 +110,7 @@ A non-technical user can confirm this is done by opening `/admin` and seeing: mo
 - [x] 3.6 Build the "Ideas — not built yet" section: sample-data activity feed + storage meter, each explicitly labeled "sample — not built yet", visually distinct from live cards.
 - [x] 3.7 Implement the mobile card layout; capture desktop + mobile screenshots and the payments-summary cross-check. (Responsive stacking implemented; authenticated screenshots deferred to the deployed preview — seeded dev login is rejected locally; cross-check pinned by unit test instead. See 16-proofs/16-task-03-proofs.md.)
 
-### [ ] 4.0 People page (replacing the old Users page)
+### [x] 4.0 People page (replacing the old Users page)
 
 A non-technical user can confirm this is done by clicking "People" in the sidebar: everyone appears in a searchable, sortable table titled "People"; searching/sorting changes the address bar and survives a page reload; clicking a person opens the familiar editor with all its sections; a footer note points to the Security page for role definitions; the old `/admin/users` address no longer exists; it works on a phone.
 
@@ -124,12 +124,12 @@ A non-technical user can confirm this is done by clicking "People" in the sideba
 
 #### 4.0 Tasks
 
-- [ ] 4.1 Relocate the machinery with `git mv`: `app/admin/users/components/` (UserRoleSidebar + the nine section files + `master-roster.tsx`), `app/admin/users/hooks/use-user-edit-form.ts`, `app/admin/users/config/columns.tsx`, `app/admin/users/types.ts` → the same shape under `app/admin/people/`; fix all import paths; `npx tsc --noEmit`.
-- [ ] 4.2 Create `app/admin/people/page.tsx`: server component using `lib/admin/page-guard.ts`, fetching `getMasterRoster()`; PageHeader with serif "People" + "Everyone with an account — contact details, experience, and roles."; no join-link or invite controls.
-- [ ] 4.3 Build the table client component on the shared `DataTable` + `useDataTableUrlState` (`autoResetPageIndex: false`), reusing the relocated column definitions with their permission-aware/mobile-aware metadata; restyle role chips and statuses with tokens only.
-- [ ] 4.4 Wire row click to the relocated `UserRoleSidebar` editor and verify each section loads and saves as today (existing actions + `toastError` untouched); footer note linking role definitions to `/admin/roles`.
-- [ ] 4.5 Delete the remaining `app/admin/users/` route files; repo-grep for stale `/admin/users` or `app/admin/users` references; `yarn lint` + `yarn build`.
-- [ ] 4.6 Implement the mobile card layout; capture the URL-state GIF and desktop/mobile screenshots.
+- [x] 4.1 Relocate the machinery with `git mv`: `app/admin/users/components/` (UserRoleSidebar + the nine section files + `master-roster.tsx`), `app/admin/users/hooks/use-user-edit-form.ts`, `app/admin/users/config/columns.tsx`, `app/admin/users/types.ts` → the same shape under `app/admin/people/`; fix all import paths; `npx tsc --noEmit`.
+- [x] 4.2 Create `app/admin/people/page.tsx`: server component using `lib/admin/page-guard.ts`, fetching `getMasterRoster()`; PageHeader with serif "People" + "Everyone with an account — contact details, experience, and roles."; no join-link or invite controls.
+- [x] 4.3 Build the table client component on the shared `DataTable` + `useDataTableUrlState` (`autoResetPageIndex: false`), reusing the relocated column definitions with their permission-aware/mobile-aware metadata; restyle role chips and statuses with tokens only.
+- [x] 4.4 Wire row click to the relocated `UserRoleSidebar` editor and verify each section loads and saves as today (existing actions + `toastError` untouched); footer note linking role definitions to `/admin/roles`.
+- [x] 4.5 Delete the remaining `app/admin/users/` route files; repo-grep for stale `/admin/users` or `app/admin/users` references; `yarn lint` + `yarn build`.
+- [x] 4.6 Implement the mobile card layout; capture the URL-state GIF and desktop/mobile screenshots.
 
 ### [ ] 5.0 Weekends page rebuilt for board work
 

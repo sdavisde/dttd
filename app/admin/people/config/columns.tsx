@@ -84,9 +84,21 @@ export const masterRosterColumns: ColumnDef<MasterRosterMember>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Role" />
     ),
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string>()}</span>
-    ),
+    cell: ({ row }) => {
+      const roles = row.original.roles
+      if (isEmpty(roles)) {
+        return <span className="text-muted-foreground">-</span>
+      }
+      return (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {roles.map((role) => (
+            <Badge key={role.id} variant="outline" className="font-medium">
+              {role.label}
+            </Badge>
+          ))}
+        </div>
+      )
+    },
     meta: {
       filterType: 'select',
       showOnMobile: true,
@@ -144,11 +156,11 @@ export const masterRosterColumns: ColumnDef<MasterRosterMember>[] = [
         <div className="text-center">
           {rectorReady.criteria.hasServedAsRector ? (
             <div className="relative inline-flex items-center justify-center mx-auto">
-              <Check className="h-5 w-5 text-green-600" />
+              <Check className="h-5 w-5 text-success" />
               <Star className="h-3 w-3 text-amber-500 fill-amber-500 absolute -top-1 -right-1.5" />
             </div>
           ) : rectorReady.isReady ? (
-            <Check className="h-5 w-5 text-green-600 mx-auto" />
+            <Check className="h-5 w-5 text-success mx-auto" />
           ) : (
             <span className="text-muted-foreground">-</span>
           )}

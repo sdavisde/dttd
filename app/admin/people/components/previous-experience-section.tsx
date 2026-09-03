@@ -1,8 +1,5 @@
-import type {
-  UserExperience} from '@/lib/users/experience';
-import {
-  groupExperienceByCommunity
-} from '@/lib/users/experience'
+import type { UserExperience } from '@/lib/users/experience'
+import { groupExperienceByCommunity } from '@/lib/users/experience'
 import { Badge } from '@/components/ui/badge'
 import { isNil } from 'lodash'
 

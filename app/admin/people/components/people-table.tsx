@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Users as UsersIcon } from 'lucide-react'
+import Link from 'next/link'
 import { UserRoleSidebar } from './UserRoleSidebar'
 import type { User } from '@/lib/users/types'
 import { Button } from '@/components/ui/button'
-import { Typography } from '@/components/ui/typography'
-import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { toastError } from '@/lib/toast-error'
 import { useRouter } from 'next/navigation'
@@ -30,19 +28,19 @@ import {
 } from '../config/columns'
 import { isNil } from 'lodash'
 
-interface MasterRosterProps {
+interface PeopleTableProps {
   masterRoster: MasterRosterType
   roles: Array<{ id: string; label: string; permissions: string[] }>
   canViewExperience: boolean
   canEdit: boolean
 }
 
-export default function MasterRoster({
+export default function PeopleTable({
   masterRoster,
   roles,
   canViewExperience,
   canEdit,
-}: MasterRosterProps) {
+}: PeopleTableProps) {
   const [selectedMember, setSelectedMember] =
     useState<MasterRosterMember | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -92,28 +90,6 @@ export default function MasterRoster({
 
   return (
     <div className="my-4">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Typography variant="h4">Master Roster</Typography>
-          <Card className="px-3 py-1.5">
-            <CardContent className="p-0">
-              <div className="flex items-center gap-2 text-sm">
-                <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">
-                  {masterRoster.members.length}
-                </span>
-                <span className="text-muted-foreground">total members</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Typography variant="muted">
-          Manage user roles and permissions. Click on a user to assign or change
-          their role.
-        </Typography>
-      </div>
-
       <DataTable
         columns={masterRosterColumns}
         data={masterRoster.members}
@@ -131,6 +107,18 @@ export default function MasterRoster({
           noResults: 'No users found matching your search.',
         }}
       />
+
+      <p className="mt-4 text-sm text-muted-foreground">
+        {masterRoster.members.length} people · Role and permission definitions
+        live on the{' '}
+        <Link
+          href="/admin/roles"
+          className="text-primary underline-offset-4 hover:underline"
+        >
+          Security page
+        </Link>
+        .
+      </p>
 
       <UserRoleSidebar
         member={selectedMember}
