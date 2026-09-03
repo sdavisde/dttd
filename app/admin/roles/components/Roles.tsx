@@ -7,7 +7,7 @@ import type { Role } from '@/services/identity/roles'
 import { deleteRole } from '@/services/identity/roles'
 import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-dialog'
 import { Button } from '@/components/ui/button'
-import { Typography } from '@/components/ui/typography'
+import { PageHeader } from '@/components/ui/page-header'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { isErr } from '@/lib/results'
@@ -95,17 +95,20 @@ export default function Roles({ roles, readOnly }: RolesProps) {
   )
 
   return (
-    <div className="my-4">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <Typography variant="h4" className="mb-2">
-            Roles & Permissions
-          </Typography>
-          <Typography variant="muted">
-            Manage system roles and their associated permissions.
-          </Typography>
-        </div>
-      </div>
+    <div>
+      <PageHeader
+        title="Security"
+        description="Define what each role can do — roles are assigned to people on the People page."
+      >
+        <Button
+          onClick={handleCreateRole}
+          variant="outline"
+          disabled={readOnly}
+        >
+          <Plus className="h-4 w-4" />
+          New role
+        </Button>
+      </PageHeader>
 
       <DataTable
         columns={columns}
@@ -115,23 +118,22 @@ export default function Roles({ roles, readOnly }: RolesProps) {
         urlState={urlState}
         searchPlaceholder="Search roles..."
         onRowClick={readOnly ? undefined : handleRoleClick}
-        toolbarChildren={
-          <Button
-            onClick={handleCreateRole}
-            size="sm"
-            variant="ghost"
-            className="flex items-center gap-2"
-            disabled={readOnly}
-          >
-            <Plus className="h-4 w-4" />
-            Add Role
-          </Button>
-        }
+        appearance={{
+          zebra: false,
+          container: 'bg-card overflow-hidden [&_tbody_tr]:border-divider',
+          header:
+            'h-auto px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground [&_button]:h-7 [&_button]:text-xs [&_button]:font-semibold [&_button]:uppercase [&_button]:tracking-wider [&_button]:text-muted-foreground',
+        }}
         emptyState={{
           noData: 'No roles found in the database.',
           noResults: 'No roles found matching your search.',
         }}
       />
+
+      <p className="mt-3 text-[13px] text-muted-foreground">
+        {roles.length} roles · board positions and committees are roles too ·
+        people get their roles on the People page
+      </p>
 
       <RolesSidebar
         role={selectedRole}

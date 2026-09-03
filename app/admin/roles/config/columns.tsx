@@ -5,7 +5,7 @@ import type { Role } from '@/services/identity/roles'
 import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Settings, Edit, Trash2 } from 'lucide-react'
+import { Edit, Trash2 } from 'lucide-react'
 import '@/components/ui/data-table/types'
 
 // ---------------------------------------------------------------------------
@@ -33,12 +33,17 @@ export function getRolesColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Role" />
       ),
-      cell: ({ getValue }) => {
-        const value = getValue<string>()
+      cell: ({ row }) => {
+        const role = row.original
         return (
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-gray-500" />
-            <span className="font-medium">{value}</span>
+          <div className="flex min-w-0 flex-col gap-0.5 py-0.5">
+            <span className="text-sm font-semibold">{role.label}</span>
+            {typeof role.description === 'string' &&
+              role.description !== '' && (
+                <span className="line-clamp-2 max-w-md text-[13px] leading-snug whitespace-normal text-muted-foreground">
+                  {role.description}
+                </span>
+              )}
           </div>
         )
       },
@@ -61,12 +66,16 @@ export function getRolesColumns(
         return (
           <div className="flex flex-wrap gap-1">
             {permissions.slice(0, 3).map((permission, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
+              <Badge
+                key={index}
+                variant="outline"
+                className="rounded-full text-xs font-medium"
+              >
                 {permission}
               </Badge>
             ))}
             {permissions.length > 3 && (
-              <span className="text-muted-foreground text-sm">
+              <span className="text-muted-foreground text-[13px]">
                 +{permissions.length - 3} more
               </span>
             )}
@@ -78,26 +87,6 @@ export function getRolesColumns(
         showOnMobile: true,
         mobileLabel: 'Permissions',
         mobilePriority: 'secondary',
-      },
-    },
-    {
-      id: 'permissionCount',
-      accessorFn: (role) => role.permissions?.length ?? 0,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Count" />
-      ),
-      cell: ({ getValue }) => {
-        const count = getValue<number>()
-        return (
-          <span>
-            {count} permission{count !== 1 ? 's' : ''}
-          </span>
-        )
-      },
-      meta: {
-        showOnMobile: true,
-        mobileLabel: 'Count',
-        mobilePriority: 'detail',
       },
     },
     {

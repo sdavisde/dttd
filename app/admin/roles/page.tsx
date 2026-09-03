@@ -34,10 +34,10 @@ export default async function RolesPage() {
   return (
     <>
       <AdminBreadcrumbs
-        title="Roles"
+        title="Security"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
-      <div className="container mx-auto px-8">
+      <div className="container mx-auto px-4 sm:px-8 py-6">
         <Roles roles={rolesResult.data} readOnly={!canWrite} />
       </div>
     </>

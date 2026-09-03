@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { isErr } from '@/lib/results'
 import { Permission } from '@/lib/security'
-import type { MultiValue } from 'react-select';
+import type { MultiValue } from 'react-select'
 import Select from 'react-select'
 import {
   Sheet,
@@ -137,9 +137,16 @@ export function RolesSidebar({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>
-            {!isNil(role) ? `Edit Role: ${role.label}` : 'Create New Role'}
+          <SheetTitle className="font-serif text-xl font-semibold tracking-tight">
+            {!isNil(role) ? role.label : 'New role'}
           </SheetTitle>
+          {!isNil(role) &&
+            typeof role.description === 'string' &&
+            role.description !== '' && (
+              <p className="text-[13px] text-muted-foreground">
+                {role.description}
+              </p>
+            )}
         </SheetHeader>
 
         <div className="space-y-4 p-4">
@@ -190,7 +197,11 @@ export function RolesSidebar({
               onClick={handleSave}
               disabled={roleName.trim() === '' || isLoading || !hasChanges}
             >
-              {isLoading ? 'Saving...' : !isNil(role) ? 'Save Changes' : 'Create Role'}
+              {isLoading
+                ? 'Saving...'
+                : !isNil(role)
+                  ? 'Save Changes'
+                  : 'Create Role'}
             </Button>
           </SheetFooter>
         )}
