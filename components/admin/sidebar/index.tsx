@@ -1,97 +1,108 @@
 'use client'
 
 import * as React from 'react'
-import {
-  SquareTerminal,
-  type LucideIcon,
-  Users,
-  Calendar,
-  DollarSign,
-  Landmark,
-  TentTree,
-  Folder,
-  QrCode,
-  Settings2,
-  ShieldCheck,
-} from 'lucide-react'
-import { NavMain } from '@/components/admin/sidebar/nav-main'
-import { SystemLinks } from '@/components/admin/sidebar/system-links'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
+import { isNil } from 'lodash'
 import { NavUser } from '@/components/admin/sidebar/nav-user'
-import { TeamSwitcher } from '@/components/admin/sidebar/team-switcher'
+import {
+  getNavIcon,
+  isNavItemActive,
+  type SerializableNavItem,
+} from '@/lib/admin/navigation'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { isNil } from 'lodash'
-
-// Icon mapping for serializable data
-const iconMap: Record<string, LucideIcon> = {
-  SquareTerminal,
-  Users,
-  Folder,
-  Calendar,
-  DollarSign,
-  Landmark,
-  TentTree,
-  QrCode,
-  Settings2,
-  ShieldCheck,
-}
-
-type SystemLinkItem = {
-  title: string
-  url: string
-  icon: string
-}
 
 type AdminSidebarProps = React.ComponentProps<typeof Sidebar> & {
-  data: {
-    navMain: Array<{
-      title: string
-      url: string
-      icon?: string
-      isActive?: boolean
-      items?: Array<{
-        title: string
-        url: string
-      }>
-    }>
-  }
-  systemLinks: SystemLinkItem[]
+  items: SerializableNavItem[]
 }
 
-export function AdminSidebar({
-  data,
-  systemLinks,
-  ...props
-}: AdminSidebarProps) {
-  // Transform the data to include actual icon components
-  const transformedData = {
-    navMain: data.navMain.map((item) => ({
-      ...item,
-      icon: !isNil(item.icon) ? iconMap[item.icon] : undefined,
-    })),
-  }
-
-  // Transform system links to include actual icon components
-  const transformedSystemLinks = systemLinks.map((item) => ({
-    ...item,
-    icon: iconMap[item.icon],
-  }))
+export function AdminSidebar({ items, ...props }: AdminSidebarProps) {
+  const pathname = usePathname()
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={[]} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/admin">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary font-serif text-sm font-semibold text-primary-foreground">
+                  DT
+                </div>
+                <div className="flex flex-1 items-center gap-2 text-left leading-tight">
+                  <span className="truncate font-medium">Dusty Trails</span>
+                  <span className="rounded-full border border-secondary-border bg-secondary px-2 py-0.5 text-[10px] font-bold tracking-wider text-secondary-foreground uppercase">
+                    Admin
+                  </span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={transformedData.navMain} />
-        <SystemLinks items={transformedSystemLinks} />
+        <SidebarGroup>
+          <SidebarMenu>
+            {items.map((item) => {
+              const Icon = getNavIcon(item.href)
+              if (item.soon === true) {
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      aria-disabled
+                      className="text-muted-foreground/70 hover:bg-transparent hover:text-muted-foreground/70 active:bg-transparent"
+                      tooltip={`${item.title} — coming soon`}
+                    >
+                      {!isNil(Icon) && <Icon />}
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                    <SidebarMenuBadge className="text-[10px] font-bold tracking-wider text-muted-foreground/70">
+                      SOON
+                    </SidebarMenuBadge>
+                  </SidebarMenuItem>
+                )
+              }
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isNavItemActive(item.href, pathname)}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.href}>
+                      {!isNil(Icon) && <Icon />}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Back to member site">
+              <Link href="/home">
+                <ArrowLeft />
+                <span>Back to member site</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <NavUser />
       </SidebarFooter>
       <SidebarRail />

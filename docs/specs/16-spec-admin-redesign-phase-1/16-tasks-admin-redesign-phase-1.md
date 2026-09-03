@@ -64,7 +64,7 @@ A non-technical user can confirm this is done by opening any admin page and seei
 - [x] 1.4 Write `docs/design-system.md` covering every convention listed in the spec (Unit 1, final FR) and linking the design canvas as visual source of truth.
 - [x] 1.5 Run `yarn build` + `npx tsc --noEmit`; capture the before/after sidebar screenshots and the `/` spot-check screenshot into the spec directory. (No headless browser available — screenshots deferred to task 2.0's visual pass; token diff recorded as primary evidence in the proof file.)
 
-### [ ] 2.0 New admin shell with the final navigation
+### [x] 2.0 New admin shell with the final navigation
 
 A non-technical user can confirm this is done by opening `/admin` and seeing the new warm sidebar with exactly: Dashboard, Weekends, Events, Payments, People, Community, Files, Site settings, Security, Reports (faint, marked "SOON"), plus "Back to member site"; clicking each item lands on the right page with the item highlighted; every old admin page still works inside the new frame; `/admin/qr-codes` is gone; Events shows the old meetings page titled "Events".
 
@@ -79,15 +79,15 @@ A non-technical user can confirm this is done by opening `/admin` and seeing the
 
 #### 2.0 Tasks
 
-- [ ] 2.1 Move `components/admin/sidebar/impersonation-dialog.tsx` → `components/impersonation/impersonation-dialog.tsx` (`git mv`); update imports in `components/navbar/user-menu.tsx` and `components/admin/sidebar/nav-user.tsx`; `npx tsc --noEmit`.
-- [ ] 2.2 Rename `app/admin/meetings/` → `app/admin/events/` (`git mv`); change the page's visible title to "Events" (its `AdminBreadcrumbs` title prop); leave internals unchanged (repo grep confirms only `lib/admin/navigation.ts` references `/admin/meetings`).
-- [ ] 2.3 Delete `app/admin/qr-codes/` and `lib/admin/qr-pages-config.ts`; remove `qrcode` and `@types/qrcode` from `package.json` and run `yarn` (sole importer verified: `qr-code-generator.tsx`).
-- [ ] 2.4 Rewrite `lib/admin/navigation.ts` as the single nav source: array of `{ title, href, icon (Lucide component), permissionsNeeded, soon? }` in the final order, Reports as `soon: true` non-link; export a `filterNavByPermission`-equivalent preserving today's semantics (empty permissions ⇒ visible past the portal gate). Add `lib/admin/navigation.test.ts` covering order, routes, permission filtering, and the SOON flag.
-- [ ] 2.5 Rebuild `components/admin/sidebar/` on shadcn `components/ui/sidebar.tsx`: header (DT logo tile, "Dusty Trails", cream "Admin" badge), a `'use client'` nav list using `Link` + `usePathname` (longest-prefix active matching; `/admin` exact; nested routes highlight their section), `NavUser` footer (session + impersonation entry preserved), bottom "Back to member site" item. Delete the dead `team-switcher.tsx`/`system-links.tsx`/`nav-main.tsx` once replaced.
-- [ ] 2.6 Replace `app/admin/layout.tsx`: keep `getLoggedInUser()` + `permissionLock([Permission.READ_ADMIN_PORTAL])` with today's redirect behavior; render the new sidebar + `SidebarInset` + existing `Footer`; do not modify `components/admin/breadcrumbs.tsx` (legacy pages depend on its export).
-- [ ] 2.7 Add `app/admin/error.tsx` (`'use client'`): friendly message, token-styled, "Back to dashboard" action.
-- [ ] 2.8 Add `lib/admin/page-guard.ts`: given required permissions, returns `{ user, canEdit, … }` or redirects — a thin wrapper over `getLoggedInUser` + existing `lib/security.ts` checks (no behavior changes). Add `lib/admin/page-guard.test.ts` (grant, deny/redirect, derived booleans).
-- [ ] 2.9 Click through every route in the new nav plus `/admin/payments/summary` and `/admin/weekends/[weekend_id]`; capture the proof screenshots/GIF; run `yarn lint`, `npx tsc --noEmit`, `yarn build`.
+- [x] 2.1 Move `components/admin/sidebar/impersonation-dialog.tsx` → `components/impersonation/impersonation-dialog.tsx` (`git mv`); update imports in `components/navbar/user-menu.tsx` and `components/admin/sidebar/nav-user.tsx`; `npx tsc --noEmit`.
+- [x] 2.2 Rename `app/admin/meetings/` → `app/admin/events/` (`git mv`); change the page's visible title to "Events" (its `AdminBreadcrumbs` title prop); leave internals unchanged (repo grep confirms only `lib/admin/navigation.ts` references `/admin/meetings`).
+- [x] 2.3 Delete `app/admin/qr-codes/` and `lib/admin/qr-pages-config.ts`; remove `qrcode` and `@types/qrcode` from `package.json` and run `yarn` (sole importer verified: `qr-code-generator.tsx`).
+- [x] 2.4 Rewrite `lib/admin/navigation.ts` as the single nav source: array of `{ title, href, icon (Lucide component), permissionsNeeded, soon? }` in the final order, Reports as `soon: true` non-link; export a `filterNavByPermission`-equivalent preserving today's semantics (empty permissions ⇒ visible past the portal gate). Add `lib/admin/navigation.test.ts` covering order, routes, permission filtering, and the SOON flag.
+- [x] 2.5 Rebuild `components/admin/sidebar/` on shadcn `components/ui/sidebar.tsx`: header (DT logo tile, "Dusty Trails", cream "Admin" badge), a `'use client'` nav list using `Link` + `usePathname` (longest-prefix active matching; `/admin` exact; nested routes highlight their section), `NavUser` footer (session + impersonation entry preserved), bottom "Back to member site" item. Delete the dead `team-switcher.tsx`/`system-links.tsx`/`nav-main.tsx` once replaced.
+- [x] 2.6 Replace `app/admin/layout.tsx`: keep `getLoggedInUser()` + `permissionLock([Permission.READ_ADMIN_PORTAL])` with today's redirect behavior; render the new sidebar + `SidebarInset` + existing `Footer`; do not modify `components/admin/breadcrumbs.tsx` (legacy pages depend on its export).
+- [x] 2.7 Add `app/admin/error.tsx` (`'use client'`): friendly message, token-styled, "Back to dashboard" action.
+- [x] 2.8 Add `lib/admin/page-guard.ts`: given required permissions, returns `{ user, canEdit, … }` or redirects — a thin wrapper over `getLoggedInUser` + existing `lib/security.ts` checks (no behavior changes). Add `lib/admin/page-guard.test.ts` (grant, deny/redirect, derived booleans).
+- [x] 2.9 Click through every route in the new nav plus `/admin/payments/summary` and `/admin/weekends/[weekend_id]`; capture the proof screenshots/GIF; run `yarn lint`, `npx tsc --noEmit`, `yarn build`.
 
 ### [ ] 3.0 Back-office dashboard at /admin
 

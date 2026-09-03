@@ -1,35 +1,12 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import {
-  Calendar,
-  DollarSign,
-  Folder,
-  QrCode,
-  Settings2,
-  ShieldCheck,
-  TentTree,
-  Users,
-  type LucideIcon,
-  ClipboardList,
-} from 'lucide-react'
 import Link from 'next/link'
 import { getLoggedInUser } from '@/services/identity/user'
 import { redirect } from 'next/navigation'
 import * as Results from '@/lib/results'
-import { getFilteredNavData } from '@/lib/admin/navigation'
+import { getNavIcon, getVisibleNavItems } from '@/lib/admin/navigation'
 import { isNil } from 'lodash'
-
-const iconMap: Record<string, LucideIcon> = {
-  TentTree,
-  Calendar,
-  DollarSign,
-  Users,
-  Folder,
-  QrCode,
-  Settings2,
-  ShieldCheck,
-}
 
 export default async function Page() {
   const userResult = await getLoggedInUser()
@@ -38,8 +15,9 @@ export default async function Page() {
     redirect('/')
   }
 
-  const { navMain, systemLinks } = getFilteredNavData(userResult.data)
-  const allLinks = [...navMain, ...systemLinks]
+  const allLinks = getVisibleNavItems(userResult.data).filter(
+    (link) => link.soon !== true && link.href !== '/admin'
+  )
 
   return (
     <>
@@ -58,9 +36,9 @@ export default async function Page() {
         {/* Quick Links */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {allLinks.map((link) => {
-            const Icon = iconMap[link.icon]
+            const Icon = getNavIcon(link.href)
             return (
-              <Link key={link.url} href={link.url} className="flex w-full">
+              <Link key={link.href} href={link.href} className="flex w-full">
                 <Card className="hover:bg-muted/50 transition-colors w-full">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -68,14 +46,6 @@ export default async function Page() {
                       {link.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Typography
-                      variant="small"
-                      className="text-muted-foreground"
-                    >
-                      {link.description}
-                    </Typography>
-                  </CardContent>
                 </Card>
               </Link>
             )

@@ -1,0 +1,36 @@
+'use client'
+
+import { useEffect } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Typography } from '@/components/ui/typography'
+import { logger } from '@/lib/logger'
+
+type AdminErrorProps = {
+  error: Error & { digest?: string }
+  reset: () => void
+}
+
+export default function AdminError({ error, reset }: AdminErrorProps) {
+  useEffect(() => {
+    logger.error(error, 'Admin page error boundary')
+  }, [error])
+
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-lg border bg-card p-8 text-center">
+        <Typography variant="h2">Something went wrong</Typography>
+        <Typography variant="muted" className="mt-2">
+          This page hit a problem while loading. Nothing was lost — you can try
+          again, or head back to the dashboard.
+        </Typography>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Button onClick={reset}>Try again</Button>
+          <Button variant="outline" asChild>
+            <Link href="/admin">Back to dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}

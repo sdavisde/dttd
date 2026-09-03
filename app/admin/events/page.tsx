@@ -104,7 +104,7 @@ export default async function MeetingsPage() {
   return (
     <>
       <AdminBreadcrumbs
-        title="Meetings"
+        title="Events"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
       <div className="container mx-auto px-8 pb-8">

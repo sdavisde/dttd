@@ -1,136 +1,136 @@
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
-import { isNil } from 'lodash'
+import {
+  BarChart3,
+  Calendar,
+  DollarSign,
+  Folder,
+  Landmark,
+  LayoutGrid,
+  Settings2,
+  ShieldCheck,
+  TentTree,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 
-export type AdminNavElement = {
+export type AdminNavItem = {
   title: string
-  url: string
-  icon: string
-  description: string
-  isActive?: boolean
-  permissions_needed: Permission[]
-  items?: Array<{ title: string; url: string }>
-}
-
-export type SystemLinkElement = {
-  title: string
-  url: string
-  icon: string
-  description: string
-  permissions_needed: Permission[]
+  href: string
+  icon: LucideIcon
+  /** Empty means visible to anyone who cleared the admin-portal gate. */
+  permissionsNeeded: Permission[]
+  /** Marked "SOON" in the sidebar and rendered as a non-link. */
+  soon?: boolean
 }
 
 /**
- * Main navigation items for the admin sidebar and dashboard
+ * The single source of truth for admin navigation: order, routes, icons, and
+ * required permissions. The sidebar renders exactly this list.
  */
-export const adminNavItems: AdminNavElement[] = [
+export const adminNavItems: AdminNavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/admin',
+    icon: LayoutGrid,
+    permissionsNeeded: [],
+  },
   {
     title: 'Weekends',
-    url: '/admin/weekends',
-    icon: 'TentTree',
-    description:
-      'Create and manage weekends - view related events, and historical weekend information.',
-    isActive: true,
-    permissions_needed: [Permission.READ_WEEKENDS],
+    href: '/admin/weekends',
+    icon: TentTree,
+    permissionsNeeded: [Permission.READ_WEEKENDS],
   },
   {
     title: 'Events',
-    url: '/admin/meetings',
-    icon: 'Calendar',
-    description: 'Schedule and manage community meetings and gatherings.',
-    permissions_needed: [Permission.READ_EVENTS],
+    href: '/admin/events',
+    icon: Calendar,
+    permissionsNeeded: [Permission.READ_EVENTS],
   },
   {
     title: 'Payments',
-    url: '/admin/payments',
-    icon: 'DollarSign',
-    description:
-      'View payments reported to the site. Includes all online payments, and any manually added team fees or candidate fees.',
-    permissions_needed: [Permission.READ_PAYMENTS],
+    href: '/admin/payments',
+    icon: DollarSign,
+    permissionsNeeded: [Permission.READ_PAYMENTS],
   },
   {
-    title: 'Community Board',
-    url: '/admin/community-board',
-    icon: 'Landmark',
-    description:
-      'Track board positions, leaders committee assignments, and meeting minutes.',
-    permissions_needed: [],
+    title: 'People',
+    href: '/admin/people',
+    icon: Users,
+    permissionsNeeded: [],
   },
   {
-    title: 'Master Roster',
-    url: '/admin/users',
-    icon: 'Users',
-    description: 'View the Dusty Trails community master roster',
-    permissions_needed: [],
+    title: 'Community',
+    href: '/admin/community-board',
+    icon: Landmark,
+    permissionsNeeded: [],
   },
   {
     title: 'Files',
-    url: '/admin/files',
-    icon: 'Folder',
-    description:
-      'Upload, organize, and manage files for weekends and documentation.',
-    permissions_needed: [],
+    href: '/admin/files',
+    icon: Folder,
+    permissionsNeeded: [],
   },
   {
-    title: 'QR Codes',
-    url: '/admin/qr-codes',
-    icon: 'QrCode',
-    description:
-      'Generate QR codes for public pages to use on printed handouts.',
-    permissions_needed: [],
-  },
-]
-
-/**
- * System links for the admin sidebar and dashboard
- */
-export const systemLinkItems: SystemLinkElement[] = [
-  {
-    title: 'Settings',
-    url: '/admin/settings',
-    icon: 'Settings2',
-    description: 'Configure system preferences and application settings.',
-    permissions_needed: [],
+    title: 'Site settings',
+    href: '/admin/settings',
+    icon: Settings2,
+    permissionsNeeded: [],
   },
   {
     title: 'Security',
-    url: '/admin/roles',
-    icon: 'ShieldCheck',
-    description: 'Manage user roles and security permissions.',
-    permissions_needed: [Permission.READ_USER_ROLES],
+    href: '/admin/roles',
+    icon: ShieldCheck,
+    permissionsNeeded: [Permission.READ_USER_ROLES],
+  },
+  {
+    title: 'Reports',
+    href: '/admin/reports',
+    icon: BarChart3,
+    permissionsNeeded: [],
+    soon: true,
   },
 ]
 
 /**
- * Filter navigation items based on user permissions
+ * Items with no required permissions are visible to anyone past the
+ * admin-portal gate; otherwise the user needs at least one of the listed
+ * permissions (FULL_ACCESS short-circuits inside userHasPermission).
  */
 export function filterNavByPermission<
-  T extends { permissions_needed: Permission[] },
+  T extends { permissionsNeeded: Permission[] },
 >(items: T[], user: User): T[] {
   return items.filter((item) => {
-    if (item.permissions_needed.length === 0) return true
-    return userHasPermission(user, item.permissions_needed)
+    if (item.permissionsNeeded.length === 0) return true
+    return userHasPermission(user, item.permissionsNeeded)
   })
 }
 
 /**
- * Get filtered navigation data for a user
- * Used by both the sidebar and the dashboard page
+ * Serializable shape safe to pass from the server layout to the client
+ * sidebar (icon components stay on this module; the client looks them up).
  */
-export function getFilteredNavData(
-  user: User,
-  fileFolders?: Array<{ title: string; url: string }>
-) {
-  const navMain = adminNavItems.map((item) => ({
-    ...item,
-    items:
-      item.url === '/admin/files' && !isNil(fileFolders)
-        ? fileFolders
-        : undefined,
-  }))
+export type SerializableNavItem = {
+  title: string
+  href: string
+  soon?: boolean
+}
 
-  return {
-    navMain: filterNavByPermission(navMain, user),
-    systemLinks: filterNavByPermission(systemLinkItems, user),
-  }
+export function getVisibleNavItems(user: User): SerializableNavItem[] {
+  return filterNavByPermission(adminNavItems, user).map(
+    ({ title, href, soon }) => ({ title, href, soon })
+  )
+}
+
+export function getNavIcon(href: string): LucideIcon | undefined {
+  return adminNavItems.find((item) => item.href === href)?.icon
+}
+
+/**
+ * Longest-prefix active matching: `/admin` only matches exactly, so nested
+ * routes highlight their own section (e.g. `/admin/weekends/123` → Weekends).
+ */
+export function isNavItemActive(href: string, pathname: string): boolean {
+  if (href === '/admin') return pathname === '/admin'
+  return pathname === href || pathname.startsWith(`${href}/`)
 }
