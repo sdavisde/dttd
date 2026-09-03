@@ -1,46 +1,61 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-react'
 import { isNil } from 'lodash'
 import type { Event } from '@/services/events'
 import { getPastEvents } from '@/services/events'
 import { isErr } from '@/lib/results'
 import { EVENT_TYPE_LABELS } from '@/services/events/types'
-import { getEventColor } from './event-colors'
 
-export function PastEventsSection() {
-  const [isOpen, setIsOpen] = useState(false)
+interface PastEventsSectionProps {
+  /** Open state lives with the parent so the page header can open it too. */
+  isOpen: boolean
+  onToggle: () => void
+  /** Increment to scroll the section into view. */
+  scrollSignal?: number
+}
+
+export function PastEventsSection({
+  isOpen,
+  onToggle,
+  scrollSignal = 0,
+}: PastEventsSectionProps) {
   const [events, setEvents] = useState<Event[] | null>(null)
   const [isPending, startTransition] = useTransition()
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const hasRequestedRef = useRef(false)
 
-  const handleToggle = () => {
-    if (!isOpen && events === null) {
-      startTransition(async () => {
-        const result = await getPastEvents()
-        if (!isErr(result)) {
-          setEvents(result.data)
-        } else {
-          setEvents([])
-        }
-      })
+  useEffect(() => {
+    if (!isOpen || hasRequestedRef.current) return
+    hasRequestedRef.current = true
+    startTransition(async () => {
+      const result = await getPastEvents()
+      setEvents(isErr(result) ? [] : result.data)
+    })
+  }, [isOpen])
+
+  useEffect(() => {
+    if (scrollSignal > 0) {
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-    setIsOpen(!isOpen)
-  }
+  }, [scrollSignal])
 
   return (
-    <div className="mt-8 border-t pt-6">
+    <div ref={sectionRef} className="mt-8 scroll-mt-6 border-t pt-6">
       <button
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer group"
-        onClick={handleToggle}
+        className="group flex cursor-pointer items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        onClick={onToggle}
       >
         {isOpen ? (
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="h-4 w-4" />
         ) : (
-          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         )}
-        <span>Past Events</span>
-        {isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+        <span className="text-xs font-semibold tracking-wider uppercase">
+          Past events
+        </span>
+        {isPending && <Loader2 className="h-3 w-3 animate-spin" />}
         {!isOpen && !isPending && (
           <span className="text-xs text-muted-foreground/60">
             Click to load
@@ -49,12 +64,18 @@ export function PastEventsSection() {
       </button>
 
       {isOpen && events !== null && (
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 overflow-hidden rounded-md border bg-card">
           {events.length === 0 && (
-            <p className="text-sm text-muted-foreground">No past events</p>
+            <p className="px-4 py-3 text-sm text-muted-foreground">
+              No past events
+            </p>
           )}
-          {events.map((event) => (
-            <PastEventCard key={event.id} event={event} />
+          {events.map((event, i) => (
+            <PastEventRow
+              key={event.id}
+              event={event}
+              isLast={i === events.length - 1}
+            />
           ))}
         </div>
       )}
@@ -62,8 +83,7 @@ export function PastEventsSection() {
   )
 }
 
-function PastEventCard({ event }: { event: Event }) {
-  const c = getEventColor(event.type)
+function PastEventRow({ event, isLast }: { event: Event; isLast: boolean }) {
   const date = !isNil(event.datetime)
     ? new Date(event.datetime).toLocaleDateString('en-US', {
         month: 'short',
@@ -74,25 +94,22 @@ function PastEventCard({ event }: { event: Event }) {
     : null
 
   return (
-    <div className="flex items-center bg-card border rounded-lg overflow-hidden opacity-60">
-      <div className={`w-1 self-stretch ${c.barBg}`} />
-      <div className="flex-1 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-sm">
-            {event.title ?? 'Untitled'}
-          </span>
-          {!isNil(event.type) && (
-            <span className={`text-[10px] ${c.badge} px-1.5 py-0.5 rounded`}>
-              {EVENT_TYPE_LABELS[event.type]}
-            </span>
-          )}
-        </div>
-        {!isNil(date) && (
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
-            {date}
+    <div
+      className={`flex items-center justify-between px-4 py-3 ${isLast ? '' : 'border-b border-divider'}`}
+    >
+      <div className="flex items-center gap-2.5">
+        <span className="text-sm font-medium">{event.title ?? 'Untitled'}</span>
+        {!isNil(event.type) && (
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11.5px] font-semibold text-muted-foreground">
+            {EVENT_TYPE_LABELS[event.type]}
           </span>
         )}
       </div>
+      {!isNil(date) && (
+        <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">
+          {date}
+        </span>
+      )}
     </div>
   )
 }

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Typography } from '@/components/ui/typography'
+import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/ui/page-header'
 import {
   EventSidebar,
   type WeekendOption,
@@ -12,16 +13,13 @@ import {
 import { isNil } from 'lodash'
 import type { Event } from '@/services/events'
 import type { EventTypeValue } from '@/services/events/types'
-import {
-  SINGLETON_EVENT_TYPES,
-  EVENT_TYPE_LABELS,
-} from '@/services/events/types'
+import { EVENT_TYPE_LABELS } from '@/services/events/types'
 import type { Weekend } from '@/lib/weekend/types'
 
-import { CommunitySidebar } from './CommunitySidebar'
-import { ProgressHeader } from './ProgressHeader'
-import { MeetingsRow } from './MeetingsRow'
-import { WeekendLane } from './WeekendLane'
+import type { ScopeContext } from './event-scope'
+import { MonthCalendar } from './month-calendar'
+import { SchedulingProgress } from './scheduling-progress'
+import { ComingUp } from './coming-up'
 import { PastEventsSection } from './PastEventsSection'
 
 interface ActiveGroupData {
@@ -31,7 +29,7 @@ interface ActiveGroupData {
   womensWeekend: Weekend
 }
 
-interface MeetingsProps {
+interface EventsClientProps {
   canEdit: boolean
   activeGroup: ActiveGroupData | null
   activeGroupEvents: Event[]
@@ -40,19 +38,27 @@ interface MeetingsProps {
   weekendIndividualOptions: WeekendIndividualOption[]
 }
 
-export default function Meetings({
+export default function EventsClient({
   canEdit,
   activeGroup,
   activeGroupEvents,
   communityEvents,
   weekendOptions,
   weekendIndividualOptions,
-}: MeetingsProps) {
+}: EventsClientProps) {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [prefill, setPrefill] = useState<EventFormPrefill | undefined>(
     undefined
   )
+  const [pastOpen, setPastOpen] = useState(false)
+  const [pastScrollSignal, setPastScrollSignal] = useState(0)
+
+  const scopeContext: ScopeContext = {
+    mensWeekendId: activeGroup?.mensWeekend.id,
+    womensWeekendId: activeGroup?.womensWeekend.id,
+  }
+  const allEvents = [...activeGroupEvents, ...communityEvents]
 
   const handleEventClick = (event: Event) => {
     if (!canEdit) return
@@ -86,7 +92,8 @@ export default function Meetings({
   }
 
   const handleAddMeeting = () => {
-    const meetingNumber = meetings.length + 1
+    const meetingNumber =
+      activeGroupEvents.filter((e) => e.type === 'meeting').length + 1
     const num = activeGroup?.groupNumber
     const numSuffix = !isNil(num) ? ` #${num}` : ''
     setSelectedEvent(null)
@@ -98,9 +105,9 @@ export default function Meetings({
     setIsSidebarOpen(true)
   }
 
-  const handleAddCommunityEvent = () => {
+  const handleNewEvent = () => {
     setSelectedEvent(null)
-    setPrefill({ type: 'other', hideWeekendFields: true })
+    setPrefill(undefined)
     setIsSidebarOpen(true)
   }
 
@@ -110,95 +117,81 @@ export default function Meetings({
     setPrefill(undefined)
   }
 
-  // Categorize events
-  const meetings = activeGroupEvents.filter((e) => e.type === 'meeting')
-  const secuela = activeGroupEvents.find((e) => e.type === 'secuela') ?? null
-  const mensEvents = activeGroupEvents.filter(
-    (e) =>
-      e.weekendId === activeGroup?.mensWeekend.id &&
-      e.type != null &&
-      SINGLETON_EVENT_TYPES.includes(e.type)
-  )
-  const womensEvents = activeGroupEvents.filter(
-    (e) =>
-      e.weekendId === activeGroup?.womensWeekend.id &&
-      e.type != null &&
-      SINGLETON_EVENT_TYPES.includes(e.type)
-  )
-
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <Typography variant="h4" as="h1">
-          Meetings & Events
-        </Typography>
-      </div>
+      <PageHeader
+        title="Events"
+        description="Team meetings, send-offs, and community gatherings — one calendar for everything with a date."
+      >
+        <Button
+          variant="outline"
+          onClick={() => {
+            setPastOpen(true)
+            setPastScrollSignal((n) => n + 1)
+          }}
+        >
+          Past events
+        </Button>
+        {canEdit && <Button onClick={handleNewEvent}>New event</Button>}
+      </PageHeader>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Left Sidebar - Community Events */}
-        <CommunitySidebar
-          events={communityEvents}
-          onEventClick={handleEventClick}
-          onAddEvent={handleAddCommunityEvent}
-          canEdit={canEdit}
-        />
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1.85fr)_minmax(0,1fr)]">
+        <div className="hidden lg:block">
+          <MonthCalendar
+            events={allEvents}
+            scopeContext={scopeContext}
+            groupNumber={activeGroup?.groupNumber ?? null}
+            canEdit={canEdit}
+            onEventClick={handleEventClick}
+          />
+        </div>
 
-        {/* Right Main Area - Active Weekend */}
-        <div className="flex-1 min-w-0">
+        <div className="flex flex-col gap-4">
           {!isNil(activeGroup) ? (
-            <>
-              <ProgressHeader
-                groupNumber={activeGroup.groupNumber}
-                events={activeGroupEvents}
-                mensWeekend={activeGroup.mensWeekend}
-                womensWeekend={activeGroup.womensWeekend}
-              />
-
-              <MeetingsRow
-                meetings={meetings}
-                secuela={secuela}
-                onEventClick={handleEventClick}
-                onAddMeeting={handleAddMeeting}
-                canEdit={canEdit}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <WeekendLane
-                  weekend={activeGroup.mensWeekend}
-                  events={mensEvents}
-                  color="blue"
-                  onEventClick={handleEventClick}
-                  onScheduleSlot={handleScheduleSlot}
-                  canEdit={canEdit}
-                />
-                <WeekendLane
-                  weekend={activeGroup.womensWeekend}
-                  events={womensEvents}
-                  color="pink"
-                  onEventClick={handleEventClick}
-                  onScheduleSlot={handleScheduleSlot}
-                  canEdit={canEdit}
-                />
-              </div>
-            </>
+            <SchedulingProgress
+              groupNumber={activeGroup.groupNumber}
+              events={activeGroupEvents}
+              mensWeekend={activeGroup.mensWeekend}
+              womensWeekend={activeGroup.womensWeekend}
+              canEdit={canEdit}
+              onScheduleSlot={handleScheduleSlot}
+              onAddMeeting={handleAddMeeting}
+            />
           ) : (
-            <div className="bg-card border rounded-xl p-8 text-center">
-              <p className="text-muted-foreground">
-                No active weekend. Activate a weekend from the{' '}
+            <div className="rounded-md border bg-card p-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                No active weekend. Activate one from the{' '}
                 <Link
                   href="/admin/weekends"
-                  className="text-primary hover:underline"
+                  className="font-semibold text-primary hover:text-primary-hover"
                 >
-                  Weekends
+                  Weekends page
                 </Link>{' '}
-                page to see the event dashboard.
+                to track its scheduling here.
               </p>
             </div>
           )}
+
+          <ComingUp
+            events={allEvents}
+            scopeContext={scopeContext}
+            groupNumber={activeGroup?.groupNumber ?? null}
+            canEdit={canEdit}
+            onEventClick={handleEventClick}
+          />
         </div>
       </div>
 
-      <PastEventsSection />
+      <p className="mt-4 text-[13.5px] text-muted-foreground/80">
+        Events appear on the community calendar the moment they&rsquo;re saved
+        &middot; older gatherings live under Past events
+      </p>
+
+      <PastEventsSection
+        isOpen={pastOpen}
+        onToggle={() => setPastOpen((open) => !open)}
+        scrollSignal={pastScrollSignal}
+      />
 
       <EventSidebar
         isOpen={isSidebarOpen}

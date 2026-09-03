@@ -12,14 +12,14 @@ import {
 } from '@/services/weekend'
 import type { WeekendIndividualOption } from '@/components/events/event-form-schema'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import Meetings from './components/Meetings'
+import EventsClient from './components/events-client'
 import { permissionLock, userHasPermission, Permission } from '@/lib/security'
 import { isErr } from '@/lib/results'
 import { Errors } from '@/lib/error'
 import { redirect } from 'next/navigation'
 import { isNil } from 'lodash'
 
-export default async function MeetingsPage() {
+export default async function EventsPage() {
   // Auth, active weekends, community events, and weekend options are all
   // independent — fetch them together. The redirect below still fires before
   // anything renders. The weekend-group events fetch stays serial because it
@@ -107,8 +107,8 @@ export default async function MeetingsPage() {
         title="Events"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
-      <div className="container mx-auto px-8 pb-8">
-        <Meetings
+      <div className="container mx-auto px-4 py-6 sm:px-8">
+        <EventsClient
           canEdit={canEdit}
           activeGroup={activeGroup}
           activeGroupEvents={activeGroupEvents}
