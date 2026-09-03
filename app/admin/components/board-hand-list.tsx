@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { CalendarPlus, CheckCircle2, CircleDollarSign } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/payments/formatters'
 import type { BoardHandItem } from '@/lib/admin/dashboard-metrics'
 
@@ -35,7 +36,7 @@ function itemTitle(item: BoardHandItem): string {
 export function BoardHandList({ items, degraded }: BoardHandListProps) {
   return (
     <section className="rounded-lg border bg-card p-5">
-      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <h2 className="font-serif text-lg font-semibold tracking-tight">
         Needs a board hand
       </h2>
 
@@ -53,33 +54,35 @@ export function BoardHandList({ items, degraded }: BoardHandListProps) {
       )}
 
       {items.length > 0 && (
-        <ul className="mt-4 divide-y">
+        <ul className="mt-2 divide-y divide-divider">
           {items.map((item) => {
             const Icon =
               item.key === 'open-fees' ? CircleDollarSign : CalendarPlus
             return (
               <li
                 key={item.key}
-                className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 py-3.5 first:pt-2 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3.5">
                   <Icon
-                    className="mt-0.5 h-5 w-5 shrink-0 text-primary"
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 text-muted-foreground"
                     aria-hidden
                   />
                   <div>
-                    <p className="text-sm font-medium">{itemTitle(item)}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-semibold">{itemTitle(item)}</p>
+                    <p className="text-[13px] text-muted-foreground">
                       {itemCopy[item.key].detail}
                     </p>
                   </div>
                 </div>
-                <Link
-                  href={item.href}
-                  className="shrink-0 text-sm font-medium text-primary hover:text-primary-hover sm:ml-4"
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 self-start sm:ml-4 sm:self-auto"
                 >
-                  {itemCopy[item.key].linkLabel} →
-                </Link>
+                  <Link href={item.href}>{itemCopy[item.key].linkLabel}</Link>
+                </Button>
               </li>
             )
           })}

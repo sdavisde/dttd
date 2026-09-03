@@ -18,12 +18,12 @@ export function EventsPreview({ events }: EventsPreviewProps) {
   return (
     <section className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h2 className="font-serif text-lg font-semibold tracking-tight">
           Coming up
         </h2>
         <Link
           href="/admin/events"
-          className="text-sm font-medium text-primary hover:text-primary-hover"
+          className="text-[13px] font-semibold text-primary hover:text-primary-hover"
         >
           Open Events →
         </Link>
@@ -46,20 +46,20 @@ export function EventsPreview({ events }: EventsPreviewProps) {
           {nextThree.map((event) => {
             const when = isNil(event.datetime) ? null : new Date(event.datetime)
             return (
-              <li key={event.id} className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border bg-muted">
-                  <span className="text-[10px] font-semibold uppercase leading-none text-muted-foreground">
+              <li key={event.id} className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 flex-col items-center justify-center rounded-md border bg-card">
+                  <span className="text-[8.5px] font-semibold uppercase leading-none tracking-[0.08em] text-muted-foreground">
                     {isNil(when) ? '—' : format(when, 'MMM')}
                   </span>
-                  <span className="font-serif text-base font-semibold leading-tight tabular-nums">
+                  <span className="font-serif text-sm font-semibold leading-tight tabular-nums">
                     {isNil(when) ? '' : format(when, 'd')}
                   </span>
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-[13.5px] font-semibold">
                     {event.title ?? 'Untitled event'}
                   </p>
-                  <p className="truncate text-sm text-muted-foreground">
+                  <p className="truncate text-xs text-muted-foreground">
                     {isNil(when)
                       ? 'Date to be set'
                       : format(when, 'EEEE h:mm a')}
