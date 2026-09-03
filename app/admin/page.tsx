@@ -1,137 +1,94 @@
-import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import { Typography } from '@/components/ui/typography'
-import Link from 'next/link'
-import { getLoggedInUser } from '@/services/identity/user'
-import { redirect } from 'next/navigation'
-import * as Results from '@/lib/results'
-import { getNavIcon, getVisibleNavItems } from '@/lib/admin/navigation'
 import { isNil } from 'lodash'
+import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
+import * as Results from '@/lib/results'
+import { guardAdminPage } from '@/lib/admin/page-guard'
+import {
+  deriveBoardHandItems,
+  deriveCollectedThisYear,
+  deriveOutstanding,
+} from '@/lib/admin/dashboard-metrics'
+import {
+  getActiveWeekendFinancials,
+  getAllPayments,
+  type ActiveWeekendFinancials,
+} from '@/services/payment'
+import { getMasterRoster } from '@/services/master-roster'
+import { getUpcomingEvents } from '@/services/events'
+import { getActiveWeekends, getWeekendGroupsByStatus } from '@/services/weekend'
+import { MetricCards } from './components/metric-cards'
+import { BoardHandList } from './components/board-hand-list'
+import { EventsPreview } from './components/events-preview'
+import { IdeasSection } from './components/ideas-section'
 
 export default async function Page() {
-  const userResult = await getLoggedInUser()
+  await guardAdminPage()
 
-  if (Results.isErr(userResult) || isNil(userResult.data)) {
-    redirect('/')
+  // Each source is independent: one failing (including a permission the
+  // viewer lacks) degrades its own card to a placeholder, never the page.
+  const [
+    paymentsResult,
+    rosterResult,
+    eventsResult,
+    groupsResult,
+    activeWeekendsResult,
+  ] = await Promise.all([
+    getAllPayments(),
+    getMasterRoster(),
+    getUpcomingEvents(),
+    getWeekendGroupsByStatus({}),
+    getActiveWeekends(),
+  ])
+  Results.logFailures(
+    paymentsResult,
+    rosterResult,
+    eventsResult,
+    groupsResult,
+    activeWeekendsResult
+  )
+
+  const payments = Results.toNullable(paymentsResult)
+
+  // Outstanding money reuses the exact computation behind the payments
+  // summary page, so the two can never disagree.
+  let financials: ActiveWeekendFinancials | null = null
+  if (!isNil(payments) && Results.isOk(activeWeekendsResult)) {
+    financials = Results.toNullable(
+      await getActiveWeekendFinancials(payments, activeWeekendsResult.data)
+    )
   }
 
-  const allLinks = getVisibleNavItems(userResult.data).filter(
-    (link) => link.soon !== true && link.href !== '/admin'
-  )
+  const outstanding = isNil(financials) ? null : deriveOutstanding(financials)
+  const collected = isNil(payments) ? null : deriveCollectedThisYear(payments)
+  const memberCount = Results.toNullable(rosterResult)?.members.length ?? null
+  const events = Results.toNullable(eventsResult)
+  const weekendGroups = Results.toNullable(groupsResult)
+
+  const boardHandItems = deriveBoardHandItems({ outstanding, weekendGroups })
+  const boardHandDegraded = isNil(outstanding) || isNil(weekendGroups)
 
   return (
     <>
-      <AdminBreadcrumbs title="Admin Dashboard" breadcrumbs={[]} />
-      <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
-        {/* Welcome Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Typography variant="h1">Welcome to the Admin Dashboard</Typography>
-            <Typography variant="muted">
-              Manage the DTTD community and weekends
-            </Typography>
+      <AdminBreadcrumbs title="Admin" breadcrumbs={[]} />
+      <div className="container mx-auto px-4 pb-12 md:px-8">
+        <PageHeader
+          title="Admin"
+          description="The board's back office — money, people, and files. Weekend operations live on each weekend's hub."
+        />
+
+        <MetricCards
+          outstanding={outstanding}
+          collected={collected}
+          memberCount={memberCount}
+        />
+
+        <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <BoardHandList items={boardHandItems} degraded={boardHandDegraded} />
+          <div className="space-y-6">
+            <EventsPreview events={events} />
+            <IdeasSection />
           </div>
         </div>
-
-        {/* Quick Links */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {allLinks.map((link) => {
-            const Icon = getNavIcon(link.href)
-            return (
-              <Link key={link.href} href={link.href} className="flex w-full">
-                <Card className="hover:bg-muted/50 transition-colors w-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {!isNil(Icon) && <Icon className="h-5 w-5" />}
-                      {link.title}
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* todo: add this back when we actually have data to show through audit tracking */}
-        {/* Recent Activity */}
-        {/*<Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 py-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <Typography variant="small">
-                    New candidate application received
-                  </Typography>
-                  <Typography variant="small" className="text-muted-foreground">
-                    Sarah Johnson - 2 hours ago
-                  </Typography>
-                </div>
-                <Badge variant="outline">New</Badge>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center gap-3 py-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <Typography variant="small">
-                    Weekend roster updated
-                  </Typography>
-                  <Typography variant="small" className="text-muted-foreground">
-                    March 2024 Weekend - 4 hours ago
-                  </Typography>
-                </div>
-                <Badge variant="secondary">Update</Badge>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center gap-3 py-2">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div className="flex-1">
-                  <Typography variant="small">Payment completed</Typography>
-                  <Typography variant="small" className="text-muted-foreground">
-                    $95.00 - Michael Chen - 6 hours ago
-                  </Typography>
-                </div>
-                <Badge variant="outline">Payment</Badge>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center gap-3 py-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div className="flex-1">
-                  <Typography variant="small">User role assigned</Typography>
-                  <Typography variant="small" className="text-muted-foreground">
-                    Jane Doe granted READ_MEDICAL_HISTORY - 1 day ago
-                  </Typography>
-                </div>
-                <Badge variant="outline">Admin</Badge>
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center gap-3 py-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <div className="flex-1">
-                  <Typography variant="small">File uploaded</Typography>
-                  <Typography variant="small" className="text-muted-foreground">
-                    weekend-guidelines.pdf - 1 day ago
-                  </Typography>
-                </div>
-                <Badge variant="outline">File</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>*/}
       </div>
     </>
   )

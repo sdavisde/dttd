@@ -89,7 +89,7 @@ A non-technical user can confirm this is done by opening `/admin` and seeing the
 - [x] 2.8 Add `lib/admin/page-guard.ts`: given required permissions, returns `{ user, canEdit, … }` or redirects — a thin wrapper over `getLoggedInUser` + existing `lib/security.ts` checks (no behavior changes). Add `lib/admin/page-guard.test.ts` (grant, deny/redirect, derived booleans).
 - [x] 2.9 Click through every route in the new nav plus `/admin/payments/summary` and `/admin/weekends/[weekend_id]`; capture the proof screenshots/GIF; run `yarn lint`, `npx tsc --noEmit`, `yarn build`.
 
-### [ ] 3.0 Back-office dashboard at /admin
+### [x] 3.0 Back-office dashboard at /admin
 
 A non-technical user can confirm this is done by opening `/admin` and seeing: money tiles (outstanding + collected this year) whose numbers match the Payments summary page, a community member count, a "Needs a board hand" list (or a reassurance message when nothing needs attention), the next three events with an "Open Events →" link, and an "Ideas" area clearly labeled "sample — not built yet". It also works on a phone.
 
@@ -102,13 +102,13 @@ A non-technical user can confirm this is done by opening `/admin` and seeing: mo
 
 #### 3.0 Tasks
 
-- [ ] 3.1 Create `lib/admin/dashboard-metrics.ts` (pure): `deriveMoneyMetrics(payments)` (outstanding total + open-fee count; collected + count for the current calendar year) using `lib/payments/compute-totals.ts` helpers; `deriveBoardHandItems({ payments, weekendGroups })` (open-fees item; "start planning" when no next group has dates; empty ⇒ reassurance state). Add `lib/admin/dashboard-metrics.test.ts`.
-- [ ] 3.2 Rewrite `app/admin/page.tsx` as a server component: `Promise.all` over `getAllPayments()`, `getMasterRoster()`, `getUpcomingEvents()`, `getWeekendGroupsByStatus()`; keep each source independent and handle each `Result` with `Results` helpers so a failed source renders a placeholder card, never a crash.
-- [ ] 3.3 Build the dashboard components under `app/admin/components/`: metric cards (cream outstanding card with open-fee count, green collected figure, member count; `tabular-nums`; PageHeader opening with serif "Admin" + canvas description).
-- [ ] 3.4 Build the "Needs a board hand" list: items deep-link to `/admin/payments` and `/admin/weekends`; reassurance empty state per the canvas copy.
-- [ ] 3.5 Build the events preview card: next three from `getUpcomingEvents`, header link "Open Events →" to `/admin/events`, no creation control.
-- [ ] 3.6 Build the "Ideas — not built yet" section: sample-data activity feed + storage meter, each explicitly labeled "sample — not built yet", visually distinct from live cards.
-- [ ] 3.7 Implement the mobile card layout; capture desktop + mobile screenshots and the payments-summary cross-check.
+- [x] 3.1 Create `lib/admin/dashboard-metrics.ts` (pure): `deriveMoneyMetrics(payments)` (outstanding total + open-fee count; collected + count for the current calendar year) using `lib/payments/compute-totals.ts` helpers; `deriveBoardHandItems({ payments, weekendGroups })` (open-fees item; "start planning" when no next group has dates; empty ⇒ reassurance state). Add `lib/admin/dashboard-metrics.test.ts`. (Shipped as `deriveOutstanding` + `deriveCollectedThisYear` + `deriveBoardHandItems`/`needsPlanning`; outstanding reuses `computeActiveWeekendFinancials`, the summary-page path, with a cross-check test.)
+- [x] 3.2 Rewrite `app/admin/page.tsx` as a server component: `Promise.all` over `getAllPayments()`, `getMasterRoster()`, `getUpcomingEvents()`, `getWeekendGroupsByStatus()`; keep each source independent and handle each `Result` with `Results` helpers so a failed source renders a placeholder card, never a crash.
+- [x] 3.3 Build the dashboard components under `app/admin/components/`: metric cards (cream outstanding card with open-fee count, green collected figure, member count; `tabular-nums`; PageHeader opening with serif "Admin" + canvas description).
+- [x] 3.4 Build the "Needs a board hand" list: items deep-link to `/admin/payments` and `/admin/weekends`; reassurance empty state per the canvas copy.
+- [x] 3.5 Build the events preview card: next three from `getUpcomingEvents`, header link "Open Events →" to `/admin/events`, no creation control.
+- [x] 3.6 Build the "Ideas — not built yet" section: sample-data activity feed + storage meter, each explicitly labeled "sample — not built yet", visually distinct from live cards.
+- [x] 3.7 Implement the mobile card layout; capture desktop + mobile screenshots and the payments-summary cross-check. (Responsive stacking implemented; authenticated screenshots deferred to the deployed preview — seeded dev login is rejected locally; cross-check pinned by unit test instead. See 16-proofs/16-task-03-proofs.md.)
 
 ### [ ] 4.0 People page (replacing the old Users page)
 
