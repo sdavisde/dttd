@@ -131,7 +131,7 @@ A non-technical user can confirm this is done by clicking "People" in the sideba
 - [x] 4.5 Delete the remaining `app/admin/users/` route files; repo-grep for stale `/admin/users` or `app/admin/users` references; `yarn lint` + `yarn build`.
 - [x] 4.6 Implement the mobile card layout; capture the URL-state GIF and desktop/mobile screenshots.
 
-### [ ] 5.0 Weekends page rebuilt for board work
+### [x] 5.0 Weekends page rebuilt for board work
 
 A non-technical user can confirm this is done by opening "Weekends": the active group (e.g. DTTD #12) appears as a card with a weekend inside for Men's and Women's, each showing its numbers and an "Open the weekend hub" button that lands on that weekend's existing roster page; a dashed "start planning" row appears when the next group isn't scheduled; past groups are listed with links; creating a group still works; and the public roster page looks exactly as before.
 
@@ -145,8 +145,8 @@ A non-technical user can confirm this is done by opening "Weekends": the active 
 
 #### 5.0 Tasks
 
-- [ ] 5.1 Create `lib/admin/weekend-stats.ts` (pure): derive per-weekend tiles — candidates confirmed vs capacity (42), team members serving, and (only if cheaply derivable from existing service data) candidates awaiting review and fees still open; encode the omit-don't-approximate rule. Add `lib/admin/weekend-stats.test.ts`.
-- [ ] 5.2 Rewrite `app/admin/weekends/page.tsx` + `components/Weekends.tsx`: PageHeader with serif "Weekends" + the canvas description + primary "New weekend group"; active group card (title, "Active" pill, "Group settings" action) with Men's/Women's sub-cards (dates, location, stat tiles, "Open the weekend hub" → `/admin/weekends/[weekend_id]`).
-- [ ] 5.3 Add the dashed "start planning" placeholder row (shown when no next group is scheduled; opens the group-creation flow) and the past-groups list with per-group summary + links to existing detail pages.
-- [ ] 5.4 Reuse `WeekendSidebar.tsx` + `SetActiveWeekendButton.tsx` for create/edit/group-settings, restyled with tokens only (no service/action behavior changes); delete the orphaned `app/admin/weekends/upcoming/page.tsx` stub (zero references).
-- [ ] 5.5 Implement the mobile card layout; capture all proof artifacts including the public `/roster` screenshot and the `git diff --stat components/weekend/` check; run `yarn lint`, `npx tsc --noEmit`, `yarn build`.
+- [x] 5.1 Create `lib/admin/weekend-stats.ts` (pure): derive per-weekend tiles — candidates confirmed vs capacity (42), team members serving, and (only if cheaply derivable from existing service data) candidates awaiting review and fees still open; encode the omit-don't-approximate rule. Add `lib/admin/weekend-stats.test.ts`.
+- [x] 5.2 Rewrite `app/admin/weekends/page.tsx` + `components/Weekends.tsx`: PageHeader with serif "Weekends" + the canvas description + primary "New weekend group"; active group card (title, "Active" pill, "Group settings" action) with Men's/Women's sub-cards (dates, location, stat tiles, "Open the weekend hub" → `/admin/weekends/[weekend_id]`).
+- [x] 5.3 Add the dashed "start planning" placeholder row (shown when no next group is scheduled; opens the group-creation flow) and the past-groups list with per-group summary + links to existing detail pages.
+- [x] 5.4 Reuse `WeekendSidebar.tsx` + `SetActiveWeekendButton.tsx` for create/edit/group-settings, restyled with tokens only (no service/action behavior changes); delete the orphaned `app/admin/weekends/upcoming/page.tsx` stub (zero references).
+- [x] 5.5 Implement the mobile card layout; capture all proof artifacts including the public `/roster` screenshot and the `git diff --stat components/weekend/` check; run `yarn lint`, `npx tsc --noEmit`, `yarn build`.
