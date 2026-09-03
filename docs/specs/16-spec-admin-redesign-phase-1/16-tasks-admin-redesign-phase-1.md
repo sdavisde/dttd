@@ -46,7 +46,7 @@
 
 ## Tasks
 
-### [ ] 1.0 Warm admin look: sidebar tokens + written design conventions
+### [x] 1.0 Warm admin look: sidebar tokens + written design conventions
 
 A non-technical user can confirm this is done by opening any admin page and seeing the sidebar in the warm stone look (not gray), opening the public homepage and seeing it unchanged, and opening `docs/design-system.md` and reading the conventions.
 
@@ -58,11 +58,11 @@ A non-technical user can confirm this is done by opening any admin page and seei
 
 #### 1.0 Tasks
 
-- [ ] 1.1 In `app/globals.css` `:root`, replace the `--sidebar` … `--sidebar-ring` values with warm-stone oklch values derived from the existing `--card`/`--border`/`--primary`/`--muted` hues (targets from the canvas: surface ≈ `#FDFCFA`, border ≈ `#E0DAD0`, active pill ≈ `#F2EFE9`, active icon ≈ `#6E5849`).
-- [ ] 1.2 In the `.dark` block, replace the `--sidebar-*` values with warm dark stones consistent with the `.dark` palette; remove the blue-purple `--sidebar-primary: oklch(0.49 0.22 264.43)`.
-- [ ] 1.3 Add four semantic tokens to `:root`, `.dark`, and `@theme inline` (utility-exposed): `--primary-hover` (≈ `#57443A`), `--nav-foreground` (≈ `#57503F`), `--selected` (≈ `#F6F2EA`), `--secondary-border` (≈ `#EFE5C2`). Do not modify any existing non-sidebar token value.
-- [ ] 1.4 Write `docs/design-system.md` covering every convention listed in the spec (Unit 1, final FR) and linking the design canvas as visual source of truth.
-- [ ] 1.5 Run `yarn build` + `npx tsc --noEmit`; capture the before/after sidebar screenshots and the `/` spot-check screenshot into the spec directory.
+- [x] 1.1 In `app/globals.css` `:root`, replace the `--sidebar` … `--sidebar-ring` values with warm-stone oklch values derived from the existing `--card`/`--border`/`--primary`/`--muted` hues (targets from the canvas: surface ≈ `#FDFCFA`, border ≈ `#E0DAD0`, active pill ≈ `#F2EFE9`, active icon ≈ `#6E5849`).
+- [x] 1.2 In the `.dark` block, replace the `--sidebar-*` values with warm dark stones consistent with the `.dark` palette; remove the blue-purple `--sidebar-primary: oklch(0.49 0.22 264.43)`.
+- [x] 1.3 Add four semantic tokens to `:root`, `.dark`, and `@theme inline` (utility-exposed): `--primary-hover` (≈ `#57443A`), `--nav-foreground` (≈ `#57503F`), `--selected` (≈ `#F6F2EA`), `--secondary-border` (≈ `#EFE5C2`). Do not modify any existing non-sidebar token value.
+- [x] 1.4 Write `docs/design-system.md` covering every convention listed in the spec (Unit 1, final FR) and linking the design canvas as visual source of truth.
+- [x] 1.5 Run `yarn build` + `npx tsc --noEmit`; capture the before/after sidebar screenshots and the `/` spot-check screenshot into the spec directory. (No headless browser available — screenshots deferred to task 2.0's visual pass; token diff recorded as primary evidence in the proof file.)
 
 ### [ ] 2.0 New admin shell with the final navigation
 
