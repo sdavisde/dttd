@@ -28,6 +28,7 @@ import { toastError } from '@/lib/toast-error'
 import { updatePaymentDetails } from '@/services/payment/actions'
 import type { PaymentMethod, PaymentTransactionDTO } from '@/services/payment'
 import { formatCurrency } from '@/lib/payments/formatters'
+import { isWaived } from '@/lib/payments/waived'
 
 type EditPaymentDialogProps = {
   open: boolean
@@ -49,6 +50,10 @@ export function EditPaymentDialog({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
+  // A waiver stays a waiver: its method and payer (the community) are fixed,
+  // so only the amount and notes can be corrected.
+  const waived = isWaived(payment)
+
   const parsedAmount = Number.parseFloat(grossAmount)
   const isAmountValid = Number.isFinite(parsedAmount) && parsedAmount > 0
 
@@ -69,8 +74,13 @@ export function EditPaymentDialog({
     const result = await updatePaymentDetails({
       paymentId: payment.id,
       grossAmount: parsedAmount,
-      paymentMethod,
-      paymentOwner: paymentOwner.trim() !== '' ? paymentOwner.trim() : null,
+      ...(waived
+        ? {}
+        : {
+            paymentMethod,
+            paymentOwner:
+              paymentOwner.trim() !== '' ? paymentOwner.trim() : null,
+          }),
       notes: notes.trim() !== '' ? notes.trim() : null,
     })
 
@@ -95,8 +105,9 @@ export function EditPaymentDialog({
         <DialogHeader>
           <DialogTitle>Edit Payment</DialogTitle>
           <DialogDescription>
-            Correct a mistyped amount, the wrong method, or the payer&apos;s
-            name. To move this payment to someone else, use Reassign instead.
+            {waived
+              ? 'Correct the waived amount or its notes. To move this waiver to someone else, use Reassign instead.'
+              : "Correct a mistyped amount, the wrong method, or the payer's name. To move this payment to someone else, use Reassign instead."}
           </DialogDescription>
         </DialogHeader>
 
@@ -118,33 +129,39 @@ export function EditPaymentDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="edit-method">Method</Label>
-            <Select
-              value={paymentMethod}
-              onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
-            >
-              <SelectTrigger id="edit-method">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="check">Check</SelectItem>
-                <SelectItem value="stripe">Stripe</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {!waived && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="edit-method">Method</Label>
+                <Select
+                  value={paymentMethod}
+                  onValueChange={(value: PaymentMethod) =>
+                    setPaymentMethod(value)
+                  }
+                >
+                  <SelectTrigger id="edit-method">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="check">Check</SelectItem>
+                    <SelectItem value="stripe">Stripe</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="edit-paid-by">Paid By</Label>
-            <Input
-              id="edit-paid-by"
-              type="text"
-              value={paymentOwner}
-              onChange={(e) => setPaymentOwner(e.target.value)}
-              placeholder="Name of the person who paid"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-paid-by">Paid By</Label>
+                <Input
+                  id="edit-paid-by"
+                  type="text"
+                  value={paymentOwner}
+                  onChange={(e) => setPaymentOwner(e.target.value)}
+                  placeholder="Name of the person who paid"
+                />
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="edit-notes">Notes</Label>

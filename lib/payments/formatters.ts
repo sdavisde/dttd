@@ -56,6 +56,8 @@ export function formatPaymentMethod(
       return 'Cash'
     case 'check':
       return 'Check'
+    case 'waived':
+      return 'Waived'
     default:
       return method ?? 'Unknown'
   }

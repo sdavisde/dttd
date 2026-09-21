@@ -72,9 +72,13 @@ export const TargetTypeSchema = z
 export type TargetType = z.infer<typeof TargetTypeSchema>
 
 /**
- * Payment method values: stripe, cash, or check
+ * Payment method values: stripe, cash, check, or waived.
+ *
+ * `waived` is not money: it records that the community covered someone's fee.
+ * The row makes the fee read as covered, but it is excluded from every
+ * "collected" total — see `isWaived` in lib/payments/waived.
  */
-export const PaymentMethodSchema = z.enum(['stripe', 'cash', 'check'])
+export const PaymentMethodSchema = z.enum(['stripe', 'cash', 'check', 'waived'])
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>
 
 /**
@@ -118,6 +122,13 @@ export const CreatePaymentSchema = z
         'Fees must have target_type and target_id. Donations must not have target_type or target_id.',
     }
   )
+  .refine(
+    // Only a fee can be waived, and a waiver never carries Stripe money data.
+    (data) =>
+      data.payment_method !== 'waived' ||
+      (data.type === 'fee' && isNil(data.net_amount) && isNil(data.stripe_fee)),
+    { message: 'Only a fee can be waived, and a waiver has no Stripe amounts.' }
+  )
 
 export type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>
 
@@ -156,6 +167,22 @@ export const VoidPaymentSchema = z.object({
 })
 
 export type VoidPaymentInput = z.infer<typeof VoidPaymentSchema>
+
+/**
+ * Schema for recording a payment by hand from the admin Payments page: cash,
+ * a check, or a waived fee. Stripe payments only ever arrive via the webhook.
+ * `paidBy` is ignored for a waiver — the community is always the payer.
+ */
+export const RecordAdminPaymentSchema = z.object({
+  targetType: TargetTypeSchema.unwrap(),
+  targetId: uuidFormat,
+  amount: z.number().positive('Amount must be greater than zero'),
+  method: z.enum(['cash', 'check', 'waived']),
+  paidBy: z.string().trim().nullable().optional(),
+  notes: z.string().trim().nullable().optional(),
+})
+
+export type RecordAdminPaymentInput = z.infer<typeof RecordAdminPaymentSchema>
 
 /**
  * Schema for correcting a payment's details (a mistyped amount, the wrong

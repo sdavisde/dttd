@@ -19,6 +19,7 @@ export type {
 
 export type {
   ReassignPaymentInput,
+  RecordAdminPaymentInput,
   UpdatePaymentDetailsInput,
   VoidPaymentInput,
 } from './types'
@@ -30,6 +31,7 @@ export {
   CreatePaymentSchema,
   BackfillStripeDataSchema,
   ReassignPaymentSchema,
+  RecordAdminPaymentSchema,
   UpdatePaymentDetailsSchema,
   VoidPaymentSchema,
 } from './types'

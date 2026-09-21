@@ -547,6 +547,54 @@ export async function findGroupMemberTargets(options?: ServiceOptions): Promise<
 }
 
 /**
+ * Lists the candidates a set of weekends expects a fee from: everyone not
+ * rejected, matching getCandidateIdsByWeekend. Carries the sponsor and the
+ * sponsorship form's "who is paying" answer so an unpaid fee can name its
+ * expected payer.
+ * @param weekendIds - The weekends to list candidates for
+ * @param options - Service options including RLS bypass flag
+ */
+export async function findCandidateFeeTargets(
+  weekendIds: string[],
+  options?: ServiceOptions
+): Promise<
+  Result<
+    string,
+    Array<{
+      id: string
+      weekendId: string | null
+      name: string | null
+      sponsorName: string | null
+      paymentOwner: string | null
+    }>
+  >
+> {
+  if (weekendIds.length === 0) return ok([])
+
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('candidates')
+    .select(
+      'id, weekend_id, candidate_sponsorship_info(candidate_name, sponsor_name, payment_owner)'
+    )
+    .in('weekend_id', weekendIds)
+    .neq('status', 'rejected')
+
+  return map(fromSupabase(response), (rows) =>
+    rows.map((row) => {
+      const sponsorship = row.candidate_sponsorship_info.at(0)
+      return {
+        id: row.id,
+        weekendId: row.weekend_id,
+        name: sponsorship?.candidate_name ?? null,
+        sponsorName: sponsorship?.sponsor_name ?? null,
+        paymentOwner: sponsorship?.payment_owner ?? null,
+      }
+    })
+  )
+}
+
+/**
  * Looks up the weekend a candidate is assigned to.
  * @param candidateId - The candidate to look up
  * @param options - Service options including RLS bypass flag

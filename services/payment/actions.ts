@@ -10,10 +10,12 @@ import type {
   PaymentTransactionDTO,
   PaymentTransactionRow,
   ReassignPaymentInput,
+  RecordAdminPaymentInput,
   UpdatePaymentDetailsInput,
   VoidPaymentInput,
 } from './types'
 import type { Weekend } from '@/lib/weekend/types'
+import type { OutstandingFee } from '@/lib/payments/outstanding'
 import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
 import { isErr, isOk, ok } from '@/lib/results'
 
@@ -118,12 +120,41 @@ export const updatePaymentDetails = authorizedAction<
 })
 
 /**
+ * Records a payment entered by hand on the admin Payments page: cash, a
+ * check, or a waived fee. Requires WRITE_PAYMENTS permission.
+ */
+export const recordAdminPayment = authorizedAction<
+  RecordAdminPaymentInput,
+  PaymentTransactionRow
+>(Permission.WRITE_PAYMENTS, async (input) => {
+  const result = await PaymentService.recordAdminPayment(input)
+  if (isOk(result)) revalidatePaymentViews()
+  return result
+})
+
+/**
+ * Lists who in the active weekend group still owes a fee. Calculated from the
+ * rosters and candidates on every call — outstanding fees are never stored.
+ * Requires READ_PAYMENTS permission.
+ */
+export const getOutstandingFees = authorizedAction<
+  {
+    payments: PaymentTransactionDTO[]
+    activeWeekends: Record<'MENS' | 'WOMENS', Weekend>
+  },
+  OutstandingFee[]
+>(Permission.READ_PAYMENTS, async ({ payments, activeWeekends }) => {
+  return await PaymentService.getOutstandingFees(payments, activeWeekends)
+})
+
+/**
  * Refreshes every server-rendered view whose numbers a correction can move:
  * the payments table and report, and the candidate list where balances show.
  */
 function revalidatePaymentViews() {
   revalidatePath('/admin/payments')
   revalidatePath('/admin/payments/summary')
+  revalidatePath('/admin')
   revalidatePath('/review-candidates')
 }
 

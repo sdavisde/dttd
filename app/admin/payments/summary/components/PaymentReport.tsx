@@ -1,7 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import type { PaymentTransactionDTO } from '@/services/payment'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -53,18 +53,45 @@ function GrossBreakdown({
 }
 
 function progressColor(pct: number): string {
-  if (pct >= 80) return '[&>div]:bg-green-500'
-  if (pct >= 50) return '[&>div]:bg-yellow-500'
-  return '[&>div]:bg-red-500'
+  if (pct >= 80) return '[&>div]:bg-success'
+  if (pct >= 50) return '[&>div]:bg-warning'
+  return '[&>div]:bg-error'
 }
+
+/** The redesign's surface: a bordered card, no shadow, one radius. */
+function ReportCard({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section className={cn('rounded-lg border bg-card p-5', className)}>
+      {children}
+    </section>
+  )
+}
+
+/** Uppercase, letter-spaced section label used above a stat figure. */
+function StatLabel({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+      {children}
+    </h2>
+  )
+}
+
+const FIGURE_CLASSES =
+  'font-serif text-2xl font-semibold tracking-tight tabular-nums'
 
 function DiffText({ value }: { value: number }) {
   const isPositive = value >= 0
   return (
     <span
       className={cn(
-        'font-semibold',
-        isPositive ? 'text-green-600' : 'text-red-600'
+        'font-semibold tabular-nums',
+        isPositive ? 'text-success' : 'text-error'
       )}
     >
       {isPositive ? '+' : ''}
@@ -146,25 +173,21 @@ function CollectionProgressCard({
   )
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <ReportCard className="space-y-3">
+      <StatLabel>{title}</StatLabel>
+      <div className="space-y-3">
         <div className="flex items-baseline justify-between">
-          <p className="text-2xl font-bold">{formatCurrency(totalReceived)}</p>
-          <p className="text-sm text-muted-foreground">
+          <p className={FIGURE_CLASSES}>{formatCurrency(totalReceived)}</p>
+          <p className="text-sm text-muted-foreground tabular-nums">
             of {formatCurrency(totalExpected)}
           </p>
         </div>
         <Progress value={pct} className={cn('h-2.5', progressColor(pct))} />
-        <p className="text-xs text-muted-foreground text-right">
+        <p className="text-xs text-muted-foreground text-right tabular-nums">
           {Math.round(pct)}% collected
         </p>
 
-        <div className="space-y-1.5 border-t pt-2">
+        <div className="space-y-1.5 border-t border-divider pt-2">
           {weekends.map((w) => {
             const paid = getPaidCount(w)
             const expected = getExpectedCount(w)
@@ -179,9 +202,9 @@ function CollectionProgressCard({
                   <span>
                     <span
                       className={cn(
-                        'font-medium',
+                        'font-medium tabular-nums',
                         paid >= expected
-                          ? 'text-green-600'
+                          ? 'text-success'
                           : 'text-muted-foreground'
                       )}
                     >
@@ -193,7 +216,7 @@ function CollectionProgressCard({
                   </span>
                 </div>
                 {extra > 0 && (
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-secondary-foreground">
                     +{extra} payment{extra !== 1 ? 's' : ''} from inactive
                     members
                   </p>
@@ -204,13 +227,13 @@ function CollectionProgressCard({
         </div>
 
         {totalExtraPayments > 0 && (
-          <p className="text-xs text-amber-600 border-t pt-2">
+          <p className="border-t border-divider pt-2 text-xs text-secondary-foreground">
             {totalExtraPayments} payment{totalExtraPayments !== 1 ? 's' : ''}{' '}
             received from removed or rejected members. Consider issuing refunds.
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </ReportCard>
   )
 }
 
@@ -224,26 +247,25 @@ function OverallFinancialCard({
   const teamDiff = financials.teamReceivedTotal - financials.teamExpectedTotal
   const candidateDiff =
     financials.candidateReceivedTotal - financials.candidateExpectedTotal
+  // Waived fees are already off the expected totals, so they don't read as a
+  // shortfall above — they are shown on their own as what the community gave.
+  const waivedTotal = financials.overallWaivedTotal ?? 0
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          Expected vs Received
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <ReportCard className="space-y-3">
+      <StatLabel>Expected vs Received</StatLabel>
+      <div className="space-y-3">
         <div>
-          <p className="text-2xl font-bold">
+          <p className={FIGURE_CLASSES}>
             <DiffText value={overallDiff} />
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 tabular-nums">
             Expected: {formatCurrency(financials.overallExpectedTotal)} ·
             Received: {formatCurrency(financials.overallReceivedTotal)}
           </p>
         </div>
 
-        <div className="space-y-1.5 border-t pt-2">
+        <div className="space-y-1.5 border-t border-divider pt-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Team</span>
             <DiffText value={teamDiff} />
@@ -252,9 +274,19 @@ function OverallFinancialCard({
             <span className="text-muted-foreground">Candidates</span>
             <DiffText value={candidateDiff} />
           </div>
+          {waivedTotal > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                Waived, covered by the community
+              </span>
+              <span className="font-semibold text-muted-foreground tabular-nums">
+                {formatCurrency(waivedTotal)}
+              </span>
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </ReportCard>
   )
 }
 
@@ -265,12 +297,10 @@ function ActiveWeekendDashboard({
 }) {
   if (isNil(financials)) {
     return (
-      <Card>
-        <CardContent className="py-6 text-center text-muted-foreground">
-          No active weekend configured. Financial health widgets require an
-          active weekend.
-        </CardContent>
-      </Card>
+      <ReportCard className="py-6 text-center text-muted-foreground">
+        No active weekend configured. Financial health widgets require an active
+        weekend.
+      </ReportCard>
     )
   }
 
@@ -349,12 +379,15 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
         }
       : null
 
+  const waivedCount = group.weekends.reduce((s, w) => s + w.waivedCount, 0)
+  const waivedTotal = group.weekends.reduce((s, w) => s + w.waivedTotal, 0)
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader>
-        <CardTitle>{group.groupLabel}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-0 sm:px-6">
+    <ReportCard className="overflow-hidden">
+      <h2 className="font-serif text-lg font-semibold tracking-tight">
+        {group.groupLabel}
+      </h2>
+      <div className="mt-3 tabular-nums">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <Table>
@@ -395,7 +428,7 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
                   </TableCell>
                   <TableCell className="text-right">{w.teamCount}</TableCell>
                   <TableCell className="text-right">
-                    <div className="font-semibold text-green-600">
+                    <div className="font-semibold text-success">
                       {formatCurrency(w.totalGross)}
                     </div>
                     <GrossBreakdown
@@ -410,7 +443,7 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
                       offline={w.offlineNet}
                     />
                   </TableCell>
-                  <TableCell className="text-right text-red-500">
+                  <TableCell className="text-right text-error">
                     {formatCurrency(w.totalFees)}
                   </TableCell>
                 </TableRow>
@@ -445,7 +478,7 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
                     {groupTotals.teamCount}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="font-bold text-green-600">
+                    <div className="font-semibold text-success">
                       {formatCurrency(groupTotals.totalGross)}
                     </div>
                     <GrossBreakdown
@@ -462,7 +495,7 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
                       offline={groupTotals.offlineNet}
                     />
                   </TableCell>
-                  <TableCell className="text-right font-semibold text-red-500">
+                  <TableCell className="text-right font-semibold text-error">
                     {formatCurrency(groupTotals.totalFees)}
                   </TableCell>
                 </TableRow>
@@ -476,7 +509,7 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
           {group.weekends.map((w) => (
             <div
               key={w.weekendLabel}
-              className="rounded-lg border bg-card p-4 space-y-3"
+              className="rounded-md border bg-card p-4 space-y-3"
             >
               <p className="text-lg font-medium">{w.weekendLabel}</p>
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -498,7 +531,7 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total Gross</p>
-                  <p className="font-semibold text-green-600">
+                  <p className="font-semibold text-success">
                     {formatCurrency(w.totalGross)}
                   </p>
                 </div>
@@ -508,7 +541,7 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Stripe Fees</p>
-                  <p className="font-medium text-red-500">
+                  <p className="font-medium text-error">
                     {formatCurrency(w.totalFees)}
                   </p>
                 </div>
@@ -516,8 +549,15 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      {waivedCount > 0 && (
+        <p className="mt-3 text-[13px] text-muted-foreground tabular-nums">
+          {waivedCount} {waivedCount === 1 ? 'fee' : 'fees'} waived ·{' '}
+          {formatCurrency(waivedTotal)} covered by the community, not counted in
+          the totals above
+        </p>
+      )}
+    </ReportCard>
   )
 }
 
@@ -552,11 +592,9 @@ export function PaymentReport({
       ))}
 
       {report.length === 0 && (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            No payments found.
-          </CardContent>
-        </Card>
+        <ReportCard className="py-8 text-center text-muted-foreground">
+          No payments found.
+        </ReportCard>
       )}
     </div>
   )

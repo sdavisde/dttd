@@ -1,70 +1,123 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeftRight, Ban, MoreHorizontal, Pencil } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  Ban,
+  FileText,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+} from 'lucide-react'
 import { isNil } from 'lodash'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { PaymentTransactionDTO } from '@/services/payment'
+import type { LedgerRow } from '@/lib/payments/ledger'
 import { ReassignPaymentDialog } from './ReassignPaymentDialog'
 import { EditPaymentDialog } from './EditPaymentDialog'
 import { VoidPaymentDialog } from './VoidPaymentDialog'
+import { PaymentDetailsDialog } from './PaymentDetailsDialog'
+import { usePaymentsLedger } from './ledger-context'
 
 type PaymentRowActionsProps = {
-  payment: PaymentTransactionDTO
+  row: LedgerRow
 }
 
-type OpenDialog = 'reassign' | 'edit' | 'void' | null
+type OpenDialog = 'details' | 'reassign' | 'edit' | 'void' | null
 
-export function PaymentRowActions({ payment }: PaymentRowActionsProps) {
+export function PaymentRowActions({ row }: PaymentRowActionsProps) {
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
+  const { canWrite, onRecordPayment } = usePaymentsLedger()
+  const payment = row.payment
+
+  const closeDialog = () => setOpenDialog(null)
+
+  // An unpaid fee is calculated, not stored: there is nothing to reassign or
+  // void, only a payment to record.
+  if (isNil(payment)) {
+    if (!canWrite) return null
+    return (
+      <div onClick={(e) => e.stopPropagation()}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-11 w-11 p-0 md:h-8 md:w-8"
+            >
+              <span className="sr-only">Fee actions</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => onRecordPayment(row)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Record a payment
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    )
+  }
 
   const isVoided = !isNil(payment.voided_at)
   // Donations have no target, so there is nobody to reassign them to.
   const canReassign = !isNil(payment.target_type)
-
-  const closeDialog = () => setOpenDialog(null)
-
-  if (isVoided) {
-    return <span className="text-muted-foreground text-xs">Voided</span>
-  }
+  const canCorrect = canWrite && !isVoided
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-11 w-11 p-0 md:h-8 md:w-8"
+          >
             <span className="sr-only">Payment actions</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            disabled={!canReassign}
-            onSelect={() => setOpenDialog('reassign')}
-          >
-            <ArrowLeftRight className="mr-2 h-4 w-4" />
-            Reassign
+          <DropdownMenuItem onSelect={() => setOpenDialog('details')}>
+            <FileText className="mr-2 h-4 w-4" />
+            View details
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setOpenDialog('edit')}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit details
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onSelect={() => setOpenDialog('void')}
-          >
-            <Ban className="mr-2 h-4 w-4" />
-            Void
-          </DropdownMenuItem>
+          {canCorrect && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={!canReassign}
+                onSelect={() => setOpenDialog('reassign')}
+              >
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                Reassign
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setOpenDialog('edit')}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit details
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => setOpenDialog('void')}
+              >
+                <Ban className="mr-2 h-4 w-4" />
+                Void
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {openDialog === 'details' && (
+        <PaymentDetailsDialog open onClose={closeDialog} row={row} />
+      )}
       {openDialog === 'reassign' && (
         <ReassignPaymentDialog open onClose={closeDialog} payment={payment} />
       )}
