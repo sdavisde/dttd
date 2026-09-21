@@ -28,7 +28,10 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <SidebarProvider>
       <AdminSidebar items={getVisibleNavItems(user)} />
-      <SidebarInset>
+      {/* min-w-0 lets this flex item shrink below its content's width, so wide
+          children (tables) scroll inside their own container instead of
+          stretching the whole page horizontally. */}
+      <SidebarInset className="min-w-0">
         <main className="w-full min-h-[80vh]">{children}</main>
         <Footer />
       </SidebarInset>
