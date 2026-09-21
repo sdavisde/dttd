@@ -75,7 +75,7 @@ export const adminNavItems: AdminNavItem[] = [
     title: 'Site settings',
     href: '/admin/settings',
     icon: Settings2,
-    permissionsNeeded: [],
+    permissionsNeeded: [Permission.FULL_ACCESS],
   },
   {
     title: 'Security',

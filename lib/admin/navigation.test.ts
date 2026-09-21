@@ -92,9 +92,17 @@ describe('filterNavByPermission', () => {
       'People',
       'Community',
       'Files',
-      'Site settings',
       'Reports',
     ])
+  })
+
+  it('restricts Site settings to FULL_ACCESS', () => {
+    const titles = (permissions: Permission[]) =>
+      filterNavByPermission(adminNavItems, makeUser(permissions)).map(
+        (item) => item.title
+      )
+    expect(titles([Permission.READ_WEEKENDS])).not.toContain('Site settings')
+    expect(titles([Permission.FULL_ACCESS])).toContain('Site settings')
   })
 
   it('shows gated items when the user holds the permission', () => {

@@ -134,7 +134,7 @@ export function MeetingMinutesTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[200px]">
+                <TableHead className="min-w-[160px]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort('name')}
@@ -145,7 +145,7 @@ export function MeetingMinutesTable({
                     {getSortIcon('name')}
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">
+                <TableHead className="min-w-[120px]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort('created_at')}
@@ -156,8 +156,10 @@ export function MeetingMinutesTable({
                     {getSortIcon('created_at')}
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">Location</TableHead>
-                <TableHead className="sticky right-0 bg-background text-right min-w-[120px] border-l">
+                <TableHead className="hidden min-w-[150px] 2xl:table-cell">
+                  Location
+                </TableHead>
+                <TableHead className="sticky right-0 bg-background text-right min-w-[96px] border-l">
                   Actions
                 </TableHead>
               </TableRow>
@@ -170,13 +172,15 @@ export function MeetingMinutesTable({
                   onClick={() => handlePreview(file)}
                 >
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-gray-500" />
-                      {file.name}
+                    <div className="flex max-w-[16rem] items-center gap-2">
+                      <FileText className="h-4 w-4 shrink-0 text-gray-500" />
+                      <span className="truncate" title={file.name}>
+                        {file.name}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>{formatTimestampDate(file.created_at)}</TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="hidden text-muted-foreground 2xl:table-cell">
                     {file.location ?? '-'}
                   </TableCell>
                   <TableCell className="sticky right-0 bg-background text-right border-l">

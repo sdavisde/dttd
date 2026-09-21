@@ -183,7 +183,7 @@ export function RoleAssignments({
 
   return (
     <>
-      <div className="grid items-start gap-4 lg:grid-cols-[1.35fr_1fr]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <Card className="gap-0 py-0">
           <CardContent className="px-5 py-4">
             <div className="flex items-baseline justify-between pb-1">
@@ -217,7 +217,7 @@ export function RoleAssignments({
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           {committeeRoles.length > 0 && (
             <Card className="gap-0 py-0">
               <CardContent className="px-5 py-4">
