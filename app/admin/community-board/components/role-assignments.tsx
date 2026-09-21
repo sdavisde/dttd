@@ -18,6 +18,8 @@ type RoleAssignmentsProps = {
   committeeRoles: BoardRole[]
   members: BoardMember[]
   preWeekendCoupleContact: ContactInfo
+  /** Whether the viewer may reassign positions and edit the notification email. */
+  canEdit: boolean
   /** Rendered in the right column beneath the committees card (meeting minutes). */
   children?: React.ReactNode
 }
@@ -68,9 +70,11 @@ function PositionRow({
     .join(', ')
 
   return (
-    <div className="flex items-center gap-3.5 border-b border-divider py-3 last:border-b-0">
+    // Stacks below `sm` so the label, the holder and the button each get a full
+    // line on a phone instead of fighting over one 360px row.
+    <div className="flex flex-col gap-2 border-b border-divider py-3 last:border-b-0 sm:flex-row sm:items-center sm:gap-3.5">
       <div
-        className="w-40 shrink-0 sm:w-52"
+        className="min-w-0 sm:w-52 sm:shrink-0"
         title={role.description ?? undefined}
       >
         <div className="text-sm font-semibold">{role.label}</div>
@@ -101,7 +105,7 @@ function PositionRow({
           variant="outline"
           size="sm"
           onClick={onAssignClick}
-          className="ml-auto shrink-0"
+          className="h-11 w-full shrink-0 sm:ml-auto sm:h-8 sm:w-auto"
         >
           {hasAssignments ? 'Change' : 'Assign'}
         </Button>
@@ -115,6 +119,7 @@ export function RoleAssignments({
   committeeRoles,
   members,
   preWeekendCoupleContact,
+  canEdit,
   children,
 }: RoleAssignmentsProps) {
   const preWeekendEmail = usePreWeekendEmail({
@@ -169,15 +174,17 @@ export function RoleAssignments({
           ? preWeekendEmail.email
           : 'No notification email set'}
       </span>
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-6 w-6 shrink-0 p-0"
-        onClick={preWeekendEmail.startEditEmail}
-      >
-        <Pencil className="h-3 w-3" />
-        <span className="sr-only">Edit notification email</span>
-      </Button>
+      {canEdit && (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="size-11 shrink-0 p-0 sm:size-6"
+          onClick={preWeekendEmail.startEditEmail}
+        >
+          <Pencil className="h-3 w-3" />
+          <span className="sr-only">Edit notification email</span>
+        </Button>
+      )}
     </div>
   )
 
@@ -200,7 +207,7 @@ export function RoleAssignments({
                 key={role.id}
                 role={role}
                 assigned={roleAssignment.membersByRoleId[role.id] ?? []}
-                canEdit
+                canEdit={canEdit}
                 onAssignClick={() => roleAssignment.openDialog(role)}
                 subtitle={
                   role.label === 'Pre Weekend Couple'
@@ -229,7 +236,7 @@ export function RoleAssignments({
                     key={role.id}
                     role={role}
                     assigned={roleAssignment.membersByRoleId[role.id] ?? []}
-                    canEdit
+                    canEdit={canEdit}
                     onAssignClick={() => roleAssignment.openDialog(role)}
                   />
                 ))}

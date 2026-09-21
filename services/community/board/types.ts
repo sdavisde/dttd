@@ -18,8 +18,22 @@ export const BOARD_ROLE_SORT_ORDER = [
 ]
 
 /**
- * The predefined sort order for committee roles.
- * Roles not in this list not considered committees on the board.
+ * Committees are picked up from `roles.type === 'COMMITTEE'` rather than a
+ * hardcoded list, so a new committee shows up without a code change. Two
+ * carve-outs keep that honest:
+ *
+ * - `BOARD_ROLE_SORT_ORDER` members are excluded. `Pre Weekend Couple` and
+ *   `At-Large Members` are COMMITTEE-typed (they take multiple assignees) but
+ *   they are board positions and already have their own card.
+ * - {@link NON_COMMITTEE_ROLE_LABELS} are excluded. `Full Access` is
+ *   COMMITTEE-typed purely so several people can hold it; it is an access
+ *   level, not a group the community would recognise.
+ */
+export const NON_COMMITTEE_ROLE_LABELS = ['Full Access', 'Admin']
+
+/**
+ * Legacy allowlist, kept as a fallback union with the `type` filter so a
+ * committee whose row predates the `type` column still renders.
  */
 export const BOARD_COMMITTEE_ROLES = ['Leaders Committee']
 

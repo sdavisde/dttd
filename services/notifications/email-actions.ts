@@ -13,6 +13,14 @@ import CandidateFormsEmail from '@/components/email/CandidateFormsEmail'
 import { getHydratedCandidate } from '@/actions/candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'
 import TeamPaymentNotificationEmail from '@/components/email/TeamPaymentNotificationEmail'
+import {
+  getSystemEmailFrom,
+  isNotificationEnabled,
+} from '@/services/settings/settings-service'
+import {
+  NOTIFY_NEW_SPONSORSHIPS_KEY,
+  NOTIFY_PAYMENT_RECEIPTS_KEY,
+} from '@/services/settings/site-settings'
 import * as NotificationService from './notification-service'
 import { sendEmail } from './email-client'
 import { formatWeekendLabelFor } from '@/lib/weekend'
@@ -24,6 +32,13 @@ export async function sendSponsorshipNotificationEmail(
   candidateId: string
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
+    if (!(await isNotificationEnabled(NOTIFY_NEW_SPONSORSHIPS_KEY))) {
+      logger.info(
+        `Skipped sponsorship notification email for candidate ${candidateId}: new sponsorship notifications are switched off in site settings`
+      )
+      return ok({ data: null })
+    }
+
     // Fetch sponsorship request data
     const candidateResult = await getHydratedCandidate(candidateId)
 
@@ -46,7 +61,7 @@ export async function sendSponsorshipNotificationEmail(
 
     // Send email using Resend
     const sendResult = await sendEmail('sponsorship-notification', {
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+      from: await getSystemEmailFrom(),
       to: [preWeekendEmailResult.data],
       subject: `New Sponsorship Request - ${candidate.candidate_sponsorship_info?.candidate_name}`,
       react: SponsorshipNotificationEmail(candidate),
@@ -84,7 +99,7 @@ export async function sendCandidateForms(
     }
 
     const candidateFormsEmailResult = await sendEmail('candidate-forms', {
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+      from: await getSystemEmailFrom(),
       to: [candidateSponsorshipInfo.candidate_email],
       subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
       react: CandidateFormsEmail({ candidateId, candidateSponsorshipInfo }),
@@ -158,34 +173,48 @@ export async function sendPaymentRequestEmail(
         candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'
     }
 
-    logger.info(
-      `Sending payment request email to ${paymentOwnerName} (${paymentOwnerEmail})`
+    // The status change below is the workflow step; only the email itself is
+    // optional, so a switched-off toggle skips the send and nothing else.
+    const paymentEmailsEnabled = await isNotificationEnabled(
+      NOTIFY_PAYMENT_RECEIPTS_KEY
     )
 
-    // Send email using Resend
-    const sendResult = await sendEmail('payment-request', {
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-      to: [paymentOwnerEmail],
-      subject: `Candidate Fees for ${candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'} - Dusty Trails Tres Dias`,
-      react: CandidateFeePaymentRequestEmail({
-        candidate,
-        paymentOwner,
-        paymentOwnerName,
-      }),
-    })
+    let data: CreateEmailResponseSuccess | null = null
 
-    if (isErr(sendResult)) {
-      logger.error(
-        `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${sendResult.error}`
+    if (!paymentEmailsEnabled) {
+      logger.info(
+        `Skipped payment request email for candidate ${candidateId}: payment receipts & reminders are switched off in site settings`
       )
-      return err(`Failed to send email: ${sendResult.error}`)
+    } else {
+      logger.info(
+        `Sending payment request email to ${paymentOwnerName} (${paymentOwnerEmail})`
+      )
+
+      // Send email using Resend
+      const sendResult = await sendEmail('payment-request', {
+        from: await getSystemEmailFrom(),
+        to: [paymentOwnerEmail],
+        subject: `Candidate Fees for ${candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'} - Dusty Trails Tres Dias`,
+        react: CandidateFeePaymentRequestEmail({
+          candidate,
+          paymentOwner,
+          paymentOwnerName,
+        }),
+      })
+
+      if (isErr(sendResult)) {
+        logger.error(
+          `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${sendResult.error}`
+        )
+        return err(`Failed to send email: ${sendResult.error}`)
+      }
+
+      data = sendResult.data
+
+      logger.info(
+        `Payment request email sent successfully for ${candidate.candidate_sponsorship_info?.candidate_name}`
+      )
     }
-
-    const data = sendResult.data
-
-    logger.info(
-      `Payment request email sent successfully for ${candidate.candidate_sponsorship_info?.candidate_name}`
-    )
 
     // Update candidate status to awaiting_payment
     const { error: updateError } = await supabase
@@ -228,6 +257,13 @@ export async function notifyAssistantHeadForTeamPayment(
   }
 
   try {
+    if (!(await isNotificationEnabled(NOTIFY_PAYMENT_RECEIPTS_KEY))) {
+      logger.info(
+        `Skipped team payment notification for weekend ${weekendId}: payment receipts & reminders are switched off in site settings`
+      )
+      return ok(true)
+    }
+
     const supabase = await createClient()
 
     // Get all weekend roster data and weekend details in parallel
@@ -297,7 +333,7 @@ export async function notifyAssistantHeadForTeamPayment(
 
     // Send email to assistant head
     const sendResult = await sendEmail('team-payment-notification', {
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+      from: await getSystemEmailFrom(),
       to: [assistantHead.users.email],
       subject: `Team Fee Received - ${teamMember.users.first_name} ${teamMember.users.last_name}`,
       react: TeamPaymentNotificationEmail({
@@ -364,7 +400,7 @@ export async function sendCandidateFormsCompletedEmail(
 
     // Send email using Resend
     const sendResult = await sendEmail('candidate-forms-completed', {
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+      from: await getSystemEmailFrom(),
       to: [preWeekendEmailResult.data],
       subject: `Candidate Forms Completed - ${candidateName}`,
       react: CandidateFormsCompletedEmail(candidate),

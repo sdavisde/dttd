@@ -5,6 +5,11 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 import type { Result } from '@/lib/results'
 import { err, isErr, ok } from '@/lib/results'
 import { logger } from '@/lib/logger'
+import {
+  getSystemEmailFrom,
+  isNotificationEnabled,
+} from '@/services/settings/settings-service'
+import { NOTIFY_PAYMENT_RECEIPTS_KEY } from '@/services/settings/site-settings'
 import { sendEmail } from './email-client'
 import * as NotificationRepository from './repository'
 // TODO: This should use the candidates service public API instead of direct repository access
@@ -164,6 +169,13 @@ async function sendCandidatePaymentEmail(
   paymentAmount: number,
   paymentMethod: 'card' | 'cash' | 'check'
 ): Promise<Result<string, true>> {
+  if (!(await isNotificationEnabled(NOTIFY_PAYMENT_RECEIPTS_KEY))) {
+    logger.info(
+      `Skipped candidate payment notification for candidate ${rawCandidate.id}: payment receipts & reminders are switched off in site settings`
+    )
+    return ok(true)
+  }
+
   const candidateInfo = rawCandidate.candidate_info?.at(0)
   const sponsorshipInfo = rawCandidate.candidate_sponsorship_info?.at(0)
 
@@ -184,7 +196,7 @@ async function sendCandidatePaymentEmail(
   } as HydratedCandidate
 
   const sendResult = await sendEmail('candidate-payment-completed', {
-    from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+    from: await getSystemEmailFrom(),
     to: [recipientEmail],
     subject: `Candidate Payment Received - ${candidateName}`,
     react: CandidatePaymentCompletedEmail({

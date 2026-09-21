@@ -5,6 +5,8 @@ import { getMasterRoster } from '@/services/master-roster'
 import { isErr } from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { PageHeader } from '@/components/ui/page-header'
+import { getUrl } from '@/lib/url'
+import { CopyJoinLinkButton } from './components/copy-join-link-button'
 import PeopleTable from './components/people-table'
 
 export default async function PeoplePage() {
@@ -41,7 +43,10 @@ export default async function PeoplePage() {
         <PageHeader
           title="People"
           description="Everyone with an account — contact details, experience, and roles."
-        />
+        >
+          {/* Built server-side so preview deploys copy their own host, not prod's. */}
+          <CopyJoinLinkButton joinUrl={getUrl('/join')} />
+        </PageHeader>
         <PeopleTable
           masterRoster={masterRosterResult.data}
           roles={rolesResult.data}

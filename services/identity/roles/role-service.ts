@@ -1,6 +1,6 @@
 import 'server-only'
 
-import type { Result } from '@/lib/results';
+import type { Result } from '@/lib/results'
 import { isErr, ok } from '@/lib/results'
 import * as RoleRepository from './repository'
 import type { Tables } from '@/database.types'
@@ -12,8 +12,8 @@ function normalizeRole(rawRole: Tables<'roles'>): Role {
     id: rawRole.id,
     label: rawRole.label,
     permissions: rawRole.permissions as Array<Permission>,
-    type: (rawRole as any).type ?? 'INDIVIDUAL',
-    description: (rawRole as any).description ?? null,
+    type: rawRole.type ?? 'INDIVIDUAL',
+    description: rawRole.description ?? null,
   }
 }
 

@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Permission, userHasPermission } from '@/lib/security'
 import { useSession } from '@/components/auth/session-provider'
 import { UserAvatar } from '@/components/user-avatar'
+import { parseCommunityWeekendRef } from '@/lib/weekend'
 import type { MasterRosterMember } from '@/services/master-roster/types'
 import { useUserEditForm } from '../hooks/use-user-edit-form'
 import { ContactInfoSection } from './contact-info-section'
@@ -38,6 +39,15 @@ export function UserRoleSidebar({
   canEdit,
 }: UserRoleSidebarProps) {
   const { user: currentUser } = useSession()
+
+  // `weekend_attended` is stored as the wire format `DTTD#11`; the header wants
+  // it read back as "joined DTTD #11".
+  const joinedWeekendRef = parseCommunityWeekendRef(
+    member?.communityInformation.weekendAttended
+  )
+  const joinedLabel = isNil(joinedWeekendRef)
+    ? null
+    : `joined ${joinedWeekendRef.community} #${joinedWeekendRef.number}`
 
   const showSecuritySettings =
     !isNil(currentUser) &&
@@ -99,6 +109,7 @@ export function UserRoleSidebar({
               {!isNil(member?.email) && (
                 <p className="truncate text-[13px] text-muted-foreground">
                   {member.email}
+                  {!isNil(joinedLabel) && ` · ${joinedLabel}`}
                   {!canEdit && ' · view only'}
                 </p>
               )}

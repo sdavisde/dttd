@@ -1,5 +1,7 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { PageHeader } from '@/components/ui/page-header'
+import { guardAdminPage } from '@/lib/admin/page-guard'
+import { Permission } from '@/lib/security'
 import { getCommunityBoardData } from '@/services/community/board'
 import { getMeetingMinutesPage } from '@/services/files/file-service'
 import { isErr } from '@/lib/results'
@@ -21,6 +23,12 @@ function createEmptyMeetingMinutesPageData(): PagedMeetingMinuteFiles {
 }
 
 export default async function CommunityBoardPage() {
+  // Assigning positions and changing the notification email both go through
+  // actions gated on WRITE_USER_ROLES, so the affordances follow the same rule.
+  const { canEdit } = await guardAdminPage({
+    edit: [Permission.WRITE_USER_ROLES],
+  })
+
   const [communityBoardResult, meetingMinutesPageResult] = await Promise.all([
     getCommunityBoardData(),
     getMeetingMinutesPage(1, MEETING_MINUTES_PAGE_SIZE),
@@ -43,13 +51,13 @@ export default async function CommunityBoardPage() {
   return (
     <>
       <AdminBreadcrumbs
-        title="Community Board"
+        title="Community"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
       <div className="container mx-auto px-4 pb-10 sm:px-8 py-6">
         <PageHeader
-          title="Community Board"
-          description="Who holds each position — the board and its committees — and the board's meeting minutes."
+          title="Community"
+          description="Who holds each position — the board, its committees and teams — and the board's meeting minutes."
         />
 
         <RoleAssignments
@@ -57,6 +65,7 @@ export default async function CommunityBoardPage() {
           committeeRoles={committeeRoles}
           members={members}
           preWeekendCoupleContact={preWeekendCoupleContact}
+          canEdit={canEdit}
         >
           <MeetingMinutes
             initialPageData={meetingMinutesInitialPageData}

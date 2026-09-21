@@ -20,7 +20,7 @@ export function RolesEditSection({
   return (
     <section className="space-y-2">
       <Typography variant="muted" className="text-sm font-bold">
-        Security Settings
+        Roles
       </Typography>
       <div className="bg-muted/20 rounded-md p-4 space-y-3 border">
         <div className="space-y-1">

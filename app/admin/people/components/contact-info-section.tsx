@@ -27,7 +27,7 @@ export function ContactInfoSection({
   return (
     <section className="space-y-2">
       <Typography variant="muted" className="text-sm font-bold">
-        Contact Information
+        Contact info
       </Typography>
       <div className="bg-muted/20 rounded-md p-4 space-y-3 border">
         <div className="grid grid-cols-2 gap-3">

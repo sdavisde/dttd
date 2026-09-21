@@ -173,7 +173,7 @@ export function MeetingMinutesTable({
                 >
                   <TableCell className="font-medium">
                     <div className="flex max-w-[16rem] items-center gap-2">
-                      <FileText className="h-4 w-4 shrink-0 text-gray-500" />
+                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <span className="truncate" title={file.name}>
                         {file.name}
                       </span>
@@ -254,7 +254,7 @@ export function MeetingMinutesTable({
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <FileText className="h-5 w-5 text-gray-500 shrink-0" />
+                <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
                 <span className="font-medium text-lg truncate">
                   {file.name}
                 </span>
