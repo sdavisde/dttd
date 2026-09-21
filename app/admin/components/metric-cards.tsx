@@ -15,6 +15,11 @@ type MetricCardsProps = {
   outstandingFeesUnknown: boolean
   collected: CollectedMetrics | null
   memberCount: number | null
+  /**
+   * The storage tile. It walks every bucket, so it arrives on its own behind a
+   * Suspense boundary rather than holding up the money and people figures.
+   */
+  storageTile: React.ReactNode
 }
 
 function MetricFigure({
@@ -47,9 +52,10 @@ export function MetricCards({
   outstandingFeesUnknown,
   collected,
   memberCount,
+  storageTile,
 }: MetricCardsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div className="flex flex-col gap-1 rounded-lg border border-secondary-border bg-secondary px-4.5 py-3.5">
         {isNil(outstanding) && outstandingFeesUnknown && (
           <p className="text-sm text-secondary-foreground">
@@ -68,7 +74,7 @@ export function MetricCards({
                 <>
                   {' · '}
                   <Link
-                    href="/admin/payments"
+                    href="/admin/payments?status=outstanding"
                     className="font-semibold text-primary hover:text-primary-hover"
                   >
                     View the {outstanding.openFeeCount} open{' '}
@@ -111,6 +117,8 @@ export function MetricCards({
           </>
         )}
       </div>
+
+      {storageTile}
     </div>
   )
 }

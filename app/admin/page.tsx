@@ -10,6 +10,7 @@ import {
   deriveCollectedThisYear,
   deriveOutstanding,
   hasActiveWeekendGroup,
+  type ActiveGroupSecuela,
 } from '@/lib/admin/dashboard-metrics'
 import { deriveSystemAlerts } from '@/lib/admin/system-alerts'
 import {
@@ -19,15 +20,15 @@ import {
   type ActiveWeekendFinancials,
 } from '@/services/payment'
 import { getMasterRoster } from '@/services/master-roster'
-import { getUpcomingEvents } from '@/services/events'
+import { getSecuelaDateForGroup, getUpcomingEvents } from '@/services/events'
 import { getActiveWeekends, getWeekendGroupsByStatus } from '@/services/weekend'
 import { MetricCards } from './components/metric-cards'
 import { ActionItemsList } from './components/action-items-list'
-import { EventsPreview } from './components/events-preview'
+import { CalendarPreview } from './components/calendar-preview'
 import {
-  StorageUsageCard,
-  StorageUsageCardSkeleton,
-} from './components/storage-usage-card'
+  StorageUsageTile,
+  StorageUsageTileSkeleton,
+} from './components/storage-usage-tile'
 import { SystemAlertsBanner } from './components/system-alerts-banner'
 
 /** Presence check only — the value itself is a secret and is never read out. */
@@ -62,20 +63,47 @@ export default async function Page() {
   )
 
   const payments = Results.toNullable(paymentsResult)
+  const activeWeekends = Results.toNullable(activeWeekendsResult)
+  const activeGroupId =
+    activeWeekends?.MENS.groupId ?? activeWeekends?.WOMENS.groupId ?? null
+  const activeGroupNumber =
+    activeWeekends?.MENS.number ?? activeWeekends?.WOMENS.number ?? null
 
+  // Both of these need the active weekends, so they wait for the first round —
+  // but they stay separate reads, each degrading only what it feeds.
   // Outstanding money reuses the exact computation behind the payments
   // summary page, so the two can never disagree.
-  let financialsResult: Result<string, ActiveWeekendFinancials> | null = null
-  if (!isNil(payments) && Results.isOk(activeWeekendsResult)) {
-    financialsResult = await getActiveWeekendFinancials(
-      payments,
-      activeWeekendsResult.data
-    )
-    Results.logFailures(financialsResult)
-  }
+  const financialsPromise: Promise<
+    Result<string, ActiveWeekendFinancials>
+  > | null =
+    !isNil(payments) && !isNil(activeWeekends)
+      ? getActiveWeekendFinancials(payments, activeWeekends)
+      : null
+  const secuelaPromise: Promise<Result<string, string | null>> | null = isNil(
+    activeGroupId
+  )
+    ? null
+    : getSecuelaDateForGroup(activeGroupId)
+
+  const [financialsResult, secuelaResult] = await Promise.all([
+    financialsPromise,
+    secuelaPromise,
+  ])
+  if (!isNil(financialsResult)) Results.logFailures(financialsResult)
+  if (!isNil(secuelaResult)) Results.logFailures(secuelaResult)
+
   const financials = isNil(financialsResult)
     ? null
     : Results.toNullable(financialsResult)
+
+  // A secuela we couldn't look up is not a secuela we can say is missing.
+  const activeGroupSecuela: ActiveGroupSecuela | null =
+    isNil(secuelaResult) || Results.isErr(secuelaResult)
+      ? null
+      : {
+          groupNumber: activeGroupNumber,
+          isScheduled: !isNil(secuelaResult.data),
+        }
 
   // Fee prices we can't read are their own failure: showing $0 outstanding
   // would claim every fee is settled when we simply don't know the price.
@@ -90,8 +118,15 @@ export default async function Page() {
   const events = Results.toNullable(eventsResult)
   const weekendGroups = Results.toNullable(groupsResult)
 
-  const actionItems = deriveActionItems({ outstanding, weekendGroups })
-  const actionItemsDegraded = isNil(outstanding) || isNil(weekendGroups)
+  const actionItems = deriveActionItems({
+    outstanding,
+    weekendGroups,
+    activeGroupSecuela,
+  })
+  const actionItemsDegraded =
+    isNil(outstanding) ||
+    isNil(weekendGroups) ||
+    (!isNil(secuelaResult) && Results.isErr(secuelaResult))
 
   // Banner checks. Friendly source names only — the raw errors were logged
   // above by `Results.logFailures` and never reach the page.
@@ -126,7 +161,7 @@ export default async function Page() {
       <div className="container mx-auto px-4 pb-12 md:px-8">
         <PageHeader
           title="Admin"
-          description="The board's back office — money, people, and files. Weekend operations live on each weekend's hub."
+          description="The board's back office — money, people, files, and the community calendar. Weekend operations live on each weekend's hub."
         />
 
         <SystemAlertsBanner alerts={alerts} />
@@ -136,18 +171,25 @@ export default async function Page() {
           outstandingFeesUnknown={feesUnknown}
           collected={collected}
           memberCount={memberCount}
+          storageTile={
+            /* Storage walks every bucket, so it streams into its tile on its
+               own rather than holding up the money and people figures. */
+            <Suspense fallback={<StorageUsageTileSkeleton />}>
+              <StorageUsageTile />
+            </Suspense>
+          }
         />
 
         <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
           <ActionItemsList items={actionItems} degraded={actionItemsDegraded} />
-          <div className="space-y-6">
-            <EventsPreview events={events} />
-            {/* Storage walks every bucket, so it streams in on its own rather
-                than holding up the money and people tiles. */}
-            <Suspense fallback={<StorageUsageCardSkeleton />}>
-              <StorageUsageCard />
-            </Suspense>
-          </div>
+          <CalendarPreview
+            events={events}
+            scopeContext={{
+              mensWeekendId: activeWeekends?.MENS.id,
+              womensWeekendId: activeWeekends?.WOMENS.id,
+            }}
+            groupNumber={activeGroupNumber}
+          />
         </div>
       </div>
     </>

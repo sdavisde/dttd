@@ -9,8 +9,7 @@ import {
   SINGLETON_EVENT_TYPES,
 } from '@/services/events/types'
 import type { Weekend } from '@/lib/weekend/types'
-
-const GROUP_SLOT_TOTAL = 4
+import { deriveGroupSlots } from './scheduling-slots'
 
 interface SchedulingProgressProps {
   groupNumber: number | null
@@ -35,12 +34,7 @@ export function SchedulingProgress({
   onScheduleSlot,
   onAddMeeting,
 }: SchedulingProgressProps) {
-  const meetings = events.filter((e) => e.type === 'meeting')
-  const secuela = events.find((e) => e.type === 'secuela')
-  const groupFilled = Math.min(
-    meetings.length + (isNil(secuela) ? 0 : 1),
-    GROUP_SLOT_TOTAL
-  )
+  const groupSlots = deriveGroupSlots(events)
 
   const missingFor = (weekend: Weekend) =>
     SINGLETON_EVENT_TYPES.filter(
@@ -58,10 +52,14 @@ export function SchedulingProgress({
 
       <Meter
         label="Meetings & secuela"
-        filled={groupFilled}
-        total={GROUP_SLOT_TOTAL}
+        filled={groupSlots.filled}
+        total={groupSlots.total}
       >
-        {isNil(secuela) && <span>Secuela isn&rsquo;t scheduled yet</span>}
+        {groupSlots.missing.map((type) => (
+          <span key={type}>
+            {EVENT_TYPE_LABELS[type]} isn&rsquo;t scheduled yet
+          </span>
+        ))}
         {canEdit && (
           <button
             type="button"

@@ -20,6 +20,9 @@ interface ComingUpProps {
   groupNumber: number | null
   canEdit: boolean
   onEventClick: (event: Event) => void
+  /** True while the whole upcoming list (and Past events) is revealed. */
+  showAll: boolean
+  onToggleShowAll: () => void
 }
 
 /** The board's "Coming up" card: date-chip rows for the next gatherings. */
@@ -29,20 +32,40 @@ export function ComingUp({
   groupNumber,
   canEdit,
   onEventClick,
+  showAll,
+  onToggleShowAll,
 }: ComingUpProps) {
   // Snapshot "now" once per mount — react-compiler treats Date.now() in
   // render as impure, and the cutoff doesn't need to tick live.
   const [now] = useState(() => Date.now())
-  const upcoming = events
+  const allUpcoming = events
     .filter((e) => !isNil(e.datetime) && new Date(e.datetime).getTime() >= now)
     .sort((a, b) => (a.datetime ?? '').localeCompare(b.datetime ?? ''))
-    .slice(0, UPCOMING_LIMIT)
+  const upcoming = showAll ? allUpcoming : allUpcoming.slice(0, UPCOMING_LIMIT)
+  const hasMore = allUpcoming.length > UPCOMING_LIMIT
 
   return (
     <div className="flex flex-col rounded-md border bg-card px-5 py-4.5">
-      <h2 className="pb-1 font-serif text-lg font-semibold tracking-tight">
-        Coming up
-      </h2>
+      <div className="flex items-baseline justify-between gap-3 pb-1">
+        <h2 className="font-serif text-lg font-semibold tracking-tight">
+          Coming up
+        </h2>
+        {/* There is no separate all-events route: this reveals the rest of the
+            upcoming list in place and opens the Past events section below. */}
+        <button
+          type="button"
+          className="shrink-0 cursor-pointer text-[13px] font-semibold text-primary hover:text-primary-hover"
+          onClick={onToggleShowAll}
+        >
+          {showAll ? 'Show less' : 'All events'}
+        </button>
+      </div>
+      {showAll && !hasMore && allUpcoming.length > 0 && (
+        <p className="pb-1 text-[12.5px] text-muted-foreground">
+          That&rsquo;s everything upcoming — older gatherings are under Past
+          events below.
+        </p>
+      )}
       {upcoming.length === 0 && (
         <p className="py-2 text-sm text-muted-foreground">
           Nothing on the calendar yet.

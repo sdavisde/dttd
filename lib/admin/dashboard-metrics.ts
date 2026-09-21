@@ -1,6 +1,7 @@
 import { isNil } from 'lodash'
 import type { PaymentTransactionDTO } from '@/services/payment'
 import type { ActiveWeekendFinancials } from '@/lib/payments/compute-totals'
+import { isCollected } from '@/lib/payments/waived'
 import type { WeekendGroupWithId } from '@/lib/weekend/types'
 
 // Pure derivation helpers for the admin dashboard. No server imports so the
@@ -26,7 +27,7 @@ export function deriveCollectedThisYear(
   let total = 0
   let count = 0
   for (const p of payments) {
-    if (!isNil(p.voided_at)) continue
+    if (!isCollected(p)) continue
     if (new Date(p.created_at).getFullYear() !== year) continue
     total += p.gross_amount
     count++
@@ -67,15 +68,34 @@ export type ActionItem =
       key: 'open-fees'
       openFeeCount: number
       outstandingTotal: number
-      href: '/admin/payments'
+      href: '/admin/payments?status=outstanding'
+    }
+  | {
+      key: 'schedule-secuela'
+      /** The active group's DTTD number, or null when it isn't known. */
+      groupNumber: number | null
+      href: '/admin/events'
     }
   | { key: 'start-planning'; href: '/admin/weekends' }
+
+/**
+ * The active weekend group's secuela slot. Null when there is no active group,
+ * or when the lookup failed — a group whose secuela we couldn't check is not a
+ * group we can claim has none.
+ */
+export type ActiveGroupSecuela = {
+  groupNumber: number | null
+  /** True once a secuela event exists for the group, past or future. */
+  isScheduled: boolean
+}
 
 type ActionItemsInput = {
   /** Null when the payments source failed or the viewer lacks permission. */
   outstanding: OutstandingMetrics | null
   /** Null when the weekends source failed or the viewer lacks permission. */
   weekendGroups: WeekendGroupWithId[] | null
+  /** Null when there's no active group, or its secuela couldn't be looked up. */
+  activeGroupSecuela?: ActiveGroupSecuela | null
   now?: Date
 }
 
@@ -120,6 +140,7 @@ export function needsPlanning(
 export function deriveActionItems({
   outstanding,
   weekendGroups,
+  activeGroupSecuela = null,
   now = new Date(),
 }: ActionItemsInput): ActionItem[] {
   const items: ActionItem[] = []
@@ -128,7 +149,14 @@ export function deriveActionItems({
       key: 'open-fees',
       openFeeCount: outstanding.openFeeCount,
       outstandingTotal: outstanding.total,
-      href: '/admin/payments',
+      href: '/admin/payments?status=outstanding',
+    })
+  }
+  if (!isNil(activeGroupSecuela) && !activeGroupSecuela.isScheduled) {
+    items.push({
+      key: 'schedule-secuela',
+      groupNumber: activeGroupSecuela.groupNumber,
+      href: '/admin/events',
     })
   }
   if (!isNil(weekendGroups) && needsPlanning(weekendGroups, now)) {

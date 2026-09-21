@@ -12,23 +12,14 @@ import {
   SCOPE_DOT_CLASSES,
   type ScopeContext,
 } from './event-scope'
-
-const CENTRAL_TIME = 'America/Chicago'
-const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTH_LABELS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
+import {
+  buildMonthCells,
+  DAY_LABELS,
+  groupEventsByDay,
+  MONTH_LABELS,
+  stepMonth as stepMonthView,
+  todayInCommunityTz,
+} from './month-grid'
 
 interface MonthCalendarProps {
   events: Event[]
@@ -38,17 +29,6 @@ interface MonthCalendarProps {
   onEventClick: (event: Event) => void
 }
 
-/** "YYYY-MM-DD" for an event's datetime, in the community's timezone. */
-function eventDayKey(datetime: string): string {
-  return new Date(datetime).toLocaleDateString('en-CA', {
-    timeZone: CENTRAL_TIME,
-  })
-}
-
-function dayKey(year: number, month: number, day: number): string {
-  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-}
-
 export function MonthCalendar({
   events,
   scopeContext,
@@ -56,55 +36,13 @@ export function MonthCalendar({
   canEdit,
   onEventClick,
 }: MonthCalendarProps) {
-  const todayParts = new Date()
-    .toLocaleDateString('en-CA', { timeZone: CENTRAL_TIME })
-    .split('-')
-  const [view, setView] = useState({
-    year: Number(todayParts[0]),
-    month: Number(todayParts[1]) - 1,
-  })
+  const [view, setView] = useState(todayInCommunityTz)
 
-  const eventsByDay = new Map<string, Event[]>()
-  for (const event of events) {
-    if (isNil(event.datetime)) continue
-    const key = eventDayKey(event.datetime)
-    eventsByDay.set(key, [...(eventsByDay.get(key) ?? []), event])
-  }
-
-  const firstDow = new Date(view.year, view.month, 1).getDay()
-  const daysInMonth = new Date(view.year, view.month + 1, 0).getDate()
-  const daysInPrevMonth = new Date(view.year, view.month, 0).getDate()
-  const weekCount = Math.ceil((firstDow + daysInMonth) / 7)
-
-  const cells: Array<{ day: number; inMonth: boolean; key: string }> = []
-  for (let i = 0; i < weekCount * 7; i++) {
-    const offset = i - firstDow
-    if (offset < 0) {
-      const day = daysInPrevMonth + offset + 1
-      const [y, m] =
-        view.month === 0 ? [view.year - 1, 11] : [view.year, view.month - 1]
-      cells.push({ day, inMonth: false, key: dayKey(y, m, day) })
-    } else if (offset >= daysInMonth) {
-      const day = offset - daysInMonth + 1
-      const [y, m] =
-        view.month === 11 ? [view.year + 1, 0] : [view.year, view.month + 1]
-      cells.push({ day, inMonth: false, key: dayKey(y, m, day) })
-    } else {
-      cells.push({
-        day: offset + 1,
-        inMonth: true,
-        key: dayKey(view.year, view.month, offset + 1),
-      })
-    }
-  }
+  const eventsByDay = groupEventsByDay(events)
+  const { cells, weekCount } = buildMonthCells(view.year, view.month)
 
   const stepMonth = (delta: number) => {
-    setView(({ year, month }) => {
-      const next = month + delta
-      if (next < 0) return { year: year - 1, month: 11 }
-      if (next > 11) return { year: year + 1, month: 0 }
-      return { year, month: next }
-    })
+    setView((current) => stepMonthView(current, delta))
   }
 
   return (

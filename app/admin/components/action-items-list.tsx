@@ -1,5 +1,12 @@
 import Link from 'next/link'
-import { CalendarPlus, CheckCircle2, CircleDollarSign } from 'lucide-react'
+import { isNil } from 'lodash'
+import {
+  CalendarPlus,
+  CheckCircle2,
+  CircleDollarSign,
+  Clock,
+  type LucideIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/payments/formatters'
 import type { ActionItem } from '@/lib/admin/dashboard-metrics'
@@ -12,24 +19,40 @@ type ActionItemsListProps = {
 
 const itemCopy: Record<
   ActionItem['key'],
-  { detail: string; linkLabel: string }
+  { detail: string; linkLabel: string; icon: LucideIcon }
 > = {
   'open-fees': {
     detail: 'Record or follow up from the payments ledger',
     linkLabel: 'Go to payments',
+    icon: CircleDollarSign,
+  },
+  'schedule-secuela': {
+    detail: 'Pick a date so members can plan around it',
+    linkLabel: 'Schedule it',
+    icon: Clock,
   },
   'start-planning': {
     detail: 'Set dates and leadership to open planning',
     linkLabel: 'Go to weekends',
+    icon: CalendarPlus,
   },
 }
 
 function itemTitle(item: ActionItem): string {
-  if (item.key === 'open-fees') {
-    const fees = item.openFeeCount === 1 ? 'fee is' : 'fees are'
-    return `${item.openFeeCount} ${fees} still open · ${formatCurrency(item.outstandingTotal)}`
+  switch (item.key) {
+    case 'open-fees': {
+      const fees = item.openFeeCount === 1 ? 'fee is' : 'fees are'
+      return `${item.openFeeCount} ${fees} still open · ${formatCurrency(item.outstandingTotal)}`
+    }
+    case 'schedule-secuela': {
+      const group = isNil(item.groupNumber)
+        ? 'The active weekend group'
+        : `DTTD #${item.groupNumber}`
+      return `${group}'s secuela isn't scheduled`
+    }
+    case 'start-planning':
+      return "The next weekend group isn't scheduled yet"
   }
-  return "The next weekend group isn't scheduled yet"
 }
 
 /** "Action items" — the computable action list, or a reassurance state. */
@@ -56,8 +79,7 @@ export function ActionItemsList({ items, degraded }: ActionItemsListProps) {
       {items.length > 0 && (
         <ul className="mt-2 divide-y divide-divider">
           {items.map((item) => {
-            const Icon =
-              item.key === 'open-fees' ? CircleDollarSign : CalendarPlus
+            const Icon = itemCopy[item.key].icon
             return (
               <li
                 key={item.key}

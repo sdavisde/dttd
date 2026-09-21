@@ -256,10 +256,11 @@ describe('deriveActionItems', () => {
     ),
   ]
 
-  it('lists open fees and start-planning when both apply', () => {
+  it('lists open fees, the secuela, and start-planning when all apply', () => {
     const items = deriveActionItems({
       outstanding: { total: 925, openFeeCount: 5 },
       weekendGroups: pastGroups,
+      activeGroupSecuela: { groupNumber: 12, isScheduled: false },
       now: NOW,
     })
     expect(items).toEqual([
@@ -267,10 +268,20 @@ describe('deriveActionItems', () => {
         key: 'open-fees',
         openFeeCount: 5,
         outstandingTotal: 925,
-        href: '/admin/payments',
+        href: '/admin/payments?status=outstanding',
       },
+      { key: 'schedule-secuela', groupNumber: 12, href: '/admin/events' },
       { key: 'start-planning', href: '/admin/weekends' },
     ])
+  })
+
+  it('points open fees at the outstanding filter on the payments ledger', () => {
+    const [item] = deriveActionItems({
+      outstanding: { total: 925, openFeeCount: 5 },
+      weekendGroups: null,
+      now: NOW,
+    })
+    expect(item.href).toBe('/admin/payments?status=outstanding')
   })
 
   it('is empty when fees are settled and a weekend is scheduled', () => {
@@ -293,5 +304,53 @@ describe('deriveActionItems', () => {
         now: NOW,
       })
     ).toEqual([])
+  })
+
+  it('asks for a secuela date when the active group has none', () => {
+    expect(
+      deriveActionItems({
+        outstanding: null,
+        weekendGroups: null,
+        activeGroupSecuela: { groupNumber: 12, isScheduled: false },
+        now: NOW,
+      })
+    ).toEqual([
+      { key: 'schedule-secuela', groupNumber: 12, href: '/admin/events' },
+    ])
+  })
+
+  it('stays quiet once the secuela is on the calendar', () => {
+    expect(
+      deriveActionItems({
+        outstanding: null,
+        weekendGroups: null,
+        activeGroupSecuela: { groupNumber: 12, isScheduled: true },
+        now: NOW,
+      })
+    ).toEqual([])
+  })
+
+  it('stays quiet when the secuela lookup failed or no group is active', () => {
+    expect(
+      deriveActionItems({
+        outstanding: null,
+        weekendGroups: null,
+        activeGroupSecuela: null,
+        now: NOW,
+      })
+    ).toEqual([])
+  })
+
+  it('names the group even when its DTTD number is unknown', () => {
+    expect(
+      deriveActionItems({
+        outstanding: null,
+        weekendGroups: null,
+        activeGroupSecuela: { groupNumber: null, isScheduled: false },
+        now: NOW,
+      })
+    ).toEqual([
+      { key: 'schedule-secuela', groupNumber: null, href: '/admin/events' },
+    ])
   })
 })

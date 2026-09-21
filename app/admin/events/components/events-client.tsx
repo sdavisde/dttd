@@ -18,6 +18,7 @@ import type { Weekend } from '@/lib/weekend/types'
 
 import type { ScopeContext } from './event-scope'
 import { MonthCalendar } from './month-calendar'
+import { MonthAgenda } from './month-agenda'
 import { SchedulingProgress } from './scheduling-progress'
 import { ComingUp } from './coming-up'
 import { PastEventsSection } from './PastEventsSection'
@@ -53,6 +54,7 @@ export default function EventsClient({
   )
   const [pastOpen, setPastOpen] = useState(false)
   const [pastScrollSignal, setPastScrollSignal] = useState(0)
+  const [showAllEvents, setShowAllEvents] = useState(false)
 
   const scopeContext: ScopeContext = {
     mensWeekendId: activeGroup?.mensWeekend.id,
@@ -146,6 +148,18 @@ export default function EventsClient({
           />
         </div>
 
+        {/* A seven-column grid can't carry event titles on a phone, so the
+            same month is read as an agenda below `lg`. */}
+        <div className="lg:hidden">
+          <MonthAgenda
+            events={allEvents}
+            scopeContext={scopeContext}
+            groupNumber={activeGroup?.groupNumber ?? null}
+            canEdit={canEdit}
+            onEventClick={handleEventClick}
+          />
+        </div>
+
         <div className="flex flex-col gap-4">
           {!isNil(activeGroup) ? (
             <SchedulingProgress
@@ -178,6 +192,12 @@ export default function EventsClient({
             groupNumber={activeGroup?.groupNumber ?? null}
             canEdit={canEdit}
             onEventClick={handleEventClick}
+            showAll={showAllEvents}
+            onToggleShowAll={() => {
+              const next = !showAllEvents
+              setShowAllEvents(next)
+              setPastOpen(next)
+            }}
           />
         </div>
       </div>
