@@ -19,9 +19,11 @@ import {
   findFolderBySlug,
   isFolderObject,
   joinStoragePath,
+  toAllFilesEntries,
   toBrowserEntries,
   validateFolderName,
   type FileBrowserEntry,
+  type FlatStorageFile,
   type FolderCrumb,
   type RootFolder,
 } from '@/lib/files/browser'
@@ -365,6 +367,71 @@ export async function getAdminFolderView(
     storagePath,
     trail,
     entries: toBrowserEntries(items, storagePath, trail.at(-1)?.slugs ?? []),
+  }))
+}
+
+/** How far down the bucket the "All files" walk will go before stopping. */
+const MAX_WALK_DEPTH = 8
+
+/**
+ * Walks the community bucket depth-first and returns every file with the folder
+ * it lives in. Each listing is paginated, since Supabase's `list()` returns at
+ * most 100 items per call.
+ */
+async function collectFilesRecursive(
+  folderPath: string,
+  depth: number
+): Promise<Result<string, FlatStorageFile[]>> {
+  if (depth > MAX_WALK_DEPTH) return ok([])
+
+  const pageSize = 100
+  const files: FlatStorageFile[] = []
+  let offset = 0
+
+  while (true) {
+    const { data: items, error } = await FileRepository.listFiles(
+      COMMUNITY_FILES_BUCKET,
+      folderPath,
+      { limit: pageSize, offset }
+    )
+    if (!isNil(error)) {
+      return err(`Error listing files/${folderPath}: ${error.message}`)
+    }
+
+    const pageItems = items ?? []
+    for (const item of pageItems) {
+      if (isFolderObject(item)) {
+        const nested = await collectFilesRecursive(
+          joinStoragePath(folderPath, item.name),
+          depth + 1
+        )
+        if (isErr(nested)) return nested
+        files.push(...nested.data)
+      } else {
+        files.push({ folderPath, item })
+      }
+    }
+
+    if (pageItems.length < pageSize) break
+    offset += pageSize
+  }
+
+  return ok(files)
+}
+
+/**
+ * Every file in the community bucket, flattened and newest first — what the
+ * "All files" rail entry shows. Shares `AdminFolderView` so the page renders
+ * the root and a folder the same way.
+ */
+export async function getAdminAllFilesView(): Promise<
+  Result<string, AdminFolderView>
+> {
+  const files = await collectFilesRecursive('', 0)
+  return Results.map(files, (list) => ({
+    storagePath: '',
+    trail: [],
+    entries: toAllFilesEntries(list),
   }))
 }
 

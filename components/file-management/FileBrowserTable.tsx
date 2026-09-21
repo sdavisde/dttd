@@ -34,11 +34,7 @@ import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-di
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { COMMUNITY_FILES_BUCKET } from '@/lib/files/constants'
-import {
-  adminFilesHref,
-  describeFolderContents,
-  type FileBrowserEntry,
-} from '@/lib/files/browser'
+import { adminFilesHref, type FileBrowserEntry } from '@/lib/files/browser'
 import { formatFileSize } from '@/lib/files/upload-errors'
 import { isErr } from '@/lib/results'
 import { Permission, userHasPermission } from '@/lib/security'
@@ -48,10 +44,12 @@ import { deleteFileAction, deleteFolderAction } from '@/services/files/actions'
 
 type FileBrowserTableProps = {
   entries: FileBrowserEntry[]
-  /** Friendly name of the folder being viewed, used in the caption */
-  folderLabel: string
-  /** Extra caption note, e.g. the upload hint on the top level */
-  captionNote?: string
+  /** Line below the listing, e.g. "2 folders and 5 files in Team Handbooks" */
+  caption: string
+  /** Shown in place of the listing when there is nothing to show */
+  emptyMessage: string
+  /** Flat "All files" view: show which folder each file lives in */
+  showFolderColumn?: boolean
 }
 
 const HEAD_CLASS =
@@ -83,8 +81,9 @@ const formatUpdated = (entry: FileBrowserEntry) =>
  */
 export function FileBrowserTable({
   entries,
-  folderLabel,
-  captionNote,
+  caption,
+  emptyMessage,
+  showFolderColumn = false,
 }: FileBrowserTableProps) {
   const router = useRouter()
   const { user } = useSession()
@@ -172,6 +171,20 @@ export function FileBrowserTable({
       </a>
     )
 
+  const renderFolderLink = (entry: FileBrowserEntry) =>
+    isNil(entry.folder) ? (
+      <span className="text-muted-foreground">—</span>
+    ) : (
+      <Link
+        href={adminFilesHref(entry.folder.slugs)}
+        onClick={(event) => event.stopPropagation()}
+        className="truncate hover:underline"
+        title={entry.folder.name}
+      >
+        {entry.folder.name}
+      </Link>
+    )
+
   const renderActions = (entry: FileBrowserEntry) => (
     <div onClick={(event) => event.stopPropagation()}>
       <DropdownMenu>
@@ -217,10 +230,8 @@ export function FileBrowserTable({
     </div>
   )
 
-  const emptyMessage = (
-    <p className="py-10 text-center text-muted-foreground">
-      Nothing in {folderLabel} yet.
-    </p>
+  const emptyState = (
+    <p className="py-10 text-center text-muted-foreground">{emptyMessage}</p>
   )
 
   return (
@@ -228,12 +239,17 @@ export function FileBrowserTable({
       {/* Desktop table */}
       <div className="hidden overflow-hidden rounded-md border bg-card md:block">
         {entries.length === 0 ? (
-          emptyMessage
+          emptyState
         ) : (
           <Table className="table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className={HEAD_CLASS}>Name</TableHead>
+                {showFolderColumn && (
+                  <TableHead className={cn(HEAD_CLASS, 'w-52')}>
+                    Folder
+                  </TableHead>
+                )}
                 <TableHead className={cn(HEAD_CLASS, 'w-32')}>
                   Updated
                 </TableHead>
@@ -246,7 +262,7 @@ export function FileBrowserTable({
             <TableBody>
               {entries.map((entry) => (
                 <TableRow
-                  key={`${entry.kind}:${entry.name}`}
+                  key={`${entry.kind}:${entry.storagePath}`}
                   className="cursor-pointer border-divider"
                   onClick={() => openEntry(entry)}
                 >
@@ -256,6 +272,13 @@ export function FileBrowserTable({
                       {renderName(entry)}
                     </div>
                   </TableCell>
+                  {showFolderColumn && (
+                    <TableCell className="px-4 py-2 text-muted-foreground">
+                      <div className="flex min-w-0">
+                        {renderFolderLink(entry)}
+                      </div>
+                    </TableCell>
+                  )}
                   <TableCell className="px-4 py-2 tabular-nums text-muted-foreground">
                     {formatUpdated(entry)}
                   </TableCell>
@@ -275,11 +298,11 @@ export function FileBrowserTable({
       {/* Mobile cards */}
       <div className="space-y-3 md:hidden">
         {entries.length === 0 ? (
-          <div className="rounded-lg border bg-card">{emptyMessage}</div>
+          <div className="rounded-lg border bg-card">{emptyState}</div>
         ) : (
           entries.map((entry) => (
             <div
-              key={`${entry.kind}:${entry.name}`}
+              key={`${entry.kind}:${entry.storagePath}`}
               className="cursor-pointer space-y-2 rounded-lg border bg-card p-4"
               onClick={() => openEntry(entry)}
             >
@@ -296,6 +319,16 @@ export function FileBrowserTable({
                 </div>
               </div>
               <div className="space-y-1 text-sm">
+                {showFolderColumn && (
+                  <div className="flex gap-2">
+                    <span className="w-16 shrink-0 text-muted-foreground">
+                      Folder
+                    </span>
+                    <span className="flex min-w-0">
+                      {renderFolderLink(entry)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <span className="w-16 text-muted-foreground">Updated</span>
                   <span className="tabular-nums">{formatUpdated(entry)}</span>
@@ -312,10 +345,7 @@ export function FileBrowserTable({
         )}
       </div>
 
-      <p className="text-[13.5px] text-muted-foreground">
-        {describeFolderContents(entries, folderLabel)}
-        {!isNil(captionNote) && ` · ${captionNote}`}
-      </p>
+      <p className="text-[13.5px] text-muted-foreground">{caption}</p>
 
       <DeleteConfirmationDialog
         isOpen={!isNil(pendingDelete)}

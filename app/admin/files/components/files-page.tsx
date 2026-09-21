@@ -8,10 +8,15 @@ import { CreateFolderDialog } from '@/components/file-management/CreateFolderDia
 import { FileBrowserTable } from '@/components/file-management/FileBrowserTable'
 import { FileUpload } from '@/components/file-management/FileUpload'
 import { FolderRail } from '@/components/file-management/FolderRail'
-import { adminFilesHref } from '@/lib/files/browser'
+import {
+  adminFilesHref,
+  describeAllFiles,
+  describeFolderContents,
+} from '@/lib/files/browser'
 import { logger } from '@/lib/logger'
 import { isErr, Results } from '@/lib/results'
 import {
+  getAdminAllFilesView,
   getAdminFolderView,
   getRootFolders,
 } from '@/services/files/file-service'
@@ -28,9 +33,10 @@ type FilesPageProps = {
  * the header and folder rail stay put at every depth.
  */
 export async function FilesPage({ pathSegments }: FilesPageProps) {
+  const isRoot = pathSegments.length === 0
   const [userResult, viewResult, rootFoldersResult] = await Promise.all([
     getLoggedInUser(),
-    getAdminFolderView(pathSegments),
+    isRoot ? getAdminAllFilesView() : getAdminFolderView(pathSegments),
     getRootFolders(),
   ])
 
@@ -45,7 +51,6 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
 
   const { storagePath, trail, entries } = viewResult.data
   const rootFolders = Results.unwrapOr(rootFoldersResult, [])
-  const isRoot = trail.length === 0
   const folderLabel = trail.at(-1)?.name ?? 'All files'
 
   return (
@@ -97,8 +102,17 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
           />
           <FileBrowserTable
             entries={entries}
-            folderLabel={folderLabel}
-            captionNote={isRoot ? 'open a folder to upload files' : undefined}
+            showFolderColumn={isRoot}
+            caption={
+              isRoot
+                ? `${describeAllFiles(entries)} · open a folder to upload files`
+                : describeFolderContents(entries, folderLabel)
+            }
+            emptyMessage={
+              isRoot
+                ? 'No files yet. Open a folder to upload the first one.'
+                : `Nothing in ${folderLabel} yet.`
+            }
           />
         </div>
       </div>
