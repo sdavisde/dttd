@@ -2,7 +2,6 @@
 
 import { isNil } from 'lodash'
 import type { CreateEmailResponseSuccess } from 'resend'
-import { Resend } from 'resend'
 import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotificationEmail'
 import CandidateFormsCompletedEmail from '@/components/email/CandidateFormsCompletedEmail'
 import { createClient } from '@/lib/supabase/server'
@@ -15,9 +14,8 @@ import { getHydratedCandidate } from '@/actions/candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'
 import TeamPaymentNotificationEmail from '@/components/email/TeamPaymentNotificationEmail'
 import * as NotificationService from './notification-service'
+import { sendEmail } from './email-client'
 import { formatWeekendLabelFor } from '@/lib/weekend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 /**
  * Send sponsorship notification email to preweekend couple
@@ -47,22 +45,21 @@ export async function sendSponsorshipNotificationEmail(
     }
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const sendResult = await sendEmail('sponsorship-notification', {
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
       to: [preWeekendEmailResult.data],
       subject: `New Sponsorship Request - ${candidate.candidate_sponsorship_info?.candidate_name}`,
       react: SponsorshipNotificationEmail(candidate),
     })
 
-    if (!isNil(error)) {
+    if (isErr(sendResult)) {
       logger.error(
-        error,
-        `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}`
+        `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${sendResult.error}`
       )
-      return err(`Failed to send email: ${error.message}`)
+      return err(`Failed to send email: ${sendResult.error}`)
     }
 
-    return ok({ data })
+    return ok({ data: sendResult.data })
   } catch (error) {
     return err(
       `Error while sending sponsorship notification email: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -86,19 +83,18 @@ export async function sendCandidateForms(
       return err('Candidate email not found on candidate')
     }
 
-    const { data: candidateFormsEmail, error: candidateFormsEmailError } =
-      await resend.emails.send({
-        from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-        to: [candidateSponsorshipInfo.candidate_email],
-        subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
-        react: CandidateFormsEmail({ candidateId, candidateSponsorshipInfo }),
-      })
+    const candidateFormsEmailResult = await sendEmail('candidate-forms', {
+      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+      to: [candidateSponsorshipInfo.candidate_email],
+      subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
+      react: CandidateFormsEmail({ candidateId, candidateSponsorshipInfo }),
+    })
 
-    if (!isNil(candidateFormsEmailError)) {
-      return err(`Failed to send email: ${candidateFormsEmailError.message}`)
+    if (isErr(candidateFormsEmailResult)) {
+      return err(`Failed to send email: ${candidateFormsEmailResult.error}`)
     }
 
-    return ok({ data: candidateFormsEmail })
+    return ok({ data: candidateFormsEmailResult.data })
   } catch (error) {
     return err(
       `Error while sending candidate forms: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -167,7 +163,7 @@ export async function sendPaymentRequestEmail(
     )
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const sendResult = await sendEmail('payment-request', {
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
       to: [paymentOwnerEmail],
       subject: `Candidate Fees for ${candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'} - Dusty Trails Tres Dias`,
@@ -178,12 +174,14 @@ export async function sendPaymentRequestEmail(
       }),
     })
 
-    if (!isNil(error)) {
+    if (isErr(sendResult)) {
       logger.error(
-        `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${error.message}`
+        `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${sendResult.error}`
       )
-      return err(`Failed to send email: ${error.message}`)
+      return err(`Failed to send email: ${sendResult.error}`)
     }
+
+    const data = sendResult.data
 
     logger.info(
       `Payment request email sent successfully for ${candidate.candidate_sponsorship_info?.candidate_name}`
@@ -298,7 +296,7 @@ export async function notifyAssistantHeadForTeamPayment(
     }
 
     // Send email to assistant head
-    const { error } = await resend.emails.send({
+    const sendResult = await sendEmail('team-payment-notification', {
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
       to: [assistantHead.users.email],
       subject: `Team Fee Received - ${teamMember.users.first_name} ${teamMember.users.last_name}`,
@@ -313,11 +311,11 @@ export async function notifyAssistantHeadForTeamPayment(
       }),
     })
 
-    if (!isNil(error)) {
+    if (isErr(sendResult)) {
       logger.error(
-        `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}: ${error.message}`
+        `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}: ${sendResult.error}`
       )
-      return err(`Failed to send email: ${error.message}`)
+      return err(`Failed to send email: ${sendResult.error}`)
     }
 
     logger.info(
@@ -365,25 +363,24 @@ export async function sendCandidateFormsCompletedEmail(
         : (candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate')
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const sendResult = await sendEmail('candidate-forms-completed', {
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
       to: [preWeekendEmailResult.data],
       subject: `Candidate Forms Completed - ${candidateName}`,
       react: CandidateFormsCompletedEmail(candidate),
     })
 
-    if (!isNil(error)) {
+    if (isErr(sendResult)) {
       logger.error(
-        error,
-        `Failed to send candidate forms completed email for ${candidateName}`
+        `Failed to send candidate forms completed email for ${candidateName}: ${sendResult.error}`
       )
-      return err(`Failed to send email: ${error.message}`)
+      return err(`Failed to send email: ${sendResult.error}`)
     }
 
     logger.info(
       `Candidate forms completed email sent successfully for ${candidateName}`
     )
-    return ok({ data })
+    return ok({ data: sendResult.data })
   } catch (error) {
     return err(
       `Error while sending candidate forms completed email: ${error instanceof Error ? error.message : 'Unknown error'}`

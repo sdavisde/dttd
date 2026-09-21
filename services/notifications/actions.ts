@@ -20,6 +20,17 @@ export const getContactInformation = authorizedAction<string, ContactInfo>(
   }
 )
 
+/**
+ * Count of emails successfully sent so far this calendar month.
+ * Requires FULL_ACCESS, matching the email_log RLS read policy.
+ */
+export const getEmailsSentThisMonth = authorizedAction<void, number>(
+  Permission.FULL_ACCESS,
+  async () => {
+    return await NotificationService.getEmailsSentThisMonth()
+  }
+)
+
 type UpdateContactInformationRequest = {
   contactId: string
   emailAddress: string

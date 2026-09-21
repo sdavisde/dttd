@@ -1,16 +1,14 @@
 'use server'
 
 import { createClient as createSupabaseJsClient } from '@supabase/supabase-js'
-import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
-import { err, ok } from '@/lib/results'
+import { err, isErr, ok } from '@/lib/results'
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import { getUrl } from '@/lib/url'
+import { sendEmail } from '@/services/notifications/email-client'
 import EmailChangeNotificationEmail from '@/components/email/EmailChangeNotificationEmail'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 /**
  * Requests a change of the logged-in user's email address.
@@ -85,7 +83,7 @@ export async function requestEmailChange(
 
     // Courtesy notification to the current address. Non-fatal: the change
     // itself has been staged successfully.
-    const { error: notifyError } = await resend.emails.send({
+    const notifyResult = await sendEmail('email-change-notification', {
       from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
       to: [user.email],
       subject: 'Your account email is being changed',
@@ -94,10 +92,9 @@ export async function requestEmailChange(
         newEmail,
       }),
     })
-    if (!isNil(notifyError)) {
+    if (isErr(notifyResult)) {
       logger.error(
-        notifyError,
-        `Failed to send email change notification to previous address for user ${user.id}`
+        `Failed to send email change notification to previous address for user ${user.id}: ${notifyResult.error}`
       )
     }
 
