@@ -42,7 +42,7 @@ Epics are a true sequence: **0 and 1 must land before 2 touches the live schema.
 ## Cross-cutting: audit log (added 2026-09-21)
 
 Not in the original roadmap. Today there is no audit table, only scattered `updated_by` columns, and
-pino logs go to Vercel only. The admin dashboard's activity feed is a hardcoded sample.
+pino logs go to Vercel only.
 
 Decision (2026-09-21): auditability is tracked here as platform work and built later, not now. The
 sample activity feed was removed from the admin dashboard until then.
@@ -64,9 +64,9 @@ less-guarded table (needs a per-table column allowlist first) and record no acto
 **Verify first:** impersonation swaps the user via cookie, not JWT — audit rows must record both the
 real admin and the impersonated user.
 
-**Related, separate (~0.5 day):** email send-log table + a single `sendEmail()` wrapper around the
-seven raw Resend call sites. Emails are the only direct per-tenant cost with no tracking; this also
-feeds usage-based billing.
+**Related, shipped 2026-09-21:** `email_log` table + a single `sendEmail()` wrapper around all seven
+Resend call sites. Emails were the only direct per-tenant cost with no tracking; this also feeds
+usage-based billing.
 
 ## Upgrades
 
