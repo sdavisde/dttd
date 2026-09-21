@@ -1,4 +1,10 @@
 /**
+ * The storage bucket that holds the community's shared files. Other buckets
+ * (e.g. `avatars`) are not part of the Files experience.
+ */
+export const COMMUNITY_FILES_BUCKET = 'files'
+
+/**
  * The actual folder name in Supabase storage for meeting minutes
  */
 export const MEETING_MINUTES_FOLDER = 'Meeting Minutes'

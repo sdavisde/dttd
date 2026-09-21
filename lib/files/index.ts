@@ -131,35 +131,3 @@ export async function fetchFolderContents(
 
   return getFileSystemItems('files', currentPath)
 }
-
-/**
- * Get navigation items for file folders (useful for sidebar/menu generation)
- */
-export async function getFileFolders(isAdmin: boolean = false) {
-  try {
-    const supabase = await createClient()
-    const { data, error } = await supabase.storage.from('files').list('')
-
-    if (!isNil(error) || isNil(data)) {
-      logger.error(`Error fetching root folders: ${error?.message}`)
-      return []
-    }
-
-    const baseUrl = isAdmin ? '/admin/files' : '/files'
-
-    return data
-      .filter((item) => item.metadata === null)
-      .map((item) => ({
-        title:
-          item.name.charAt(0).toUpperCase() +
-          item.name.slice(1).replace(/-/g, ' '),
-        url: `${baseUrl}/${slugify(item.name)}`,
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title))
-  } catch (error) {
-    logger.error(
-      `Error in getFileFolders: ${error instanceof Error ? error.message : String(error)}`
-    )
-    return []
-  }
-}

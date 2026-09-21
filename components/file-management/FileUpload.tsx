@@ -18,17 +18,25 @@ import { isErr } from '@/lib/results'
 import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { toastError } from '@/lib/toast-error'
+import { cn } from '@/lib/utils'
 
 type FileUploadProps = {
+  /** Real storage path of the destination folder (may be nested) */
   folder: string
   buttonText?: string
   buttonVariant?: ButtonProps['variant']
+  buttonSize?: ButtonProps['size']
+  className?: string
+  disabled?: boolean
 }
 
 export function FileUpload({
   folder,
   buttonText = 'Upload File',
   buttonVariant = 'ghost',
+  buttonSize = 'sm',
+  className,
+  disabled = false,
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -90,14 +98,14 @@ export function FileUpload({
         ref={fileInputRef}
         onChange={handleUpload}
         accept={ALLOWED_FILE_TYPES.join(',')}
-        style={{ display: 'none' }}
+        className="hidden"
       />
       <Button
         onClick={() => fileInputRef.current?.click()}
-        disabled={uploading}
-        size="sm"
+        disabled={uploading || disabled}
+        size={buttonSize}
         variant={buttonVariant}
-        className="flex items-center gap-2"
+        className={cn('flex items-center gap-2', className)}
       >
         {uploading ? (
           <Loader2 className="h-4 w-4 animate-spin" />

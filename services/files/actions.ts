@@ -86,3 +86,32 @@ export const saveMeetingMinutesLocationAction = authorizedAction<
     trimmedLocation
   )
 })
+
+/** Creates a folder inside `parentPath` ('' for the top level). */
+export const createFolderAction = authorizedAction<
+  { parentPath: string; name: string },
+  { storagePath: string }
+>(Permission.FILES_UPLOAD, async ({ parentPath, name }) => {
+  if (typeof parentPath !== 'string' || typeof name !== 'string') {
+    return err('A folder name is required')
+  }
+
+  return FileService.createFolder(parentPath, name)
+})
+
+export const deleteFileAction = authorizedAction<{ storagePath: string }, null>(
+  Permission.FILES_DELETE,
+  async ({ storagePath }) => {
+    if (typeof storagePath !== 'string') return err('A file is required')
+    return FileService.deleteFile(storagePath)
+  }
+)
+
+/** Deletes a folder and everything inside it, sub-folders included. */
+export const deleteFolderAction = authorizedAction<
+  { storagePath: string },
+  { removed: number }
+>(Permission.FILES_DELETE, async ({ storagePath }) => {
+  if (typeof storagePath !== 'string') return err('A folder is required')
+  return FileService.deleteFolderRecursive(storagePath)
+})
