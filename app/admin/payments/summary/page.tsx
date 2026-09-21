@@ -8,6 +8,7 @@ import {
 } from '@/services/payment'
 import { getActiveWeekends } from '@/services/weekend'
 import { isErr, isOk } from '@/lib/results'
+import * as Results from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { PageHeader } from '@/components/ui/page-header'
 import { isNil } from 'lodash'
@@ -37,13 +38,15 @@ export default async function PaymentSummaryPage() {
   let activeWeekendFinancials: ActiveWeekendFinancials | null = null
 
   if (isOk(activeWeekendsResult)) {
+    // A failure here (including FEE_LOOKUP_FAILED, when the Stripe fee prices
+    // can't be read) leaves the active-group section out rather than showing
+    // expected totals computed from a fee we don't actually know.
     const financialsResult = await getActiveWeekendFinancials(
       paymentsResult.data,
       activeWeekendsResult.data
     )
-    if (isOk(financialsResult)) {
-      activeWeekendFinancials = financialsResult.data
-    }
+    Results.logFailures(financialsResult)
+    activeWeekendFinancials = Results.toNullable(financialsResult)
   }
 
   return (

@@ -1,7 +1,8 @@
 import {
-  deriveBoardHandItems,
+  deriveActionItems,
   deriveCollectedThisYear,
   deriveOutstanding,
+  hasActiveWeekendGroup,
   needsPlanning,
 } from './dashboard-metrics'
 import {
@@ -181,6 +182,29 @@ describe('deriveOutstanding', () => {
   })
 })
 
+describe('hasActiveWeekendGroup', () => {
+  it('is true when either weekend in a group is ACTIVE', () => {
+    expect(
+      hasActiveWeekendGroup([
+        group({ status: 'FINISHED' }, { status: 'ACTIVE' }),
+      ])
+    ).toBe(true)
+  })
+
+  it('is false when every group is planning or finished', () => {
+    expect(
+      hasActiveWeekendGroup([
+        group({ status: 'FINISHED' }, { status: 'FINISHED' }),
+        group({ status: 'PLANNING' }, { status: 'PLANNING' }),
+      ])
+    ).toBe(false)
+  })
+
+  it('is false with no groups at all', () => {
+    expect(hasActiveWeekendGroup([])).toBe(false)
+  })
+})
+
 describe('needsPlanning', () => {
   it('is false while a weekend is still ahead', () => {
     expect(
@@ -224,7 +248,7 @@ describe('needsPlanning', () => {
   })
 })
 
-describe('deriveBoardHandItems', () => {
+describe('deriveActionItems', () => {
   const pastGroups = [
     group(
       { status: 'FINISHED', start_date: '2026-04-16' },
@@ -233,7 +257,7 @@ describe('deriveBoardHandItems', () => {
   ]
 
   it('lists open fees and start-planning when both apply', () => {
-    const items = deriveBoardHandItems({
+    const items = deriveActionItems({
       outstanding: { total: 925, openFeeCount: 5 },
       weekendGroups: pastGroups,
       now: NOW,
@@ -251,7 +275,7 @@ describe('deriveBoardHandItems', () => {
 
   it('is empty when fees are settled and a weekend is scheduled', () => {
     expect(
-      deriveBoardHandItems({
+      deriveActionItems({
         outstanding: { total: 0, openFeeCount: 0 },
         weekendGroups: [
           group({ start_date: '2026-10-16' }, { start_date: '2026-10-23' }),
@@ -263,7 +287,7 @@ describe('deriveBoardHandItems', () => {
 
   it('contributes no item from a failed source', () => {
     expect(
-      deriveBoardHandItems({
+      deriveActionItems({
         outstanding: null,
         weekendGroups: null,
         now: NOW,

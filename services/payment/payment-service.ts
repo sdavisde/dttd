@@ -524,9 +524,19 @@ export async function backfillStripeData(
 // ============================================================================
 
 /**
+ * Error value `getActiveWeekendFinancials` returns when the Stripe fee prices
+ * could not be read. Callers match on it to tell "we don't know the fees" apart
+ * from a generic failure, and to surface the right message to admins.
+ */
+export const FEE_LOOKUP_FAILED = 'fee-lookup-failed'
+
+/**
  * Computes financial health metrics for the active weekend group.
  * Fetches roster counts, candidate counts, group members, and fee prices,
  * then computes expected vs received totals per weekend.
+ *
+ * Returns `err(FEE_LOOKUP_FAILED)` when the fee prices are unavailable —
+ * without them every expected total would be wrong, not merely missing.
  */
 export async function getActiveWeekendFinancials(
   payments: PaymentTransactionDTO[],
@@ -595,14 +605,28 @@ export async function getActiveWeekendFinancials(
     ...unwrapOr(womensCandidateIds, []),
   ])
 
-  const teamFee =
-    isOk(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
-      ? teamFeeResult.data.unitAmount / 100
-      : 0
-  const candidateFee =
-    isOk(candidateFeeResult) && !isNil(candidateFeeResult.data.unitAmount)
-      ? candidateFeeResult.data.unitAmount / 100
-      : 0
+  // A missing price ID or a Stripe outage used to fall back to a fee of $0,
+  // which silently turned every balance into "fully settled". Carry it as an
+  // error instead so callers can say "can't be calculated" out loud.
+  const teamUnitAmount = isOk(teamFeeResult)
+    ? teamFeeResult.data.unitAmount
+    : null
+  const candidateUnitAmount = isOk(candidateFeeResult)
+    ? candidateFeeResult.data.unitAmount
+    : null
+  if (isNil(teamUnitAmount) || isNil(candidateUnitAmount)) {
+    logger.error({
+      msg: 'Stripe fee lookup failed; weekend financials cannot be computed',
+      teamFeeError: isErr(teamFeeResult) ? teamFeeResult.error : null,
+      candidateFeeError: isErr(candidateFeeResult)
+        ? candidateFeeResult.error
+        : null,
+      groupId,
+    })
+    return err(FEE_LOOKUP_FAILED)
+  }
+  const teamFee = teamUnitAmount / 100
+  const candidateFee = candidateUnitAmount / 100
 
   return ok(
     computeActiveWeekendFinancials(

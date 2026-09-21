@@ -1,14 +1,19 @@
+import { Suspense } from 'react'
 import { isNil } from 'lodash'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { PageHeader } from '@/components/ui/page-header'
 import * as Results from '@/lib/results'
+import type { Result } from '@/lib/results'
 import { guardAdminPage } from '@/lib/admin/page-guard'
 import {
-  deriveBoardHandItems,
+  deriveActionItems,
   deriveCollectedThisYear,
   deriveOutstanding,
+  hasActiveWeekendGroup,
 } from '@/lib/admin/dashboard-metrics'
+import { deriveSystemAlerts } from '@/lib/admin/system-alerts'
 import {
+  FEE_LOOKUP_FAILED,
   getActiveWeekendFinancials,
   getAllPayments,
   type ActiveWeekendFinancials,
@@ -17,9 +22,18 @@ import { getMasterRoster } from '@/services/master-roster'
 import { getUpcomingEvents } from '@/services/events'
 import { getActiveWeekends, getWeekendGroupsByStatus } from '@/services/weekend'
 import { MetricCards } from './components/metric-cards'
-import { BoardHandList } from './components/board-hand-list'
+import { ActionItemsList } from './components/action-items-list'
 import { EventsPreview } from './components/events-preview'
-import { IdeasSection } from './components/ideas-section'
+import {
+  StorageUsageCard,
+  StorageUsageCardSkeleton,
+} from './components/storage-usage-card'
+import { SystemAlertsBanner } from './components/system-alerts-banner'
+
+/** Presence check only — the value itself is a secret and is never read out. */
+function isConfigured(value: string | undefined): boolean {
+  return !isNil(value) && value !== ''
+}
 
 export default async function Page() {
   await guardAdminPage()
@@ -51,12 +65,24 @@ export default async function Page() {
 
   // Outstanding money reuses the exact computation behind the payments
   // summary page, so the two can never disagree.
-  let financials: ActiveWeekendFinancials | null = null
+  let financialsResult: Result<string, ActiveWeekendFinancials> | null = null
   if (!isNil(payments) && Results.isOk(activeWeekendsResult)) {
-    financials = Results.toNullable(
-      await getActiveWeekendFinancials(payments, activeWeekendsResult.data)
+    financialsResult = await getActiveWeekendFinancials(
+      payments,
+      activeWeekendsResult.data
     )
+    Results.logFailures(financialsResult)
   }
+  const financials = isNil(financialsResult)
+    ? null
+    : Results.toNullable(financialsResult)
+
+  // Fee prices we can't read are their own failure: showing $0 outstanding
+  // would claim every fee is settled when we simply don't know the price.
+  const feesUnknown =
+    !isNil(financialsResult) &&
+    Results.isErr(financialsResult) &&
+    financialsResult.error === FEE_LOOKUP_FAILED
 
   const outstanding = isNil(financials) ? null : deriveOutstanding(financials)
   const collected = isNil(payments) ? null : deriveCollectedThisYear(payments)
@@ -64,8 +90,35 @@ export default async function Page() {
   const events = Results.toNullable(eventsResult)
   const weekendGroups = Results.toNullable(groupsResult)
 
-  const boardHandItems = deriveBoardHandItems({ outstanding, weekendGroups })
-  const boardHandDegraded = isNil(outstanding) || isNil(weekendGroups)
+  const actionItems = deriveActionItems({ outstanding, weekendGroups })
+  const actionItemsDegraded = isNil(outstanding) || isNil(weekendGroups)
+
+  // Banner checks. Friendly source names only — the raw errors were logged
+  // above by `Results.logFailures` and never reach the page.
+  const degradedSources: string[] = []
+  if (isNil(payments)) degradedSources.push('Payments')
+  if (Results.isErr(rosterResult)) degradedSources.push('Community roster')
+  if (isNil(events)) degradedSources.push('Events')
+  if (isNil(weekendGroups)) degradedSources.push('Weekends')
+  if (!feesUnknown && !isNil(financialsResult) && isNil(financials)) {
+    degradedSources.push('Weekend balances')
+  }
+
+  const alerts = deriveSystemAlerts({
+    // Only ever assert the broken case: a financials read that failed for some
+    // other reason tells us nothing about the fee prices either way.
+    stripeFeesConfigured: feesUnknown ? false : null,
+    activeWeekendGroup: isNil(weekendGroups)
+      ? null
+      : hasActiveWeekendGroup(weekendGroups),
+    stripeCheckoutConfigured: isConfigured(
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    ),
+    stripeWebhookConfigured: isConfigured(process.env.STRIPE_WEBHOOK_SECRET),
+    emailConfigured: isConfigured(process.env.RESEND_API_KEY),
+    siteUrlConfigured: isConfigured(process.env.SITE_URL),
+    degradedSources,
+  })
 
   return (
     <>
@@ -76,17 +129,24 @@ export default async function Page() {
           description="The board's back office — money, people, and files. Weekend operations live on each weekend's hub."
         />
 
+        <SystemAlertsBanner alerts={alerts} />
+
         <MetricCards
           outstanding={outstanding}
+          outstandingFeesUnknown={feesUnknown}
           collected={collected}
           memberCount={memberCount}
         />
 
         <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <BoardHandList items={boardHandItems} degraded={boardHandDegraded} />
+          <ActionItemsList items={actionItems} degraded={actionItemsDegraded} />
           <div className="space-y-6">
             <EventsPreview events={events} />
-            <IdeasSection />
+            {/* Storage walks every bucket, so it streams in on its own rather
+                than holding up the money and people tiles. */}
+            <Suspense fallback={<StorageUsageCardSkeleton />}>
+              <StorageUsageCard />
+            </Suspense>
           </div>
         </div>
       </div>

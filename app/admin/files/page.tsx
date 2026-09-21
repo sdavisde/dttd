@@ -1,5 +1,5 @@
 import { getBuckets } from '@/lib/files'
-import { getStorageUsage } from '@/lib/storage'
+import { getStorageUsage, STORAGE_QUOTA_BYTES } from '@/lib/storage'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
@@ -25,8 +25,6 @@ export default async function FilesPage() {
     redirect('/')
   }
 
-  const totalBytes = 1024 * 1024 * 1024 // 1 GB in bytes
-
   return (
     <>
       <AdminBreadcrumbs
@@ -37,7 +35,7 @@ export default async function FilesPage() {
         <Files
           buckets={buckets}
           usedBytes={usedBytes}
-          totalBytes={totalBytes}
+          totalBytes={STORAGE_QUOTA_BYTES}
         />
       </div>
     </>

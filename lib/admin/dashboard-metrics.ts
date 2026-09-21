@@ -62,7 +62,7 @@ export function deriveOutstanding(
   return { total, openFeeCount }
 }
 
-export type BoardHandItem =
+export type ActionItem =
   | {
       key: 'open-fees'
       openFeeCount: number
@@ -71,12 +71,25 @@ export type BoardHandItem =
     }
   | { key: 'start-planning'; href: '/admin/weekends' }
 
-type BoardHandInput = {
+type ActionItemsInput = {
   /** Null when the payments source failed or the viewer lacks permission. */
   outstanding: OutstandingMetrics | null
   /** Null when the weekends source failed or the viewer lacks permission. */
   weekendGroups: WeekendGroupWithId[] | null
   now?: Date
+}
+
+/**
+ * True when some weekend in some group is marked ACTIVE. The money tiles, the
+ * rosters, and the community's current-weekend page all key off this, so its
+ * absence is worth saying out loud rather than rendering blanks.
+ */
+export function hasActiveWeekendGroup(groups: WeekendGroupWithId[]): boolean {
+  return groups.some((group) =>
+    [group.weekends.MENS, group.weekends.WOMENS].some(
+      (w) => !isNil(w) && w.status === 'ACTIVE'
+    )
+  )
 }
 
 /**
@@ -100,16 +113,16 @@ export function needsPlanning(
 }
 
 /**
- * Items for the "Needs a board hand" list. A failed source contributes no
- * item (we can't claim work is needed from data we don't have) — the page
- * signals degraded sources separately.
+ * Items for the "Action items" list. A failed source contributes no item
+ * (we can't claim work is needed from data we don't have) — the page signals
+ * degraded sources separately.
  */
-export function deriveBoardHandItems({
+export function deriveActionItems({
   outstanding,
   weekendGroups,
   now = new Date(),
-}: BoardHandInput): BoardHandItem[] {
-  const items: BoardHandItem[] = []
+}: ActionItemsInput): ActionItem[] {
+  const items: ActionItem[] = []
   if (!isNil(outstanding) && outstanding.openFeeCount > 0) {
     items.push({
       key: 'open-fees',

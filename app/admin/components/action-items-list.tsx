@@ -2,16 +2,16 @@ import Link from 'next/link'
 import { CalendarPlus, CheckCircle2, CircleDollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/payments/formatters'
-import type { BoardHandItem } from '@/lib/admin/dashboard-metrics'
+import type { ActionItem } from '@/lib/admin/dashboard-metrics'
 
-type BoardHandListProps = {
-  items: BoardHandItem[]
+type ActionItemsListProps = {
+  items: ActionItem[]
   /** True when a source failed, so an empty list can't promise "all clear". */
   degraded: boolean
 }
 
 const itemCopy: Record<
-  BoardHandItem['key'],
+  ActionItem['key'],
   { detail: string; linkLabel: string }
 > = {
   'open-fees': {
@@ -24,7 +24,7 @@ const itemCopy: Record<
   },
 }
 
-function itemTitle(item: BoardHandItem): string {
+function itemTitle(item: ActionItem): string {
   if (item.key === 'open-fees') {
     const fees = item.openFeeCount === 1 ? 'fee is' : 'fees are'
     return `${item.openFeeCount} ${fees} still open · ${formatCurrency(item.outstandingTotal)}`
@@ -32,12 +32,12 @@ function itemTitle(item: BoardHandItem): string {
   return "The next weekend group isn't scheduled yet"
 }
 
-/** "Needs a board hand" — the computable action list, or a reassurance state. */
-export function BoardHandList({ items, degraded }: BoardHandListProps) {
+/** "Action items" — the computable action list, or a reassurance state. */
+export function ActionItemsList({ items, degraded }: ActionItemsListProps) {
   return (
     <section className="rounded-lg border bg-card p-5">
       <h2 className="font-serif text-lg font-semibold tracking-tight">
-        Needs a board hand
+        Action items
       </h2>
 
       {items.length === 0 && !degraded && (
