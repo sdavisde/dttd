@@ -31,6 +31,7 @@ function normalizeMember(member: MasterRosterMember): BoardMember {
     firstName: member.firstName,
     lastName: member.lastName,
     email: member.email,
+    phoneNumber: member.phoneNumber,
     roles: member.roles.map((role) => ({
       id: role.id,
       label: role.label,

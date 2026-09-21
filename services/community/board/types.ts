@@ -41,6 +41,7 @@ export type BoardMember = {
   firstName: string | null
   lastName: string | null
   email: string | null
+  phoneNumber: string | null
   roles: Array<{ id: string; label: string }>
   profilePhoto: ProfilePhoto
 }

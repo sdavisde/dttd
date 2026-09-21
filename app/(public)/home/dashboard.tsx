@@ -49,11 +49,7 @@ export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
         {/* Main column, row 1: greeting, weekend hero, and team checklist */}
         <div className="space-y-6 lg:col-span-2">
           <div className="flex items-center gap-4">
-            <UserAvatarWithPreview
-              user={avatarUserFromDto(user)}
-              size={56}
-              previewSize={160}
-            />
+            <UserAvatarWithPreview user={avatarUserFromDto(user)} size={56} />
             <div>
               <p className="mb-1 text-xs uppercase tracking-[0.25em] text-muted-foreground">
                 Dusty Trails Tres Dias

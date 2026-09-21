@@ -134,6 +134,7 @@ export function ImpersonationDialog({
                         first_name: user.first_name,
                         last_name: user.last_name,
                         email: user.email,
+                        phone_number: user.phone_number,
                         profilePhoto: {
                           path: user.profile_photo_path,
                           updatedAt: user.profile_photo_updated_at,
