@@ -57,6 +57,7 @@ export function AdminSidebar({ items, ...props }: AdminSidebarProps) {
           <SidebarMenu>
             {items.map((item) => {
               const Icon = getNavIcon(item.href)
+              const isActive = isNavItemActive(item.href, pathname)
               if (item.soon === true) {
                 return (
                   <SidebarMenuItem key={item.href}>
@@ -78,8 +79,13 @@ export function AdminSidebar({ items, ...props }: AdminSidebarProps) {
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
-                    isActive={isNavItemActive(item.href, pathname)}
+                    isActive={isActive}
                     tooltip={item.title}
+                    // Resting nav text is quieter than the sidebar's own
+                    // foreground; the active item carries the weight instead.
+                    className={
+                      isActive ? 'font-semibold' : 'text-nav-foreground'
+                    }
                   >
                     <Link href={item.href}>
                       {!isNil(Icon) && <Icon />}
@@ -95,7 +101,11 @@ export function AdminSidebar({ items, ...props }: AdminSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Back to member site">
+            <SidebarMenuButton
+              asChild
+              tooltip="Back to member site"
+              className="text-nav-foreground"
+            >
               <Link href="/home">
                 <ArrowLeft />
                 <span>Back to member site</span>

@@ -73,6 +73,13 @@ describe('adminNavItems', () => {
     ).toEqual(['Reports'])
   })
 
+  it('uses the icons the design board calls for', () => {
+    const iconName = (href: string) => getNavIcon(href)?.displayName
+    expect(iconName('/admin/weekends')).toBe('Calendar')
+    expect(iconName('/admin/events')).toBe('Clock')
+    expect(iconName('/admin/payments')).toBe('CreditCard')
+  })
+
   it('has an icon for every item, exposed via getNavIcon', () => {
     for (const item of adminNavItems) {
       expect(getNavIcon(item.href)).toBe(item.icon)

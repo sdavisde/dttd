@@ -24,9 +24,9 @@ export function DroppedRosterSection({
   return (
     <div className="mt-12">
       <div className="mb-4">
-        <Typography variant="h2" className="text-xl mb-2 flex items-center">
+        <Typography variant="h4" as="h2" className="mb-2 flex items-center">
           Dropped Team Members
-          <span className="text-black/30 font-light text-base ms-2">
+          <span className="text-muted-foreground font-light text-base ms-2">
             ({counts.dropped} members)
           </span>
         </Typography>

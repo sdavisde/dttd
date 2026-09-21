@@ -36,6 +36,10 @@ Every page opens the same way, in order:
 Use `components/ui/page-header.tsx` for the title/description/actions block and
 `components/ui/typography.tsx` for headings generally (`h1`–`h4` render in the serif).
 
+`PageHeader` puts a copy-link button ahead of the page's own actions on every `/admin`
+route — no per-page wiring, and public pages that use `PageHeader` are unaffected. Pass
+`shareable={false}` to opt a page out.
+
 ## Elevation: borders, not shadows
 
 Surfaces are defined by `1px` borders (`--border`, inner dividers slightly lighter),
@@ -63,8 +67,11 @@ not drop shadows. The only sanctioned shadows are the focus ring
 ## Responsive
 
 Admin data displays ship the dual layout: the desktop table untouched at `md+`, and a
-card-based mobile layout below it (see the responsive guidelines in `CLAUDE.md` and the
-reference implementation in `app/admin/weekends/[weekend_id]/weekend-roster-table.tsx`).
+card-based mobile layout below it (see the responsive guidelines in `CLAUDE.md`). Most
+tables get this for free from the shared `components/ui/data-table/data-table.tsx`, which
+renders `data-table-mobile-card.tsx` below `md`. For a hand-rolled example (a table that
+does not go through `DataTable`), see
+`app/admin/community-board/components/meeting-minutes-table.tsx`.
 
 ## Color scheme status
 

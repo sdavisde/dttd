@@ -20,9 +20,10 @@ export function ActiveRosterHeader({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-4">
       <div>
-        <Typography variant="h2" className="text-xl mb-2 flex items-center">
+        {/* h4 sizing keeps this section heading below the page title. */}
+        <Typography variant="h4" as="h2" className="mb-2 flex items-center">
           {title}
-          <span className="text-black/30 font-light text-base ms-2">
+          <span className="text-muted-foreground font-light text-base ms-2">
             ({counts.active} members)
           </span>
         </Typography>

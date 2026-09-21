@@ -3,13 +3,13 @@ import type { User } from '@/lib/users/types'
 import {
   BarChart3,
   Calendar,
-  DollarSign,
+  Clock,
+  CreditCard,
   Folder,
   Landmark,
   LayoutGrid,
   Settings2,
   ShieldCheck,
-  TentTree,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -38,19 +38,19 @@ export const adminNavItems: AdminNavItem[] = [
   {
     title: 'Weekends',
     href: '/admin/weekends',
-    icon: TentTree,
+    icon: Calendar,
     permissionsNeeded: [Permission.READ_WEEKENDS],
   },
   {
     title: 'Events',
     href: '/admin/events',
-    icon: Calendar,
+    icon: Clock,
     permissionsNeeded: [Permission.READ_EVENTS],
   },
   {
     title: 'Payments',
     href: '/admin/payments',
-    icon: DollarSign,
+    icon: CreditCard,
     permissionsNeeded: [Permission.READ_PAYMENTS],
   },
   {

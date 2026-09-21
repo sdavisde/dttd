@@ -15,6 +15,11 @@ export type WeekendStats = {
   /** Active (non-dropped) roster members; null when the source failed. */
   teamServing: number | null
   /**
+   * Candidates whose forms are in and who are waiting on a review decision;
+   * null when the source failed.
+   */
+  candidatesToReview: number | null
+  /**
    * Unpaid fees (team + candidates) for this weekend; null when payment data
    * is unavailable (source failure or viewer lacks payments access).
    */
@@ -24,6 +29,8 @@ export type WeekendStats = {
 type WeekendStatsInput = {
   candidateCount: number | null
   rosterCount: number | null
+  /** Candidates awaiting a review decision; null when that source failed. */
+  reviewCount?: number | null
   /** This weekend's entry from ActiveWeekendFinancials, when available. */
   financials: ActiveWeekendMetrics | null
 }
@@ -39,6 +46,7 @@ type WeekendStatsInput = {
 export function deriveWeekendStats({
   candidateCount,
   rosterCount,
+  reviewCount = null,
   financials,
 }: WeekendStatsInput): WeekendStats {
   const feesOpen = isNil(financials)
@@ -52,6 +60,7 @@ export function deriveWeekendStats({
     candidatesConfirmed: candidateCount,
     candidateCapacity: WEEKEND_CANDIDATE_CAPACITY,
     teamServing: rosterCount,
+    candidatesToReview: reviewCount,
     feesOpen,
   }
 }
@@ -127,6 +136,26 @@ export function bucketGroupsForBoard(
  */
 export function showStartPlanningRow(buckets: BoardGroupBuckets): boolean {
   return buckets.upcoming.length === 0
+}
+
+/**
+ * The "39 + 41 candidates" line on a past weekend row, men's first.
+ *
+ * Returns null unless both of the group's weekends have a count: a half-known
+ * pair would read as a total, and the omit-don't-approximate rule applies.
+ */
+export function formatPastCandidateCounts(
+  group: WeekendGroupWithId,
+  counts: Record<string, number> | null
+): string | null {
+  if (isNil(counts)) return null
+  const mens = group.weekends.MENS?.id
+  const womens = group.weekends.WOMENS?.id
+  if (isNil(mens) || isNil(womens)) return null
+  const mensCount = counts[mens]
+  const womensCount = counts[womens]
+  if (isNil(mensCount) || isNil(womensCount)) return null
+  return `${mensCount} + ${womensCount} candidates`
 }
 
 /** The number the next weekend group would get (max existing + 1). */

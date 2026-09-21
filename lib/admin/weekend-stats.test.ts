@@ -1,6 +1,7 @@
 import {
   bucketGroupsForBoard,
   deriveWeekendStats,
+  formatPastCandidateCounts,
   nextGroupNumber,
   showStartPlanningRow,
 } from './weekend-stats'
@@ -58,16 +59,18 @@ function metrics(
 }
 
 describe('deriveWeekendStats', () => {
-  it('derives all three tiles when every source is available', () => {
+  it('derives all four tiles when every source is available', () => {
     const stats = deriveWeekendStats({
       candidateCount: 28,
       rosterCount: 51,
+      reviewCount: 4,
       financials: metrics(),
     })
     expect(stats).toEqual({
       candidatesConfirmed: 28,
       candidateCapacity: 42,
       teamServing: 51,
+      candidatesToReview: 4,
       // (51 - 45) unpaid team + (28 - 26) unpaid candidates
       feesOpen: 8,
     })
@@ -95,6 +98,7 @@ describe('deriveWeekendStats', () => {
     })
     expect(stats.candidatesConfirmed).toBeNull()
     expect(stats.teamServing).toBeNull()
+    expect(stats.candidatesToReview).toBeNull()
     expect(stats.feesOpen).toBeNull()
     // Capacity is a constant, not a source.
     expect(stats.candidateCapacity).toBe(42)
@@ -185,5 +189,23 @@ describe('nextGroupNumber', () => {
   it('starts at 1 when numbers are missing', () => {
     expect(nextGroupNumber([])).toBe(1)
     expect(nextGroupNumber([group({ number: null }, { number: null })])).toBe(1)
+  })
+})
+
+describe('formatPastCandidateCounts', () => {
+  const past = group({ id: 'm1' }, { id: 'w2' })
+
+  it('reads men\u2019s first, then women\u2019s', () => {
+    expect(formatPastCandidateCounts(past, { m1: 39, w2: 41 })).toBe(
+      '39 + 41 candidates'
+    )
+  })
+
+  it('omits the line when the counts are unavailable', () => {
+    expect(formatPastCandidateCounts(past, null)).toBeNull()
+  })
+
+  it('omits the line rather than reporting half a pair', () => {
+    expect(formatPastCandidateCounts(past, { m1: 39 })).toBeNull()
   })
 })

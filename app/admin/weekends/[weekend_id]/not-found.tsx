@@ -1,5 +1,5 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Typography } from '@/components/ui/typography'
+import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -7,26 +7,26 @@ export default function NotFound() {
   return (
     <>
       <AdminBreadcrumbs
-        title="Weekend Not Found"
+        title="Weekend not found"
         breadcrumbs={[
           { label: 'Admin', href: '/admin' },
           { label: 'Weekends', href: '/admin/weekends' },
         ]}
       />
-      <div className="container mx-auto px-8 py-6 text-center">
-        <Typography variant="h1" className="text-6xl mb-4">
-          404
-        </Typography>
-        <Typography variant="h2" className="mb-4">
-          Weekend Not Found
-        </Typography>
-        <Typography variant="muted" className="mb-6">
-          The weekend you&apos;re looking for doesn&apos;t exist or has been
-          removed.
-        </Typography>
-        <Button asChild>
-          <Link href="/admin/weekends">Back to Weekends</Link>
-        </Button>
+      <div className="container mx-auto px-4 sm:px-8 py-6">
+        <PageHeader
+          title="Weekend not found"
+          description="That weekend either never existed or has since been removed."
+          shareable={false}
+        />
+        <div className="rounded-lg border bg-card px-6 py-8 text-center">
+          <p className="text-muted-foreground">
+            Check the link you followed, or pick the weekend from the list.
+          </p>
+          <Button asChild className="mt-5">
+            <Link href="/admin/weekends">Back to Weekends</Link>
+          </Button>
+        </div>
       </div>
     </>
   )

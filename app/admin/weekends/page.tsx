@@ -9,7 +9,11 @@ import { isErr } from '@/lib/results'
 import * as Results from '@/lib/results'
 import { isNil } from 'lodash'
 import { getWeekendGroupsByStatus, getWeekendRoster } from '@/services/weekend'
-import { getCandidateCountByWeekend } from '@/services/candidates'
+import {
+  getCandidateCountByWeekend,
+  getCandidateCountsByWeekends,
+  getCandidateReviewCountByWeekend,
+} from '@/services/candidates'
 import {
   getActiveWeekendFinancials,
   getAllPayments,
@@ -32,6 +36,17 @@ export default async function WeekendsPage() {
   const weekendGroups = weekendGroupsResult.data
   const buckets = bucketGroupsForBoard(weekendGroups)
 
+  // Candidate counts for the past rows. One round trip for every past weekend,
+  // started here so it overlaps the active-group fetches below; a failure just
+  // drops the count off those rows.
+  const pastCountsPromise = getCandidateCountsByWeekends(
+    buckets.past.flatMap((group) =>
+      [group.weekends.MENS?.id, group.weekends.WOMENS?.id].filter(
+        (id): id is string => !isNil(id)
+      )
+    )
+  )
+
   // Stat tiles only exist for the active group. Each source is fetched and
   // handled independently: a failed (or permission-denied) source nulls its
   // tile instead of breaking the page.
@@ -43,19 +58,25 @@ export default async function WeekendsPage() {
       womensRoster,
       mensCandidates,
       womensCandidates,
+      mensToReview,
+      womensToReview,
       paymentsResult,
     ] = await Promise.all([
       getWeekendRoster(mens.id),
       getWeekendRoster(womens.id),
       getCandidateCountByWeekend(mens.id),
       getCandidateCountByWeekend(womens.id),
+      getCandidateReviewCountByWeekend(mens.id),
+      getCandidateReviewCountByWeekend(womens.id),
       getAllPayments(),
     ])
     Results.logFailures(
       mensRoster,
       womensRoster,
       mensCandidates,
-      womensCandidates
+      womensCandidates,
+      mensToReview,
+      womensToReview
     )
 
     // A failed financials read (including FEE_LOOKUP_FAILED, when the Stripe
@@ -79,15 +100,21 @@ export default async function WeekendsPage() {
       MENS: deriveWeekendStats({
         candidateCount: Results.toNullable(mensCandidates),
         rosterCount: Results.toNullable(mensRoster)?.length ?? null,
+        reviewCount: Results.toNullable(mensToReview),
         financials: financialsFor('MENS'),
       }),
       WOMENS: deriveWeekendStats({
         candidateCount: Results.toNullable(womensCandidates),
         rosterCount: Results.toNullable(womensRoster)?.length ?? null,
+        reviewCount: Results.toNullable(womensToReview),
         financials: financialsFor('WOMENS'),
       }),
     }
   }
+
+  const pastCountsResult = await pastCountsPromise
+  Results.logFailures(pastCountsResult)
+  const pastCandidateCounts = Results.toNullable(pastCountsResult)
 
   return (
     <>
@@ -99,6 +126,7 @@ export default async function WeekendsPage() {
         <Weekends
           buckets={buckets}
           activeStats={activeStats}
+          pastCandidateCounts={pastCandidateCounts}
           allGroups={weekendGroups}
           canEdit={canEdit}
         />

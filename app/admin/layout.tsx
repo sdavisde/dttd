@@ -26,7 +26,11 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <SidebarProvider>
+    // 240px per the admin design board. Overridden here rather than in
+    // components/ui/sidebar.tsx so other sidebar consumers keep the default.
+    <SidebarProvider
+      style={{ '--sidebar-width': '15rem' } as React.CSSProperties}
+    >
       <AdminSidebar items={getVisibleNavItems(user)} />
       {/* min-w-0 lets this flex item shrink below its content's width, so wide
           children (tables) scroll inside their own container instead of

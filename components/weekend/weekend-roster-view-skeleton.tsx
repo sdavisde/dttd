@@ -7,6 +7,11 @@ type WeekendRosterViewSkeletonProps = {
    * so it stays interactive while the roster streams in.
    */
   headerSlot?: React.ReactNode
+  /**
+   * Matches {@link WeekendRosterView}'s prop: drops the weekend title block so
+   * a page-level `PageHeader` owns it.
+   */
+  hideWeekendHeader?: boolean
 }
 
 /**
@@ -16,22 +21,25 @@ type WeekendRosterViewSkeletonProps = {
  */
 export function WeekendRosterViewSkeleton({
   headerSlot,
+  hideWeekendHeader = false,
 }: WeekendRosterViewSkeletonProps) {
   return (
     <>
       {/* Weekend information header */}
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          <div className="flex-1 space-y-3">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-8 w-56" />
-              {headerSlot ?? <Skeleton className="h-6 w-24 rounded-full" />}
+          {!hideWeekendHeader && (
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-56" />
+                {headerSlot ?? <Skeleton className="h-6 w-24 rounded-full" />}
+              </div>
+              <Skeleton className="h-6 w-72" />
+              <Skeleton className="h-8 w-32" />
             </div>
-            <Skeleton className="h-6 w-72" />
-            <Skeleton className="h-8 w-32" />
-          </div>
-          <div className="lg:w-auto">
-            <Skeleton className="h-32 w-full rounded-xl lg:w-64" />
+          )}
+          <div className="lg:ml-auto lg:w-auto">
+            <Skeleton className="h-32 w-full rounded-lg lg:w-64" />
           </div>
         </div>
       </div>

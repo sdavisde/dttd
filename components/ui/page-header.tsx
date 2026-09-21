@@ -1,11 +1,19 @@
 import * as React from 'react'
 import { isNil } from 'lodash'
 
+import { PageHeaderShareButton } from '@/components/ui/page-header-share-button'
 import { cn } from '@/lib/utils'
 
 interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string
   description?: string
+  /**
+   * Whether the copy-link control appears ahead of the page's own actions.
+   * On by default; the button itself only renders under `/admin`, so admin
+   * pages get it for free and public pages are untouched. Set `false` to opt
+   * a page out entirely.
+   */
+  shareable?: boolean
 }
 
 /**
@@ -16,10 +24,12 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 function PageHeader({
   title,
   description,
+  shareable = true,
   children,
   className,
   ...props
 }: PageHeaderProps) {
+  const hasActions = shareable || !isNil(children)
   return (
     <div
       className={cn(
@@ -36,8 +46,11 @@ function PageHeader({
           <p className="text-muted-foreground">{description}</p>
         )}
       </div>
-      {!isNil(children) && (
-        <div className="flex shrink-0 items-center gap-2">{children}</div>
+      {hasActions && (
+        <div className="flex shrink-0 items-center gap-2">
+          {shareable && <PageHeaderShareButton title={title} />}
+          {children}
+        </div>
       )}
     </div>
   )

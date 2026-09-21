@@ -21,7 +21,6 @@ import { getWeekendRosterViewData } from '@/services/weekend'
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
 import { formatDateOnly } from '@/lib/utils'
-import { notFound } from 'next/navigation'
 import { Results } from '@/lib/results'
 
 export type WeekendRosterViewProps = {
@@ -30,12 +29,21 @@ export type WeekendRosterViewProps = {
 
   // Optional slot for header content (e.g., tabs for switching weekends, status badge)
   headerSlot?: React.ReactNode
+
+  /**
+   * Hides the internal weekend title / date range / Candidates block so a page
+   * that already opens with a `PageHeader` owns that copy (the admin weekend
+   * hub). The experience chart still renders. Off by default, so the public
+   * roster route is unchanged.
+   */
+  hideWeekendHeader?: boolean
 }
 
 export async function WeekendRosterView({
   weekendId,
   user,
   headerSlot,
+  hideWeekendHeader = false,
 }: WeekendRosterViewProps) {
   // Load all data using the service
   const result = await getWeekendRosterViewData(weekendId, user)
@@ -80,50 +88,56 @@ export async function WeekendRosterView({
   return (
     <>
       {/* Weekend Information Header */}
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          {/* Left side: Weekend info */}
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <Typography variant="h5" className="text-2xl">
-                {weekendTitle}
-              </Typography>
-              {headerSlot}
-              {isNil(headerSlot) && !isNil(weekend.status) && (
-                <WeekendStatusBadge status={weekend.status} />
-              )}
-            </div>
-            <Typography
-              as="span"
-              variant="muted"
-              className="text-lg flex items-center gap-2"
-            >
-              <Datetime dateTime={startDate} />
-              <span>-</span>
-              <Datetime dateTime={endDate} />
-            </Typography>
-            {!isNil(weekend.groupId) && (
-              <Button asChild variant="outline" size="sm" className="mt-3">
-                <Link
-                  href={`/candidate-list?weekend=${weekend.groupId}&weekendType=${weekend.type}`}
+      {(!hideWeekendHeader ||
+        (canViewExperienceDistribution && !isNil(experienceDistribution))) && (
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            {/* Left side: Weekend info */}
+            {!hideWeekendHeader && (
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <Typography variant="h5" className="text-2xl">
+                    {weekendTitle}
+                  </Typography>
+                  {headerSlot}
+                  {isNil(headerSlot) && !isNil(weekend.status) && (
+                    <WeekendStatusBadge status={weekend.status} />
+                  )}
+                </div>
+                <Typography
+                  as="span"
+                  variant="muted"
+                  className="text-lg flex items-center gap-2"
                 >
-                  <Users className="h-4 w-4" />
-                  Candidates
-                </Link>
-              </Button>
+                  <Datetime dateTime={startDate} />
+                  <span>-</span>
+                  <Datetime dateTime={endDate} />
+                </Typography>
+                {!isNil(weekend.groupId) && (
+                  <Button asChild variant="outline" size="sm" className="mt-3">
+                    <Link
+                      href={`/candidate-list?weekend=${weekend.groupId}&weekendType=${weekend.type}`}
+                    >
+                      <Users className="h-4 w-4" />
+                      Candidates
+                    </Link>
+                  </Button>
+                )}
+              </div>
             )}
-          </div>
 
-          {/* Right side: Experience chart */}
-          {canViewExperienceDistribution && !isNil(experienceDistribution) && (
-            <div className="lg:w-auto">
-              <ExperienceDistributionChart
-                distribution={experienceDistribution}
-              />
-            </div>
-          )}
+            {/* Right side: Experience chart */}
+            {canViewExperienceDistribution &&
+              !isNil(experienceDistribution) && (
+                <div className="lg:ml-auto lg:w-auto">
+                  <ExperienceDistributionChart
+                    distribution={experienceDistribution}
+                  />
+                </div>
+              )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Team Roster Section */}
       <div>

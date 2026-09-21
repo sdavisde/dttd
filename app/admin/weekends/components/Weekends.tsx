@@ -17,6 +17,7 @@ import {
 import type { Weekend, WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendStatus, WeekendType } from '@/lib/weekend/types'
 import {
+  formatPastCandidateCounts,
   nextGroupNumber,
   showStartPlanningRow,
   type ActiveGroupStats,
@@ -29,6 +30,8 @@ import { SetActiveWeekendButton } from './SetActiveWeekendButton'
 interface WeekendsProps {
   buckets: BoardGroupBuckets
   activeStats: ActiveGroupStats | null
+  /** Non-rejected candidate counts keyed by weekend id, for the past rows. */
+  pastCandidateCounts?: Record<string, number> | null
   allGroups: WeekendGroupWithId[]
   canEdit?: boolean
 }
@@ -97,6 +100,9 @@ function WeekendSubCard({
           {!isNil(stats.teamServing) && (
             <StatTile value={`${stats.teamServing}`} label="Team" />
           )}
+          {!isNil(stats.candidatesToReview) && (
+            <StatTile value={`${stats.candidatesToReview}`} label="To review" />
+          )}
           {!isNil(stats.feesOpen) && (
             <StatTile value={`${stats.feesOpen}`} label="Fees open" />
           )}
@@ -142,6 +148,7 @@ function GroupLinks({ group }: { group: WeekendGroupWithId }) {
 export function Weekends({
   buckets,
   activeStats,
+  pastCandidateCounts = null,
   allGroups,
   canEdit = false,
 }: WeekendsProps) {
@@ -287,22 +294,29 @@ export function Weekends({
             Past weekends
           </p>
           <div className="rounded-lg border bg-card">
-            {buckets.past.map((group) => (
-              <div
-                key={group.groupId}
-                className="flex flex-wrap items-center gap-x-3.5 gap-y-1 border-b border-divider px-5 py-3 last:border-b-0"
-              >
-                <p className="text-sm font-semibold">
-                  {formatWeekendGroupTitle(groupNumber(group))}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {groupDateRange(group)}
-                </p>
-                <div className="ml-auto">
-                  <GroupLinks group={group} />
+            {buckets.past.map((group) => {
+              const candidateCounts = formatPastCandidateCounts(
+                group,
+                pastCandidateCounts
+              )
+              return (
+                <div
+                  key={group.groupId}
+                  className="flex flex-wrap items-center gap-x-3.5 gap-y-1 border-b border-divider px-5 py-3 last:border-b-0"
+                >
+                  <p className="text-sm font-semibold">
+                    {formatWeekendGroupTitle(groupNumber(group))}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {groupDateRange(group)}
+                    {!isNil(candidateCounts) && ` \u00b7 ${candidateCounts}`}
+                  </p>
+                  <div className="ml-auto">
+                    <GroupLinks group={group} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}
