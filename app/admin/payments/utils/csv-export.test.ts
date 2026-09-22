@@ -13,6 +13,7 @@ const openFee: OutstandingFee = {
   legacyTargetIds: [],
   name: 'Ann Simmons',
   expectedPayer: 'Ann Simmons',
+  chaRole: 'Head Dining',
   weekendId: 'weekend-womens',
   weekendNumber: 12,
   weekendType: 'WOMENS',
@@ -32,6 +33,24 @@ describe('generateLedgerCsv', () => {
 
     expect(header).toEqual(LEDGER_CSV_COLUMNS.map((col) => col.header))
     expect(rows).toHaveLength(2)
+  })
+
+  it("exports the team role a payment's person served in", () => {
+    const csv = generateLedgerCsv(
+      buildLedgerRows(
+        [
+          makePayment({
+            target_type: 'weekend_group_member',
+            cha_role: 'Head Music',
+          }),
+        ],
+        [openFee]
+      )
+    )
+    const [, payment, outstanding] = parse(csv)
+
+    expect(payment[column('Role')]).toBe('Head Music')
+    expect(outstanding[column('Role')]).toBe('Head Dining')
   })
 
   it('exports a payment with its amount as a plain number', () => {

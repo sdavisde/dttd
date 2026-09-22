@@ -27,6 +27,7 @@ export function makePayment(
     target_email: null,
     weekend_number: 12,
     weekend_type: 'MENS',
+    cha_role: null,
     ...overrides,
   }
 }

@@ -121,6 +121,7 @@ export function Payments({
 
   const selectedWeekends = filterValuesFor(urlState.columnFilters, 'weekend')
   const selectedTypes = filterValuesFor(urlState.columnFilters, 'type')
+  const selectedRoles = filterValuesFor(urlState.columnFilters, 'role')
 
   // Exactly the rows on screen (across all pages) — drives the footer count
   // and the CSV export.
@@ -132,6 +133,7 @@ export function Payments({
         search: globalFilter ?? '',
         weekends: filterValuesFor(columnFilters, 'weekend'),
         types: filterValuesFor(columnFilters, 'type'),
+        roles: filterValuesFor(columnFilters, 'role'),
         methods: filterValuesFor(columnFilters, 'method'),
       }),
     [allRows, view, globalFilter, columnFilters]
@@ -143,6 +145,10 @@ export function Payments({
   )
   const typeOptions = useMemo(
     () => uniqueSorted(allRows.map((row) => row.typeLabel)),
+    [allRows]
+  )
+  const roleOptions = useMemo(
+    () => uniqueSorted(allRows.map((row) => row.roleLabel)),
     [allRows]
   )
   const yearOptions = useMemo(() => ledgerYears(allRows), [allRows])
@@ -236,6 +242,9 @@ export function Payments({
           typeOptions={typeOptions}
           selectedTypes={selectedTypes}
           onTypesChange={(values) => setColumnFilter('type', values)}
+          roleOptions={roleOptions}
+          selectedRoles={selectedRoles}
+          onRolesChange={(values) => setColumnFilter('role', values)}
           yearOptions={yearOptions}
           year={year}
           onYearChange={handleYearChange}

@@ -15,10 +15,10 @@ import {
 import { deriveSystemAlerts } from '@/lib/admin/system-alerts'
 import {
   FEE_LOOKUP_FAILED,
-  getActiveWeekendFinancials,
   getAllPayments,
-  type ActiveWeekendFinancials,
+  getOutstandingFees,
 } from '@/services/payment'
+import type { OutstandingFee } from '@/lib/payments/outstanding'
 import { getMasterRoster } from '@/services/master-roster'
 import { getSecuelaDateForGroup, getUpcomingEvents } from '@/services/events'
 import { getActiveWeekends, getWeekendGroupsByStatus } from '@/services/weekend'
@@ -71,13 +71,11 @@ export default async function Page() {
 
   // Both of these need the active weekends, so they wait for the first round —
   // but they stay separate reads, each degrading only what it feeds.
-  // Outstanding money reuses the exact computation behind the payments
-  // summary page, so the two can never disagree.
-  const financialsPromise: Promise<
-    Result<string, ActiveWeekendFinancials>
-  > | null =
+  // Outstanding money comes from the same per-person calculation the Payments
+  // ledger lists, so the tile and that page can never disagree.
+  const outstandingPromise: Promise<Result<string, OutstandingFee[]>> | null =
     !isNil(payments) && !isNil(activeWeekends)
-      ? getActiveWeekendFinancials(payments, activeWeekends)
+      ? getOutstandingFees({ payments, activeWeekends })
       : null
   const secuelaPromise: Promise<Result<string, string | null>> | null = isNil(
     activeGroupId
@@ -85,16 +83,16 @@ export default async function Page() {
     ? null
     : getSecuelaDateForGroup(activeGroupId)
 
-  const [financialsResult, secuelaResult] = await Promise.all([
-    financialsPromise,
+  const [outstandingResult, secuelaResult] = await Promise.all([
+    outstandingPromise,
     secuelaPromise,
   ])
-  if (!isNil(financialsResult)) Results.logFailures(financialsResult)
+  if (!isNil(outstandingResult)) Results.logFailures(outstandingResult)
   if (!isNil(secuelaResult)) Results.logFailures(secuelaResult)
 
-  const financials = isNil(financialsResult)
+  const outstandingFees = isNil(outstandingResult)
     ? null
-    : Results.toNullable(financialsResult)
+    : Results.toNullable(outstandingResult)
 
   // A secuela we couldn't look up is not a secuela we can say is missing.
   const activeGroupSecuela: ActiveGroupSecuela | null =
@@ -108,11 +106,13 @@ export default async function Page() {
   // Fee prices we can't read are their own failure: showing $0 outstanding
   // would claim every fee is settled when we simply don't know the price.
   const feesUnknown =
-    !isNil(financialsResult) &&
-    Results.isErr(financialsResult) &&
-    financialsResult.error === FEE_LOOKUP_FAILED
+    !isNil(outstandingResult) &&
+    Results.isErr(outstandingResult) &&
+    outstandingResult.error === FEE_LOOKUP_FAILED
 
-  const outstanding = isNil(financials) ? null : deriveOutstanding(financials)
+  const outstanding = isNil(outstandingFees)
+    ? null
+    : deriveOutstanding(outstandingFees)
   const collected = isNil(payments) ? null : deriveCollectedThisYear(payments)
   const memberCount = Results.toNullable(rosterResult)?.members.length ?? null
   const events = Results.toNullable(eventsResult)
@@ -135,8 +135,8 @@ export default async function Page() {
   if (Results.isErr(rosterResult)) degradedSources.push('Community roster')
   if (isNil(events)) degradedSources.push('Events')
   if (isNil(weekendGroups)) degradedSources.push('Weekends')
-  if (!feesUnknown && !isNil(financialsResult) && isNil(financials)) {
-    degradedSources.push('Weekend balances')
+  if (!feesUnknown && !isNil(outstandingResult) && isNil(outstandingFees)) {
+    degradedSources.push('Outstanding fees')
   }
 
   const alerts = deriveSystemAlerts({

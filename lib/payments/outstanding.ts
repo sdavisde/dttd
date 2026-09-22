@@ -23,6 +23,11 @@ export type FeePerson = {
   name: string | null
   /** Who is expected to pay: the team member, or the candidate's sponsor. */
   expectedPayer: string | null
+  /**
+   * The CHA role this person serves in on `weekendId`. Null for candidates,
+   * and for a team member whose roster row carries no role.
+   */
+  chaRole: string | null
   weekendId: string | null
   weekendNumber: number | null
   weekendType: 'MENS' | 'WOMENS' | null

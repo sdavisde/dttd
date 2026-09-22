@@ -4,6 +4,7 @@ import {
   derivePaymentStatus,
   filterLedgerRows,
   formatLedgerFor,
+  formatLedgerRole,
   ledgerYears,
   parseLedgerStatusFilter,
   type LedgerFilter,
@@ -19,6 +20,7 @@ const paidLastYear = makePayment({
   target_name: 'Karen Ortiz',
   payment_owner: 'Karen Ortiz',
   target_type: 'weekend_group_member',
+  cha_role: 'Head Dining',
   weekend_number: 11,
   weekend_type: 'WOMENS',
 })
@@ -42,6 +44,7 @@ const openFee: OutstandingFee = {
   legacyTargetIds: [],
   name: 'Luis Moreno',
   expectedPayer: 'Tom Bailey',
+  chaRole: null,
   weekendId: 'weekend-mens',
   weekendNumber: 12,
   weekendType: 'MENS',
@@ -60,6 +63,7 @@ const filter = (overrides: Partial<LedgerFilter> = {}): LedgerFilter => ({
   search: '',
   weekends: [],
   types: [],
+  roles: [],
   methods: [],
   ...overrides,
 })
@@ -130,6 +134,33 @@ describe('formatLedgerFor', () => {
   })
 })
 
+describe('formatLedgerRole', () => {
+  it('shows the CHA role a team member serves in', () => {
+    expect(formatLedgerRole('weekend_group_member', 'Head Dining')).toBe(
+      'Head Dining'
+    )
+    expect(formatLedgerRole('weekend_roster', 'Rover')).toBe('Rover')
+  })
+
+  it('calls a candidate a candidate, whatever the role column says', () => {
+    expect(formatLedgerRole('candidate', null)).toBe('Candidate')
+    expect(formatLedgerRole('candidate', 'Rover')).toBe('Candidate')
+  })
+
+  it('shows a dash rather than inventing a role', () => {
+    expect(formatLedgerRole('weekend_group_member', null)).toBe('—')
+    expect(formatLedgerRole('weekend_roster', '  ')).toBe('—')
+    expect(formatLedgerRole(null, null)).toBe('—')
+  })
+
+  it('lands on the rows the table renders', () => {
+    const karen = rows.find((row) => row.id === 'paid-2025')!
+    expect(karen.roleLabel).toBe('Head Dining')
+    expect(rows[0].roleLabel).toBe('Candidate')
+    expect(rows[rows.length - 1].roleLabel).toBe('Candidate')
+  })
+})
+
 describe('filterLedgerRows', () => {
   it('hides voided rows by default and shows them on request', () => {
     expect(ids()).not.toContain('voided-1')
@@ -165,8 +196,9 @@ describe('filterLedgerRows', () => {
     ])
   })
 
-  it('applies the weekend, type and method filters', () => {
+  it('applies the weekend, type, role and method filters', () => {
     expect(ids({ types: ['Team'] })).toEqual(['paid-2025'])
+    expect(ids({ roles: ['Head Dining'] })).toEqual(['paid-2025'])
     expect(ids({ methods: ['Waived'] })).toEqual(['waived-1'])
     const womens = rows.find((row) => row.id === 'paid-2025')!.weekendLabel
     expect(ids({ weekends: [womens] })).toEqual(['paid-2025'])

@@ -19,6 +19,7 @@ import {
   type FeePerson,
   type OutstandingFee,
 } from '@/lib/payments/outstanding'
+import { pickRoleForWeekend, type RosterRoleRow } from '@/lib/payments/roles'
 import { WAIVED_PAID_BY, isWaived } from '@/lib/payments/waived'
 import type Stripe from 'stripe'
 import { isNil } from 'lodash'
@@ -194,6 +195,71 @@ async function buildTargetIdentityMap(
 }
 
 /**
+ * Resolves the CHA role each payment's person served in, keyed by payment ID.
+ *
+ * Kept separate from the identity map on purpose: the two answer different
+ * questions and either can come back empty without spoiling the other. Like
+ * the identity map it batches — two queries whatever the number of payments,
+ * one per target table that can carry a role.
+ *
+ * A payment against a roster row takes that row's role. A payment against a
+ * group membership is group-scoped, so the roster row for the payment's own
+ * weekend decides — see `pickRoleForWeekend`. Candidates have no CHA role.
+ */
+async function buildTargetRoleMap(
+  rows: PaymentTransactionWithWeekend[],
+  options?: ServiceOptions
+): Promise<Map<string, string>> {
+  const rosterIds = new Set<string>()
+  const groupMemberIds = new Set<string>()
+  for (const row of rows) {
+    if (isNil(row.target_id)) continue
+    if (row.target_type === 'weekend_roster') rosterIds.add(row.target_id)
+    if (row.target_type === 'weekend_group_member') {
+      groupMemberIds.add(row.target_id)
+    }
+  }
+
+  const [rosterRolesResult, memberRolesResult] = await Promise.all([
+    PaymentRepository.getRosterRolesByRosterId([...rosterIds], options),
+    PaymentRepository.getRosterRolesByGroupMemberId(
+      [...groupMemberIds],
+      options
+    ),
+  ])
+
+  const roleByRosterId = new Map<string, string | null>()
+  for (const record of unwrapOr(rosterRolesResult, [])) {
+    roleByRosterId.set(record.rosterId, record.chaRole)
+  }
+
+  const rosterRowsByMember = new Map<string, RosterRoleRow[]>()
+  for (const record of unwrapOr(memberRolesResult, [])) {
+    if (isNil(record.groupMemberId)) continue
+    const existing = rosterRowsByMember.get(record.groupMemberId) ?? []
+    existing.push({ weekendId: record.weekendId, chaRole: record.chaRole })
+    rosterRowsByMember.set(record.groupMemberId, existing)
+  }
+
+  const roles = new Map<string, string>()
+  for (const row of rows) {
+    if (isNil(row.target_id)) continue
+    const role =
+      row.target_type === 'weekend_roster'
+        ? (roleByRosterId.get(row.target_id) ?? null)
+        : row.target_type === 'weekend_group_member'
+          ? pickRoleForWeekend(
+              rosterRowsByMember.get(row.target_id) ?? [],
+              row.weekend_id
+            )
+          : null
+    if (!isNil(role)) roles.set(row.id, role)
+  }
+
+  return roles
+}
+
+/**
  * Normalizes a payment transaction row into a PaymentTransactionDTO.
  *
  * Two different people are tracked on a payment:
@@ -206,7 +272,8 @@ async function buildTargetIdentityMap(
  */
 function normalizePaymentTransaction(
   raw: PaymentTransactionWithWeekend,
-  targetIdentities: Map<string, TargetIdentity>
+  targetIdentities: Map<string, TargetIdentity>,
+  targetRoles: Map<string, string>
 ): PaymentTransactionDTO {
   const key = targetKey(raw.target_type, raw.target_id)
   const identity = isNil(key) ? undefined : targetIdentities.get(key)
@@ -234,6 +301,7 @@ function normalizePaymentTransaction(
     target_email: identity?.email ?? null,
     weekend_number: raw.weekends?.weekend_groups?.number ?? null,
     weekend_type: (raw.weekends?.type as 'MENS' | 'WOMENS') ?? null,
+    cha_role: targetRoles.get(raw.id) ?? null,
   }
 }
 
@@ -452,9 +520,12 @@ export async function getAllPayments(
     return result
   }
 
-  const targetIdentities = await buildTargetIdentityMap(result.data, options)
+  const [targetIdentities, targetRoles] = await Promise.all([
+    buildTargetIdentityMap(result.data, options),
+    buildTargetRoleMap(result.data, options),
+  ])
   const normalizedPayments = result.data.map((raw) =>
-    normalizePaymentTransaction(raw, targetIdentities)
+    normalizePaymentTransaction(raw, targetIdentities, targetRoles)
   )
 
   // Sort by creation date (newest first) - already sorted by repository but ensure consistency
@@ -482,9 +553,12 @@ export async function getAllPaymentsIncludingVoided(
     return result
   }
 
-  const targetIdentities = await buildTargetIdentityMap(result.data, options)
+  const [targetIdentities, targetRoles] = await Promise.all([
+    buildTargetIdentityMap(result.data, options),
+    buildTargetRoleMap(result.data, options),
+  ])
   const normalizedPayments = result.data.map((raw) =>
-    normalizePaymentTransaction(raw, targetIdentities)
+    normalizePaymentTransaction(raw, targetIdentities, targetRoles)
   )
 
   normalizedPayments.sort(
@@ -751,6 +825,9 @@ export async function getOutstandingFees(
       legacyTargetIds: isNil(groupMemberId) ? [] : [rosterRow.id],
       name: name !== '' ? name : null,
       expectedPayer: name !== '' ? name : null,
+      // The role comes off the roster row this person was taken from, so a
+      // dual-server's role matches the weekend they are listed under.
+      chaRole: rosterRow.cha_role,
       weekendId: weekend?.id ?? null,
       weekendNumber: weekend?.number ?? null,
       weekendType: weekend?.type ?? null,
@@ -769,6 +846,8 @@ export async function getOutstandingFees(
       // The sponsorship form records who is paying: the sponsor or the
       // candidate themselves.
       expectedPayer: c.paymentOwner === 'candidate' ? c.name : c.sponsorName,
+      // Candidates are guests, not team — they have no CHA role.
+      chaRole: null,
       weekendId: weekend?.id ?? null,
       weekendNumber: weekend?.number ?? null,
       weekendType: weekend?.type ?? null,

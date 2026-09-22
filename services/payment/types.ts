@@ -329,4 +329,19 @@ export type PaymentTransactionDTO = {
   // `formatWeekendLabel` in lib/payments/formatters.
   weekend_number: number | null
   weekend_type: 'MENS' | 'WOMENS' | null
+  // The CHA role the target served in on `weekend_id`, resolved server-side
+  // from the roster. Null for candidates, donations, and anyone with no
+  // roster row for the payment's weekend.
+  cha_role: string | null
+}
+
+/**
+ * A weekend_roster row reduced to what a role lookup needs: the role itself,
+ * the weekend it was served on, and the two IDs a payment can target.
+ */
+export type RosterRoleRecord = {
+  rosterId: string
+  groupMemberId: string | null
+  weekendId: string | null
+  chaRole: string | null
 }

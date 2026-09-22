@@ -1,6 +1,6 @@
 import { isNil } from 'lodash'
 import type { PaymentTransactionDTO } from '@/services/payment'
-import type { ActiveWeekendFinancials } from '@/lib/payments/compute-totals'
+import type { OutstandingFee } from '@/lib/payments/outstanding'
 import { isCollected } from '@/lib/payments/waived'
 import type { WeekendGroupWithId } from '@/lib/weekend/types'
 
@@ -36,31 +36,25 @@ export function deriveCollectedThisYear(
 }
 
 export type OutstandingMetrics = {
-  /** Dollars still expected for the active weekend group (never negative). */
+  /** Dollars still owed by the people who have an open fee. */
   total: number
   /** People (team + candidates) who have not paid their fee yet. */
   openFeeCount: number
 }
 
 /**
- * Outstanding money, derived from the same `ActiveWeekendFinancials` the
- * payments summary page renders — the dashboard must never disagree with it.
+ * Outstanding money, summed from the very list of people the Payments ledger
+ * renders under "Outstanding" — so the tile can never say $0 while the ledger
+ * names people who owe.
+ *
+ * Deliberately per-person rather than pooled: an expected-minus-received
+ * figure lets one person's overpayment cancel out another's unpaid fee.
  */
-export function deriveOutstanding(
-  financials: ActiveWeekendFinancials
-): OutstandingMetrics {
-  const total = Math.max(
-    financials.overallExpectedTotal - financials.overallReceivedTotal,
-    0
-  )
-  const openFeeCount = financials.weekends.reduce(
-    (sum, w) =>
-      sum +
-      Math.max(w.teamExpectedCount - w.teamPaidCount, 0) +
-      Math.max(w.candidateExpectedCount - w.candidatePaidCount, 0),
-    0
-  )
-  return { total, openFeeCount }
+export function deriveOutstanding(fees: OutstandingFee[]): OutstandingMetrics {
+  return {
+    total: fees.reduce((sum, fee) => sum + fee.amountDue, 0),
+    openFeeCount: fees.length,
+  }
 }
 
 export type ActionItem =

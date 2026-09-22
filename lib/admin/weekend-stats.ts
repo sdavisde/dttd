@@ -39,9 +39,9 @@ type WeekendStatsInput = {
  * Per-weekend stat tiles. A null input stays null — the omit-don't-approximate
  * rule: the UI drops the tile instead of showing a guess.
  *
- * Fee math intentionally matches `deriveOutstanding` on the dashboard (both
- * count unpaid active team members plus unpaid active candidates), so the two
- * pages can never disagree about how many fees are open.
+ * Fees open is a pooled per-weekend count (expected minus paid, per group).
+ * The dashboard and Payments page count per person instead, so this stat can
+ * differ from theirs for dual-weekend servers and partial payers.
  */
 export function deriveWeekendStats({
   candidateCount,

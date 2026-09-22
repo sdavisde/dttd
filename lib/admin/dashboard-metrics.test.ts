@@ -6,10 +6,9 @@ import {
   needsPlanning,
 } from './dashboard-metrics'
 import {
-  computeActiveWeekendFinancials,
-  type ActiveWeekendFinancials,
-  type ActiveWeekendMetrics,
-} from '@/lib/payments/compute-totals'
+  deriveOutstandingFees,
+  type OutstandingFee,
+} from '@/lib/payments/outstanding'
 import type { PaymentTransactionDTO } from '@/services/payment'
 import type { Weekend, WeekendGroupWithId } from '@/lib/weekend/types'
 
@@ -45,38 +44,20 @@ function payment(
   } as PaymentTransactionDTO
 }
 
-function weekendMetrics(
-  overrides: Partial<ActiveWeekendMetrics> = {}
-): ActiveWeekendMetrics {
+function openFee(overrides: Partial<OutstandingFee> = {}): OutstandingFee {
   return {
+    targetType: 'candidate',
+    targetId: 'c1',
+    legacyTargetIds: [],
+    name: 'Luis Moreno',
+    expectedPayer: 'Tom Bailey',
+    chaRole: null,
+    weekendId: 'w1',
+    weekendNumber: 12,
     weekendType: 'MENS',
-    weekendLabel: "Men's",
-    teamExpectedCount: 0,
-    teamPaidCount: 0,
-    teamExpectedTotal: 0,
-    teamReceivedTotal: 0,
-    candidateExpectedCount: 0,
-    candidatePaidCount: 0,
-    candidateExpectedTotal: 0,
-    candidateReceivedTotal: 0,
-    candidateExtraPaymentsCount: 0,
-    teamExtraPaymentsCount: 0,
-    ...overrides,
-  }
-}
-
-function financials(
-  weekends: ActiveWeekendMetrics[],
-  overrides: Partial<ActiveWeekendFinancials> = {}
-): ActiveWeekendFinancials {
-  return {
-    weekends,
-    teamExpectedTotal: 0,
-    teamReceivedTotal: 0,
-    candidateExpectedTotal: 0,
-    candidateReceivedTotal: 0,
-    overallExpectedTotal: 0,
-    overallReceivedTotal: 0,
+    feeAmount: 185,
+    coveredSoFar: 0,
+    amountDue: 185,
     ...overrides,
   }
 }
@@ -136,46 +117,46 @@ describe('deriveCollectedThisYear', () => {
 })
 
 describe('deriveOutstanding', () => {
-  it('reports expected minus received and unpaid people', () => {
-    const result = deriveOutstanding(
-      financials(
-        [
-          weekendMetrics({
-            teamExpectedCount: 10,
-            teamPaidCount: 7,
-            candidateExpectedCount: 5,
-            candidatePaidCount: 2,
-          }),
-        ],
-        { overallExpectedTotal: 2775, overallReceivedTotal: 1665 }
-      )
-    )
-    expect(result).toEqual({ total: 1110, openFeeCount: 6 })
+  it('sums what each person still owes and counts them', () => {
+    expect(
+      deriveOutstanding([
+        openFee({ amountDue: 185 }),
+        openFee({ targetId: 'c2', amountDue: 85 }),
+        openFee({ targetId: 'm1', amountDue: 100 }),
+      ])
+    ).toEqual({ total: 370, openFeeCount: 3 })
   })
 
-  it('floors a surplus at zero and never counts negative unpaid people', () => {
-    const result = deriveOutstanding(
-      financials([weekendMetrics({ teamExpectedCount: 2, teamPaidCount: 3 })], {
-        overallExpectedTotal: 370,
-        overallReceivedTotal: 500,
-      })
-    )
-    expect(result).toEqual({ total: 0, openFeeCount: 0 })
+  it('is zero when nobody owes anything', () => {
+    expect(deriveOutstanding([])).toEqual({ total: 0, openFeeCount: 0 })
   })
 
-  it('agrees with computeActiveWeekendFinancials, the summary-page code path', () => {
+  it('agrees with deriveOutstandingFees, the payments-page code path', () => {
     // One roster member expected at $185 cash ($195 - $10 surcharge), nobody paid.
-    const computed = computeActiveWeekendFinancials(
+    const fees = deriveOutstandingFees(
+      [
+        {
+          targetType: 'weekend_group_member',
+          targetId: 'member-1',
+          legacyTargetIds: [],
+          name: 'Ann Simmons',
+          expectedPayer: 'Ann Simmons',
+          chaRole: 'Rover',
+          weekendId: 'ww',
+          weekendNumber: 12,
+          weekendType: 'WOMENS',
+        },
+      ],
       [],
-      { MENS: 'wm', WOMENS: 'ww' },
-      { wm: 1, ww: 0 },
-      { wm: 0, ww: 0 },
-      195,
-      195,
-      new Set<string>(),
-      new Set<string>()
+      { teamFee: 195, candidateFee: 195 }
     )
-    expect(deriveOutstanding(computed)).toEqual({
+    expect(deriveOutstanding(fees)).toEqual({ total: 185, openFeeCount: 1 })
+  })
+
+  it('never lets one overpayment hide another person’s unpaid fee', () => {
+    // The pooled expected-minus-received figure this replaced would read $0
+    // here; the person who still owes $185 is what the board needs to see.
+    expect(deriveOutstanding([openFee({ amountDue: 185 })])).toEqual({
       total: 185,
       openFeeCount: 1,
     })

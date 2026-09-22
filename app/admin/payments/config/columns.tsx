@@ -124,6 +124,22 @@ export const paymentsColumns: ColumnDef<LedgerRow>[] = [
     },
   },
   {
+    id: 'role',
+    accessorFn: (row) => row.roleLabel,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Role" />
+    ),
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{getValue<string>()}</span>
+    ),
+    meta: {
+      filterType: 'select',
+      showOnMobile: true,
+      mobileLabel: 'Role',
+      mobilePriority: 'detail',
+    },
+  },
+  {
     // Hidden: exists so the Type chip can filter on it.
     id: 'type',
     accessorFn: (row) => row.typeLabel,

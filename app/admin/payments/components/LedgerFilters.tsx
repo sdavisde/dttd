@@ -39,6 +39,9 @@ type LedgerFiltersProps = {
   typeOptions: string[]
   selectedTypes: string[]
   onTypesChange: (types: string[]) => void
+  roleOptions: string[]
+  selectedRoles: string[]
+  onRolesChange: (roles: string[]) => void
   yearOptions: number[]
   year: number | null
   onYearChange: (year: number | null) => void
@@ -62,6 +65,9 @@ export function LedgerFilters({
   typeOptions,
   selectedTypes,
   onTypesChange,
+  roleOptions,
+  selectedRoles,
+  onRolesChange,
   yearOptions,
   year,
   onYearChange,
@@ -111,6 +117,13 @@ export function LedgerFilters({
         options={typeOptions}
         selected={selectedTypes}
         onChange={onTypesChange}
+      />
+      <MultiSelectChip
+        label="Role"
+        anyLabel="any"
+        options={roleOptions}
+        selected={selectedRoles}
+        onChange={onRolesChange}
       />
 
       <DropdownMenu>

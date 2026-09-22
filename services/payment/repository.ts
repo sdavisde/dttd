@@ -10,6 +10,7 @@ import type {
   PaymentTransactionInsert,
   PaymentTransactionUpdate,
   PaymentTransactionWithWeekend,
+  RosterRoleRecord,
   TargetIdentity,
   TargetType,
 } from './types'
@@ -379,6 +380,71 @@ export async function getRosterIdentities(
       email: row.users?.email ?? null,
     }))
   )
+}
+
+// ============================================================================
+// CHA Role Lookups
+// ============================================================================
+
+/** The roster columns a role lookup reads. */
+const RosterRoleQuery = 'id, group_member_id, weekend_id, cha_role'
+
+function toRosterRoleRecord(row: {
+  id: string
+  group_member_id: string | null
+  weekend_id: string | null
+  cha_role: string | null
+}): RosterRoleRecord {
+  return {
+    rosterId: row.id,
+    groupMemberId: row.group_member_id,
+    weekendId: row.weekend_id,
+    chaRole: row.cha_role,
+  }
+}
+
+/**
+ * Looks up the CHA role on a set of weekend_roster rows, for payments recorded
+ * against the roster row itself. One query, whatever the number of IDs.
+ * @param ids - weekend_roster IDs to resolve
+ * @param options - Service options including RLS bypass flag
+ */
+export async function getRosterRolesByRosterId(
+  ids: string[],
+  options?: ServiceOptions
+): Promise<Result<string, RosterRoleRecord[]>> {
+  if (ids.length === 0) return ok([])
+
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('weekend_roster')
+    .select(RosterRoleQuery)
+    .in('id', ids)
+
+  return map(fromSupabase(response), (rows) => rows.map(toRosterRoleRecord))
+}
+
+/**
+ * Looks up the active roster rows of a set of group members, so a payment
+ * targeting the membership can show the role served on its own weekend. One
+ * query, whatever the number of IDs; dropped rows are left out.
+ * @param ids - weekend_group_members IDs to resolve
+ * @param options - Service options including RLS bypass flag
+ */
+export async function getRosterRolesByGroupMemberId(
+  ids: string[],
+  options?: ServiceOptions
+): Promise<Result<string, RosterRoleRecord[]>> {
+  if (ids.length === 0) return ok([])
+
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('weekend_roster')
+    .select(RosterRoleQuery)
+    .in('group_member_id', ids)
+    .or('status.is.null,status.neq.drop')
+
+  return map(fromSupabase(response), (rows) => rows.map(toRosterRoleRecord))
 }
 
 // ============================================================================

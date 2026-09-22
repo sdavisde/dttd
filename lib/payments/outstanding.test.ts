@@ -9,6 +9,7 @@ const candidate = (id: string, name: string): FeePerson => ({
   legacyTargetIds: [],
   name,
   expectedPayer: 'Tom Bailey',
+  chaRole: null,
   weekendId: 'weekend-mens',
   weekendNumber: 12,
   weekendType: 'MENS',
@@ -20,6 +21,7 @@ const teamMember: FeePerson = {
   legacyTargetIds: ['roster-1'],
   name: 'Ann Simmons',
   expectedPayer: 'Ann Simmons',
+  chaRole: 'Rover',
   weekendId: 'weekend-womens',
   weekendNumber: 12,
   weekendType: 'WOMENS',
@@ -104,6 +106,11 @@ describe('deriveOutstandingFees', () => {
       }),
     ]
     expect(deriveOutstandingFees([teamMember], payments, prices)).toEqual([])
+  })
+
+  it('carries the CHA role through to the fee', () => {
+    const [fee] = deriveOutstandingFees([teamMember], [], prices)
+    expect(fee.chaRole).toBe('Rover')
   })
 
   it('uses the team price for team members', () => {

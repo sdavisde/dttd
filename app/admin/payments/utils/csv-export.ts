@@ -40,6 +40,7 @@ export const LEDGER_CSV_COLUMNS: CsvColumn[] = [
   { header: 'For', value: (row) => formatLedgerFor(row) },
   { header: 'Person', value: (row) => row.personName ?? '' },
   { header: 'Fee type', value: (row) => row.feeLabel },
+  { header: 'Role', value: (row) => row.roleLabel },
   { header: 'Weekend', value: (row) => row.weekendLabel },
   { header: 'Amount', value: (row) => money(row.amount) },
   {

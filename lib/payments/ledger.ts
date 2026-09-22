@@ -51,6 +51,8 @@ export type LedgerRow = {
   personName: string | null
   /** "Candidate" / "Team" / "Other" — what the Type chip filters on. */
   typeLabel: string
+  /** The CHA role served, "Candidate", or an em dash. See formatLedgerRole. */
+  roleLabel: string
   weekendLabel: string
   weekendType: 'MENS' | 'WOMENS' | null
   amount: number
@@ -84,6 +86,21 @@ function feeLabelFor(
   }
 }
 
+/**
+ * The Role cell: which CHA role the person served in on the weekend the
+ * payment is for. Candidates are guests rather than team, so they read
+ * "Candidate"; a donation, or a team member we can't place on a roster, reads
+ * as an em dash rather than an invented role.
+ */
+export function formatLedgerRole(
+  targetType: PaymentTransactionDTO['target_type'],
+  chaRole: string | null
+): string {
+  if (targetType === 'candidate') return 'Candidate'
+  const role = (chaRole ?? '').trim()
+  return role !== '' ? role : '—'
+}
+
 function paymentToRow(payment: PaymentTransactionDTO): LedgerRow {
   return {
     id: payment.id,
@@ -95,6 +112,7 @@ function paymentToRow(payment: PaymentTransactionDTO): LedgerRow {
     feeLabel: feeLabelFor(payment.type, payment.target_type),
     personName: payment.target_name,
     typeLabel: formatTargetType(payment.target_type),
+    roleLabel: formatLedgerRole(payment.target_type, payment.cha_role),
     weekendLabel: formatWeekendLabel(payment),
     weekendType: payment.weekend_type,
     amount: payment.gross_amount,
@@ -114,6 +132,7 @@ function outstandingToRow(fee: OutstandingFee): LedgerRow {
     feeLabel: feeLabelFor('fee', fee.targetType),
     personName: fee.name,
     typeLabel: formatTargetType(fee.targetType),
+    roleLabel: formatLedgerRole(fee.targetType, fee.chaRole),
     weekendLabel:
       isNil(fee.weekendNumber) && isNil(fee.weekendType)
         ? 'Unknown'
@@ -193,6 +212,7 @@ export function ledgerRowMatchesSearch(
     row.paidBy,
     row.feeLabel,
     row.typeLabel,
+    row.roleLabel,
     row.weekendLabel,
     isNil(row.method) ? null : formatPaymentMethod(row.method),
     row.status,
@@ -236,6 +256,7 @@ export type LedgerFilter = LedgerViewFilter & {
   /** Empty means any. */
   weekends: string[]
   types: string[]
+  roles: string[]
   methods: string[]
 }
 
@@ -254,6 +275,7 @@ export function filterLedgerRows(
       (filter.weekends.length === 0 ||
         filter.weekends.includes(row.weekendLabel)) &&
       (filter.types.length === 0 || filter.types.includes(row.typeLabel)) &&
+      (filter.roles.length === 0 || filter.roles.includes(row.roleLabel)) &&
       (filter.methods.length === 0 ||
         filter.methods.includes(ledgerMethodLabel(row)))
   )
