@@ -1,6 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { isNil } from 'lodash'
 import { formatCurrency } from '@/lib/payments/formatters'
 import type { LedgerStats } from '@/lib/payments/ledger'
@@ -30,7 +32,7 @@ const plural = (count: number, one: string, many: string) =>
  * The board's three figure-first tiles: money in this year, what is owed
  * right now, and fees the community covered this year. They describe the
  * books, not the table — filters never move them. Net and Stripe-fee detail
- * lives on the summary page.
+ * lives on the summary page, which the fourth tile opens.
  */
 export function PaymentsSummary({
   stats,
@@ -38,7 +40,7 @@ export function PaymentsSummary({
   onViewOutstanding,
 }: PaymentsSummaryProps) {
   return (
-    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
       <StatTile
         figure={formatCurrency(stats.collectedTotal)}
         figureClassName="text-success"
@@ -83,6 +85,19 @@ export function PaymentsSummary({
             : `Waived in ${stats.year}`
         }
       />
+
+      <Link
+        href="/admin/payments/summary"
+        className="flex min-h-11 flex-col justify-center gap-0.5 rounded-md border bg-card px-4.5 py-3.5 transition-colors hover:bg-muted/40"
+      >
+        <span className="flex items-center gap-1.5 font-serif text-lg font-semibold tracking-tight">
+          Payment summary
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </span>
+        <span className="text-[13px] text-muted-foreground">
+          Weekend-by-weekend breakdown · expected vs received, net after fees
+        </span>
+      </Link>
     </div>
   )
 }
