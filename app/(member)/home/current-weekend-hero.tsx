@@ -18,6 +18,7 @@ import {
   formatWeekendGroupTitle,
 } from '@/lib/weekend'
 import { formatDateRange } from '@/lib/utils'
+import { hubPath } from '@/lib/weekend/hub'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Typography } from '@/components/ui/typography'
@@ -51,6 +52,7 @@ export async function CurrentWeekendHero({ user }: CurrentWeekendHeroProps) {
   const womensCandidateCount = Results.unwrapOr(womensCountResult, 0)
 
   const groupTitle = getGroupTitle(mensWeekend, womensWeekend)
+  const groupId = mensWeekend.groupId ?? womensWeekend.groupId
 
   return (
     <section className="overflow-hidden rounded-xl border bg-card shadow-sm">
@@ -101,11 +103,13 @@ export async function CurrentWeekendHero({ user }: CurrentWeekendHeroProps) {
         )}
 
         <Button
-          href="/current-weekend"
+          href={
+            isNil(groupId) ? '/weekends' : hubPath(groupId, 'overview', null)
+          }
           className="w-full sm:w-auto"
           linkProps={{ className: 'block sm:inline-block' }}
         >
-          View Current Weekend
+          Open the weekend hub
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>

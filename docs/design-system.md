@@ -59,6 +59,19 @@ one gutter; `size="narrow"` for forms and reading pages) with `MemberBreadcrumbs
 `PageHeader`. `MemberBreadcrumbs` renders the trail 13.5px muted, hides earlier crumbs on phones,
 and carries the same copy-link button as the admin trail (`components/ui/breadcrumb-share-button`).
 
+## Weekend hub
+
+Weekend operations live on each group's hub, `/weekends/[groupId]` (index at `/weekends`), in
+the member shell. The Men's / Women's choice is the `?weekend=MENS|WOMENS` query parameter, so it
+survives switching the Overview / Schedule / Team / Candidates tabs (`lib/weekend/hub.ts` builds
+every hub URL via `hubPath`; never hand-write one). Layouts can't read search params, so each tab
+page calls `loadHubContext` and renders inside `WeekendHubFrame`
+(`app/(member)/weekends/[groupId]/hub-frame.tsx`), which owns the breadcrumb, title, the
+`SegmentedControl` weekend switch, the tabs and the cream management strip. The strip is gated
+per feature (`READ_CANDIDATES`, `READ_TEAM_ROSTER_BUILDER`, `WRITE_WEEKENDS`), never by a single
+"PWC" check. Stat tiles use `components/ui/stat-tile.tsx` and follow the omit-don't-approximate
+rule: a tile whose source failed (or that the viewer may not see) is left out, never shown as 0.
+
 ## Elevation: borders, not shadows
 
 Surfaces are defined by `1px` borders (`--border`, inner dividers slightly lighter),

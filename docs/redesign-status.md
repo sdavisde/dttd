@@ -52,7 +52,8 @@ dependency, moved `/admin/users` to `/admin/people`, and renamed `/admin/meeting
 
 Two admin routes were left alone on purpose:
 
-- `/admin/weekends/[weekend_id]` — the weekend hub, shared with the public roster (spec 16 non-goal).
+- `/admin/weekends/[weekend_id]` — the old admin weekend hub (spec 16 non-goal); retired on 2026-09-23 in
+  favour of the member hub at `/weekends/[groupId]`.
 - `/admin/reports` — not built; the nav shows a SOON badge.
 
 `app/(public)`, `components/weekend/**` and `components/file-management/**` are zero-diff against
@@ -125,7 +126,7 @@ None of it has been exercised in a browser yet.
 - Open design-system questions: green is used for both community-event scope and paid/success;
   the rector-ready star is still `amber-500` because `--warning` is too pale at icon size.
 
-## Member track — shell landed, hub and review next
+## Member track — shell and hub landed, review next
 
 The canvas has a Member screens page: VerbNav, Weekend Hub, Today home, phone screens, the member
 sidebar and topbar (from the CandidateReviewA board), the phone tab bar (from Main).
@@ -139,6 +140,18 @@ gone. Page bodies were left as they were: the weekend hub (`/weekends/[groupId]`
 current-weekend, roster, candidate-list and review-candidates — old URLs removed, not redirected)
 and the queue-layout candidate review are the next two chunks. Deferred by owner decision:
 waitlist status, "Ask the sponsor", and the hub's Documents card.
+
+**Weekend hub (2026-09-23, on `preview`):** `/weekends` lists every group (active first) and
+`/weekends/[groupId]` is the hub — Overview (confirmed / 42, team serving, days until send-off,
+fees outstanding for payments readers; Coming up; Your part in this weekend; prayer wheel),
+Schedule (the existing calendar + list), Team (the existing roster view) and Candidates (the
+existing candidate-info table), with the Men's / Women's switch as `?weekend=`. The cream strip
+is per feature: Review candidates · N waiting, Roster builder, Edit weekend (→ Admin › Weekends
+until a member-side editor exists). Retired outright: `/current-weekend`, `/roster`,
+`/candidate-list`, `/admin/weekends/[weekend_id]`; the sidebar's Roster now opens the active
+group's Team tab. Known gaps: no weekend location column (read from the weekend event), CHA-role
+permissions only apply to the ACTIVE group, the roster builder and sponsor form still work on the
+active group only.
 
 Earlier public-side design commits predate the canvas and are not part of this track: `fc9c4f1`
 landing redesign, `8964c88` home dashboard, `448bdc3` warm design foundation + profile settings.
