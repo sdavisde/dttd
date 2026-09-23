@@ -80,6 +80,17 @@ export const LEDGER_HIDDEN_COLUMNS = { type: false } as const
 
 export const paymentsColumns: ColumnDef<LedgerRow>[] = [
   {
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => <PaymentRowActions row={row.original} />,
+    enableSorting: false,
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'Actions',
+      mobilePriority: 'detail',
+    },
+  },
+  {
     id: 'paidBy',
     accessorFn: (row) => row.paidBy ?? '',
     header: ({ column }) => (
@@ -243,17 +254,6 @@ export const paymentsColumns: ColumnDef<LedgerRow>[] = [
     meta: {
       showOnMobile: true,
       mobileLabel: 'Date',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'actions',
-    header: '',
-    cell: ({ row }) => <PaymentRowActions row={row.original} />,
-    enableSorting: false,
-    meta: {
-      showOnMobile: true,
-      mobileLabel: 'Actions',
       mobilePriority: 'detail',
     },
   },
