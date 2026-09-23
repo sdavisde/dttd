@@ -35,12 +35,36 @@ export function FullAccessCard({
   const remainingAfterRemoval = totalHolders - holdersLostIfRemoved
   const wouldLeaveTooFew = removing && remainingAfterRemoval < 2
 
+  const notes = [
+    resolved.on && (
+      <span key="granted" className="font-medium text-destructive">
+        Grants every permission, including future ones.
+      </span>
+    ),
+    wouldLeaveTooFew && (
+      <span
+        key="too-few"
+        role="alert"
+        className="flex items-start gap-1.5 text-foreground"
+      >
+        <TriangleAlert
+          aria-hidden
+          className="mt-px size-3.5 shrink-0 text-destructive"
+        />
+        Turning this off would leave{' '}
+        {remainingAfterRemoval === 1
+          ? 'only 1 person'
+          : `${Math.max(remainingAfterRemoval, 0)} people`}{' '}
+        with Full access. Make sure at least two people keep it before saving.
+      </span>
+    ),
+  ].filter(Boolean)
+
   return (
     <SettingRow
       divider={false}
-      className="rounded-md border border-destructive/40 px-3.5"
       htmlFor="full-access"
-      title="Full access"
+      title={<span className="font-semibold">Full access</span>}
       description={
         <>
           This role could do everything — read every candidate’s medical
@@ -71,25 +95,7 @@ export function FullAccessCard({
           />
         </>
       }
-      note={
-        wouldLeaveTooFew ? (
-          <span
-            role="alert"
-            className="flex items-start gap-1.5 text-foreground"
-          >
-            <TriangleAlert
-              aria-hidden
-              className="mt-px size-3.5 shrink-0 text-destructive"
-            />
-            Turning this off would leave{' '}
-            {remainingAfterRemoval === 1
-              ? 'only 1 person'
-              : `${Math.max(remainingAfterRemoval, 0)} people`}{' '}
-            with Full access. Make sure at least two people keep it before
-            saving.
-          </span>
-        ) : undefined
-      }
+      note={notes.length > 0 ? notes : undefined}
     />
   )
 }

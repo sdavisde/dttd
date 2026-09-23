@@ -156,16 +156,6 @@ export function PermissionLadder({
     </button>
   )
 
-  const notes = [
-    !isNil(partway) && (
-      <span key="partway">
-        Partway to {RUNG_LABELS[partway]} — tick the rest, or use the buttons to
-        set the whole area at once.
-      </span>
-    ),
-    !isNil(ladder.caution) && <span key="caution">{ladder.caution}</span>,
-  ].filter(Boolean)
-
   return (
     <SettingRow
       title={
@@ -176,7 +166,7 @@ export function PermissionLadder({
       }
       description={ladder.helper}
       control={control}
-      note={notes.length > 0 ? notes : undefined}
+      note={isNil(ladder.caution) ? undefined : <span>{ladder.caution}</span>}
     >
       {checklistOpen && (
         <div

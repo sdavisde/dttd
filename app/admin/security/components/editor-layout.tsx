@@ -1,36 +1,86 @@
 'use client'
 
 import { isNil } from 'lodash'
-import { Lock } from 'lucide-react'
+import { Lock, TriangleAlert } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * The two shapes every part of the role editor is built from: a section
- * (heading, one muted line, hairline rule) and a setting row (what it is on the
- * left, the control on the right). No cards, no tiles — settings-page reading.
+ * The three shapes every part of the role editor is built from: a panel (a
+ * bordered block, so one part of the editor never runs into the next), a
+ * section (a panel with a heading and one muted line) and a setting row (what
+ * it is on the left, the control on the right).
  */
+
+type PanelTone = 'default' | 'destructive'
+
+interface EditorPanelProps {
+  children: ReactNode
+  /** The danger zone reads in destructive red, tinted and outlined. */
+  tone?: PanelTone
+  className?: string
+}
+
+export function EditorPanel({
+  children,
+  tone = 'default',
+  className,
+}: EditorPanelProps) {
+  return (
+    <section
+      className={cn(
+        'flex flex-col gap-1 rounded-md border p-5 md:p-6',
+        tone === 'destructive'
+          ? 'border-destructive/50 bg-destructive/5'
+          : 'border-border bg-card',
+        className
+      )}
+    >
+      {children}
+    </section>
+  )
+}
 
 interface EditorSectionProps {
   title: string
   /** One line, muted — why this section exists. */
   description: ReactNode
   children: ReactNode
+  tone?: PanelTone
 }
 
 export function EditorSection({
   title,
   description,
   children,
+  tone = 'default',
 }: EditorSectionProps) {
+  const destructive = tone === 'destructive'
   return (
-    <section className="flex flex-col gap-1">
-      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+    <EditorPanel tone={tone}>
+      <h3
+        className={cn(
+          'flex items-center gap-2 text-base font-semibold',
+          destructive ? 'text-destructive' : 'text-foreground'
+        )}
+      >
+        {destructive && (
+          <TriangleAlert aria-hidden className="size-4 shrink-0" />
+        )}
+        {title}
+      </h3>
       <p className="text-[13px] leading-relaxed text-muted-foreground">
         {description}
       </p>
-      <div className="mt-3 border-t border-divider pt-1">{children}</div>
-    </section>
+      <div
+        className={cn(
+          'mt-3 border-t pt-1',
+          destructive ? 'border-destructive/25' : 'border-divider'
+        )}
+      >
+        {children}
+      </div>
+    </EditorPanel>
   )
 }
 

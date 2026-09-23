@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -25,10 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useIsMobile } from '@/hooks/use-mobile'
 import { isErr } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import { isDevMode } from '@/lib/dev-mode'
+import { cn } from '@/lib/utils'
 import type { Permission } from '@/lib/security'
 import {
   ADMIN_ACCESS_PERMISSION,
@@ -62,7 +64,12 @@ import {
   roleLabelById,
   toRoleInput,
 } from '../lib/editor-model'
-import { EditorSection, LockedBy, SettingRow } from './editor-layout'
+import {
+  EditorPanel,
+  EditorSection,
+  LockedBy,
+  SettingRow,
+} from './editor-layout'
 import { PermissionLadder } from './permission-ladder'
 import { RoleSummaryCard } from './role-summary-card'
 import { SensitivePanel } from './sensitive-panel'
@@ -92,8 +99,8 @@ interface RoleEditorProps {
 
 /**
  * The detail pane, read as a settings page: a header with one summary line,
- * then the name fields, Permissions, Sensitive data and the danger zone, each a heading
- * and a stack of rows. Nothing is written until Save — loading a role never
+ * then the name fields, Permissions, Sensitive data and the danger zone, each
+ * its own bordered panel. Nothing is written until Save — loading a role never
  * normalises its permissions.
  */
 export function RoleEditor({
@@ -110,7 +117,6 @@ export function RoleEditor({
   onSelectRole,
 }: RoleEditorProps) {
   const isNew = isNil(role)
-  const isMobile = useIsMobile()
   const defaults: RoleInputValues = useMemo(() => {
     if (!isNil(role)) return toRoleInput(role)
     if (!isNil(initial)) return initial
@@ -263,13 +269,10 @@ export function RoleEditor({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="rounded-md border border-border bg-card px-4 py-5 md:px-6"
-      >
-        <div className="flex max-w-[680px] flex-col gap-8">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex max-w-[680px] flex-col gap-6">
           {/* Header: the name, one line saying where this role stands, and the plain-English summary. */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-serif text-2xl font-semibold tracking-tight">
@@ -299,15 +302,10 @@ export function RoleEditor({
               </p>
             </div>
 
-            <RoleSummaryCard
-              key={isMobile ? 'mobile' : 'desktop'}
-              effective={effective}
-              parentLabel={parentLabel}
-              defaultCollapsed={isMobile}
-            />
+            <RoleSummaryCard effective={effective} parentLabel={parentLabel} />
           </div>
 
-          <div>
+          <EditorPanel>
             <div className="flex flex-col gap-4">
               <FormField
                 control={form.control}
@@ -350,81 +348,85 @@ export function RoleEditor({
                 )}
               />
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-start">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem className="flex min-h-11 flex-row items-start gap-3 md:min-h-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value === 'INDIVIDUAL'}
+                        disabled={readOnly}
+                        onCheckedChange={(checked) =>
+                          field.onChange(
+                            checked === true ? 'INDIVIDUAL' : 'COMMITTEE'
+                          )
+                        }
+                        className="mt-0.5 size-4 shrink-0"
+                      />
+                    </FormControl>
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <FormLabel
+                        className={cn(
+                          'text-sm font-medium text-foreground',
+                          readOnly ? 'cursor-not-allowed' : 'cursor-pointer'
+                        )}
+                      >
+                        One person holds this role at a time
+                      </FormLabel>
+                      <FormDescription className="text-[13px] leading-snug">
+                        Board positions like Treasurer. Leave off for committees
+                        and teams.
+                      </FormDescription>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex flex-col gap-2">
                 <FormField
                   control={form.control}
-                  name="type"
+                  name="based_on_role_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={fieldLabelClass}>Kind</FormLabel>
+                      <FormLabel className={fieldLabelClass}>
+                        Based on
+                      </FormLabel>
                       <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
+                        value={field.value ?? NO_PARENT}
+                        onValueChange={(value) =>
+                          field.onChange(value === NO_PARENT ? null : value)
+                        }
                         disabled={readOnly}
                       >
                         <FormControl>
                           <SelectTrigger className="h-11 w-full md:h-9">
-                            <SelectValue />
+                            <SelectValue placeholder="Nothing" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="INDIVIDUAL">
-                            Position — one person
-                          </SelectItem>
-                          <SelectItem value="COMMITTEE">
-                            Committee — several people
-                          </SelectItem>
+                          <SelectItem value={NO_PARENT}>Nothing</SelectItem>
+                          {parents.map((parent) => (
+                            <SelectItem key={parent.id} value={parent.id}>
+                              {parent.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                <div className="flex flex-col gap-2">
-                  <FormField
-                    control={form.control}
-                    name="based_on_role_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={fieldLabelClass}>
-                          Based on
-                        </FormLabel>
-                        <Select
-                          value={field.value ?? NO_PARENT}
-                          onValueChange={(value) =>
-                            field.onChange(value === NO_PARENT ? null : value)
-                          }
-                          disabled={readOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="h-11 w-full md:h-9">
-                              <SelectValue placeholder="Nothing" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value={NO_PARENT}>Nothing</SelectItem>
-                            {parents.map((parent) => (
-                              <SelectItem key={parent.id} value={parent.id}>
-                                {parent.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* Rendered outside the field so it never reads form context. */}
-                  <p className="text-[13px] leading-snug text-muted-foreground">
-                    {isNil(parentLabel)
-                      ? 'Pick a role to include everything it can do, locked below.'
-                      : `Everything ${parentLabel} can do is included and locked below.`}
-                  </p>
-                </div>
+                {/* Rendered outside the field so it never reads form context. */}
+                <p className="text-[13px] leading-snug text-muted-foreground">
+                  {isNil(parentLabel)
+                    ? 'Pick a role to include everything it can do, locked below.'
+                    : `Everything ${parentLabel} can do is included and locked below.`}
+                </p>
               </div>
             </div>
-          </div>
+          </EditorPanel>
 
           <EditorSection
             title="Permissions"
@@ -508,8 +510,9 @@ export function RoleEditor({
           />
 
           <EditorSection
+            tone="destructive"
             title="Danger zone"
-            description="Full access and deleting the role — both are hard to undo."
+            description="These change what everyone with this role can do, or remove the role for good."
           >
             <div className="pt-3">
               <FullAccessCard
@@ -538,12 +541,12 @@ export function RoleEditor({
               />
 
               {canEdit && !isNew && (
-                <div className="flex flex-col gap-1.5 pt-4">
+                <div className="flex flex-col gap-1.5 border-t border-destructive/25 pt-4">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="h-11 self-start text-destructive hover:text-destructive md:h-9"
+                    className="h-11 self-start border-destructive/50 bg-card text-destructive hover:bg-destructive hover:text-white md:h-9"
                     disabled={isSaving || !isNil(deleteBlockedReason)}
                     onClick={() => onDelete(role)}
                   >
@@ -562,7 +565,7 @@ export function RoleEditor({
 
           {/* Only here once there is something to save. */}
           {showSaveBar && (
-            <div className="sticky bottom-0 -mx-4 -mb-5 flex items-center justify-end gap-2 border-t border-border bg-card px-4 py-3 md:-mx-6 md:px-6">
+            <div className="sticky bottom-0 flex items-center justify-end gap-2 rounded-md border border-border bg-card px-4 py-3">
               <p className="mr-auto text-[13px] text-muted-foreground">
                 {isNew ? 'Not saved yet' : 'Unsaved changes'}
               </p>

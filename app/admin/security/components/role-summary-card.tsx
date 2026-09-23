@@ -5,30 +5,34 @@ import { isNil } from 'lodash'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Permission } from '@/lib/security'
-import { phraseList, summariseRole } from '@/lib/security/role-summary'
+import {
+  countPhrases,
+  summariseRole,
+  type SummaryGroup,
+} from '@/lib/security/role-summary'
 
 interface RoleSummaryCardProps {
   /** Own ∪ inherited — what the role really grants. */
   effective: ReadonlySet<Permission>
   parentLabel: string | null
-  /** Collapsed to its header when true (phones); open on desktop. */
-  defaultCollapsed: boolean
 }
 
 /**
  * The plain-English answer to "so what can this role actually do?", computed
- * from the effective set and shown right under the header. Two columns, Can
- * and Can't; one line when the role has Full access.
+ * from the effective set and shown right under the header. Closed to one line
+ * until it is opened; then two columns, Can and Can't, each grouped by area.
+ * One line when the role has Full access.
  */
 export function RoleSummaryCard({
   effective,
   parentLabel,
-  defaultCollapsed,
 }: RoleSummaryCardProps) {
-  const [open, setOpen] = useState(!defaultCollapsed)
+  const [open, setOpen] = useState(false)
   const panelId = useId()
   const summary = summariseRole(effective)
   const Chevron = open ? ChevronDown : ChevronRight
+  const count =
+    summary.kind === 'full-access' ? null : countPhrases(summary.can)
 
   return (
     <div className="flex flex-col gap-2.5 rounded-md border border-border bg-card px-4 py-3">
@@ -42,19 +46,24 @@ export function RoleSummaryCard({
         <Chevron aria-hidden className="size-3.5 shrink-0" />
         <span>
           What this role can do{' '}
-          <span className="font-normal text-muted-foreground">
+          <span className="font-normal text-muted-foreground tabular-nums">
             —{' '}
-            {isNil(parentLabel)
-              ? 'computed from what you set below'
-              : `computed from ${parentLabel} plus this role`}
+            {isNil(count)
+              ? 'every permission'
+              : `${count} ${count === 1 ? 'permission' : 'permissions'}`}
           </span>
         </span>
       </button>
 
       {open && (
-        <div id={panelId}>
+        <div id={panelId} className="flex flex-col gap-3">
+          <p className="text-xs leading-snug text-muted-foreground">
+            {isNil(parentLabel)
+              ? 'Computed from what you set below.'
+              : `Computed from ${parentLabel} plus this role.`}
+          </p>
           {summary.kind === 'full-access' ? (
-            <p className="text-[13px] leading-relaxed text-foreground">
+            <p className="text-sm leading-5 text-foreground">
               Everything — this role has Full access.
             </p>
           ) : (
@@ -62,13 +71,13 @@ export function RoleSummaryCard({
               <SummaryColumn
                 heading="Can"
                 headingClass="text-success"
-                permissions={summary.can}
+                groups={summary.can}
                 empty="Nothing yet."
               />
               <SummaryColumn
                 heading="Can’t"
                 headingClass="text-destructive"
-                permissions={summary.cant}
+                groups={summary.cant}
                 empty="Nothing — every area is covered."
               />
             </div>
@@ -82,16 +91,16 @@ export function RoleSummaryCard({
 function SummaryColumn({
   heading,
   headingClass,
-  permissions,
+  groups,
   empty,
 }: {
   heading: string
   headingClass: string
-  permissions: readonly Permission[]
+  groups: readonly SummaryGroup[]
   empty: string
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-3">
       <div
         className={cn(
           'text-[12px] font-semibold tracking-wider uppercase',
@@ -100,13 +109,22 @@ function SummaryColumn({
       >
         {heading}
       </div>
-      <p className="text-[13px] leading-relaxed text-foreground">
-        {permissions.length === 0 ? (
-          <span className="text-muted-foreground">{empty}</span>
-        ) : (
-          phraseList(permissions)
-        )}
-      </p>
+      {groups.length === 0 ? (
+        <p className="text-sm leading-5 text-muted-foreground">{empty}</p>
+      ) : (
+        groups.map((group) => (
+          <div key={group.area} className="flex flex-col gap-0.5">
+            <div className="text-xs font-medium text-muted-foreground">
+              {group.area}
+            </div>
+            {group.phrases.map((phrase) => (
+              <div key={phrase} className="text-sm leading-5 text-foreground">
+                {phrase}
+              </div>
+            ))}
+          </div>
+        ))
+      )}
     </div>
   )
 }
