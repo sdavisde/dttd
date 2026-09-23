@@ -71,7 +71,7 @@ export function RoleAssignmentDialog({
             onChange={(event) => onSearchChange(event.target.value)}
           />
 
-          <div className="max-h-72 overflow-y-auto space-y-1">
+          <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border p-1 [scrollbar-gutter:stable]">
             {filteredMembers.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 No users found
