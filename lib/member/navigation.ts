@@ -20,7 +20,20 @@ import {
  */
 export type MemberNavSection = null | 'Do something' | 'Find'
 
+/** Stable identity for an item, independent of where its link points today. */
+export type MemberNavKey =
+  | 'home'
+  | 'sponsor'
+  | 'my-forms'
+  | 'pay-fee'
+  | 'roster'
+  | 'weekends'
+  | 'documents'
+  | 'account'
+  | 'admin'
+
 export type MemberNavItem = {
+  key: MemberNavKey
   title: string
   href: string
   icon: LucideIcon
@@ -40,6 +53,7 @@ export type MemberNavItem = {
  */
 export const memberNavItems: MemberNavItem[] = [
   {
+    key: 'home',
     title: 'Home',
     href: '/home',
     icon: Home,
@@ -48,6 +62,7 @@ export const memberNavItems: MemberNavItem[] = [
     tab: true,
   },
   {
+    key: 'sponsor',
     title: 'Sponsor someone',
     href: '/sponsor',
     icon: HeartHandshake,
@@ -55,6 +70,7 @@ export const memberNavItems: MemberNavItem[] = [
     permissionsNeeded: [],
   },
   {
+    key: 'my-forms',
     title: 'My forms',
     href: '/team-forms',
     icon: FileText,
@@ -63,6 +79,7 @@ export const memberNavItems: MemberNavItem[] = [
     requiresTeamMembership: true,
   },
   {
+    key: 'pay-fee',
     title: 'Pay a fee',
     href: '/payment/team-fee',
     icon: CreditCard,
@@ -71,22 +88,27 @@ export const memberNavItems: MemberNavItem[] = [
     requiresTeamMembership: true,
   },
   {
+    key: 'roster',
     title: 'Roster',
-    href: '/roster',
+    // Rosters are per-weekend: the shell points this at the active group's
+    // Team tab (see `resolveMemberNavHrefs`).
+    href: '/weekends',
     icon: Users,
     section: 'Find',
     permissionsNeeded: [],
     tab: true,
   },
   {
+    key: 'weekends',
     title: 'The weekends',
-    href: '/current-weekend',
+    href: '/weekends',
     icon: Calendar,
     section: 'Find',
     permissionsNeeded: [],
     tab: true,
   },
   {
+    key: 'documents',
     title: 'Documents',
     href: '/files',
     icon: FolderOpen,
@@ -99,6 +121,7 @@ export const memberNavItems: MemberNavItem[] = [
 /** Footer items: account first, then the admin link for those who have it. */
 export const memberFooterNavItems: MemberNavItem[] = [
   {
+    key: 'account',
     title: 'My account',
     href: '/profile',
     icon: CircleUser,
@@ -107,6 +130,7 @@ export const memberFooterNavItems: MemberNavItem[] = [
     tab: true,
   },
   {
+    key: 'admin',
     title: 'Admin',
     href: '/admin',
     icon: ShieldCheck,
@@ -132,16 +156,41 @@ export function filterMemberNav(items: MemberNavItem[], user: User) {
  * (icon components stay on this module; the client looks them up by href).
  */
 export type SerializableMemberNavItem = {
+  key: MemberNavKey
   title: string
   href: string
   section: MemberNavSection
   tab?: boolean
 }
 
-function serialize(items: MemberNavItem[]): SerializableMemberNavItem[] {
-  return items.map(({ title, href, section, tab }) => ({
+export type MemberNavContext = {
+  /** The ACTIVE weekend group, when there is one. */
+  activeGroupId: string | null
+}
+
+/**
+ * Where an item points for this visit. Rosters live on each weekend's hub, so
+ * "Roster" opens the active group's Team tab and falls back to the weekends
+ * index when nothing is active.
+ */
+export function resolveMemberNavHref(
+  item: Pick<MemberNavItem, 'key' | 'href'>,
+  context: MemberNavContext
+): string {
+  if (item.key === 'roster' && !isNil(context.activeGroupId)) {
+    return `/weekends/${context.activeGroupId}/team`
+  }
+  return item.href
+}
+
+function serialize(
+  items: MemberNavItem[],
+  context: MemberNavContext
+): SerializableMemberNavItem[] {
+  return items.map(({ key, title, href, section, tab }) => ({
+    key,
     title,
-    href,
+    href: resolveMemberNavHref({ key, href }, context),
     section,
     tab,
   }))
@@ -152,10 +201,13 @@ export type MemberNav = {
   footer: SerializableMemberNavItem[]
 }
 
-export function getMemberNav(user: User): MemberNav {
+export function getMemberNav(
+  user: User,
+  context: MemberNavContext = { activeGroupId: null }
+): MemberNav {
   return {
-    main: serialize(filterMemberNav(memberNavItems, user)),
-    footer: serialize(filterMemberNav(memberFooterNavItems, user)),
+    main: serialize(filterMemberNav(memberNavItems, user), context),
+    footer: serialize(filterMemberNav(memberFooterNavItems, user), context),
   }
 }
 
@@ -164,14 +216,28 @@ export function getTabBarItems(nav: MemberNav): SerializableMemberNavItem[] {
   return [...nav.main, ...nav.footer].filter((item) => item.tab === true)
 }
 
-export function getMemberNavIcon(href: string): LucideIcon | undefined {
-  return allItems.find((item) => item.href === href)?.icon
+export function getMemberNavIcon(key: MemberNavKey): LucideIcon | undefined {
+  return allItems.find((item) => item.key === key)?.icon
+}
+
+function matchesPath(href: string, pathname: string) {
+  return pathname === href || pathname.startsWith(`${href}/`)
 }
 
 /**
- * Longest-prefix active matching so nested routes highlight their section
- * (e.g. `/files/handbook` → Documents, `/team-forms/camp-waiver` → My forms).
+ * The one item to highlight for a path: the longest matching href wins, so
+ * `/weekends/<id>/team` lights up Roster rather than The weekends, while
+ * every other hub page (and `/files/handbook`, `/team-forms/camp-waiver`)
+ * still highlights its section.
  */
-export function isMemberNavItemActive(href: string, pathname: string) {
-  return pathname === href || pathname.startsWith(`${href}/`)
+export function activeMemberNavKey(
+  items: Pick<SerializableMemberNavItem, 'key' | 'href'>[],
+  pathname: string
+): MemberNavKey | null {
+  let best: Pick<SerializableMemberNavItem, 'key' | 'href'> | null = null
+  for (const item of items) {
+    if (!matchesPath(item.href, pathname)) continue
+    if (isNil(best) || item.href.length > best.href.length) best = item
+  }
+  return best?.key ?? null
 }

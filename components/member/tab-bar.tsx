@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { isNil } from 'lodash'
 import {
+  activeMemberNavKey,
   getMemberNavIcon,
-  isMemberNavItemActive,
   type SerializableMemberNavItem,
 } from '@/lib/member/navigation'
 import { cn } from '@/lib/utils'
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
  */
 export function TabBar({ items }: { items: SerializableMemberNavItem[] }) {
   const pathname = usePathname()
+  const activeKey = activeMemberNavKey(items, pathname)
   return (
     <nav
       aria-label="Primary"
@@ -23,10 +24,10 @@ export function TabBar({ items }: { items: SerializableMemberNavItem[] }) {
     >
       <ul className="flex items-stretch px-1 pt-1.5 pb-2">
         {items.map((item) => {
-          const Icon = getMemberNavIcon(item.href)
-          const isActive = isMemberNavItemActive(item.href, pathname)
+          const Icon = getMemberNavIcon(item.key)
+          const isActive = item.key === activeKey
           return (
-            <li key={item.href} className="min-w-0 flex-1">
+            <li key={item.key} className="min-w-0 flex-1">
               <Link
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}

@@ -1145,6 +1145,44 @@ export async function getWeekendOptions(): Promise<
 }
 
 // ============================================================================
+// Weekend Hub Reads (member-safe)
+// ============================================================================
+
+/**
+ * Every weekend group with both of its weekends, newest first. Member-safe:
+ * the hub index lists every weekend to everyone, unlike the admin board.
+ */
+export async function getAllWeekendGroups(): Promise<
+  Result<string, WeekendGroupWithId[]>
+> {
+  return map(await getWeekendGroupsByStatus(), (groups) =>
+    [...groups].reverse()
+  )
+}
+
+/** The group id currently marked ACTIVE, or null when there is none. */
+export async function getActiveGroupId(): Promise<
+  Result<string, string | null>
+> {
+  return WeekendRepository.findActiveGroupId()
+}
+
+/** Active (non-dropped) roster rows on a weekend — team members serving. */
+export async function getRosterCountByWeekend(
+  weekendId: string
+): Promise<Result<string, number>> {
+  return WeekendRepository.countActiveRosterByWeekend(weekendId)
+}
+
+/** One member's active roster row on a weekend, for any group. */
+export async function getRosterAssignmentForUser(
+  userId: string,
+  weekendId: string
+): Promise<Result<string, WeekendRepository.RosterAssignmentRow | null>> {
+  return WeekendRepository.findRosterAssignmentForUser(userId, weekendId)
+}
+
+// ============================================================================
 // Composite Data Functions (for Server Components)
 // ============================================================================
 

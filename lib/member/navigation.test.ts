@@ -1,11 +1,12 @@
 import {
+  activeMemberNavKey,
   filterMemberNav,
   getMemberNav,
   getMemberNavIcon,
   getTabBarItems,
-  isMemberNavItemActive,
   memberFooterNavItems,
   memberNavItems,
+  resolveMemberNavHref,
 } from '@/lib/member/navigation'
 import { Permission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
@@ -79,9 +80,16 @@ describe('memberNavItems', () => {
 
   it('resolves an icon for every item', () => {
     for (const item of [...memberNavItems, ...memberFooterNavItems]) {
-      expect(getMemberNavIcon(item.href)).toBe(item.icon)
+      expect(getMemberNavIcon(item.key)).toBe(item.icon)
     }
-    expect(getMemberNavIcon('/nowhere')).toBeUndefined()
+  })
+
+  it('points the weekend items at the hub', () => {
+    const hrefs = Object.fromEntries(
+      memberNavItems.map((item) => [item.key, item.href])
+    )
+    expect(hrefs.weekends).toBe('/weekends')
+    expect(hrefs.roster).toBe('/weekends')
   })
 })
 
@@ -122,9 +130,39 @@ describe('filterMemberNav', () => {
     const nav = getMemberNav(makeUser([]))
     for (const item of [...nav.main, ...nav.footer]) {
       expect(Object.keys(item).sort()).toEqual(
-        ['href', 'section', 'tab', 'title'].sort()
+        ['href', 'key', 'section', 'tab', 'title'].sort()
       )
     }
+  })
+})
+
+describe('resolveMemberNavHref', () => {
+  it("sends Roster to the active group's Team tab", () => {
+    const roster = memberNavItems.find((item) => item.key === 'roster')!
+    expect(resolveMemberNavHref(roster, { activeGroupId: 'g12' })).toBe(
+      '/weekends/g12/team'
+    )
+  })
+
+  it('falls back to the weekends index without an active group', () => {
+    const roster = memberNavItems.find((item) => item.key === 'roster')!
+    expect(resolveMemberNavHref(roster, { activeGroupId: null })).toBe(
+      '/weekends'
+    )
+  })
+
+  it('leaves every other item alone', () => {
+    const nav = getMemberNav(makeUser([], onTeam), { activeGroupId: 'g12' })
+    const hrefs = Object.fromEntries(nav.main.map((i) => [i.key, i.href]))
+    expect(hrefs).toEqual({
+      home: '/home',
+      sponsor: '/sponsor',
+      'my-forms': '/team-forms',
+      'pay-fee': '/payment/team-fee',
+      roster: '/weekends/g12/team',
+      weekends: '/weekends',
+      documents: '/files',
+    })
   })
 })
 
@@ -141,11 +179,25 @@ describe('getTabBarItems', () => {
   })
 })
 
-describe('isMemberNavItemActive', () => {
+describe('activeMemberNavKey', () => {
+  const nav = getMemberNav(makeUser([], onTeam), { activeGroupId: 'g12' })
+  const items = [...nav.main, ...nav.footer]
+
   it('matches the route and its children only', () => {
-    expect(isMemberNavItemActive('/files', '/files')).toBe(true)
-    expect(isMemberNavItemActive('/files', '/files/handbook')).toBe(true)
-    expect(isMemberNavItemActive('/files', '/filesystem')).toBe(false)
-    expect(isMemberNavItemActive('/home', '/')).toBe(false)
+    expect(activeMemberNavKey(items, '/files')).toBe('documents')
+    expect(activeMemberNavKey(items, '/files/handbook')).toBe('documents')
+    expect(activeMemberNavKey(items, '/filesystem')).toBeNull()
+    expect(activeMemberNavKey(items, '/')).toBeNull()
+  })
+
+  it('lights up Roster on the hub Team tab and The weekends elsewhere', () => {
+    expect(activeMemberNavKey(items, '/weekends/g12/team')).toBe('roster')
+    expect(activeMemberNavKey(items, '/weekends/g12')).toBe('weekends')
+    expect(activeMemberNavKey(items, '/weekends/g12/candidates')).toBe(
+      'weekends'
+    )
+    expect(activeMemberNavKey(items, '/weekends')).toBe('weekends')
+    // Another group's team tab is still just a weekend page.
+    expect(activeMemberNavKey(items, '/weekends/g11/team')).toBe('weekends')
   })
 })

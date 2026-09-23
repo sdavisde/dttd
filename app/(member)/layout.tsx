@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { isErr } from '@/lib/results'
+import { getActiveGroupId } from '@/services/weekend'
+import { isErr, Results } from '@/lib/results'
 import { Permission, userHasPermission } from '@/lib/security'
 import { getMemberNav, getTabBarItems } from '@/lib/member/navigation'
 import { MemberSidebar } from '@/components/member/sidebar'
@@ -30,15 +31,20 @@ export default async function MemberLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [userResult, cookieStore] = await Promise.all([
+  const [userResult, cookieStore, activeGroupResult] = await Promise.all([
     getLoggedInUser(),
     cookies(),
+    getActiveGroupId(),
   ])
   if (isErr(userResult)) {
     redirect('/login')
   }
   const user = userResult.data
-  const nav = getMemberNav(user)
+  // Roster points at the active group's hub; without one it falls back to
+  // the weekends index, so a failed lookup degrades rather than breaks.
+  const nav = getMemberNav(user, {
+    activeGroupId: Results.unwrapOr(activeGroupResult, null),
+  })
   const sidebarOpen = cookieStore.get(SIDEBAR_COOKIE)?.value !== 'false'
 
   return (

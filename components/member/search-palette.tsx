@@ -86,10 +86,10 @@ export function SearchPalette({ nav }: { nav: MemberNav }) {
           {groups.map((group) => (
             <CommandGroup key={group.heading} heading={group.heading}>
               {group.items.map((item) => {
-                const Icon = getMemberNavIcon(item.href)
+                const Icon = getMemberNavIcon(item.key)
                 return (
                   <CommandItem
-                    key={item.href}
+                    key={item.key}
                     value={item.title}
                     onSelect={() => go(item)}
                   >

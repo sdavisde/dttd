@@ -19,6 +19,10 @@ export {
   getWeekendOptions,
   getWeekendRosterViewData,
   getActiveWeekendLeadershipTeam,
+  getAllWeekendGroups,
+  getActiveGroupId,
+  getRosterCountByWeekend,
+  getRosterAssignmentForUser,
   // Protected actions (auth required)
   getWeekendGroupsByStatus,
   setActiveWeekendGroup,
@@ -39,6 +43,7 @@ export type {
   LeadershipTeamData,
 } from './types'
 export type { WeekendRosterViewData } from './actions'
+export type { RosterAssignmentRow } from './repository'
 
 // Re-export commonly used types from lib/weekend/types
 export { WeekendType, WeekendStatus } from '@/lib/weekend/types'

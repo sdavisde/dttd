@@ -912,3 +912,62 @@ export async function findActiveWeekendLeadershipRoster(
 
   return ok({ mensLeadership, womensLeadership })
 }
+
+// ============================================================================
+// Weekend Hub Queries
+// ============================================================================
+
+/**
+ * Counts the active (non-dropped) roster rows on one weekend — the "team
+ * members serving" figure. A head-only count, so it stays cheap next to the
+ * N+1 roster hydration `findWeekendRoster` feeds.
+ */
+export async function countActiveRosterByWeekend(
+  weekendId: string
+): Promise<Result<string, number>> {
+  const supabase = await createClient()
+
+  const { count, error } = await supabase
+    .from('weekend_roster')
+    .select('*', { count: 'exact', head: true })
+    .eq('weekend_id', weekendId)
+    .neq('status', 'drop')
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(count ?? 0)
+}
+
+export type RosterAssignmentRow = Pick<
+  Tables<'weekend_roster'>,
+  'id' | 'cha_role' | 'additional_cha_role' | 'rollo' | 'status'
+>
+
+/**
+ * One person's active roster row on one weekend, or null when they are not
+ * serving on it. Unlike `user.teamMemberInfo`, this works for any group, not
+ * only the ACTIVE one.
+ */
+export async function findRosterAssignmentForUser(
+  userId: string,
+  weekendId: string
+): Promise<Result<string, RosterAssignmentRow | null>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select('id, cha_role, additional_cha_role, rollo, status')
+    .eq('weekend_id', weekendId)
+    .eq('user_id', userId)
+    .neq('status', 'drop')
+    .limit(1)
+    .maybeSingle()
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(data ?? null)
+}

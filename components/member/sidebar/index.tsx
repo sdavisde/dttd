@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { isNil } from 'lodash'
 import {
+  activeMemberNavKey,
   getMemberNavIcon,
-  isMemberNavItemActive,
   type MemberNav,
   type MemberNavSection,
   type SerializableMemberNavItem,
@@ -31,15 +31,20 @@ type MemberSidebarProps = React.ComponentProps<typeof Sidebar> & {
 
 const SECTION_ORDER: MemberNavSection[] = [null, 'Do something', 'Find']
 
-function NavItems({ items }: { items: SerializableMemberNavItem[] }) {
-  const pathname = usePathname()
+function NavItems({
+  items,
+  activeKey,
+}: {
+  items: SerializableMemberNavItem[]
+  activeKey: string | null
+}) {
   return (
     <SidebarMenu>
       {items.map((item) => {
-        const Icon = getMemberNavIcon(item.href)
-        const isActive = isMemberNavItemActive(item.href, pathname)
+        const Icon = getMemberNavIcon(item.key)
+        const isActive = item.key === activeKey
         return (
-          <SidebarMenuItem key={item.href}>
+          <SidebarMenuItem key={item.key}>
             <SidebarMenuButton
               asChild
               isActive={isActive}
@@ -66,6 +71,9 @@ function NavItems({ items }: { items: SerializableMemberNavItem[] }) {
  * though the tab bar covers the primary destinations there).
  */
 export function MemberSidebar({ nav, ...props }: MemberSidebarProps) {
+  const pathname = usePathname()
+  // One winner across every group, so a hub Team tab lights up Roster alone.
+  const activeKey = activeMemberNavKey([...nav.main, ...nav.footer], pathname)
   const sections = SECTION_ORDER.map((section) => ({
     section,
     items: nav.main.filter((item) => item.section === section),
@@ -102,13 +110,13 @@ export function MemberSidebar({ nav, ...props }: MemberSidebarProps) {
                 {section}
               </SidebarGroupLabel>
             )}
-            <NavItems items={items} />
+            <NavItems items={items} activeKey={activeKey} />
           </SidebarGroup>
         ))}
       </SidebarContent>
       <SidebarFooter>
         <SidebarSeparator className="mx-0" />
-        <NavItems items={nav.footer} />
+        <NavItems items={nav.footer} activeKey={activeKey} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
