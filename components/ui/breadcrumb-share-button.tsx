@@ -18,7 +18,7 @@ type BreadcrumbShareButtonProps = {
 
 /**
  * Copy-link control that sits beside the current page in
- * {@link AdminBreadcrumbs}. It stays hidden until the breadcrumb bar is
+ * the admin and member breadcrumb trails. It stays hidden until the breadcrumb bar is
  * hovered or the button is focused, so it never competes with the trail; on
  * touch devices (no hover) it is always shown. It also stays visible while the
  * "copied" check is showing so the confirmation isn't lost when the pointer

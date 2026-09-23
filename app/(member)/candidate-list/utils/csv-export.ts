@@ -74,6 +74,8 @@ export function downloadCandidateListCsv(
 export function generateCsvFilename(weekendName?: string): string {
   const now = new Date()
   const dateString = now.toISOString().split('T')[0] // YYYY-MM-DD
-  const baseName = !isNil(weekendName) ? `${weekendName}-candidates` : 'candidates'
+  const baseName = !isNil(weekendName)
+    ? `${weekendName}-candidates`
+    : 'candidates'
   return `${baseName}-${dateString}.csv`
 }

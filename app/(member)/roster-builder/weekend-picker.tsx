@@ -66,9 +66,7 @@ function WeekendCard({ weekend }: { weekend: Weekend }) {
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
             <Calendar className="h-3 w-3 shrink-0" />
-            <span>
-              {formatDateRange(weekend.start_date, weekend.end_date)}
-            </span>
+            <span>{formatDateRange(weekend.start_date, weekend.end_date)}</span>
           </div>
 
           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors group-hover:text-primary/80">

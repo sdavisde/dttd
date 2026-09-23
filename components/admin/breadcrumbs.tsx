@@ -10,7 +10,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Fragment } from 'react'
 
-import { BreadcrumbShareButton } from '@/components/admin/breadcrumb-share-button'
+import { BreadcrumbShareButton } from '@/components/ui/breadcrumb-share-button'
 
 type AdminBreadcrumbsProps = {
   title: string
