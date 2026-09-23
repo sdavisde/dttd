@@ -3,7 +3,7 @@
 import { TriangleAlert } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import type { ResolvedSwitch } from '@/lib/security/role-rungs'
-import { InheritedChip, SettingRow } from './editor-layout'
+import { LockedBy, SettingRow } from './editor-layout'
 
 interface FullAccessCardProps {
   resolved: ResolvedSwitch
@@ -40,12 +40,7 @@ export function FullAccessCard({
       divider={false}
       className="rounded-md border border-destructive/40 px-3.5"
       htmlFor="full-access"
-      title={
-        <>
-          Full access
-          {resolved.locked && <InheritedChip parentLabel={parentLabel} />}
-        </>
-      }
+      title="Full access"
       description={
         <>
           This role could do everything — read every candidate’s medical
@@ -60,14 +55,21 @@ export function FullAccessCard({
         </>
       }
       control={
-        <Switch
-          id="full-access"
-          checked={resolved.on}
-          disabled={disabled || resolved.locked}
-          onCheckedChange={onChange}
-          aria-label="Full access"
-          className="data-[state=checked]:bg-destructive"
-        />
+        <>
+          {resolved.locked && <LockedBy parentLabel={parentLabel} />}
+          <Switch
+            id="full-access"
+            checked={resolved.on}
+            disabled={disabled || resolved.locked}
+            onCheckedChange={onChange}
+            aria-label={
+              resolved.locked
+                ? `Full access (granted by ${parentLabel ?? 'the role it is based on'})`
+                : 'Full access'
+            }
+            className="data-[state=checked]:bg-destructive"
+          />
+        </>
       }
       note={
         wouldLeaveTooFew ? (

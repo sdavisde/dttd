@@ -4,7 +4,7 @@ import { Switch } from '@/components/ui/switch'
 import { SENSITIVE_PERMISSIONS } from '@/lib/security/permission-areas'
 import type { ResolvedSwitch } from '@/lib/security/role-rungs'
 import type { Permission } from '@/lib/security'
-import { EditorSection, InheritedChip, SettingRow } from './editor-layout'
+import { EditorSection, LockedBy, SettingRow } from './editor-layout'
 
 interface SensitivePanelProps {
   switches: ReadonlyMap<Permission, ResolvedSwitch>
@@ -15,7 +15,8 @@ interface SensitivePanelProps {
 
 /**
  * Candidate personal details: one row per detail, off unless deliberately
- * granted. A switch the parent role grants is shown on and locked.
+ * granted. A switch the parent role grants is shown on, locked, with the
+ * parent's name beside it.
  */
 export function SensitivePanel({
   switches,
@@ -26,7 +27,7 @@ export function SensitivePanel({
   return (
     <EditorSection
       title="Sensitive data"
-      description="Candidate personal details — off unless a role truly needs them. Weekend leadership and the Medic get these temporarily through their roster role."
+      description="Private details candidates share in confidence. Only grant these to people who need them for care or safety — weekend leadership and the Medic get them temporarily through their roster role."
     >
       {SENSITIVE_PERMISSIONS.map((item) => {
         const resolved = switches.get(item.permission)
@@ -37,23 +38,25 @@ export function SensitivePanel({
           <SettingRow
             key={item.permission}
             htmlFor={id}
-            title={
-              <>
-                {item.label}
-                {locked && <InheritedChip parentLabel={parentLabel} />}
-              </>
-            }
+            title={item.label}
             description={item.helper}
             control={
-              <Switch
-                id={id}
-                checked={on}
-                disabled={disabled || locked}
-                onCheckedChange={(checked) =>
-                  onChange(item.permission, checked)
-                }
-                aria-label={item.label}
-              />
+              <>
+                {locked && <LockedBy parentLabel={parentLabel} />}
+                <Switch
+                  id={id}
+                  checked={on}
+                  disabled={disabled || locked}
+                  onCheckedChange={(checked) =>
+                    onChange(item.permission, checked)
+                  }
+                  aria-label={
+                    locked
+                      ? `${item.label} (granted by ${parentLabel ?? 'the role it is based on'})`
+                      : item.label
+                  }
+                />
+              </>
             }
           />
         )

@@ -2,6 +2,7 @@ import { Permission } from '@/lib/security'
 import {
   ADMIN_ACCESS_PERMISSION,
   FULL_ACCESS_PERMISSION,
+  PERMISSION_DESCRIPTIONS,
   PERMISSION_LABELS,
   PERMISSION_LADDERS,
   SENSITIVE_PERMISSIONS,
@@ -106,6 +107,22 @@ describe('permission areas', () => {
       expect(typeof PERMISSION_LABELS[permission]).toBe('string')
       expect(PERMISSION_LABELS[permission].length).toBeGreaterThan(0)
     }
+  })
+
+  it('has a one-line description for every ladder permission', () => {
+    for (const ladder of PERMISSION_LADDERS) {
+      for (const permission of ladderPermissions(ladder)) {
+        expect(typeof PERMISSION_DESCRIPTIONS[permission]).toBe('string')
+        expect(PERMISSION_DESCRIPTIONS[permission].length).toBeGreaterThan(0)
+        expect(PERMISSION_DESCRIPTIONS[permission]).not.toContain(permission)
+      }
+    }
+  })
+
+  it('only the People ladder carries a caution', () => {
+    expect(
+      PERMISSION_LADDERS.filter((l) => l.caution !== undefined).map((l) => l.id)
+    ).toEqual(['people'])
   })
 
   it('only Files has an implicit View rung', () => {

@@ -35,13 +35,15 @@ export function EditorSection({
 }
 
 interface SettingRowProps {
-  /** The setting's name, plus any pill or lock chip beside it. */
+  /** The setting's name, plus any pill beside it. */
   title: ReactNode
   description: ReactNode
   /** The switch or segmented control; lives in the fixed right column. */
   control: ReactNode
-  /** One quiet line under the row — provenance, a warning, the Custom detail. */
+  /** Quiet lines under the row — a partway hint, a caution, a warning. */
   note?: ReactNode
+  /** A full-width panel under the row (the checklist), after the note. */
+  children?: ReactNode
   /** Set when the control is a single input, so the whole label toggles it. */
   htmlFor?: string
   /** False for a row that carries its own box instead of the hairline rule. */
@@ -54,6 +56,7 @@ export function SettingRow({
   description,
   control,
   note,
+  children,
   htmlFor,
   divider = true,
   className,
@@ -82,25 +85,40 @@ export function SettingRow({
             {description}
           </span>
         </Label>
-        <div className="flex min-h-11 w-full shrink-0 items-center sm:min-h-0 sm:w-[264px] sm:justify-end sm:pt-0.5">
+        <div className="flex min-h-11 w-full shrink-0 items-center gap-2.5 sm:min-h-0 sm:w-[264px] sm:justify-end sm:pt-0.5">
           {control}
         </div>
       </div>
       {!isNil(note) && (
-        <div className="mt-2 text-xs leading-snug text-muted-foreground">
+        <div className="mt-2 flex flex-col gap-1 text-xs leading-snug text-muted-foreground">
           {note}
         </div>
       )}
+      {!isNil(children) && <div className="mt-3">{children}</div>}
     </div>
   )
 }
 
-/** The padlock + "from X" chip shown beside a setting the parent role grants. */
-export function InheritedChip({ parentLabel }: { parentLabel: string | null }) {
+/**
+ * The small padlock + parent name that sits beside a locked control (or in
+ * place of a checkbox), saying where a grant comes from without a sentence.
+ */
+export function LockedBy({
+  parentLabel,
+  className,
+}: {
+  parentLabel: string | null
+  className?: string
+}) {
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
-      <Lock aria-hidden className="size-3" />
-      from {parentLabel ?? 'the role it is based on'}
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 text-xs font-normal whitespace-nowrap text-muted-foreground',
+        className
+      )}
+    >
+      <Lock aria-hidden className="size-3 shrink-0" />
+      {parentLabel ?? 'Based-on role'}
     </span>
   )
 }

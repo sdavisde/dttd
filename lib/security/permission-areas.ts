@@ -35,6 +35,8 @@ export type PermissionLadder = {
    * so the ladder has only two real states: "Everyone can view" and Manage.
    */
   implicitView?: boolean
+  /** One quiet warning under the row, for areas that hand out power. */
+  caution?: string
 }
 
 export const PERMISSION_LADDERS: readonly PermissionLadder[] = [
@@ -86,8 +88,7 @@ export const PERMISSION_LADDERS: readonly PermissionLadder[] = [
   {
     id: 'files',
     label: 'Files',
-    helper:
-      'Everyone in the community can already see files. Manage lets this role upload and delete them.',
+    helper: 'Everyone can browse files. Manage adds uploading and deleting.',
     view: [],
     manage: [Permission.FILES_UPLOAD, Permission.FILES_DELETE],
     implicitView: true,
@@ -103,6 +104,8 @@ export const PERMISSION_LADDERS: readonly PermissionLadder[] = [
       Permission.WRITE_SETTINGS,
       Permission.WRITE_COMMUNITY_ENCOURAGEMENT,
     ],
+    caution:
+      'Manage here lets a role hand out every other permission. Keep it to a few people.',
   },
 ]
 
@@ -139,9 +142,9 @@ export const ADMIN_ACCESS_PERMISSION = Permission.READ_ADMIN_PORTAL
 export const FULL_ACCESS_PERMISSION = Permission.FULL_ACCESS
 
 /**
- * Plain-language names for individual permissions. Only surfaced when a role
- * holds a set that does not land on a rung ("Custom"), so the admin can see
- * exactly what is extra or missing without reading enum names.
+ * Plain-language names for individual permissions, written as short verb
+ * phrases so they read in the "What this role can do" summary and as the
+ * name on each checklist item. Enum names never reach the UI.
  */
 export const PERMISSION_LABELS: Readonly<Record<Permission, string>> = {
   [Permission.FILES_UPLOAD]: 'Upload files',
@@ -180,6 +183,51 @@ export const PERMISSION_LABELS: Readonly<Record<Permission, string>> = {
   [Permission.READ_CANDIDATE_CHURCH]: 'See candidate church',
   [Permission.READ_CANDIDATE_PAYMENTS]: 'See candidate fee status',
   [Permission.READ_TEAM_FORM_INFO]: 'See team form submissions',
+}
+
+/**
+ * One line under each checklist item saying what the permission actually
+ * unlocks. Every ladder permission must have one (`permission-areas.test.ts`).
+ */
+export const PERMISSION_DESCRIPTIONS: Readonly<Record<Permission, string>> = {
+  [Permission.FILES_UPLOAD]: 'Add new files to the community library',
+  [Permission.FILES_DELETE]: 'Remove files from the library',
+  [Permission.READ_USER_EXPERIENCE]: 'How many weekends someone has served',
+  [Permission.READ_CANDIDATES]: 'Names and application status',
+  [Permission.WRITE_CANDIDATES]: 'Change application details and status',
+  [Permission.DELETE_CANDIDATES]: 'Take a candidate off the list for good',
+  [Permission.READ_DROPPED_ROSTER]: 'Team members who left a weekend',
+  [Permission.WRITE_TEAM_ROSTER]: 'Add, move and remove team members',
+  [Permission.READ_TEAM_ROSTER_BUILDER]: 'The roster builder for each weekend',
+  [Permission.READ_WRITE_TEAM_PAYMENTS]: 'See and record what team members owe',
+  [Permission.READ_WEEKENDS]: 'Dates and details of each weekend',
+  [Permission.WRITE_WEEKENDS]: 'Create weekends and change their details',
+  [Permission.READ_EVENTS]: 'The community events calendar',
+  [Permission.WRITE_EVENTS]: 'Add and change community events',
+  [Permission.READ_PAYMENTS]: 'The payment ledger',
+  [Permission.WRITE_PAYMENTS]: 'Record, edit and void payments',
+  [Permission.WRITE_USER_ROLES]:
+    'Give people roles and change what roles can do',
+  [Permission.READ_USER_ROLES]: 'The master roster and each person’s roles',
+  [Permission.FULL_ACCESS]: 'Every permission, now and in future',
+  [Permission.READ_ADMIN_PORTAL]: 'Reach the admin area at all',
+  [Permission.WRITE_COMMUNITY_ENCOURAGEMENT]:
+    'The note shown to the whole community',
+  [Permission.WRITE_SETTINGS]: 'Site-wide settings',
+  [Permission.READ_CANDIDATE_CONTACT_INFO]: 'Phone and email',
+  [Permission.READ_CANDIDATE_ADDRESS]: 'Where they live',
+  [Permission.READ_CANDIDATE_SHIRT_SIZE]: 'For weekend supplies',
+  [Permission.READ_CANDIDATE_MEDICAL_INFO]:
+    'Conditions, medications and dietary needs',
+  [Permission.READ_CANDIDATE_EMERGENCY_CONTACT]:
+    'Who to call during the weekend',
+  [Permission.READ_CANDIDATE_MARITAL_STATUS]: 'Used for table assignments',
+  [Permission.READ_CANDIDATE_TABLE_ASSIGNMENT_PROPERTIES]:
+    'Seating preferences and notes',
+  [Permission.READ_CANDIDATE_SPONSOR_INFO]: 'Who sponsored them',
+  [Permission.READ_CANDIDATE_CHURCH]: 'Home church affiliation',
+  [Permission.READ_CANDIDATE_PAYMENTS]: 'Paid, outstanding or waived',
+  [Permission.READ_TEAM_FORM_INFO]: 'What team members put on their forms',
 }
 
 /** Everything a ladder can grant (View ∪ Manage). */

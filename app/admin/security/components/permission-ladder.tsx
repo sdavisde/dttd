@@ -1,24 +1,40 @@
 'use client'
 
+import { useId, useState } from 'react'
 import { isNil } from 'lodash'
-import { Lock } from 'lucide-react'
+import { ChevronDown, ChevronUp, Lock } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import type { Permission } from '@/lib/security'
-import { PERMISSION_LABELS } from '@/lib/security/permission-areas'
+import {
+  PERMISSION_DESCRIPTIONS,
+  PERMISSION_LABELS,
+  ladderPermissions,
+} from '@/lib/security/permission-areas'
 import {
   compareRung,
+  heldCount,
+  isLadderLocked,
+  partwayRung,
   rungOf,
   type ResolvedLadder,
   type Rung,
 } from '@/lib/security/role-rungs'
-import { SettingRow } from './editor-layout'
+import { LockedBy, SettingRow } from './editor-layout'
 
 interface PermissionLadderProps {
   resolved: ResolvedLadder
-  /** Label of the direct parent role, for the provenance line. */
+  /** What the role holds itself — the checklist edits this. */
+  own: ReadonlySet<Permission>
+  /** What the parent chain grants — rendered locked in the checklist. */
+  inherited: ReadonlySet<Permission>
+  /** Label of the direct parent role, for lock titles. */
   parentLabel: string | null
   disabled: boolean
+  /** Bulk-set the whole area to a rung. */
   onChange: (rung: Rung) => void
+  /** Tick or untick one permission. */
+  onToggle: (permission: Permission) => void
 }
 
 const RUNG_LABELS: Record<Rung, string> = {
@@ -27,68 +43,67 @@ const RUNG_LABELS: Record<Rung, string> = {
   manage: 'Manage',
 }
 
-function provenanceText(
-  resolved: ResolvedLadder,
-  parentLabel: string | null
-): string | null {
-  const parent = parentLabel ?? 'the role it is based on'
-  switch (resolved.provenance) {
-    case 'inherited':
-      return `from ${parent}`
-    case 'raised':
-      return `raised from ${parent}’s ${RUNG_LABELS[resolved.inheritedRung]}`
-    case 'own':
-      return 'added by this role'
-    case 'none':
-      return null
-  }
-}
-
-function labelsOf(permissions: readonly Permission[]): string {
-  return permissions.map((p) => PERMISSION_LABELS[p]).join(', ')
+/** Subtle diagonal stripes for the rung a Custom set is partway to. */
+const PARTWAY_STRIPES = {
+  backgroundImage:
+    'repeating-linear-gradient(135deg, var(--accent) 0 6px, var(--card) 6px 12px)',
 }
 
 /**
- * One row of the Permissions section: the area name, a one-line description,
- * and the No access / View / Manage segmented control on the right. Rungs the
- * parent already guarantees are locked; a set that does not land on a rung
- * shows a quiet Custom pill with one-click normalisation.
+ * One row of the Permissions section: the area name with a "held of total"
+ * pill, a one-line description, and the No access / View / Manage segmented
+ * control. The pill opens a checklist of the area's individual permissions;
+ * ticking them edits the role directly and the rung follows. A rung the
+ * parent grants in full renders locked.
  */
 export function PermissionLadder({
   resolved,
+  own,
+  inherited,
   parentLabel,
   disabled,
   onChange,
+  onToggle,
 }: PermissionLadderProps) {
   const { ladder, effective, inheritedRung } = resolved
+  const [checklistOpen, setChecklistOpen] = useState(false)
+  const checklistId = useId()
+
   const rungs: Rung[] =
     ladder.implicitView === true
       ? ['view', 'manage']
       : ['none', 'view', 'manage']
   const isCustom = effective.kind === 'custom'
   const currentRung = rungOf(effective)
-  const provenance = provenanceText(resolved, parentLabel)
-  const canSetView = compareRung('view', inheritedRung) >= 0
+  const partway = partwayRung(effective)
+  const locked = isLadderLocked(resolved)
+  const parent = parentLabel ?? 'the role it is based on'
+  const lockTitle = `Granted by ${parent} — edit ${parent} to change`
+
+  const all = ladderPermissions(ladder)
+  const effectiveSet = new Set<Permission>([...own, ...inherited])
+  const held = heldCount(ladder, effectiveSet)
 
   const control = (
     <div
       role="radiogroup"
       aria-label={`${ladder.label} access`}
+      title={locked ? lockTitle : undefined}
       className={cn(
         'grid w-full overflow-hidden rounded-md border border-border sm:w-[264px]',
-        rungs.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+        rungs.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+        locked ? 'bg-muted/60' : 'bg-card'
       )}
     >
       {rungs.map((rung) => {
         const selected = !isCustom && rung === currentRung
-        const lockedByParent = compareRung(rung, inheritedRung) <= 0
-        const implicit = ladder.implicitView === true && rung === 'view'
-        const isLocked = selected && (lockedByParent || implicit)
+        const isPartway = isCustom && rung === partway
         // You can always move up; you can only move down to the parent's rung.
         const canPick =
           !disabled &&
+          !locked &&
           !selected &&
-          (compareRung(rung, inheritedRung) >= 0 || isCustom)
+          compareRung(rung, inheritedRung) >= 0
         return (
           <button
             key={rung}
@@ -97,91 +112,131 @@ export function PermissionLadder({
             aria-checked={selected}
             disabled={!canPick}
             onClick={() => onChange(rung)}
-            title={
-              isLocked
-                ? implicit
-                  ? 'Everyone can already view files'
-                  : `Granted by ${parentLabel ?? 'the parent role'} — cannot be removed here`
-                : undefined
-            }
+            title={selected && locked ? lockTitle : undefined}
+            style={isPartway ? PARTWAY_STRIPES : undefined}
             className={cn(
-              'flex h-11 items-center justify-center gap-1 border-r border-border px-2 text-xs font-medium whitespace-nowrap last:border-r-0 sm:h-8',
+              'flex h-11 items-center justify-center gap-1.5 border-r border-border px-2 text-xs font-medium whitespace-nowrap last:border-r-0 sm:h-8',
               'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
-              selected && !isLocked && 'bg-primary text-primary-foreground',
-              selected && isLocked && 'bg-muted text-foreground',
-              !selected && 'text-muted-foreground',
+              selected && !locked && 'bg-primary text-primary-foreground',
+              selected && locked && 'bg-primary/55 text-primary-foreground',
+              isPartway && 'font-semibold text-foreground',
+              !selected && !isPartway && 'text-muted-foreground',
               !selected && canPick && 'hover:bg-accent hover:text-foreground',
               !selected && !canPick && 'opacity-50'
             )}
           >
+            {selected && locked && <Lock aria-hidden className="size-3" />}
             {RUNG_LABELS[rung]}
-            {isLocked && <Lock aria-hidden className="size-3" />}
           </button>
         )
       })}
     </div>
   )
 
-  const customLine =
-    effective.kind === 'custom' ? (
-      <span>
-        {effective.present.length > 0 &&
-          `Holds ${labelsOf(effective.present)}. `}
-        {effective.missingForView.length > 0
-          ? `Missing for View: ${labelsOf(effective.missingForView)}.`
-          : effective.missingForManage.length > 0
-            ? `Missing for Manage: ${labelsOf(effective.missingForManage)}.`
-            : ''}
-        {!disabled && (
-          <>
-            {' '}
-            {canSetView && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => onChange('view')}
-                  className="cursor-pointer text-primary underline underline-offset-2 outline-none hover:text-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                >
-                  Set to View
-                </button>
-                {' · '}
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => onChange('manage')}
-              className="cursor-pointer text-primary underline underline-offset-2 outline-none hover:text-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
-              Set to Manage
-            </button>
-          </>
-        )}
-      </span>
-    ) : null
+  const pill = (
+    <button
+      type="button"
+      aria-expanded={checklistOpen}
+      aria-controls={checklistId}
+      aria-label={`${ladder.label}: ${held} of ${all.length} permissions. ${checklistOpen ? 'Hide' : 'Show'} the list`}
+      onClick={() => setChecklistOpen((open) => !open)}
+      className={cn(
+        'relative inline-flex h-[22px] items-center gap-1 rounded-full border border-border bg-card px-2 text-xs font-medium text-foreground tabular-nums',
+        'cursor-pointer outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50',
+        // Phone-sized hit area without growing the pill.
+        "after:absolute after:-inset-x-1 after:-inset-y-3 after:content-[''] sm:after:hidden"
+      )}
+    >
+      {held} of {all.length}
+      {checklistOpen ? (
+        <ChevronUp aria-hidden className="size-3" />
+      ) : (
+        <ChevronDown aria-hidden className="size-3" />
+      )}
+    </button>
+  )
 
-  const note =
-    isCustom || !isNil(provenance) ? (
-      <div className="flex flex-col gap-1">
-        {!isNil(provenance) && <span>{provenance}</span>}
-        {customLine}
-      </div>
-    ) : undefined
+  const notes = [
+    !isNil(partway) && (
+      <span key="partway">
+        Partway to {RUNG_LABELS[partway]} — tick the rest, or use the buttons to
+        set the whole area at once.
+      </span>
+    ),
+    !isNil(ladder.caution) && <span key="caution">{ladder.caution}</span>,
+  ].filter(Boolean)
 
   return (
     <SettingRow
       title={
         <>
           {ladder.label}
-          {isCustom && (
-            <span className="inline-flex items-center rounded-full border border-warning/60 bg-warning/20 px-2 py-0.5 text-xs font-medium text-foreground">
-              Custom
-            </span>
-          )}
+          {pill}
         </>
       }
       description={ladder.helper}
       control={control}
-      note={note}
-    />
+      note={notes.length > 0 ? notes : undefined}
+    >
+      {checklistOpen && (
+        <div
+          id={checklistId}
+          className="grid grid-cols-1 overflow-hidden rounded-md border border-border bg-card sm:grid-cols-2"
+        >
+          {all.map((permission, index) => {
+            const fromParent = inherited.has(permission)
+            const checked = effectiveSet.has(permission)
+            const itemId = `${checklistId}-${permission}`
+            const lastRow = index >= all.length - (all.length % 2 === 0 ? 2 : 1)
+            const cellClass = cn(
+              'flex min-h-11 items-start gap-2.5 px-3 py-2.5',
+              'border-b border-divider sm:odd:border-r',
+              index === all.length - 1 && 'border-b-0',
+              lastRow && 'sm:border-b-0'
+            )
+            const text = (
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-[13px] font-medium text-foreground">
+                  {PERMISSION_LABELS[permission]}
+                </span>
+                <span className="text-xs leading-snug text-muted-foreground">
+                  {PERMISSION_DESCRIPTIONS[permission]}
+                </span>
+              </span>
+            )
+            if (fromParent) {
+              return (
+                <div key={permission} className={cellClass}>
+                  <LockedBy
+                    parentLabel={parentLabel}
+                    className="mt-0.5 shrink-0 text-[11px]"
+                  />
+                  {text}
+                </div>
+              )
+            }
+            return (
+              <label
+                key={permission}
+                htmlFor={itemId}
+                className={cn(
+                  cellClass,
+                  disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                )}
+              >
+                <Checkbox
+                  id={itemId}
+                  checked={checked}
+                  disabled={disabled}
+                  onCheckedChange={() => onToggle(permission)}
+                  className="mt-0.5 size-4 shrink-0"
+                />
+                {text}
+              </label>
+            )
+          })}
+        </div>
+      )}
+    </SettingRow>
   )
 }

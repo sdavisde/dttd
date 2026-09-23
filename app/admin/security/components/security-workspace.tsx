@@ -153,6 +153,10 @@ export function SecurityWorkspace({
         onSaved={handleSaved}
         onCancel={handleCancel}
         onDelete={(role) => setRoleToDelete(role)}
+        onSelectRole={(roleId) => {
+          const target = displayRoles.find((role) => role.id === roleId)
+          if (!isNil(target)) selectRole(target)
+        }}
       />
     )
 

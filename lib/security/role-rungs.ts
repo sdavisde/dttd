@@ -143,6 +143,47 @@ export function applySwitch(
   return on ? [...without, permission] : without
 }
 
+/**
+ * Returns the role's own permissions after ticking or unticking one checklist
+ * item: added when absent, removed when present. Inherited permissions are
+ * never in `own`, so ticking one the parent grants is a no-op for the caller
+ * to prevent (the checklist renders those locked).
+ */
+export function togglePermission(
+  own: readonly Permission[],
+  permission: Permission
+): Permission[] {
+  return applySwitch(own, permission, !own.includes(permission))
+}
+
+/** How many of a ladder's permissions a set holds — the "4 of 8" pill. */
+export function heldCount(
+  ladder: PermissionLadder,
+  permissions: ReadonlySet<Permission>
+): number {
+  return intersect(permissions, ladderPermissions(ladder)).length
+}
+
+/** The rung one step up, or null from Manage. */
+export function nextRung(rung: Rung): Rung | null {
+  switch (rung) {
+    case 'none':
+      return 'view'
+    case 'view':
+      return 'manage'
+    case 'manage':
+      return null
+  }
+}
+
+/**
+ * The rung a Custom set is partway to: the first one above what it already
+ * fully holds. Null for a set that sits exactly on a rung.
+ */
+export function partwayRung(state: LadderState): Rung | null {
+  return state.kind === 'custom' ? nextRung(state.satisfiedRung) : null
+}
+
 export type LadderProvenance =
   /** Nothing on this ladder from anywhere. */
   | 'none'
@@ -199,6 +240,18 @@ export function resolveLadder(
     inheritedRung: maxRung(inheritedRung, baseline),
     provenance,
   }
+}
+
+/**
+ * True when the parent chain grants the whole displayed rung, so nothing on
+ * the ladder can be changed from this role: the control renders disabled with
+ * a lock in the selected segment. A Custom set is never fully locked — the
+ * pieces the parent does not grant can still be ticked here.
+ */
+export function isLadderLocked(resolved: ResolvedLadder): boolean {
+  return (
+    resolved.provenance === 'inherited' && resolved.effective.kind === 'rung'
+  )
 }
 
 export type ResolvedSwitch = {

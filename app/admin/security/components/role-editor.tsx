@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState, type ReactNode } from 'react'
 import { isNil } from 'lodash'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { isErr } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import { isDevMode } from '@/lib/dev-mode'
@@ -40,6 +41,7 @@ import {
   applySwitch,
   resolveLadder,
   resolveSwitch,
+  togglePermission,
   type Rung,
 } from '@/lib/security/role-rungs'
 import type {
@@ -60,8 +62,9 @@ import {
   roleLabelById,
   toRoleInput,
 } from '../lib/editor-model'
-import { EditorSection, InheritedChip, SettingRow } from './editor-layout'
+import { EditorSection, LockedBy, SettingRow } from './editor-layout'
 import { PermissionLadder } from './permission-ladder'
+import { RoleSummaryCard } from './role-summary-card'
 import { SensitivePanel } from './sensitive-panel'
 import { FullAccessCard } from './full-access-card'
 
@@ -83,6 +86,8 @@ interface RoleEditorProps {
   onSaved: (role: Role) => void
   onCancel: () => void
   onDelete: (role: Role) => void
+  /** Jump to another role (the parent link in the header). Plain text when absent. */
+  onSelectRole?: (roleId: string) => void
 }
 
 /**
@@ -102,8 +107,10 @@ export function RoleEditor({
   onSaved,
   onCancel,
   onDelete,
+  onSelectRole,
 }: RoleEditorProps) {
   const isNew = isNil(role)
+  const isMobile = useIsMobile()
   const defaults: RoleInputValues = useMemo(() => {
     if (!isNil(role)) return toRoleInput(role)
     if (!isNil(initial)) return initial
@@ -139,6 +146,10 @@ export function RoleEditor({
   const inherited = useMemo(
     () => inheritedPermissions(basedOnRoleId ?? null, roles),
     [basedOnRoleId, roles]
+  )
+  const effective = useMemo(
+    () => new Set<Permission>([...own, ...inherited]),
+    [own, inherited]
   )
   const parentLabel = roleLabelById(basedOnRoleId ?? null, roles)
   const parents = useMemo(
@@ -176,15 +187,32 @@ export function RoleEditor({
         ? `${roleUsage.userCount} ${roleUsage.userCount === 1 ? 'person holds' : 'people hold'} this role.`
         : null
 
-  // "Based on Board Member · 12 permissions · held by 3 people"
+  // "Based on Admin — everything Admin can do, plus what you set below. · 12 permissions · held by 3 people"
   const permissionCount = effectivePermissionCount(
     ownPermissions ?? [],
     inherited
   )
-  const summaryParts = [
-    isNil(parentLabel)
-      ? 'Not based on another role'
-      : `Based on ${parentLabel}`,
+  const parentName =
+    isNil(parentLabel) || isNil(basedOnRoleId) ? null : isNil(onSelectRole) ? (
+      <span className="font-semibold text-foreground">{parentLabel}</span>
+    ) : (
+      <button
+        type="button"
+        onClick={() => onSelectRole(basedOnRoleId)}
+        className="cursor-pointer font-semibold text-primary underline underline-offset-2 outline-none hover:text-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        {parentLabel}
+      </button>
+    )
+  const summaryParts: ReactNode[] = [
+    isNil(parentName) ? (
+      'Not based on another role'
+    ) : (
+      <>
+        Based on {parentName} — everything {parentLabel} can do, plus what you
+        set below.
+      </>
+    ),
     `${permissionCount} ${permissionCount === 1 ? 'permission' : 'permissions'}`,
   ]
   if (!isNil(roleUsage)) {
@@ -240,27 +268,43 @@ export function RoleEditor({
         className="rounded-md border border-border bg-card px-4 py-5 md:px-6"
       >
         <div className="flex max-w-[680px] flex-col gap-8">
-          {/* Header: the name, and one line saying where this role stands. */}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-start justify-between gap-3">
-              <h2 className="font-serif text-[22px] font-semibold tracking-tight">
-                {isNew ? 'New role' : role.label}
-              </h2>
-              {canEdit && isDevMode() && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-11 shrink-0 md:h-8"
-                  onClick={fillWithTestData}
-                >
-                  Fill with test data
-                </Button>
-              )}
+          {/* Header: the name, one line saying where this role stands, and the plain-English summary. */}
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="font-serif text-2xl font-semibold tracking-tight">
+                  {isNew ? 'New role' : role.label}
+                </h2>
+                {canEdit && isDevMode() && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-11 shrink-0 md:h-8"
+                    onClick={fillWithTestData}
+                  >
+                    Fill with test data
+                  </Button>
+                )}
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {summaryParts.map((part, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && (
+                      <span className="text-muted-foreground/60"> · </span>
+                    )}
+                    {part}
+                  </Fragment>
+                ))}
+              </p>
             </div>
-            <p className="text-[13px] leading-relaxed text-muted-foreground">
-              {summaryParts.join(' · ')}
-            </p>
+
+            <RoleSummaryCard
+              key={isMobile ? 'mobile' : 'desktop'}
+              effective={effective}
+              parentLabel={parentLabel}
+              defaultCollapsed={isMobile}
+            />
           </div>
 
           <div>
@@ -373,8 +417,9 @@ export function RoleEditor({
                   />
                   {/* Rendered outside the field so it never reads form context. */}
                   <p className="text-[13px] leading-snug text-muted-foreground">
-                    Inheritance is additive — this role also gets everything{' '}
-                    {parentLabel ?? 'the role it is based on'} can do.
+                    {isNil(parentLabel)
+                      ? 'Pick a role to include everything it can do, locked below.'
+                      : `Everything ${parentLabel} can do is included and locked below.`}
                   </p>
                 </div>
               </div>
@@ -383,35 +428,39 @@ export function RoleEditor({
 
           <EditorSection
             title="Permissions"
-            description="What this role can reach in the admin area, one area at a time."
+            description={
+              isNil(parentLabel)
+                ? 'One row per area.'
+                : `One row per area. Rows with a lock come from ${parentLabel} — edit ${parentLabel} to change them.`
+            }
           >
             <SettingRow
               htmlFor="admin-access"
-              title={
-                <>
-                  Can open the admin area
-                  {adminAccess.locked && (
-                    <InheritedChip parentLabel={parentLabel} />
-                  )}
-                </>
-              }
+              title="Can open the admin area"
               description="Without this, none of the areas below are reachable in Admin — the role only affects what people can see on the member site."
               control={
-                <Switch
-                  id="admin-access"
-                  checked={adminAccess.on}
-                  disabled={readOnly || adminAccess.locked}
-                  onCheckedChange={(checked) =>
-                    setPermissions(
-                      applySwitch(
-                        ownPermissions ?? [],
-                        ADMIN_ACCESS_PERMISSION,
-                        checked
+                <>
+                  {adminAccess.locked && <LockedBy parentLabel={parentLabel} />}
+                  <Switch
+                    id="admin-access"
+                    checked={adminAccess.on}
+                    disabled={readOnly || adminAccess.locked}
+                    onCheckedChange={(checked) =>
+                      setPermissions(
+                        applySwitch(
+                          ownPermissions ?? [],
+                          ADMIN_ACCESS_PERMISSION,
+                          checked
+                        )
                       )
-                    )
-                  }
-                  aria-label="Can open the admin area"
-                />
+                    }
+                    aria-label={
+                      adminAccess.locked
+                        ? `Can open the admin area (granted by ${parentLabel ?? 'the role it is based on'})`
+                        : 'Can open the admin area'
+                    }
+                  />
+                </>
               }
             />
 
@@ -419,6 +468,8 @@ export function RoleEditor({
               <PermissionLadder
                 key={resolved.ladder.id}
                 resolved={resolved}
+                own={own}
+                inherited={inherited}
                 parentLabel={parentLabel}
                 disabled={readOnly}
                 onChange={(rung: Rung) =>
@@ -429,6 +480,11 @@ export function RoleEditor({
                       inherited,
                       rung
                     )
+                  )
+                }
+                onToggle={(permission) =>
+                  setPermissions(
+                    togglePermission(ownPermissions ?? [], permission)
                   )
                 }
               />
