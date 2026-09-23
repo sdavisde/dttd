@@ -113,7 +113,7 @@ function DayChip({ dayKeyValue }: { dayKeyValue: string }) {
   const date = new Date(year, month - 1, day)
   return (
     <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border bg-background">
-      <span className="text-[9px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
+      <span className="text-[9px] font-semibold tracking-[0.08em] text-muted-foreground/80 uppercase">
         {date.toLocaleDateString('en-US', { weekday: 'short' })}
       </span>
       <span className="font-serif text-base leading-none font-semibold tabular-nums">
@@ -156,7 +156,7 @@ function AgendaEvent({
       type="button"
       disabled={!canEdit}
       onClick={() => canEdit && onEventClick(event)}
-      className={`flex min-h-11 w-full items-center gap-2 rounded-md border px-3 py-2 text-left ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`flex min-h-11 w-full items-center gap-2 rounded-md border px-3 py-2 text-left transition-colors ${canEdit ? 'cursor-pointer hover:bg-muted/40' : 'cursor-default'}`}
     >
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">{label}</span>
@@ -167,7 +167,7 @@ function AgendaEvent({
         )}
       </span>
       <span
-        className={`shrink-0 rounded-md px-2 py-0.5 text-[11.5px] font-semibold ${SCOPE_CHIP_CLASSES[scope]}`}
+        className={`shrink-0 rounded-md px-2 py-[3px] text-[11.5px] font-semibold ${SCOPE_CHIP_CLASSES[scope]}`}
       >
         {scopeLabel(scope, groupNumber)}
       </span>

@@ -32,7 +32,8 @@ export const SCOPE_DOT_CLASSES: Record<EventScope, string> = {
   both: 'bg-primary',
   mens: 'bg-muted border border-input',
   womens: 'bg-secondary border border-secondary-border',
-  community: 'bg-success/20',
+  // Matches the community chip's fill, so legend and chip read as one colour.
+  community: 'bg-success/15',
 }
 
 export function scopeLabel(scope: EventScope, groupNumber: number | null) {

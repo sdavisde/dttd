@@ -102,28 +102,38 @@ export function ComingUp({
         return (
           <div
             key={event.id}
-            className={`flex items-center gap-3 py-2.5 ${i === upcoming.length - 1 ? '' : 'border-b border-divider'} ${canEdit ? 'cursor-pointer' : ''}`}
-            onClick={() => canEdit && onEventClick(event)}
+            className={
+              i === upcoming.length - 1 ? '' : 'border-b border-divider'
+            }
           >
-            <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md border bg-background">
-              <span className="text-[9px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
-                {monthAbbr}
-              </span>
-              <span className="font-serif text-base leading-none font-semibold tabular-nums">
-                {dayNum}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{label}</p>
-              <p className="truncate text-[12.5px] text-muted-foreground">
-                {detail}
-              </p>
-            </div>
-            <span
-              className={`shrink-0 rounded-md px-2 py-0.5 text-[11.5px] font-semibold ${SCOPE_CHIP_CLASSES[scope]}`}
+            <button
+              type="button"
+              disabled={!canEdit}
+              onClick={() => canEdit && onEventClick(event)}
+              className={`flex w-full items-center gap-3 py-2.5 text-left transition-colors ${canEdit ? 'cursor-pointer hover:bg-muted/40' : 'cursor-default'}`}
             >
-              {scopeLabel(scope, groupNumber)}
-            </span>
+              <span className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md border bg-background">
+                <span className="text-[9px] font-semibold tracking-[0.08em] text-muted-foreground/80 uppercase">
+                  {monthAbbr}
+                </span>
+                <span className="font-serif text-base leading-none font-semibold tabular-nums">
+                  {dayNum}
+                </span>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">
+                  {label}
+                </span>
+                <span className="block truncate text-[12.5px] text-muted-foreground">
+                  {detail}
+                </span>
+              </span>
+              <span
+                className={`shrink-0 rounded-md px-2 py-[3px] text-[11.5px] font-semibold ${SCOPE_CHIP_CLASSES[scope]}`}
+              >
+                {scopeLabel(scope, groupNumber)}
+              </span>
+            </button>
           </div>
         )
       })}

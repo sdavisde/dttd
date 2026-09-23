@@ -66,15 +66,15 @@ export function EventFormFields({
     prefill?.weekendGroupId != null
 
   return (
-    <div className="space-y-4 px-4 flex-1">
+    <div className="space-y-4 px-4 pb-4">
       <FormField
         control={form.control}
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm font-medium">Event Name</FormLabel>
+            <FormLabel>Event name</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Team Meeting 1" {...field} required />
+              <Input placeholder="e.g. Team Meeting 1" {...field} required />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -86,12 +86,12 @@ export function EventFormFields({
         name="date"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm font-medium">Date *</FormLabel>
+            <FormLabel>Date</FormLabel>
             <FormControl>
               <DatePicker
                 date={field.value}
                 onDateChange={field.onChange}
-                placeholder="Select a date"
+                placeholder="Choose a date"
                 className="w-full"
                 startMonth={new Date(new Date().getFullYear() - 2, 0)}
                 endMonth={new Date(new Date().getFullYear() + 3, 11)}
@@ -107,7 +107,7 @@ export function EventFormFields({
         name="time"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm font-medium">Time (CT) *</FormLabel>
+            <FormLabel>Time (CT)</FormLabel>
             <FormControl>
               <Input
                 type="time"
@@ -127,11 +127,11 @@ export function EventFormFields({
         name="location"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm font-medium">Location *</FormLabel>
+            <FormLabel>Location</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Enter event location..."
-                className="min-h-[80px]"
+                placeholder="Where is it? e.g. First Baptist, Fellowship Hall"
+                className="min-h-20"
                 required
                 {...field}
               />
@@ -147,14 +147,14 @@ export function EventFormFields({
           name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium">Event Type</FormLabel>
+              <FormLabel>Event type</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 value={field.value ?? undefined}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select event type" />
+                    <SelectValue placeholder="Choose an event type" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -177,16 +177,14 @@ export function EventFormFields({
           name="weekendGroupId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium">
-                Associated Weekend
-              </FormLabel>
+              <FormLabel>Weekend</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 value={field.value ?? undefined}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a weekend (optional)" />
+                    <SelectValue placeholder="Choose a weekend (optional)" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -211,16 +209,14 @@ export function EventFormFields({
             name="weekendId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  Men&apos;s / Women&apos;s
-                </FormLabel>
+                <FormLabel>Men&apos;s or Women&apos;s</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value ?? undefined}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Men's or Women's" />
+                      <SelectValue placeholder="Choose Men's or Women's" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -249,7 +245,7 @@ export function EventFormFields({
               />
             </FormControl>
             <div className="space-y-1 leading-none">
-              <FormLabel>Add end date/time</FormLabel>
+              <FormLabel>Add an end date and time</FormLabel>
             </div>
           </FormItem>
         )}
@@ -262,12 +258,12 @@ export function EventFormFields({
             name="endDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">End Date</FormLabel>
+                <FormLabel>End date</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value ?? undefined}
                     onDateChange={field.onChange}
-                    placeholder="Select end date"
+                    placeholder="Choose an end date"
                     className="w-full"
                     startMonth={new Date(new Date().getFullYear() - 2, 0)}
                     endMonth={new Date(new Date().getFullYear() + 3, 11)}
@@ -283,9 +279,7 @@ export function EventFormFields({
             name="endTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  End Time (CT)
-                </FormLabel>
+                <FormLabel>End time (CT)</FormLabel>
                 <FormControl>
                   <Input
                     type="time"

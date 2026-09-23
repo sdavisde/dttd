@@ -202,7 +202,7 @@ export default function EventsClient({
         </div>
       </div>
 
-      <p className="mt-4 text-[13.5px] text-muted-foreground/80">
+      <p className="mt-4.5 text-[13.5px] text-muted-foreground/80">
         Events appear on the community calendar the moment they&rsquo;re saved
         &middot; older gatherings live under Past events
       </p>

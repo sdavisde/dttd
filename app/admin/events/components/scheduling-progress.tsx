@@ -139,6 +139,18 @@ function Meter({
   )
 }
 
+/**
+ * Joins the named slots the way the board writes them: "Serenade", then
+ * "Serenade and closing", then "Serenade, closing and sendoff".
+ */
+function joinNames(names: React.ReactNode[]): React.ReactNode[] {
+  return names.flatMap((name, i) => {
+    if (i === 0) return [name]
+    const separator = i === names.length - 1 ? ' and ' : ', '
+    return [<span key={`sep-${i}`}>{separator}</span>, name]
+  })
+}
+
 function MissingSlots({
   missing,
   weekend,
@@ -151,28 +163,30 @@ function MissingSlots({
   onScheduleSlot: (type: EventTypeValue, weekend: Weekend) => void
 }) {
   if (missing.length === 0) return <span>All scheduled</span>
-  if (!canEdit) {
+
+  // The board writes the run as a sentence, so only the first slot is
+  // capitalised: "Serenade and closing still open".
+  const names = missing.map((type, i) => {
+    const label = EVENT_TYPE_LABELS[type]
+    const text = i === 0 ? label : label.toLowerCase()
+    if (!canEdit) return <span key={type}>{text}</span>
     return (
-      <span>
-        {missing.map((t) => EVENT_TYPE_LABELS[t]).join(' and ')}{' '}
-        {missing.length === 1 ? 'isn’t' : 'still'} scheduled
-        {missing.length === 1 ? ' yet' : ''}
-      </span>
+      <button
+        key={type}
+        type="button"
+        title={`Schedule the ${label.toLowerCase()}`}
+        className="cursor-pointer font-semibold text-primary underline decoration-dotted underline-offset-2 hover:text-primary-hover"
+        onClick={() => onScheduleSlot(type, weekend)}
+      >
+        {text}
+      </button>
     )
-  }
+  })
+
   return (
-    <>
-      <span>Still open:</span>
-      {missing.map((type) => (
-        <button
-          key={type}
-          type="button"
-          className="cursor-pointer font-semibold text-primary underline decoration-dotted underline-offset-2 hover:text-primary-hover"
-          onClick={() => onScheduleSlot(type, weekend)}
-        >
-          {EVENT_TYPE_LABELS[type]}
-        </button>
-      ))}
-    </>
+    <span>
+      {joinNames(names)}{' '}
+      {missing.length === 1 ? 'isn’t scheduled yet' : 'still open'}
+    </span>
   )
 }

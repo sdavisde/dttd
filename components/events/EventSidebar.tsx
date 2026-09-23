@@ -63,22 +63,26 @@ export function EventSidebar({
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent className="w-[400px] sm:w-[400px]">
-        <SheetHeader>
-          <SheetTitle>{isEditing ? 'Edit Event' : 'Add New Event'}</SheetTitle>
+      {/* A fixed 400px panel overflows a 375px phone, so the sheet takes the
+          screen below `sm` and settles at the board's panel width above it. */}
+      <SheetContent className="w-full sm:w-[420px] sm:max-w-[420px]">
+        <SheetHeader className="gap-1.5 pb-0">
+          <SheetTitle className="font-serif text-lg tracking-tight">
+            {isEditing ? 'Edit event' : 'New event'}
+          </SheetTitle>
           <SheetDescription>
             {isEditing
-              ? 'Update the event details below.'
-              : 'Create a new event by filling out the form below.'}
+              ? 'Update the details — the calendar picks up your changes as soon as you save.'
+              : 'Anything with a date goes here. It shows on the calendar as soon as you save.'}
           </SheetDescription>
         </SheetHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="flex flex-col h-full overflow-hidden"
+            className="flex min-h-0 flex-1 flex-col"
           >
-            <div className="flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <EventFormFields
                 form={form}
                 hasEndDateTime={hasEndDateTime}
@@ -88,32 +92,30 @@ export function EventSidebar({
               />
             </div>
 
-            <SheetFooter>
-              <div className="flex gap-2 w-full">
-                {isEditing && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => setShowDeleteDialog(true)}
-                    disabled={isDeleting || isSubmitting}
-                    className="flex-1"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-                )}
+            <SheetFooter className="flex-row gap-2 border-t border-divider">
+              {isEditing && (
                 <Button
-                  type="submit"
-                  disabled={isSaveDisabled || isDeleting}
-                  className={isEditing ? 'flex-1' : 'w-full'}
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={isDeleting || isSubmitting}
+                  className="flex-1"
                 >
-                  {isSubmitting
-                    ? 'Saving...'
-                    : isEditing
-                      ? 'Save Changes'
-                      : 'Create Event'}
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
                 </Button>
-              </div>
+              )}
+              <Button
+                type="submit"
+                disabled={isSaveDisabled || isDeleting}
+                className={isEditing ? 'flex-1' : 'w-full'}
+              >
+                {isSubmitting
+                  ? 'Saving...'
+                  : isEditing
+                    ? 'Save changes'
+                    : 'Create event'}
+              </Button>
             </SheetFooter>
           </form>
         </Form>
