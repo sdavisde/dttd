@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { isNil } from 'lodash'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Lock, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -54,11 +54,13 @@ import {
   type RoleInputValues,
 } from '@/services/identity/roles/validation'
 import {
+  effectivePermissionCount,
   inheritedPermissions,
   parentOptions,
   roleLabelById,
   toRoleInput,
 } from '../lib/editor-model'
+import { EditorSection, InheritedChip, SettingRow } from './editor-layout'
 import { PermissionLadder } from './permission-ladder'
 import { SensitivePanel } from './sensitive-panel'
 import { FullAccessCard } from './full-access-card'
@@ -84,9 +86,10 @@ interface RoleEditorProps {
 }
 
 /**
- * The detail pane: name, description, type, "based on", then the Access grid,
- * the sensitive panel and the quarantined Full Access card. Nothing is written
- * until Save — loading a role never normalises its permissions.
+ * The detail pane, read as a settings page: a header with one summary line,
+ * then Basics, Permissions, Sensitive data and the danger zone, each a heading
+ * and a stack of rows. Nothing is written until Save — loading a role never
+ * normalises its permissions.
  */
 export function RoleEditor({
   role,
@@ -173,6 +176,29 @@ export function RoleEditor({
         ? `${roleUsage.userCount} ${roleUsage.userCount === 1 ? 'person holds' : 'people hold'} this role.`
         : null
 
+  // "Based on Board Member · 12 permissions · held by 3 people"
+  const permissionCount = effectivePermissionCount(
+    ownPermissions ?? [],
+    inherited
+  )
+  const summaryParts = [
+    isNil(parentLabel)
+      ? 'Not based on another role'
+      : `Based on ${parentLabel}`,
+    `${permissionCount} ${permissionCount === 1 ? 'permission' : 'permissions'}`,
+  ]
+  if (!isNil(roleUsage)) {
+    summaryParts.push(
+      `held by ${roleUsage.userCount} ${roleUsage.userCount === 1 ? 'person' : 'people'}`
+    )
+  }
+  if (isNew && !isNil(copiedFrom)) {
+    summaryParts.push(`copied from ${copiedFrom.label}`)
+  }
+
+  const isDirty = form.formState.isDirty
+  const showSaveBar = canEdit && (isNew || isDirty)
+
   const onSubmit = async (values: RoleInputValues) => {
     setIsSaving(true)
     try {
@@ -211,171 +237,169 @@ export function RoleEditor({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 rounded-md border border-border bg-card px-4 py-4 md:px-5"
+        className="rounded-md border border-border bg-card px-4 py-5 md:px-6"
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-serif text-[22px] font-semibold tracking-tight">
-            {isNew ? 'New role' : role.label}
-          </h2>
-          {isNew && !isNil(copiedFrom) && (
-            <span className="text-[12.5px] text-muted-foreground">
-              copied from {copiedFrom.label}
-            </span>
-          )}
-          {canEdit && (
-            <div className="ml-auto flex items-center gap-2">
-              {isDevMode() && (
+        <div className="flex max-w-[680px] flex-col gap-8">
+          {/* Header: the name, and one line saying where this role stands. */}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="font-serif text-[22px] font-semibold tracking-tight">
+                {isNew ? 'New role' : role.label}
+              </h2>
+              {canEdit && isDevMode() && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
+                  className="h-11 shrink-0 md:h-8"
                   onClick={fillWithTestData}
                 >
                   Fill with test data
                 </Button>
               )}
-              <Button
-                type="submit"
-                size="sm"
-                className="h-11 md:h-[34px]"
-                disabled={isSaving || (!isNew && !form.formState.isDirty)}
-              >
-                {isSaving ? 'Saving…' : isNew ? 'Create role' : 'Save changes'}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-11 md:h-[34px]"
-                disabled={isSaving}
-                onClick={() => {
-                  form.reset(defaults)
-                  onCancel()
-                }}
-              >
-                Cancel
-              </Button>
             </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
-          {/* Left column: identity, based on, access grid. */}
-          <div className="flex flex-col gap-4">
-            <FormField
-              control={form.control}
-              name="label"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={fieldLabelClass}>Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="e.g. Treasurer"
-                      disabled={readOnly}
-                      className="h-11 md:h-9"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={fieldLabelClass}>
-                    Description · required
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      rows={3}
-                      placeholder="Who is this role for, and what do they need to do?"
-                      disabled={readOnly}
-                      className="min-h-20 text-[13.5px] leading-relaxed"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={fieldLabelClass}>Kind</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={readOnly}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-11 w-full md:h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="INDIVIDUAL">
-                          Position — one person
-                        </SelectItem>
-                        <SelectItem value="COMMITTEE">
-                          Committee — several people
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="based_on_role_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={fieldLabelClass}>Based on</FormLabel>
-                    <Select
-                      value={field.value ?? NO_PARENT}
-                      onValueChange={(value) =>
-                        field.onChange(value === NO_PARENT ? null : value)
-                      }
-                      disabled={readOnly}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-11 w-full md:h-9">
-                          <SelectValue placeholder="Nothing" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={NO_PARENT}>Nothing</SelectItem>
-                        {parents.map((parent) => (
-                          <SelectItem key={parent.id} value={parent.id}>
-                            {parent.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <p className="-mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
-              Inheritance is additive — this role gets everything{' '}
-              {parentLabel ?? 'the role it is based on'} can do, plus what you
-              add here. There is no “minus”.
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              {summaryParts.join(' · ')}
             </p>
+          </div>
 
-            {/* Access */}
-            <section className="flex flex-col gap-1">
-              <h3 className={fieldLabelClass}>Access</h3>
-              <div className="flex min-h-11 items-start gap-2.5 border-b border-divider py-2.5">
+          <EditorSection
+            title="Basics"
+            description="What this role is called, and which role it builds on."
+          >
+            <div className="flex flex-col gap-4 pt-3">
+              <FormField
+                control={form.control}
+                name="label"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={fieldLabelClass}>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="e.g. Treasurer"
+                        disabled={readOnly}
+                        className="h-11 md:h-9"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={fieldLabelClass}>
+                      Description · required
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={3}
+                        placeholder="Who is this role for, and what do they need to do?"
+                        disabled={readOnly}
+                        className="min-h-20 text-sm leading-relaxed"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={fieldLabelClass}>Kind</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={readOnly}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11 w-full md:h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="INDIVIDUAL">
+                            Position — one person
+                          </SelectItem>
+                          <SelectItem value="COMMITTEE">
+                            Committee — several people
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex flex-col gap-2">
+                  <FormField
+                    control={form.control}
+                    name="based_on_role_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className={fieldLabelClass}>
+                          Based on
+                        </FormLabel>
+                        <Select
+                          value={field.value ?? NO_PARENT}
+                          onValueChange={(value) =>
+                            field.onChange(value === NO_PARENT ? null : value)
+                          }
+                          disabled={readOnly}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-11 w-full md:h-9">
+                              <SelectValue placeholder="Nothing" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value={NO_PARENT}>Nothing</SelectItem>
+                            {parents.map((parent) => (
+                              <SelectItem key={parent.id} value={parent.id}>
+                                {parent.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Rendered outside the field so it never reads form context. */}
+                  <p className="text-[13px] leading-snug text-muted-foreground">
+                    Inheritance is additive — this role also gets everything{' '}
+                    {parentLabel ?? 'the role it is based on'} can do.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </EditorSection>
+
+          <EditorSection
+            title="Permissions"
+            description="What this role can reach in the admin area, one area at a time."
+          >
+            <SettingRow
+              htmlFor="admin-access"
+              title={
+                <>
+                  Can open the admin area
+                  {adminAccess.locked && (
+                    <InheritedChip parentLabel={parentLabel} />
+                  )}
+                </>
+              }
+              description="Without this, none of the areas below are reachable in Admin — the role only affects what people can see on the member site."
+              control={
                 <Switch
                   id="admin-access"
                   checked={adminAccess.on}
@@ -390,112 +414,128 @@ export function RoleEditor({
                     )
                   }
                   aria-label="Can open the admin area"
-                  className="mt-0.5"
                 />
-                <label
-                  htmlFor="admin-access"
-                  className="flex min-w-0 flex-col gap-0.5"
-                >
-                  <span className="flex items-center gap-1.5 text-[13.5px] font-semibold text-foreground">
-                    Can open the admin area
-                    {adminAccess.locked && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-                        <Lock aria-hidden className="size-2.5" />
-                        from {parentLabel ?? 'the role it is based on'}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[12px] leading-snug text-muted-foreground">
-                    Without this, none of the areas below are reachable in Admin
-                    — the role only affects what people can see on the member
-                    site.
-                  </span>
-                </label>
-              </div>
+              }
+            />
 
-              {ladders.map((resolved) => (
-                <PermissionLadder
-                  key={resolved.ladder.id}
-                  resolved={resolved}
-                  parentLabel={parentLabel}
-                  disabled={readOnly}
-                  onChange={(rung: Rung) =>
-                    setPermissions(
-                      applyRung(
-                        resolved.ladder,
-                        ownPermissions ?? [],
-                        inherited,
-                        rung
-                      )
+            {ladders.map((resolved) => (
+              <PermissionLadder
+                key={resolved.ladder.id}
+                resolved={resolved}
+                parentLabel={parentLabel}
+                disabled={readOnly}
+                onChange={(rung: Rung) =>
+                  setPermissions(
+                    applyRung(
+                      resolved.ladder,
+                      ownPermissions ?? [],
+                      inherited,
+                      rung
                     )
-                  }
-                />
-              ))}
-            </section>
-          </div>
+                  )
+                }
+              />
+            ))}
 
-          {/* Right column: sensitive panel, full access, footnote, delete. */}
-          <div className="flex flex-col gap-4">
-            <SensitivePanel
-              switches={sensitiveSwitches}
-              parentLabel={parentLabel}
-              disabled={readOnly}
-              onChange={(permission, on) =>
-                setPermissions(
-                  applySwitch(ownPermissions ?? [], permission, on)
-                )
-              }
-            />
-
-            <FullAccessCard
-              resolved={fullAccess}
-              totalHolders={fullAccessImpact.totalHolders}
-              holdersLostIfRemoved={
-                isNil(role)
-                  ? 0
-                  : (fullAccessImpact.holdersLostIfRemoved[role.id] ?? 0)
-              }
-              grantedWhenLoaded={
-                !isNil(role) &&
-                role.permissions.includes(FULL_ACCESS_PERMISSION)
-              }
-              parentLabel={parentLabel}
-              disabled={readOnly}
-              onChange={(on) =>
-                setPermissions(
-                  applySwitch(ownPermissions ?? [], FULL_ACCESS_PERMISSION, on)
-                )
-              }
-            />
-
-            <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+            <p className="pt-3 text-[13px] leading-relaxed text-muted-foreground">
               Someone with several roles gets everything any of them grants —
               the most permissive wins. Weekend leadership roles (Rector, heads)
               grant temporary access on top — that’s set on each weekend’s
               roster, not here.
             </p>
+          </EditorSection>
 
-            {canEdit && !isNew && (
-              <div className="flex flex-col gap-1.5 border-t border-divider pt-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-11 self-start text-destructive hover:text-destructive md:h-8"
-                  disabled={isSaving || !isNil(deleteBlockedReason)}
-                  onClick={() => onDelete(role)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete role
-                </Button>
-                {!isNil(deleteBlockedReason) && (
-                  <p className="text-[12px] leading-snug text-muted-foreground">
-                    Can’t delete yet: {deleteBlockedReason}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          <SensitivePanel
+            switches={sensitiveSwitches}
+            parentLabel={parentLabel}
+            disabled={readOnly}
+            onChange={(permission, on) =>
+              setPermissions(applySwitch(ownPermissions ?? [], permission, on))
+            }
+          />
+
+          <EditorSection
+            title="Danger zone"
+            description="Full access and deleting the role — both are hard to undo."
+          >
+            <div className="pt-3">
+              <FullAccessCard
+                resolved={fullAccess}
+                totalHolders={fullAccessImpact.totalHolders}
+                holdersLostIfRemoved={
+                  isNil(role)
+                    ? 0
+                    : (fullAccessImpact.holdersLostIfRemoved[role.id] ?? 0)
+                }
+                grantedWhenLoaded={
+                  !isNil(role) &&
+                  role.permissions.includes(FULL_ACCESS_PERMISSION)
+                }
+                parentLabel={parentLabel}
+                disabled={readOnly}
+                onChange={(on) =>
+                  setPermissions(
+                    applySwitch(
+                      ownPermissions ?? [],
+                      FULL_ACCESS_PERMISSION,
+                      on
+                    )
+                  )
+                }
+              />
+
+              {canEdit && !isNew && (
+                <div className="flex flex-col gap-1.5 pt-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-11 self-start text-destructive hover:text-destructive md:h-9"
+                    disabled={isSaving || !isNil(deleteBlockedReason)}
+                    onClick={() => onDelete(role)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete role
+                  </Button>
+                  {!isNil(deleteBlockedReason) && (
+                    <p className="text-xs leading-snug text-muted-foreground">
+                      Can’t delete yet: {deleteBlockedReason}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </EditorSection>
+
+          {/* Only here once there is something to save. */}
+          {showSaveBar && (
+            <div className="sticky bottom-0 -mx-4 -mb-5 flex items-center justify-end gap-2 border-t border-border bg-card px-4 py-3 md:-mx-6 md:px-6">
+              <p className="mr-auto text-[13px] text-muted-foreground">
+                {isNew ? 'Not saved yet' : 'Unsaved changes'}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-11 md:h-9"
+                disabled={isSaving}
+                onClick={() => {
+                  form.reset(defaults)
+                  onCancel()
+                }}
+              >
+                Discard
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                className="h-11 md:h-9"
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving…' : isNew ? 'Create role' : 'Save changes'}
+              </Button>
+            </div>
+          )}
         </div>
       </form>
     </Form>

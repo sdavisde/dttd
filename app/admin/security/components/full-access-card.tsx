@@ -1,9 +1,9 @@
 'use client'
 
-import { Lock, TriangleAlert } from 'lucide-react'
+import { TriangleAlert } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
-import { cn } from '@/lib/utils'
 import type { ResolvedSwitch } from '@/lib/security/role-rungs'
+import { InheritedChip, SettingRow } from './editor-layout'
 
 interface FullAccessCardProps {
   resolved: ResolvedSwitch
@@ -19,8 +19,8 @@ interface FullAccessCardProps {
 }
 
 /**
- * Full access lives in its own quarantined card: the switch, the warning
- * copy, and the "never fewer than two" check against the people who hold it.
+ * The Full access row inside the danger zone: the switch, who holds it today,
+ * and the "never fewer than two" check when it is being taken away.
  */
 export function FullAccessCard({
   resolved,
@@ -36,15 +36,30 @@ export function FullAccessCard({
   const wouldLeaveTooFew = removing && remainingAfterRemoval < 2
 
   return (
-    <div
-      className={cn(
-        'rounded-md border px-3.5 py-3',
-        resolved.on
-          ? 'border-destructive/40 bg-destructive/5'
-          : 'border-border bg-card'
-      )}
-    >
-      <div className="flex min-h-11 items-center gap-2.5">
+    <SettingRow
+      divider={false}
+      className="rounded-md border border-destructive/40 px-3.5"
+      htmlFor="full-access"
+      title={
+        <>
+          Full access
+          {resolved.locked && <InheritedChip parentLabel={parentLabel} />}
+        </>
+      }
+      description={
+        <>
+          This role could do everything — read every candidate’s medical
+          information, manage payments, and change what everyone else can do.
+          Give it only to people who administer the site itself, and never to
+          fewer than two.{' '}
+          <span className="tabular-nums">
+            {totalHolders === 1
+              ? '1 person currently holds Full access.'
+              : `${totalHolders} people currently hold Full access.`}
+          </span>
+        </>
+      }
+      control={
         <Switch
           id="full-access"
           checked={resolved.on}
@@ -53,52 +68,26 @@ export function FullAccessCard({
           aria-label="Full access"
           className="data-[state=checked]:bg-destructive"
         />
-        <label
-          htmlFor="full-access"
-          className="flex items-center gap-2 text-[13.5px] font-semibold text-foreground"
-        >
-          Full access
-          {resolved.locked && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-              <Lock aria-hidden className="size-2.5" />
-              from {parentLabel ?? 'the role it is based on'}
-            </span>
-          )}
-        </label>
-      </div>
-      <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
-        This role could do everything — read every candidate’s medical
-        information, manage payments, and change what everyone else can do.{' '}
-        <span className="font-semibold text-foreground">
-          This is a dangerous permission to grant.
-        </span>{' '}
-        Give it only to people who administer the site itself, and never to
-        fewer than two.
-      </p>
-      <p className="mt-2 text-[12.5px] text-muted-foreground tabular-nums">
-        {totalHolders === 1
-          ? '1 person currently holds Full Access.'
-          : `${totalHolders} people currently hold Full Access.`}
-      </p>
-      {wouldLeaveTooFew && (
-        <div
-          role="alert"
-          className="mt-2 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-[12.5px] leading-snug text-foreground"
-        >
-          <TriangleAlert
-            aria-hidden
-            className="mt-0.5 size-4 shrink-0 text-destructive"
-          />
-          <span>
+      }
+      note={
+        wouldLeaveTooFew ? (
+          <span
+            role="alert"
+            className="flex items-start gap-1.5 text-foreground"
+          >
+            <TriangleAlert
+              aria-hidden
+              className="mt-px size-3.5 shrink-0 text-destructive"
+            />
             Turning this off would leave{' '}
             {remainingAfterRemoval === 1
               ? 'only 1 person'
               : `${Math.max(remainingAfterRemoval, 0)} people`}{' '}
-            with Full Access. Make sure at least two people keep it before
+            with Full access. Make sure at least two people keep it before
             saving.
           </span>
-        </div>
-      )}
-    </div>
+        ) : undefined
+      }
+    />
   )
 }

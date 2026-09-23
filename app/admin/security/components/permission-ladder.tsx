@@ -2,8 +2,8 @@
 
 import { isNil } from 'lodash'
 import { Lock } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import type { Permission } from '@/lib/security'
 import { PERMISSION_LABELS } from '@/lib/security/permission-areas'
 import {
   compareRung,
@@ -11,6 +11,7 @@ import {
   type ResolvedLadder,
   type Rung,
 } from '@/lib/security/role-rungs'
+import { SettingRow } from './editor-layout'
 
 interface PermissionLadderProps {
   resolved: ResolvedLadder
@@ -43,11 +44,15 @@ function provenanceText(
   }
 }
 
+function labelsOf(permissions: readonly Permission[]): string {
+  return permissions.map((p) => PERMISSION_LABELS[p]).join(', ')
+}
+
 /**
- * One row of the Access grid: the area name, where its grant comes from, and
- * the No access / View / Manage segmented control. Rungs the parent already
- * guarantees are locked; a set that does not land on a rung shows as Custom
- * with one-click normalisation.
+ * One row of the Permissions section: the area name, a one-line description,
+ * and the No access / View / Manage segmented control on the right. Rungs the
+ * parent already guarantees are locked; a set that does not land on a rung
+ * shows a quiet Custom pill with one-click normalisation.
  */
 export function PermissionLadder({
   resolved,
@@ -63,134 +68,120 @@ export function PermissionLadder({
   const isCustom = effective.kind === 'custom'
   const currentRung = rungOf(effective)
   const provenance = provenanceText(resolved, parentLabel)
+  const canSetView = compareRung('view', inheritedRung) >= 0
+
+  const control = (
+    <div
+      role="radiogroup"
+      aria-label={`${ladder.label} access`}
+      className={cn(
+        'grid w-full overflow-hidden rounded-md border border-border sm:w-[220px]',
+        rungs.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+      )}
+    >
+      {rungs.map((rung) => {
+        const selected = !isCustom && rung === currentRung
+        const lockedByParent = compareRung(rung, inheritedRung) <= 0
+        const implicit = ladder.implicitView === true && rung === 'view'
+        const isLocked = selected && (lockedByParent || implicit)
+        // You can always move up; you can only move down to the parent's rung.
+        const canPick =
+          !disabled &&
+          !selected &&
+          (compareRung(rung, inheritedRung) >= 0 || isCustom)
+        return (
+          <button
+            key={rung}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            disabled={!canPick}
+            onClick={() => onChange(rung)}
+            title={
+              isLocked
+                ? implicit
+                  ? 'Everyone can already view files'
+                  : `Granted by ${parentLabel ?? 'the parent role'} — cannot be removed here`
+                : undefined
+            }
+            className={cn(
+              'flex h-11 items-center justify-center gap-1 border-r border-border px-2 text-xs font-medium last:border-r-0 sm:h-8',
+              'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
+              selected && !isLocked && 'bg-primary text-primary-foreground',
+              selected && isLocked && 'bg-muted text-foreground',
+              !selected && 'text-muted-foreground',
+              !selected && canPick && 'hover:bg-accent hover:text-foreground',
+              !selected && !canPick && 'opacity-50'
+            )}
+          >
+            {RUNG_LABELS[rung]}
+            {isLocked && <Lock aria-hidden className="size-3" />}
+          </button>
+        )
+      })}
+    </div>
+  )
+
+  const customLine =
+    effective.kind === 'custom' ? (
+      <span>
+        {effective.present.length > 0 &&
+          `Holds ${labelsOf(effective.present)}. `}
+        {effective.missingForView.length > 0
+          ? `Missing for View: ${labelsOf(effective.missingForView)}.`
+          : effective.missingForManage.length > 0
+            ? `Missing for Manage: ${labelsOf(effective.missingForManage)}.`
+            : ''}
+        {!disabled && (
+          <>
+            {' '}
+            {canSetView && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onChange('view')}
+                  className="cursor-pointer text-primary underline underline-offset-2 outline-none hover:text-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                  Set to View
+                </button>
+                {' · '}
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => onChange('manage')}
+              className="cursor-pointer text-primary underline underline-offset-2 outline-none hover:text-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              Set to Manage
+            </button>
+          </>
+        )}
+      </span>
+    ) : null
+
+  const note =
+    isCustom || !isNil(provenance) ? (
+      <div className="flex flex-col gap-1">
+        {!isNil(provenance) && <span>{provenance}</span>}
+        {customLine}
+      </div>
+    ) : undefined
 
   return (
-    <div className="flex flex-col gap-2 border-b border-divider py-2.5 last:border-b-0">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <div className="min-w-0">
-          <div className="text-[13.5px] font-semibold text-foreground">
-            {ladder.label}
-          </div>
-          <div className="text-[11.5px] text-muted-foreground">
-            {isCustom ? 'Custom' : provenance}
-            {isCustom && !isNil(provenance) ? ` · ${provenance}` : ''}
-          </div>
-        </div>
-
-        <div
-          role="radiogroup"
-          aria-label={`${ladder.label} access`}
-          className="inline-flex shrink-0 overflow-hidden rounded-md border border-border"
-        >
-          {rungs.map((rung) => {
-            const selected = !isCustom && rung === currentRung
-            const lockedByParent = compareRung(rung, inheritedRung) <= 0
-            const implicit = ladder.implicitView === true && rung === 'view'
-            const isLocked = selected && (lockedByParent || implicit)
-            // You can always move up; you can only move down to the parent's rung.
-            const canPick =
-              !disabled &&
-              !selected &&
-              (compareRung(rung, inheritedRung) >= 0 || isCustom)
-            return (
-              <button
-                key={rung}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                disabled={!canPick}
-                onClick={() => onChange(rung)}
-                title={
-                  isLocked
-                    ? implicit
-                      ? 'Everyone can already view files'
-                      : `Granted by ${parentLabel ?? 'the parent role'} — cannot be removed here`
-                    : undefined
-                }
-                className={cn(
-                  'flex min-h-11 items-center gap-1 border-r border-border px-3 text-[11.5px] font-semibold last:border-r-0 md:min-h-7',
-                  'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
-                  selected && !isLocked && 'bg-primary text-primary-foreground',
-                  selected && isLocked && 'bg-muted text-foreground',
-                  !selected && 'text-muted-foreground',
-                  !selected &&
-                    canPick &&
-                    'hover:bg-accent hover:text-foreground',
-                  !selected && !canPick && 'opacity-50'
-                )}
-              >
-                {implicit ? 'Everyone can view' : RUNG_LABELS[rung]}
-                {isLocked && <Lock aria-hidden className="size-2.5" />}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <p className="text-[12px] leading-snug text-muted-foreground">
-        {ladder.helper}
-      </p>
-
-      {effective.kind === 'custom' && (
-        <div className="rounded-md border border-secondary-border bg-secondary px-3 py-2 text-[12px] leading-relaxed text-secondary-foreground">
-          <p>
-            This role holds a mix that isn’t exactly View or Manage.
-            {effective.present.length > 0 && (
-              <>
-                {' '}
-                It has:{' '}
-                {effective.present.map((p) => PERMISSION_LABELS[p]).join(', ')}.
-              </>
-            )}
-            {effective.missingForView.length > 0 && (
-              <>
-                {' '}
-                Missing for View:{' '}
-                {effective.missingForView
-                  .map((p) => PERMISSION_LABELS[p])
-                  .join(', ')}
-                .
-              </>
-            )}
-            {effective.missingForView.length === 0 &&
-              effective.missingForManage.length > 0 && (
-                <>
-                  {' '}
-                  Missing for Manage:{' '}
-                  {effective.missingForManage
-                    .map((p) => PERMISSION_LABELS[p])
-                    .join(', ')}
-                  .
-                </>
-              )}
-          </p>
-          {!disabled && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-9 md:h-7"
-                disabled={compareRung('view', inheritedRung) < 0}
-                onClick={() => onChange('view')}
-              >
-                {ladder.implicitView === true
-                  ? 'Set to Everyone can view'
-                  : 'Set to View'}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-9 md:h-7"
-                onClick={() => onChange('manage')}
-              >
-                Set to Manage
-              </Button>
-            </div>
+    <SettingRow
+      title={
+        <>
+          {ladder.label}
+          {isCustom && (
+            <span className="inline-flex items-center rounded-full border border-warning/60 bg-warning/20 px-2 py-0.5 text-xs font-medium text-foreground">
+              Custom
+            </span>
           )}
-        </div>
-      )}
-    </div>
+        </>
+      }
+      description={ladder.helper}
+      control={control}
+      note={note}
+    />
   )
 }

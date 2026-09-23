@@ -43,7 +43,7 @@ export function RoleList({
           <li
             key={role.id}
             className={cn(
-              'flex items-start gap-2.5 border-b border-divider last:border-b-0',
+              'group/role flex items-start gap-2.5 border-b border-divider last:border-b-0',
               selected && 'bg-selected border-l-[3px] border-l-primary'
             )}
           >
@@ -65,7 +65,7 @@ export function RoleList({
                 </span>
               )}
               {!isNil(role.description) && role.description !== '' && (
-                <span className="text-[12.5px] leading-snug text-muted-foreground">
+                <span className="text-[13px] leading-snug text-muted-foreground">
                   {role.description}
                 </span>
               )}
@@ -76,7 +76,11 @@ export function RoleList({
                 variant="outline"
                 size="icon"
                 onClick={() => onDuplicate(role)}
-                className="mt-2.5 mr-3 h-11 w-11 shrink-0 md:h-7 md:w-7"
+                className={cn(
+                  'mt-2.5 mr-3 h-11 w-11 shrink-0 transition-opacity md:h-7 md:w-7',
+                  // Always there on touch; on desktop it waits for hover or focus.
+                  'md:opacity-0 md:group-hover/role:opacity-100 md:group-focus-within/role:opacity-100 focus-visible:opacity-100'
+                )}
                 aria-label={`Duplicate ${role.label}`}
                 title="Duplicate"
               >
