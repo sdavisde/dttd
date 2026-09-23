@@ -1,11 +1,12 @@
 import {
   bucketGroupsForBoard,
+  countOpenFeesByWeekend,
   deriveWeekendStats,
   formatPastCandidateCounts,
   nextGroupNumber,
   showStartPlanningRow,
 } from './weekend-stats'
-import type { ActiveWeekendMetrics } from '@/lib/payments/compute-totals'
+import type { OutstandingFee } from '@/lib/payments/outstanding'
 import type { Weekend, WeekendGroupWithId } from '@/lib/weekend/types'
 
 const NOW = new Date('2026-09-03T12:00:00Z')
@@ -38,22 +39,20 @@ function group(
   }
 }
 
-function metrics(
-  overrides: Partial<ActiveWeekendMetrics> = {}
-): ActiveWeekendMetrics {
+function fee(overrides: Partial<OutstandingFee> = {}): OutstandingFee {
   return {
+    targetType: 'weekend_group_member',
+    targetId: 'target-1',
+    legacyTargetIds: [],
+    name: 'Pat Server',
+    expectedPayer: 'Pat Server',
+    chaRole: null,
+    weekendId: 'm1',
+    weekendNumber: 12,
     weekendType: 'MENS',
-    weekendLabel: 'DTTD Mens #12',
-    teamExpectedCount: 51,
-    teamPaidCount: 45,
-    teamExpectedTotal: 51 * 195,
-    teamReceivedTotal: 45 * 195,
-    candidateExpectedCount: 28,
-    candidatePaidCount: 26,
-    candidateExpectedTotal: 28 * 195,
-    candidateReceivedTotal: 26 * 195,
-    candidateExtraPaymentsCount: 0,
-    teamExtraPaymentsCount: 0,
+    feeAmount: 195,
+    coveredSoFar: 0,
+    amountDue: 195,
     ...overrides,
   }
 }
@@ -64,37 +63,31 @@ describe('deriveWeekendStats', () => {
       candidateCount: 28,
       rosterCount: 51,
       reviewCount: 4,
-      financials: metrics(),
+      openFeeCount: 8,
     })
     expect(stats).toEqual({
       candidatesConfirmed: 28,
       candidateCapacity: 42,
       teamServing: 51,
       candidatesToReview: 4,
-      // (51 - 45) unpaid team + (28 - 26) unpaid candidates
       feesOpen: 8,
     })
   })
 
-  it('matches the dashboard fee formula and never counts negative gaps', () => {
+  it('reports the per-person open fee count as given', () => {
     const stats = deriveWeekendStats({
       candidateCount: 10,
       rosterCount: 10,
-      financials: metrics({
-        teamExpectedCount: 10,
-        teamPaidCount: 12, // overpaid — clamps to 0
-        candidateExpectedCount: 10,
-        candidatePaidCount: 7,
-      }),
+      openFeeCount: 0,
     })
-    expect(stats.feesOpen).toBe(3)
+    expect(stats.feesOpen).toBe(0)
   })
 
   it('keeps failed sources null so the UI omits those tiles', () => {
     const stats = deriveWeekendStats({
       candidateCount: null,
       rosterCount: null,
-      financials: null,
+      openFeeCount: null,
     })
     expect(stats.candidatesConfirmed).toBeNull()
     expect(stats.teamServing).toBeNull()
@@ -102,6 +95,45 @@ describe('deriveWeekendStats', () => {
     expect(stats.feesOpen).toBeNull()
     // Capacity is a constant, not a source.
     expect(stats.candidateCapacity).toBe(42)
+  })
+})
+
+describe('countOpenFeesByWeekend', () => {
+  it('counts people and dollars per weekend', () => {
+    const buckets = countOpenFeesByWeekend([
+      fee({ targetId: 't1', weekendId: 'm1', amountDue: 195 }),
+      fee({ targetId: 't2', weekendId: 'm1', amountDue: 95 }),
+      fee({
+        targetId: 't3',
+        weekendId: 'w2',
+        weekendType: 'WOMENS',
+        amountDue: 195,
+      }),
+    ])
+    expect(buckets).toEqual({
+      m1: { count: 2, amountDue: 290 },
+      w2: { count: 1, amountDue: 195 },
+    })
+  })
+
+  it('counts a dual-weekend server once, under the weekend on their fee', () => {
+    // The outstanding list already collapses a dual server to a single fee
+    // row; bucketing must not spread that one fee across both weekends.
+    const buckets = countOpenFeesByWeekend([
+      fee({ targetId: 'dual', weekendId: 'm1' }),
+    ])
+    expect(buckets).toEqual({ m1: { count: 1, amountDue: 195 } })
+  })
+
+  it('leaves out a fee with no weekend rather than guessing', () => {
+    const buckets = countOpenFeesByWeekend([
+      fee({ targetId: 'orphan', weekendId: null, weekendType: null }),
+    ])
+    expect(buckets).toEqual({})
+  })
+
+  it('returns no buckets when nobody owes', () => {
+    expect(countOpenFeesByWeekend([])).toEqual({})
   })
 })
 

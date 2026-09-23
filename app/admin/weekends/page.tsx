@@ -2,8 +2,10 @@ import { Permission } from '@/lib/security'
 import { guardAdminPage } from '@/lib/admin/page-guard'
 import {
   bucketGroupsForBoard,
+  countOpenFeesByWeekend,
   deriveWeekendStats,
   type ActiveGroupStats,
+  type WeekendOpenFees,
 } from '@/lib/admin/weekend-stats'
 import { isErr } from '@/lib/results'
 import * as Results from '@/lib/results'
@@ -14,12 +16,7 @@ import {
   getCandidateCountsByWeekends,
   getCandidateReviewCountByWeekend,
 } from '@/services/candidates'
-import {
-  getActiveWeekendFinancials,
-  getAllPayments,
-  type ActiveWeekendFinancials,
-} from '@/services/payment'
-import type { WeekendType } from '@/lib/weekend/types'
+import { getAllPayments, getOutstandingFees } from '@/services/payment'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Weekends } from './components/Weekends'
 
@@ -79,35 +76,41 @@ export default async function WeekendsPage() {
       womensToReview
     )
 
-    // A failed financials read (including FEE_LOOKUP_FAILED, when the Stripe
-    // fee prices can't be read) nulls the money half of each tile rather than
-    // reporting totals derived from a fee we don't actually know.
+    // Open fees come from the same per-person list the dashboard tile and the
+    // Payments ledger read, so the three pages can never disagree. A failed
+    // read (including FEE_LOOKUP_FAILED, when the Stripe fee prices can't be
+    // read) nulls the stat rather than reporting a count derived from a fee we
+    // don't actually know.
     const payments = Results.toNullable(paymentsResult)
-    let financials: ActiveWeekendFinancials | null = null
+    let openFees: Record<string, WeekendOpenFees> | null = null
     if (!isNil(payments)) {
-      const financialsResult = await getActiveWeekendFinancials(
+      const outstandingResult = await getOutstandingFees({
         payments,
-        buckets.active.weekends
+        activeWeekends: buckets.active.weekends,
+      })
+      Results.logFailures(outstandingResult)
+      openFees = Results.toNullable(
+        Results.map(outstandingResult, countOpenFeesByWeekend)
       )
-      Results.logFailures(financialsResult)
-      financials = Results.toNullable(financialsResult)
     }
 
-    const financialsFor = (type: WeekendType) =>
-      financials?.weekends.find((w) => w.weekendType === type) ?? null
+    // A weekend nobody owes on has no bucket, which is zero open fees — not a
+    // missing source, so the tile still shows.
+    const openFeeCountFor = (weekendId: string) =>
+      isNil(openFees) ? null : (openFees[weekendId]?.count ?? 0)
 
     activeStats = {
       MENS: deriveWeekendStats({
         candidateCount: Results.toNullable(mensCandidates),
         rosterCount: Results.toNullable(mensRoster)?.length ?? null,
         reviewCount: Results.toNullable(mensToReview),
-        financials: financialsFor('MENS'),
+        openFeeCount: openFeeCountFor(mens.id),
       }),
       WOMENS: deriveWeekendStats({
         candidateCount: Results.toNullable(womensCandidates),
         rosterCount: Results.toNullable(womensRoster)?.length ?? null,
         reviewCount: Results.toNullable(womensToReview),
-        financials: financialsFor('WOMENS'),
+        openFeeCount: openFeeCountFor(womens.id),
       }),
     }
   }

@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import type { ActiveWeekendMetrics } from '@/lib/payments/compute-totals'
+import type { OutstandingFee } from '@/lib/payments/outstanding'
 import { getGroupStatus } from '@/lib/weekend'
 import type { WeekendGroupWithId } from '@/lib/weekend/types'
 import { WEEKEND_CANDIDATE_CAPACITY, WeekendStatus } from '@/lib/weekend/types'
@@ -20,8 +20,9 @@ export type WeekendStats = {
    */
   candidatesToReview: number | null
   /**
-   * Unpaid fees (team + candidates) for this weekend; null when payment data
-   * is unavailable (source failure or viewer lacks payments access).
+   * People on this weekend (team + candidates) with an unpaid fee; null when
+   * payment data is unavailable (source failure or viewer lacks payments
+   * access).
    */
   feesOpen: number | null
 }
@@ -31,38 +32,63 @@ type WeekendStatsInput = {
   rosterCount: number | null
   /** Candidates awaiting a review decision; null when that source failed. */
   reviewCount?: number | null
-  /** This weekend's entry from ActiveWeekendFinancials, when available. */
-  financials: ActiveWeekendMetrics | null
+  /**
+   * People on this weekend with an unpaid fee, from
+   * `countOpenFeesByWeekend`; null when the payments source failed or the
+   * viewer lacks payments access.
+   */
+  openFeeCount: number | null
 }
 
 /**
  * Per-weekend stat tiles. A null input stays null — the omit-don't-approximate
  * rule: the UI drops the tile instead of showing a guess.
  *
- * Fees open is a pooled per-weekend count (expected minus paid, per group).
- * The dashboard and Payments page count per person instead, so this stat can
- * differ from theirs for dual-weekend servers and partial payers.
+ * Fees open is the per-person count the dashboard tile and the Payments ledger
+ * read, bucketed by weekend, so all three pages report the same people.
  */
 export function deriveWeekendStats({
   candidateCount,
   rosterCount,
   reviewCount = null,
-  financials,
+  openFeeCount,
 }: WeekendStatsInput): WeekendStats {
-  const feesOpen = isNil(financials)
-    ? null
-    : Math.max(financials.teamExpectedCount - financials.teamPaidCount, 0) +
-      Math.max(
-        financials.candidateExpectedCount - financials.candidatePaidCount,
-        0
-      )
   return {
     candidatesConfirmed: candidateCount,
     candidateCapacity: WEEKEND_CANDIDATE_CAPACITY,
     teamServing: rosterCount,
     candidatesToReview: reviewCount,
-    feesOpen,
+    feesOpen: openFeeCount,
   }
+}
+
+/** Open fees for one weekend, from the per-person outstanding list. */
+export type WeekendOpenFees = {
+  /** People on this weekend who still owe a fee. */
+  count: number
+  /** Dollars those people still owe. */
+  amountDue: number
+}
+
+/**
+ * Buckets the outstanding-fee list by weekend id — the same per-person list
+ * the dashboard tile and the Payments ledger read, so the three pages agree.
+ *
+ * Someone serving both weekends owes one fee and appears once, under the
+ * weekend their fee row names; a fee with no weekend belongs to neither and is
+ * left out rather than attributed to a guess.
+ */
+export function countOpenFeesByWeekend(
+  fees: OutstandingFee[]
+): Record<string, WeekendOpenFees> {
+  const byWeekend: Record<string, WeekendOpenFees> = {}
+  for (const fee of fees) {
+    if (isNil(fee.weekendId)) continue
+    const entry = (byWeekend[fee.weekendId] ??= { count: 0, amountDue: 0 })
+    entry.count += 1
+    entry.amountDue += fee.amountDue
+  }
+  return byWeekend
 }
 
 /** Stats for both weekends of the active group, keyed by weekend type. */

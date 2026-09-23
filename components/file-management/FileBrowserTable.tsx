@@ -227,14 +227,14 @@ export function FileBrowserTable({
           <Table className="table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
+                <TableHead className={cn(HEAD_CLASS, 'w-14')}>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
                 <TableHead className={HEAD_CLASS}>Name</TableHead>
                 <TableHead className={cn(HEAD_CLASS, 'w-32')}>
                   Updated
                 </TableHead>
                 <TableHead className={cn(HEAD_CLASS, 'w-28')}>Size</TableHead>
-                <TableHead className={cn(HEAD_CLASS, 'w-16')}>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -244,6 +244,9 @@ export function FileBrowserTable({
                   className="cursor-pointer border-divider"
                   onClick={() => openEntry(entry)}
                 >
+                  <TableCell className="py-1.5 pl-3 pr-1">
+                    {renderActions(entry)}
+                  </TableCell>
                   <TableCell className="px-4 py-2 text-[14.5px]">
                     <div className="flex min-w-0 items-center gap-3">
                       <EntryIcon entry={entry} className="size-4.5" />
@@ -255,9 +258,6 @@ export function FileBrowserTable({
                   </TableCell>
                   <TableCell className="px-4 py-2 tabular-nums text-muted-foreground">
                     {formatSize(entry)}
-                  </TableCell>
-                  <TableCell className="px-4 py-1.5">
-                    {renderActions(entry)}
                   </TableCell>
                 </TableRow>
               ))}
