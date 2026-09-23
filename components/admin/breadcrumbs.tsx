@@ -10,21 +10,26 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Fragment } from 'react'
 
+import { BreadcrumbShareButton } from '@/components/admin/breadcrumb-share-button'
+
 type AdminBreadcrumbsProps = {
   title: string
   breadcrumbs: {
     label: string
     href: string
   }[]
+  /** Show the hover copy-link action beside the current page. On by default. */
+  shareable?: boolean
 }
 
 export function AdminBreadcrumbs({
   title,
   breadcrumbs,
+  shareable = true,
 }: AdminBreadcrumbsProps) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-      <div className="flex items-center gap-2 px-4">
+      <div className="group/breadcrumbs flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator
           orientation="vertical"
@@ -47,6 +52,7 @@ export function AdminBreadcrumbs({
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+        {shareable && <BreadcrumbShareButton title={title} />}
       </div>
     </header>
   )

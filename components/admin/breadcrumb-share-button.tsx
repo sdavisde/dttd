@@ -1,6 +1,5 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
 import { Check, Link2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -10,33 +9,31 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useShare } from '@/hooks/use-share'
+import { cn } from '@/lib/utils'
 
-type PageHeaderShareButtonProps = {
+type BreadcrumbShareButtonProps = {
   /** The page title, used as the label of the native share sheet. */
   title: string
 }
 
 /**
- * Copy-link control that lives in every admin {@link PageHeader}.
- *
- * It opts in by area rather than by page: the button renders only under
- * `/admin`, so all admin pages get it without editing a single page file and
- * public pages that share `PageHeader` stay exactly as they were. A page can
- * still opt out entirely with `<PageHeader shareable={false}>`.
+ * Copy-link control that sits beside the current page in
+ * {@link AdminBreadcrumbs}. It stays hidden until the breadcrumb bar is
+ * hovered or the button is focused, so it never competes with the trail; on
+ * touch devices (no hover) it is always shown. It also stays visible while the
+ * "copied" check is showing so the confirmation isn't lost when the pointer
+ * leaves.
  *
  * The URL is read from the browser rather than `getUrl()` because `SITE_URL`
  * is a server-only env var — it is inlined as `undefined` in client bundles.
  */
-export function PageHeaderShareButton({ title }: PageHeaderShareButtonProps) {
-  const pathname = usePathname()
+export function BreadcrumbShareButton({ title }: BreadcrumbShareButtonProps) {
   const { share, linkCopied } = useShare()
 
-  if (!pathname.startsWith('/admin')) return null
-
   const handleShare = () => {
-    const { origin, pathname: browserPath, search } = window.location
+    const { origin, pathname, search } = window.location
     // Hash is dropped on purpose: it is view state, not a shareable location.
-    void share({ title, url: `${origin}${browserPath}${search}` })
+    void share({ title, url: `${origin}${pathname}${search}` })
   }
 
   return (
@@ -46,8 +43,14 @@ export function PageHeaderShareButton({ title }: PageHeaderShareButtonProps) {
           type="button"
           variant="ghost"
           size="icon"
-          // 44px touch target on phones, 36px on desktop.
-          className="size-11 sm:size-9"
+          className={cn(
+            // 44px touch target on phones, compact beside the trail on desktop.
+            'size-11 text-muted-foreground md:size-7',
+            // `!` so the reveals win over the hide regardless of variant order.
+            'transition-opacity [@media(hover:hover)]:opacity-0',
+            'group-hover/breadcrumbs:opacity-100! focus-visible:opacity-100!',
+            linkCopied && 'opacity-100!'
+          )}
           onClick={handleShare}
           aria-label="Copy link to this page"
         >

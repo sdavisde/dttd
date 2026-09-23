@@ -36,9 +36,9 @@ Every page opens the same way, in order:
 Use `components/ui/page-header.tsx` for the title/description/actions block and
 `components/ui/typography.tsx` for headings generally (`h1`–`h4` render in the serif).
 
-`PageHeader` puts a copy-link button ahead of the page's own actions on every `/admin`
-route — no per-page wiring, and public pages that use `PageHeader` are unaffected. Pass
-`shareable={false}` to opt a page out.
+`AdminBreadcrumbs` shows a copy-link button beside the current page, revealed on hover
+or focus (always visible on touch devices) — every admin page gets it with no per-page
+wiring. Pass `shareable={false}` to `AdminBreadcrumbs` to opt a page out.
 
 ## Elevation: borders, not shadows
 
