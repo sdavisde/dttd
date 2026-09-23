@@ -79,7 +79,7 @@ export const adminNavItems: AdminNavItem[] = [
   },
   {
     title: 'Security',
-    href: '/admin/roles',
+    href: '/admin/security',
     icon: ShieldCheck,
     permissionsNeeded: [Permission.READ_USER_ROLES],
   },

@@ -92,7 +92,7 @@ export default function PeopleTable({
             {masterRoster.members.length} people · roles &amp; permissions are
             defined on the{' '}
             <Link
-              href="/admin/roles"
+              href="/admin/security"
               className="font-semibold text-primary hover:text-primary-hover"
             >
               Security page →

@@ -3,7 +3,7 @@ import 'server-only'
 import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import { fromSupabase, ok } from '@/lib/results'
-import type { Permission } from '@/lib/security'
+import type { RoleInput } from './types'
 
 export const getAllRoles = async () => {
   const supabase = await createClient()
@@ -11,15 +11,39 @@ export const getAllRoles = async () => {
   return fromSupabase(response)
 }
 
-export const updateRolePermissions = async (
-  roleId: string,
-  permissions: Permission[]
-) => {
+/**
+ * The inheritance graph only: enough to expand effective permissions without
+ * dragging labels/descriptions along. Shared with the user service.
+ */
+export const getRoleGraph = async () => {
   const supabase = await createClient()
   const response = await supabase
     .from('roles')
-    .update({ permissions })
+    .select('id, permissions, based_on_role_id')
+  return fromSupabase(response)
+}
+
+/** Every user↔role edge; used for usage counts and the Full Access holder count. */
+export const getAllUserRoleEdges = async () => {
+  const supabase = await createClient()
+  const response = await supabase.from('user_roles').select('user_id, role_id')
+  return fromSupabase(response)
+}
+
+export const updateRole = async (roleId: string, input: RoleInput) => {
+  const supabase = await createClient()
+  const response = await supabase
+    .from('roles')
+    .update({
+      label: input.label,
+      description: input.description,
+      type: input.type,
+      based_on_role_id: input.based_on_role_id,
+      permissions: input.permissions,
+    })
     .eq('id', roleId)
+    .select()
+    .single()
   return fromSupabase(response)
 }
 
@@ -29,14 +53,17 @@ export const deleteRole = async (roleId: string) => {
   return fromSupabase(response)
 }
 
-export const createRole = async (
-  label: string,
-  permissions: Permission[] = []
-) => {
+export const createRole = async (input: RoleInput) => {
   const supabase = await createClient()
   const response = await supabase
     .from('roles')
-    .insert({ label, permissions })
+    .insert({
+      label: input.label,
+      description: input.description,
+      type: input.type,
+      based_on_role_id: input.based_on_role_id,
+      permissions: input.permissions,
+    })
     .select()
     .single()
   return fromSupabase(response)

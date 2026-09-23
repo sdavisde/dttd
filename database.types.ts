@@ -645,6 +645,7 @@ export type Database = {
       }
       roles: {
         Row: {
+          based_on_role_id: string | null
           description: string | null
           id: string
           label: string
@@ -652,6 +653,7 @@ export type Database = {
           type: Database['public']['Enums']['role_type']
         }
         Insert: {
+          based_on_role_id?: string | null
           description?: string | null
           id?: string
           label: string
@@ -659,13 +661,22 @@ export type Database = {
           type?: Database['public']['Enums']['role_type']
         }
         Update: {
+          based_on_role_id?: string | null
           description?: string | null
           id?: string
           label?: string
           permissions?: string[]
           type?: Database['public']['Enums']['role_type']
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'roles_based_on_role_id_fkey'
+            columns: ['based_on_role_id']
+            isOneToOne: false
+            referencedRelation: 'roles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       site_settings: {
         Row: {

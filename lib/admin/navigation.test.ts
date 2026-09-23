@@ -60,7 +60,7 @@ describe('adminNavItems', () => {
       Community: '/admin/community-board',
       Files: '/admin/files',
       'Site settings': '/admin/settings',
-      Security: '/admin/roles',
+      Security: '/admin/security',
       Reports: '/admin/reports',
     })
   })

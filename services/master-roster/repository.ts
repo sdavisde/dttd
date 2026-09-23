@@ -26,7 +26,8 @@ const GetMasterRosterQuery = `
       label,
       description,
       permissions,
-      type
+      type,
+      based_on_role_id
     )
   ),
   users_experience (
