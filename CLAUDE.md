@@ -47,7 +47,6 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
     - `files/` - Public file access and management
     - `payment/` - Stripe payment flows
     - `sponsor/` - Sponsorship form and submission
-    - `review-candidates/` - Candidate review interface
     - `roster/` - Public roster page
   - `admin/` - Admin dashboard with role-based access
     - `files/` - File management system

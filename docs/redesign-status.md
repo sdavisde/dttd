@@ -153,6 +153,20 @@ group's Team tab. Known gaps: no weekend location column (read from the weekend 
 permissions only apply to the ACTIVE group, the roster builder and sponsor form still work on the
 active group only.
 
+**Review candidates (2026-09-23, on `preview`):** the locked queue layout now lives at
+`/weekends/[groupId]/review-candidates?weekend=&candidate=` (breadcrumb under the hub, `READ_CANDIDATES`
+gate that bounces to the hub overview otherwise). Left: search, Needs review / All / Archived chips,
+one row per candidate with a plain-words status pill; right: sponsorship and forms-&-fee cards, a
+medical row whose text is stripped server-side unless the viewer holds `READ_CANDIDATE_MEDICAL_INFO`,
+and the decision bar. "Approve for Men's #12" is today's request-payment step (status →
+awaiting_payment + fee email), renamed; "Move to waitlist" and "Ask the sponsor" are disabled with a
+"Coming soon" tooltip per owner decision. Send forms, move weekend, record cash/check and archive sit
+in the "…" menu; `updateCandidateStatus` is now gated on `WRITE_CANDIDATES`. The old editable
+detail page survives as "Full details" under the same route, with medical and emergency-contact
+fields gated per permission. The standalone `/review-candidates` route is gone; PWC emails now deep
+link into the queue via the candidate's weekend. Phones show the queue and open the detail in a
+sheet.
+
 Earlier public-side design commits predate the canvas and are not part of this track: `fc9c4f1`
 landing redesign, `8964c88` home dashboard, `448bdc3` warm design foundation + profile settings.
 
