@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import type { HydratedCandidate } from '@/lib/candidates/types'
+import type { ReviewCandidate } from '@/lib/candidates/review'
 import {
   getMoveWeekendOptions,
   type MoveWeekendOption,
@@ -30,7 +30,7 @@ import { Info } from 'lucide-react'
 
 interface MoveCandidateConfirmationModalProps {
   isOpen: boolean
-  candidate: HydratedCandidate | null
+  candidate: ReviewCandidate | null
   onCancel: () => void
   onConfirm: (targetWeekendId: string) => Promise<void>
 }
@@ -73,11 +73,11 @@ export function MoveCandidateConfirmationModal({
     }
   }, [isOpen, candidate])
 
-  if (isNil(candidate?.candidate_sponsorship_info)) {
+  if (isNil(candidate)) {
     return null
   }
 
-  const candidateName = candidate.candidate_sponsorship_info.candidate_name
+  const candidateName = candidate.name
   const selectedOption = options.find((o) => o.weekendId === selectedWeekendId)
 
   const handleConfirm = async () => {
@@ -109,7 +109,9 @@ export function MoveCandidateConfirmationModal({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Move Candidate</DialogTitle>
+          <DialogTitle className="font-serif text-xl font-semibold tracking-tight">
+            Move to another weekend
+          </DialogTitle>
           <DialogDescription>
             Move{' '}
             <span className="font-semibold text-foreground">
@@ -151,9 +153,12 @@ export function MoveCandidateConfirmationModal({
         </div>
 
         {selectedOption?.isFull === true && (
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-900">
+          <div className="flex items-start gap-2 rounded-md border border-secondary-border bg-secondary p-3">
+            <Info
+              className="mt-0.5 size-4 shrink-0 text-secondary-foreground"
+              aria-hidden
+            />
+            <div className="text-sm text-secondary-foreground">
               {selectedOption.label} is at capacity ({selectedOption.count}/
               {selectedOption.capacity}). You can still move this candidate, but
               the weekend will be over its {selectedOption.capacity}-candidate
@@ -163,14 +168,20 @@ export function MoveCandidateConfirmationModal({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+          <Button
+            variant="outline"
+            size="default"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
           <Button
+            size="default"
             onClick={handleConfirm}
             disabled={isLoading || selectedWeekendId === ''}
           >
-            {isLoading ? 'Moving...' : 'Confirm Move'}
+            {isLoading ? 'Moving…' : 'Move candidate'}
           </Button>
         </DialogFooter>
       </DialogContent>

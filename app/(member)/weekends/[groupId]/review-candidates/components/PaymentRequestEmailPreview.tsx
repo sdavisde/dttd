@@ -1,12 +1,16 @@
-import type { HydratedCandidate } from '@/lib/candidates/types'
+import type { PaymentOwner, ReviewCandidate } from '@/lib/candidates/review'
 import { isNil } from 'lodash'
 
 interface PaymentRequestEmailPreviewProps {
-  candidate: HydratedCandidate
-  paymentOwner: 'candidate' | 'sponsor'
+  candidate: Pick<ReviewCandidate, 'id' | 'name' | 'sponsor'>
+  paymentOwner: PaymentOwner
   paymentOwnerName: string
 }
 
+/**
+ * A plain-HTML echo of the payment request email, so the reviewer sees what
+ * the recipient will get before sending it.
+ */
 export function PaymentRequestEmailPreview({
   candidate,
   paymentOwner,
@@ -19,69 +23,62 @@ export function PaymentRequestEmailPreview({
 
   return (
     <div className="bg-white font-sans">
-      <div className="mx-auto py-8 px-4 max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="mx-auto max-w-2xl px-4 py-8">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">
             Dusty Trails Tres Dias
           </h1>
         </div>
 
-        <hr className="border-gray-200 mb-8" />
+        <hr className="mb-8 border-gray-200" />
 
-        {/* Main Content */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">
             Payment Request
           </h2>
 
-          <p className="text-gray-700 mb-6">Dear {paymentOwnerName},</p>
+          <p className="mb-6 text-gray-700">Dear {paymentOwnerName},</p>
 
-          <p className="text-gray-700 mb-6">
+          <p className="mb-6 text-gray-700">
             {paymentOwner === 'candidate'
               ? `We're so excited to have you join us for the upcoming Dusty Trails Tres Dias weekend.`
-              : `The sponsorship request for ${candidate.candidate_sponsorship_info?.candidate_name} has been approved for the Dusty Trails Tres Dias weekend. As the designated payment owner, we need you to complete the payment to confirm their spot.`}
+              : `The sponsorship request for ${candidate.name} has been approved for the Dusty Trails Tres Dias weekend. As the designated payment owner, we need you to complete the payment to confirm their spot.`}
           </p>
 
-          {/* Candidate Information - only show if sponsor is paying */}
           {paymentOwner === 'sponsor' && (
-            <div className="bg-gray-50 p-6 rounded-lg mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="mb-6 rounded-lg bg-gray-50 p-6">
+              <h3 className="mb-4 text-lg font-semibold text-gray-900">
                 Candidate Information
               </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Candidate Name:</strong>{' '}
-                {candidate.candidate_sponsorship_info?.candidate_name ??
-                  'No name'}
+              <p className="mb-2 text-gray-700">
+                <strong>Candidate Name:</strong> {candidate.name}
               </p>
-              {!isNil(candidate.candidate_sponsorship_info?.sponsor_name) && (
-                <p className="text-gray-700 mb-2">
-                  <strong>Sponsor Name:</strong>{' '}
-                  {candidate.candidate_sponsorship_info?.sponsor_name}
+              {!isNil(candidate.sponsor.name) && (
+                <p className="mb-2 text-gray-700">
+                  <strong>Sponsor Name:</strong> {candidate.sponsor.name}
                 </p>
               )}
-              <p className="text-gray-700 mb-2">
+              <p className="mb-2 text-gray-700">
                 <strong>Status:</strong> Awaiting Payment
               </p>
             </div>
           )}
 
-          <p className="text-gray-700 mb-6">
+          <p className="mb-6 text-gray-700">
             To complete the registration process and secure your spot for the
             weekend, please click the button below to proceed with payment.
           </p>
 
-          <p className="text-gray-700 mb-6">
+          <p className="mb-6 text-gray-700">
             <strong>Important:</strong> Your spot is not confirmed until payment
             is received. Please complete this payment as soon as possible to
             ensure your participation in the weekend.
           </p>
         </div>
 
-        {/* Call to Action */}
-        <div className="text-center mb-8">
+        <div className="mb-8 text-center">
           <a
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold no-underline"
+            className="inline-block rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white no-underline"
             href={paymentUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -90,10 +87,9 @@ export function PaymentRequestEmailPreview({
           </a>
         </div>
 
-        <hr className="border-gray-200 mb-8" />
+        <hr className="mb-8 border-gray-200" />
 
-        {/* Footer */}
-        <div className="text-center text-gray-600 text-sm">
+        <div className="text-center text-sm text-gray-600">
           <p className="mb-2">
             If you have any questions about the payment process or the weekend,
             please don&apos;t hesitate to contact us.
@@ -104,7 +100,8 @@ export function PaymentRequestEmailPreview({
           </p>
           <p className="mb-4 text-blue-600">{paymentUrl}</p>
           <p className="mb-2">
-            © 2025 Dusty Trails Tres Dias. All rights reserved.
+            © {new Date().getFullYear()} Dusty Trails Tres Dias. All rights
+            reserved.
           </p>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import type { HydratedCandidate } from '@/lib/candidates/types'
-import { getUrl } from '@/lib/url'
 import {
   Body,
   Container,
@@ -20,6 +19,8 @@ interface CandidatePaymentCompletedEmailProps {
   paymentAmount: number
   paymentMethod: 'card' | 'cash' | 'check'
   paymentOwner: 'candidate' | 'sponsor'
+  /** Absolute link to this candidate in the review queue. */
+  reviewUrl: string
 }
 
 export default function CandidatePaymentCompletedEmail({
@@ -27,9 +28,11 @@ export default function CandidatePaymentCompletedEmail({
   paymentAmount,
   paymentMethod,
   paymentOwner,
+  reviewUrl,
 }: CandidatePaymentCompletedEmailProps) {
   const candidateName =
-    !isNil(candidate.candidate_info?.first_name) && !isNil(candidate.candidate_info?.last_name)
+    !isNil(candidate.candidate_info?.first_name) &&
+    !isNil(candidate.candidate_info?.last_name)
       ? `${candidate.candidate_info!.first_name} ${candidate.candidate_info!.last_name}`
       : (candidate.candidate_sponsorship_info?.candidate_name ??
         'Unknown Candidate')
@@ -126,7 +129,7 @@ export default function CandidatePaymentCompletedEmail({
             {/* Call to Action */}
             <Section className="text-center mb-8">
               <Button
-                href={getUrl(`/review-candidates/${candidate.id}`)}
+                href={reviewUrl}
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold text-decoration-none inline-block"
               >
                 View Candidate Details

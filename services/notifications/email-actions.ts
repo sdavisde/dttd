@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { err, ok, isErr } from '@/lib/results'
 import { logger } from '@/lib/logger'
-import type { Tables } from '@/database.types'
 import CandidateFormsEmail from '@/components/email/CandidateFormsEmail'
 import { getHydratedCandidate } from '@/actions/candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'
@@ -22,6 +21,7 @@ import {
   NOTIFY_PAYMENT_RECEIPTS_KEY,
 } from '@/services/settings/site-settings'
 import * as NotificationService from './notification-service'
+import { getCandidateReviewUrl } from './review-links'
 import { sendEmail } from './email-client'
 import { formatWeekendLabelFor } from '@/lib/weekend'
 
@@ -64,7 +64,10 @@ export async function sendSponsorshipNotificationEmail(
       from: await getSystemEmailFrom(),
       to: [preWeekendEmailResult.data],
       subject: `New Sponsorship Request - ${candidate.candidate_sponsorship_info?.candidate_name}`,
-      react: SponsorshipNotificationEmail(candidate),
+      react: SponsorshipNotificationEmail({
+        ...candidate,
+        reviewUrl: await getCandidateReviewUrl(candidate),
+      }),
     })
 
     if (isErr(sendResult)) {
@@ -86,12 +89,21 @@ export async function sendSponsorshipNotificationEmail(
  * Send candidate forms to sponsorship request, turning them into a candidate
  */
 export async function sendCandidateForms(
-  candidateId: string,
-  candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>
+  candidateId: string
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
     if (isNil(candidateId)) {
       return err('Candidate id is required to build the forms link')
+    }
+
+    const candidateResult = await getHydratedCandidate(candidateId)
+    if (isErr(candidateResult)) {
+      return err(`Failed to fetch candidate: ${candidateResult.error}`)
+    }
+    const candidateSponsorshipInfo =
+      candidateResult.data.candidate_sponsorship_info
+    if (isNil(candidateSponsorshipInfo)) {
+      return err('Sponsorship information not found on candidate')
     }
 
     if (isNil(candidateSponsorshipInfo.candidate_email)) {
@@ -403,7 +415,10 @@ export async function sendCandidateFormsCompletedEmail(
       from: await getSystemEmailFrom(),
       to: [preWeekendEmailResult.data],
       subject: `Candidate Forms Completed - ${candidateName}`,
-      react: CandidateFormsCompletedEmail(candidate),
+      react: CandidateFormsCompletedEmail({
+        ...candidate,
+        reviewUrl: await getCandidateReviewUrl(candidate),
+      }),
     })
 
     if (isErr(sendResult)) {

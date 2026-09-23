@@ -1,14 +1,14 @@
-import type { Tables } from '@/database.types'
 import { getUrl } from '@/lib/url'
 
 interface CandidateFormsEmailPreviewProps {
   candidateId: string
-  candidateSponsorshipInfo: Tables<'candidate_sponsorship_info'>
+  candidateName: string
 }
 
+/** A plain-HTML echo of the candidate forms email, shown before sending. */
 export function CandidateFormsEmailPreview({
   candidateId,
-  candidateSponsorshipInfo,
+  candidateName,
 }: CandidateFormsEmailPreviewProps) {
   return (
     <div className="bg-white font-sans">
@@ -25,7 +25,7 @@ export function CandidateFormsEmailPreview({
         {/* Main Content */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Welcome {candidateSponsorshipInfo.candidate_name}!
+            Welcome {candidateName}!
           </h2>
 
           <p className="text-gray-700 mb-4">

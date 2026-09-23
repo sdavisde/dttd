@@ -279,10 +279,14 @@ export async function getAllCandidatesWithDetails(
   }
 }
 
-export async function updateCandidateStatus(
-  candidateId: string,
-  status: CandidateStatus
-): Promise<Result<string, { success: boolean }>> {
+/**
+ * Moves a candidate to a new status (reject, mark forms as sent, ...).
+ * Requires WRITE_CANDIDATES permission.
+ */
+export const updateCandidateStatus = authorizedAction<
+  { candidateId: string; status: CandidateStatus },
+  { success: boolean }
+>(Permission.WRITE_CANDIDATES, async ({ candidateId, status }) => {
   try {
     const supabase = await createClient()
 
@@ -301,7 +305,7 @@ export async function updateCandidateStatus(
       `Error while updating candidate status: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
   }
-}
+})
 
 /**
  * Add Candidate Info when a user submits their candidate forms

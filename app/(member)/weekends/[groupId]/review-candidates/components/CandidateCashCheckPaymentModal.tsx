@@ -19,17 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { HydratedCandidate } from '@/lib/candidates/types'
+import type { ReviewCandidate } from '@/lib/candidates/review'
 import { recordManualCandidatePayment } from '@/services/candidates/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import { isOk } from '@/lib/results'
 import { isNil } from 'lodash'
 
 type CandidateCashCheckPaymentModalProps = {
   open: boolean
   onClose: () => void
-  candidate: HydratedCandidate | null
+  candidate: ReviewCandidate | null
 }
 
 export function CandidateCashCheckPaymentModal({
@@ -44,11 +45,9 @@ export function CandidateCashCheckPaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
-  const candidateName =
-    candidate?.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
-  const sponsorName = candidate?.candidate_sponsorship_info?.sponsor_name ?? ''
-  const paymentOwnerType =
-    candidate?.candidate_sponsorship_info?.payment_owner ?? 'candidate'
+  const candidateName = candidate?.name ?? 'Unknown Candidate'
+  const sponsorName = candidate?.sponsor.name ?? ''
+  const paymentOwnerType = candidate?.sponsor.paymentOwner ?? 'candidate'
 
   // Determine the default payer name based on who is supposed to pay
   const defaultPayerName =
@@ -69,7 +68,7 @@ export function CandidateCashCheckPaymentModal({
     totalFee,
     totalPaid: currentPaid,
     balance: remainingBalance,
-  } = candidate.paymentSummary
+  } = candidate.fee
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,11 +99,12 @@ export function CandidateCashCheckPaymentModal({
         // Refresh the page to update the payment display
         router.refresh()
       } else {
-        toast.error(`Failed to record payment: ${result.error}`)
+        toastError('Unable to record the payment. Please try again.', {
+          error: result.error,
+        })
       }
     } catch (error) {
-      console.error('Error recording payment:', error)
-      toast.error('An unexpected error occurred while recording the payment')
+      toastError('Unable to record the payment. Please try again.', { error })
     } finally {
       setIsSubmitting(false)
     }
@@ -123,9 +123,9 @@ export function CandidateCashCheckPaymentModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Record Cash/Check Payment
+          <DialogTitle className="flex items-center gap-2 font-serif text-xl font-semibold tracking-tight">
+            <CreditCard className="size-5" aria-hidden />
+            Record a cash or check payment
           </DialogTitle>
         </DialogHeader>
 
@@ -187,7 +187,7 @@ export function CandidateCashCheckPaymentModal({
           </div>
 
           {/* Payment Summary */}
-          <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+          <div className="space-y-2 rounded-md border bg-muted p-3">
             {isNil(paymentType) ? (
               <p className="text-sm text-muted-foreground text-center py-2">
                 Select a payment method to see fee details
@@ -206,7 +206,9 @@ export function CandidateCashCheckPaymentModal({
                   <span>Remaining Balance:</span>
                   <span
                     className={
-                      remainingBalance > 0 ? 'text-amber-600' : 'text-green-600'
+                      remainingBalance > 0
+                        ? 'text-secondary-foreground'
+                        : 'text-success'
                     }
                   >
                     ${remainingBalance}

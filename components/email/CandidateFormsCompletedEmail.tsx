@@ -1,5 +1,4 @@
 import type { HydratedCandidate } from '@/lib/candidates/types'
-import { getUrl } from '@/lib/url'
 import {
   Body,
   Container,
@@ -15,11 +14,16 @@ import {
 import { Tailwind } from '@react-email/tailwind'
 import { isNil } from 'lodash'
 
+type CandidateFormsCompletedEmailProps = HydratedCandidate & {
+  /** Absolute link to this candidate in the review queue. */
+  reviewUrl: string
+}
+
 export default function CandidateFormsCompletedEmail({
-  id,
   candidate_sponsorship_info,
   candidate_info,
-}: HydratedCandidate) {
+  reviewUrl,
+}: CandidateFormsCompletedEmailProps) {
   const candidateName =
     !isNil(candidate_info?.first_name) && !isNil(candidate_info?.last_name)
       ? `${candidate_info!.first_name} ${candidate_info!.last_name}`
@@ -107,7 +111,7 @@ export default function CandidateFormsCompletedEmail({
             {/* Call to Action */}
             <Section className="text-center mb-8">
               <Button
-                href={getUrl(`/review-candidates/${id}`)}
+                href={reviewUrl}
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold text-decoration-none inline-block"
               >
                 Review Candidate

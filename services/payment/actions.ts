@@ -155,7 +155,6 @@ function revalidatePaymentViews() {
   revalidatePath('/admin/payments')
   revalidatePath('/admin/payments/summary')
   revalidatePath('/admin')
-  revalidatePath('/review-candidates')
   // Every hub page (overview tiles, Candidates tab) under any group.
   revalidatePath('/weekends/[groupId]', 'layout')
 }

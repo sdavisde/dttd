@@ -27,6 +27,10 @@ type CandidateInfoUpdate =
 interface CandidateFormDetailsSectionProps {
   candidate: HydratedCandidate
   canEdit: boolean
+  /** Medical notes render only for reviewers with medical access. */
+  canViewMedical: boolean
+  /** Emergency contact renders only for reviewers with that access. */
+  canViewEmergencyContact: boolean
 }
 
 interface ReadOnlyFieldProps {
@@ -182,6 +186,8 @@ const ageSchema = z.number().int().min(0).max(150)
 export function CandidateFormDetailsSection({
   candidate,
   canEdit,
+  canViewMedical,
+  canViewEmergencyContact,
 }: CandidateFormDetailsSectionProps) {
   const router = useRouter()
   const candidateInfo = candidate.candidate_info
@@ -386,32 +392,35 @@ export function CandidateFormDetailsSection({
       )}
 
       {/* Medical Conditions */}
-      {(!isNil(candidateInfo.medical_conditions) || canEdit) && (
-        <div className="mb-4">
-          <EditableTextArea
-            label="Medical Conditions"
-            value={candidateInfo.medical_conditions}
+      {canViewMedical &&
+        (!isNil(candidateInfo.medical_conditions) || canEdit) && (
+          <div className="mb-4">
+            <EditableTextArea
+              label="Medical Conditions"
+              value={candidateInfo.medical_conditions}
+              canEdit={canEdit}
+              onSave={(value) => handleSave('medical_conditions', value)}
+            />
+          </div>
+        )}
+
+      {/* Emergency Contact */}
+      {canViewEmergencyContact && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <EditableField
+            label="Emergency Contact Name"
+            value={candidateInfo.emergency_contact_name}
             canEdit={canEdit}
-            onSave={(value) => handleSave('medical_conditions', value)}
+            onSave={(value) => handleSave('emergency_contact_name', value)}
+          />
+          <EditableField
+            label="Emergency Contact Phone"
+            value={candidateInfo.emergency_contact_phone}
+            canEdit={canEdit}
+            onSave={(value) => handleSave('emergency_contact_phone', value)}
           />
         </div>
       )}
-
-      {/* Emergency Contact */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <EditableField
-          label="Emergency Contact Name"
-          value={candidateInfo.emergency_contact_name}
-          canEdit={canEdit}
-          onSave={(value) => handleSave('emergency_contact_name', value)}
-        />
-        <EditableField
-          label="Emergency Contact Phone"
-          value={candidateInfo.emergency_contact_phone}
-          canEdit={canEdit}
-          onSave={(value) => handleSave('emergency_contact_phone', value)}
-        />
-      </div>
     </section>
   )
 }

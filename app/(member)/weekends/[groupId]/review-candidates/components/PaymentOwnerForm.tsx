@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { updateCandidatePaymentOwner } from '@/actions/candidates'
 import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
 import * as Results from '@/lib/results'
 import { Loader2 } from 'lucide-react'
 
@@ -28,7 +29,9 @@ export function PaymentOwnerForm({
       const result = await updateCandidatePaymentOwner(candidateId, newValue)
 
       if (Results.isErr(result)) {
-        toast.error(result.error)
+        toastError('Unable to change who pays. Please try again.', {
+          error: result.error,
+        })
         // Revert on error
         setValue(initialPaymentOwner ?? '')
       } else {
