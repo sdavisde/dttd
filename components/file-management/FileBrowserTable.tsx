@@ -48,8 +48,6 @@ type FileBrowserTableProps = {
   caption: string
   /** Shown in place of the listing when there is nothing to show */
   emptyMessage: string
-  /** Flat "All files" view: show which folder each file lives in */
-  showFolderColumn?: boolean
 }
 
 const HEAD_CLASS =
@@ -83,7 +81,6 @@ export function FileBrowserTable({
   entries,
   caption,
   emptyMessage,
-  showFolderColumn = false,
 }: FileBrowserTableProps) {
   const router = useRouter()
   const { user } = useSession()
@@ -171,20 +168,6 @@ export function FileBrowserTable({
       </a>
     )
 
-  const renderFolderLink = (entry: FileBrowserEntry) =>
-    isNil(entry.folder) ? (
-      <span className="text-muted-foreground">—</span>
-    ) : (
-      <Link
-        href={adminFilesHref(entry.folder.slugs)}
-        onClick={(event) => event.stopPropagation()}
-        className="truncate hover:underline"
-        title={entry.folder.name}
-      >
-        {entry.folder.name}
-      </Link>
-    )
-
   const renderActions = (entry: FileBrowserEntry) => (
     <div onClick={(event) => event.stopPropagation()}>
       <DropdownMenu>
@@ -245,11 +228,6 @@ export function FileBrowserTable({
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className={HEAD_CLASS}>Name</TableHead>
-                {showFolderColumn && (
-                  <TableHead className={cn(HEAD_CLASS, 'w-52')}>
-                    Folder
-                  </TableHead>
-                )}
                 <TableHead className={cn(HEAD_CLASS, 'w-32')}>
                   Updated
                 </TableHead>
@@ -272,13 +250,6 @@ export function FileBrowserTable({
                       {renderName(entry)}
                     </div>
                   </TableCell>
-                  {showFolderColumn && (
-                    <TableCell className="px-4 py-2 text-muted-foreground">
-                      <div className="flex min-w-0">
-                        {renderFolderLink(entry)}
-                      </div>
-                    </TableCell>
-                  )}
                   <TableCell className="px-4 py-2 tabular-nums text-muted-foreground">
                     {formatUpdated(entry)}
                   </TableCell>
@@ -319,16 +290,6 @@ export function FileBrowserTable({
                 </div>
               </div>
               <div className="space-y-1 text-sm">
-                {showFolderColumn && (
-                  <div className="flex gap-2">
-                    <span className="w-16 shrink-0 text-muted-foreground">
-                      Folder
-                    </span>
-                    <span className="flex min-w-0">
-                      {renderFolderLink(entry)}
-                    </span>
-                  </div>
-                )}
                 <div className="flex gap-2">
                   <span className="w-16 text-muted-foreground">Updated</span>
                   <span className="tabular-nums">{formatUpdated(entry)}</span>

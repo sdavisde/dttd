@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { FolderOpen } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 import { isNil } from 'lodash'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
@@ -10,13 +11,12 @@ import { FileUpload } from '@/components/file-management/FileUpload'
 import { FolderRail } from '@/components/file-management/FolderRail'
 import {
   adminFilesHref,
-  describeAllFiles,
   describeFolderContents,
+  type RootFolder,
 } from '@/lib/files/browser'
 import { logger } from '@/lib/logger'
 import { isErr, Results } from '@/lib/results'
 import {
-  getAdminAllFilesView,
   getAdminFolderView,
   getRootFolders,
 } from '@/services/files/file-service'
@@ -24,7 +24,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import { StorageMeter } from './storage-meter'
 
 type FilesPageProps = {
-  /** URL slugs below /admin/files; empty for "All files" */
+  /** URL slugs below /admin/files; empty when no folder is open */
   pathSegments: string[]
 }
 
@@ -36,7 +36,7 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
   const isRoot = pathSegments.length === 0
   const [userResult, viewResult, rootFoldersResult] = await Promise.all([
     getLoggedInUser(),
-    isRoot ? getAdminAllFilesView() : getAdminFolderView(pathSegments),
+    isRoot ? null : getAdminFolderView(pathSegments),
     getRootFolders(),
   ])
 
@@ -44,14 +44,16 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
     redirect('/')
   }
 
-  if (isErr(viewResult)) {
+  if (!isNil(viewResult) && isErr(viewResult)) {
     logger.error({ error: viewResult.error }, 'Unable to load admin files')
     notFound()
   }
 
-  const { storagePath, trail, entries } = viewResult.data
+  const view = viewResult?.data ?? null
+  const storagePath = view?.storagePath ?? ''
+  const trail = view?.trail ?? []
   const rootFolders = Results.unwrapOr(rootFoldersResult, [])
-  const folderLabel = trail.at(-1)?.name ?? 'All files'
+  const folderLabel = trail.at(-1)?.name ?? 'Files'
 
   return (
     <>
@@ -83,14 +85,15 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
                 parentPath={storagePath}
                 parentLabel={folderLabel}
               />
-              <FileUpload
-                folder={storagePath}
-                disabled={isRoot}
-                buttonText="Upload"
-                buttonVariant="default"
-                buttonSize="default"
-                className="h-11 px-4.5 md:h-9.5"
-              />
+              {!isRoot && (
+                <FileUpload
+                  folder={storagePath}
+                  buttonText="Upload"
+                  buttonVariant="default"
+                  buttonSize="default"
+                  className="h-11 px-4.5 md:h-9.5"
+                />
+              )}
             </div>
           </div>
         </PageHeader>
@@ -100,22 +103,35 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
             folders={rootFolders}
             activeSlug={trail.at(0)?.slugs.at(0) ?? null}
           />
-          <FileBrowserTable
-            entries={entries}
-            showFolderColumn={isRoot}
-            caption={
-              isRoot
-                ? `${describeAllFiles(entries)} · open a folder to upload files`
-                : describeFolderContents(entries, folderLabel)
-            }
-            emptyMessage={
-              isRoot
-                ? 'No files yet. Open a folder to upload the first one.'
-                : `Nothing in ${folderLabel} yet.`
-            }
-          />
+          {isNil(view) ? (
+            <NoFolderSelected folders={rootFolders} />
+          ) : (
+            <FileBrowserTable
+              entries={view.entries}
+              caption={describeFolderContents(view.entries, folderLabel)}
+              emptyMessage={`Nothing in ${folderLabel} yet.`}
+            />
+          )}
         </div>
       </div>
     </>
+  )
+}
+
+/** Shown on /admin/files before a folder is picked from the rail. */
+function NoFolderSelected({ folders }: { folders: RootFolder[] }) {
+  const hasFolders = folders.length > 0
+  return (
+    <div className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-md border border-dashed bg-card px-6 py-16 text-center">
+      <FolderOpen className="mb-4 size-12 text-muted-foreground" />
+      <h2 className="mb-2 text-lg font-medium text-foreground">
+        {hasFolders ? 'Pick a folder to get started' : 'No folders yet'}
+      </h2>
+      <p className="max-w-sm text-sm text-muted-foreground">
+        {hasFolders
+          ? 'Choose a folder to see its files, or create a new one. Files are uploaded into the folder you have open.'
+          : "Create a folder to start organizing the community's files."}
+      </p>
+    </div>
   )
 }

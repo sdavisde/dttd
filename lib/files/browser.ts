@@ -19,18 +19,6 @@ export type FileBrowserEntry = {
   slugs: string[]
   updatedAt: string | null
   size: number | null
-  /**
-   * Folder this file lives in. Only set by the flat "All files" listing;
-   * null for files sitting at the bucket root.
-   */
-  folder?: FolderCrumb | null
-}
-
-/** A file found while walking the bucket, paired with its folder. */
-export type FlatStorageFile = {
-  /** Folder path inside the bucket; '' for files at the bucket root */
-  folderPath: string
-  item: FileObject
 }
 
 export type FolderCrumb = {
@@ -98,47 +86,6 @@ export function toBrowserEntries(
   ]
 }
 
-/** Turns `Team Handbooks/2025` into the URL slugs that reach it. */
-export function folderPathSlugs(folderPath: string): string[] {
-  return folderPath === '' ? [] : folderPath.split('/').map(slugify)
-}
-
-const updatedAtMillis = (entry: FileBrowserEntry): number => {
-  if (isNil(entry.updatedAt)) return 0
-  const parsed = Date.parse(entry.updatedAt)
-  return Number.isNaN(parsed) ? 0 : parsed
-}
-
-/**
- * Flattens a whole-bucket walk into the "All files" listing: every file, most
- * recently updated first, tagged with the folder it came from.
- */
-export function toAllFilesEntries(
-  files: FlatStorageFile[]
-): FileBrowserEntry[] {
-  return files
-    .filter(
-      ({ item }) => item.name !== PLACEHOLDER_FILE_NAME && !isFolderObject(item)
-    )
-    .map(({ folderPath, item }): FileBrowserEntry => {
-      const size = item.metadata?.size
-      const slugs = folderPathSlugs(folderPath)
-      return {
-        kind: 'file',
-        name: item.name,
-        storagePath: joinStoragePath(folderPath, item.name),
-        slugs,
-        updatedAt: item.updated_at ?? item.created_at ?? null,
-        size: typeof size === 'number' ? size : null,
-        folder: folderPath === '' ? null : { name: folderPath, slugs },
-      }
-    })
-    .sort((a, b) => {
-      const byNewest = updatedAtMillis(b) - updatedAtMillis(a)
-      return byNewest === 0 ? a.name.localeCompare(b.name) : byNewest
-    })
-}
-
 const pluralize = (count: number, noun: string) =>
   `${count} ${noun}${count === 1 ? '' : 's'}`
 
@@ -150,16 +97,6 @@ export function describeFolderContents(
   const folders = entries.filter((entry) => entry.kind === 'folder').length
   const files = entries.length - folders
   return `${pluralize(folders, 'folder')} and ${pluralize(files, 'file')} in ${folderLabel}`
-}
-
-/** "12 files across 3 folders" — the caption for the flat "All files" view. */
-export function describeAllFiles(entries: FileBrowserEntry[]): string {
-  const folders = new Set(
-    entries
-      .map((entry) => entry.folder?.name)
-      .filter((name): name is string => !isNil(name))
-  )
-  return `${pluralize(entries.length, 'file')} across ${pluralize(folders.size, 'folder')}`
 }
 
 export function adminFilesHref(slugs: string[]): string {
