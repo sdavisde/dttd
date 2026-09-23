@@ -44,6 +44,10 @@ export type MemberNavItem = {
   requiresTeamMembership?: boolean
   /** Appears in the phone tab bar (at most five). */
   tab?: boolean
+  /** Shorter label for the tab bar, when the sidebar title is too long. */
+  tabLabel?: string
+  /** Position in the tab bar (Main board order); lower comes first. */
+  tabOrder?: number
 }
 
 /**
@@ -60,6 +64,7 @@ export const memberNavItems: MemberNavItem[] = [
     section: null,
     permissionsNeeded: [],
     tab: true,
+    tabOrder: 0,
   },
   {
     key: 'sponsor',
@@ -97,6 +102,7 @@ export const memberNavItems: MemberNavItem[] = [
     section: 'Find',
     permissionsNeeded: [],
     tab: true,
+    tabOrder: 2,
   },
   {
     key: 'weekends',
@@ -106,6 +112,8 @@ export const memberNavItems: MemberNavItem[] = [
     section: 'Find',
     permissionsNeeded: [],
     tab: true,
+    tabLabel: 'Weekends',
+    tabOrder: 1,
   },
   {
     key: 'documents',
@@ -115,6 +123,7 @@ export const memberNavItems: MemberNavItem[] = [
     section: 'Find',
     permissionsNeeded: [],
     tab: true,
+    tabOrder: 3,
   },
 ]
 
@@ -128,6 +137,7 @@ export const memberFooterNavItems: MemberNavItem[] = [
     section: null,
     permissionsNeeded: [],
     tab: true,
+    tabOrder: 4,
   },
   {
     key: 'admin',
@@ -161,6 +171,8 @@ export type SerializableMemberNavItem = {
   href: string
   section: MemberNavSection
   tab?: boolean
+  tabLabel?: string
+  tabOrder?: number
 }
 
 export type MemberNavContext = {
@@ -187,13 +199,17 @@ function serialize(
   items: MemberNavItem[],
   context: MemberNavContext
 ): SerializableMemberNavItem[] {
-  return items.map(({ key, title, href, section, tab }) => ({
-    key,
-    title,
-    href: resolveMemberNavHref({ key, href }, context),
-    section,
-    tab,
-  }))
+  return items.map(
+    ({ key, title, href, section, tab, tabLabel, tabOrder }) => ({
+      key,
+      title,
+      href: resolveMemberNavHref({ key, href }, context),
+      section,
+      tab,
+      tabLabel,
+      tabOrder,
+    })
+  )
 }
 
 export type MemberNav = {
@@ -211,9 +227,16 @@ export function getMemberNav(
   }
 }
 
-/** The phone tab bar: every visible item flagged `tab`, in nav order. */
+/**
+ * The phone tab bar: every visible item flagged `tab`, in the Main board's
+ * order (Home · Weekends · Roster · Documents · My account), with the short
+ * tab label standing in for the sidebar title.
+ */
 export function getTabBarItems(nav: MemberNav): SerializableMemberNavItem[] {
-  return [...nav.main, ...nav.footer].filter((item) => item.tab === true)
+  return [...nav.main, ...nav.footer]
+    .filter((item) => item.tab === true)
+    .sort((a, b) => (a.tabOrder ?? 99) - (b.tabOrder ?? 99))
+    .map((item) => ({ ...item, title: item.tabLabel ?? item.title }))
 }
 
 export function getMemberNavIcon(key: MemberNavKey): LucideIcon | undefined {
@@ -228,7 +251,9 @@ function matchesPath(href: string, pathname: string) {
  * The one item to highlight for a path: the longest matching href wins, so
  * `/weekends/<id>/team` lights up Roster rather than The weekends, while
  * every other hub page (and `/files/handbook`, `/team-forms/camp-waiver`)
- * still highlights its section.
+ * still highlights its section. On an exact tie (Roster falling back to
+ * `/weekends` when nothing is active) the later item wins, so the index
+ * page highlights The weekends.
  */
 export function activeMemberNavKey(
   items: Pick<SerializableMemberNavItem, 'key' | 'href'>[],
@@ -237,7 +262,7 @@ export function activeMemberNavKey(
   let best: Pick<SerializableMemberNavItem, 'key' | 'href'> | null = null
   for (const item of items) {
     if (!matchesPath(item.href, pathname)) continue
-    if (isNil(best) || item.href.length > best.href.length) best = item
+    if (isNil(best) || item.href.length >= best.href.length) best = item
   }
   return best?.key ?? null
 }

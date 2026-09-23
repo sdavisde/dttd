@@ -130,7 +130,15 @@ describe('filterMemberNav', () => {
     const nav = getMemberNav(makeUser([]))
     for (const item of [...nav.main, ...nav.footer]) {
       expect(Object.keys(item).sort()).toEqual(
-        ['href', 'key', 'section', 'tab', 'title'].sort()
+        [
+          'href',
+          'key',
+          'section',
+          'tab',
+          'tabLabel',
+          'tabOrder',
+          'title',
+        ].sort()
       )
     }
   })
@@ -171,11 +179,18 @@ describe('getTabBarItems', () => {
     const tabs = getTabBarItems(getMemberNav(makeUser([], onTeam)))
     expect(tabs.map((item) => item.title)).toEqual([
       'Home',
+      'Weekends',
       'Roster',
-      'The weekends',
       'Documents',
       'My account',
     ])
+  })
+
+  it('keeps the sidebar title on the item itself', () => {
+    const nav = getMemberNav(makeUser([], onTeam))
+    expect(nav.main.find((item) => item.key === 'weekends')?.title).toBe(
+      'The weekends'
+    )
   })
 })
 
@@ -199,5 +214,12 @@ describe('activeMemberNavKey', () => {
     expect(activeMemberNavKey(items, '/weekends')).toBe('weekends')
     // Another group's team tab is still just a weekend page.
     expect(activeMemberNavKey(items, '/weekends/g11/team')).toBe('weekends')
+  })
+
+  it('highlights The weekends on the index when nothing is active', () => {
+    const nav = getMemberNav(makeUser([], onTeam), { activeGroupId: null })
+    const all = [...nav.main, ...nav.footer]
+    expect(activeMemberNavKey(all, '/weekends')).toBe('weekends')
+    expect(activeMemberNavKey(all, '/weekends/g12/team')).toBe('weekends')
   })
 })

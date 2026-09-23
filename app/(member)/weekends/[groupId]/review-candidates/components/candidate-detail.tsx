@@ -30,6 +30,7 @@ import {
 } from '@/lib/candidates/review'
 import { formatCurrency } from '@/lib/payments/formatters'
 import { cn, formatShortDate } from '@/lib/utils'
+import { WEEKEND_CANDIDATE_CAPACITY } from '@/lib/weekend/types'
 import { ReviewStatusPill } from './review-status-pill'
 
 export type DetailActions = {
@@ -231,7 +232,7 @@ export function CandidateDetail({
         <SoonButton label="Move to waitlist" variant="outline" />
         <SoonButton label="Ask the sponsor" variant="ghost" />
         <p className="ml-auto text-[13.5px] text-muted-foreground tabular-nums">
-          {spotsLeft} of 42 spots left
+          {spotsLeft} of {WEEKEND_CANDIDATE_CAPACITY} spots left
         </p>
       </div>
     </div>

@@ -217,7 +217,12 @@ export async function findSponsoredCandidatesForWeekend(
     )
     .eq('weekend_id', weekendId)
     .neq('status', 'rejected')
-    .ilike('candidate_sponsorship_info.sponsor_email', sponsorEmail)
+    // `_` and `%` are wildcards to ILIKE; an email like a_b@x.com must match
+    // itself, not a_b, acb, ...
+    .ilike(
+      'candidate_sponsorship_info.sponsor_email',
+      sponsorEmail.replace(/[\\%_]/g, '\\$&')
+    )
 
   if (isSupabaseError(error)) {
     return err(error.message)
