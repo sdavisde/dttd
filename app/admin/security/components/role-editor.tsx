@@ -87,7 +87,7 @@ interface RoleEditorProps {
 
 /**
  * The detail pane, read as a settings page: a header with one summary line,
- * then Basics, Permissions, Sensitive data and the danger zone, each a heading
+ * then the name fields, Permissions, Sensitive data and the danger zone, each a heading
  * and a stack of rows. Nothing is written until Save — loading a role never
  * normalises its permissions.
  */
@@ -263,11 +263,8 @@ export function RoleEditor({
             </p>
           </div>
 
-          <EditorSection
-            title="Basics"
-            description="What this role is called, and which role it builds on."
-          >
-            <div className="flex flex-col gap-4 pt-3">
+          <div>
+            <div className="flex flex-col gap-4">
               <FormField
                 control={form.control}
                 name="label"
@@ -382,7 +379,7 @@ export function RoleEditor({
                 </div>
               </div>
             </div>
-          </EditorSection>
+          </div>
 
           <EditorSection
             title="Permissions"
