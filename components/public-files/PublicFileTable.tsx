@@ -104,7 +104,7 @@ export function PublicFileTable({ files, folderName }: PublicFileTableProps) {
           {folders.length > 0 && (
             <h3 className="text-lg font-semibold mb-3">Files</h3>
           )}
-          <div className="overflow-x-auto">
+          <div className="w-full min-w-0 overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

@@ -95,7 +95,7 @@ export async function WeekendRosterView({
             {/* Left side: Weekend info */}
             {!hideWeekendHeader && (
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="mb-2 flex flex-wrap items-center gap-3">
                   <Typography variant="h5" className="text-2xl">
                     {weekendTitle}
                   </Typography>
