@@ -23,6 +23,10 @@ export type CommunityFields = {
 }
 
 export type NewExperienceEntry = {
+  /** Client-only identity so rows survive edits to their neighbours. */
+  key: string
+  /** Persisted, and shown read-only until the refreshed roster includes it. */
+  saved: boolean
   cha_role: string
   community: string
   weekend_number: string

@@ -28,7 +28,7 @@ interface RolesEditSectionProps {
 /**
  * Roles as removable chips plus a dashed "+ Add role" chip, per the People
  * board. Roles themselves are defined on the Security page; this only assigns
- * them, and it saves with the rest of the editor.
+ * them, and each change saves as soon as it's made.
  */
 export function RolesEditSection({
   options,

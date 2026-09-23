@@ -27,9 +27,13 @@ interface ExperienceEditSectionProps {
   visibleExperience: UserExperience[]
   newExperience: NewExperienceEntry[]
   onDeleteExisting: (id: string) => void
-  onAddNew: (entry: NewExperienceEntry) => void
-  onUpdateNew: (idx: number, entry: NewExperienceEntry) => void
-  onRemoveNew: (idx: number) => void
+  onAddNew: () => void
+  onUpdateNew: (
+    key: string,
+    entry: NewExperienceEntry,
+    options?: { immediate?: boolean }
+  ) => void
+  onRemoveNew: (key: string) => void
   canEdit: boolean
 }
 
@@ -95,73 +99,98 @@ export function ExperienceEditSection({
           </div>
         ))}
 
-        {/* New experience entries (only when editing) */}
-        {canEdit &&
-          newExperience.map((entry, idx) => (
-            <div key={idx} className="space-y-2 p-2 border rounded-md">
-              <div className="grid grid-cols-2 gap-2">
-                <Select
-                  value={entry.cha_role}
-                  onValueChange={(v) =>
-                    onUpdateNew(idx, { ...entry, cha_role: v })
-                  }
-                >
-                  <SelectTrigger className="w-full text-sm">
-                    <SelectValue placeholder="Role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(CHARole).map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={entry.community}
-                  onValueChange={(v) =>
-                    onUpdateNew(idx, { ...entry, community: v })
-                  }
-                >
-                  <SelectTrigger className="w-full text-sm">
-                    <SelectValue placeholder="Community" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(RECOGNIZED_COMMUNITIES).map(
-                      ([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      )
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2 items-center">
-                <Input
-                  type="number"
-                  placeholder="Weekend #"
-                  value={entry.weekend_number}
-                  onChange={(e) =>
-                    onUpdateNew(idx, {
-                      ...entry,
-                      weekend_number: e.target.value,
-                    })
-                  }
-                  className="text-sm"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive"
-                  onClick={() => onRemoveNew(idx)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+        {/* Just-saved rows, read-only until the refreshed roster includes them */}
+        {newExperience
+          .filter((entry) => entry.saved)
+          .map((entry) => (
+            <div
+              key={entry.key}
+              className="flex min-h-12 items-center p-2 border rounded-md"
+            >
+              <span className="font-medium text-sm">{entry.cha_role}</span>
+              <span className="text-sm text-muted-foreground ml-2">
+                {entry.community}#{entry.weekend_number}
+              </span>
             </div>
           ))}
+
+        {/* New experience entries (only when editing) */}
+        {canEdit &&
+          newExperience
+            .filter((entry) => !entry.saved)
+            .map((entry) => (
+              <div key={entry.key} className="space-y-2 p-2 border rounded-md">
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    value={entry.cha_role}
+                    onValueChange={(v) =>
+                      onUpdateNew(
+                        entry.key,
+                        { ...entry, cha_role: v },
+                        { immediate: true }
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue placeholder="Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(CHARole).map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={entry.community}
+                    onValueChange={(v) =>
+                      onUpdateNew(
+                        entry.key,
+                        { ...entry, community: v },
+                        { immediate: true }
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue placeholder="Community" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(RECOGNIZED_COMMUNITIES).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="number"
+                    placeholder="Weekend #"
+                    value={entry.weekend_number}
+                    onChange={(e) =>
+                      onUpdateNew(entry.key, {
+                        ...entry,
+                        weekend_number: e.target.value,
+                      })
+                    }
+                    className="text-sm"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive"
+                    onClick={() => onRemoveNew(entry.key)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
 
         {canEdit && (
           <Button
@@ -169,14 +198,7 @@ export function ExperienceEditSection({
             variant="outline"
             size="sm"
             className="w-full"
-            onClick={() =>
-              onAddNew({
-                cha_role: '',
-                community: 'DTTD',
-                weekend_number: '',
-                rollo: '',
-              })
-            }
+            onClick={onAddNew}
           >
             <Plus className="mr-2 h-4 w-4" /> Add Experience
           </Button>

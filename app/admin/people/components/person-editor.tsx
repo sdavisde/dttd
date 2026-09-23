@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, type FocusEvent } from 'react'
 import { isNil } from 'lodash'
 import { X } from 'lucide-react'
 import {
@@ -9,7 +10,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AutoSaveStatusIndicator } from '@/components/auto-save/auto-save-status'
 import { Permission, userHasPermission } from '@/lib/security'
 import { useSession } from '@/components/auth/session-provider'
 import { UserAvatar } from '@/components/user-avatar'
@@ -58,8 +59,6 @@ export function PersonEditor({
     !isNil(currentUser) &&
     userHasPermission(currentUser, [Permission.READ_USER_EXPERIENCE])
 
-  const form = useUserEditForm({ member, roles, isOpen, onClose })
-
   const showInlinePanel = isDesktop && isOpen && !isNil(member)
 
   return (
@@ -75,7 +74,7 @@ export function PersonEditor({
               showExperience={showExperience}
               showSecuritySettings={showSecuritySettings}
               onClose={onClose}
-              form={form}
+              roles={roles}
             />
           </div>
         </aside>
@@ -99,7 +98,7 @@ export function PersonEditor({
               showExperience={showExperience}
               showSecuritySettings={showSecuritySettings}
               onClose={onClose}
-              form={form}
+              roles={roles}
             />
           )}
         </SheetContent>
@@ -117,8 +116,10 @@ interface PersonEditorBodyProps {
   showExperience: boolean
   showSecuritySettings: boolean
   onClose: () => void
-  form: ReturnType<typeof useUserEditForm>
+  roles: PersonEditorProps['roles']
 }
+
+type EditorSection = 'contact' | 'address' | 'community'
 
 function PersonEditorBody({
   variant,
@@ -127,8 +128,25 @@ function PersonEditorBody({
   showExperience,
   showSecuritySettings,
   onClose,
-  form,
+  roles,
 }: PersonEditorBodyProps) {
+  // Mounted per person (`key={member.id}`), so each person gets a fresh form
+  // and anything still pending saves when you move to the next one.
+  const form = useUserEditForm({ member, roles, canEdit })
+
+  // Field errors wait until focus leaves the section, so the address doesn't
+  // shout "City is required" while you're still typing the street.
+  const [touched, setTouched] = useState<ReadonlySet<EditorSection>>(new Set())
+  const touchOnLeave =
+    (section: EditorSection) => (event: FocusEvent<HTMLDivElement>) => {
+      if (event.currentTarget.contains(event.relatedTarget)) return
+      setTouched((prev) =>
+        prev.has(section) ? prev : new Set(prev).add(section)
+      )
+    }
+  const errorsFor = <T,>(section: EditorSection, errors: T) =>
+    touched.has(section) ? errors : undefined
+
   // `weekend_attended` is stored as the wire format `DTTD#11`; the header wants
   // it read back as "joined DTTD #11".
   const joinedWeekendRef = parseCommunityWeekendRef(
@@ -183,41 +201,56 @@ function PersonEditorBody({
             {!canEdit && ' · view only'}
           </p>
         </div>
-        {variant === 'panel' && (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close editor"
-            className="-mr-2 ml-auto inline-flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 xl:size-8"
-          >
-            <X aria-hidden className="size-4" />
-          </button>
-        )}
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <AutoSaveStatusIndicator
+            status={form.saveStatus}
+            onRetry={form.retry}
+          />
+          {variant === 'panel' && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close editor"
+              className="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 xl:size-8"
+            >
+              <X aria-hidden className="size-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto pr-0.5">
         <EditorSectionCard title="Contact info" defaultOpen>
-          <ContactInfoSection
-            contact={form.contact}
-            onChange={form.setContact}
-            disabled={!canEdit}
-          />
+          <div onBlur={touchOnLeave('contact')}>
+            <ContactInfoSection
+              contact={form.contact}
+              onChange={form.updateContact}
+              errors={errorsFor('contact', form.contactErrors)}
+              disabled={!canEdit}
+            />
+          </div>
         </EditorSectionCard>
 
         <EditorSectionCard title="Address">
-          <AddressEditSection
-            address={form.address}
-            onChange={form.setAddress}
-            disabled={!canEdit}
-          />
+          <div onBlur={touchOnLeave('address')}>
+            <AddressEditSection
+              address={form.address}
+              onChange={form.setAddress}
+              errors={errorsFor('address', form.addressErrors)}
+              disabled={!canEdit}
+            />
+          </div>
         </EditorSectionCard>
 
         <EditorSectionCard title="Community info">
-          <CommunityInfoSection
-            community={form.community}
-            onChange={form.setCommunity}
-            disabled={!canEdit}
-          />
+          <div onBlur={touchOnLeave('community')}>
+            <CommunityInfoSection
+              community={form.community}
+              onChange={form.updateCommunity}
+              errors={errorsFor('community', form.communityErrors)}
+              disabled={!canEdit}
+            />
+          </div>
         </EditorSectionCard>
 
         <EditorSectionCard title="Skills">
@@ -238,22 +271,10 @@ function PersonEditorBody({
               totalDTTDWeekends={form.totalDTTDWeekends}
               visibleExperience={form.visibleExperience}
               newExperience={form.newExperience}
-              onDeleteExisting={(id) =>
-                form.setDeletedExperienceIds((prev) => [...prev, id])
-              }
-              onAddNew={(entry) =>
-                form.setNewExperience((prev) => [...prev, entry])
-              }
-              onUpdateNew={(idx, entry) =>
-                form.setNewExperience((prev) =>
-                  prev.map((e, i) => (i === idx ? entry : e))
-                )
-              }
-              onRemoveNew={(idx) =>
-                form.setNewExperience((prev) =>
-                  prev.filter((_, i) => i !== idx)
-                )
-              }
+              onDeleteExisting={form.deleteExperience}
+              onAddNew={form.addExperience}
+              onUpdateNew={form.updateExperience}
+              onRemoveNew={form.removeExperience}
               canEdit={canEdit}
             />
           </EditorSectionCard>
@@ -265,40 +286,24 @@ function PersonEditorBody({
               options={form.roleOptions}
               selectedRoleIds={form.selectedRoleIds}
               onChange={form.setSelectedRoleIds}
-              disabled={form.isLoading || !canEdit}
+              disabled={!canEdit}
             />
           </EditorSectionCard>
         )}
-
-        {!isNil(form.error) && (
-          <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{form.error}</AlertDescription>
-          </Alert>
-        )}
       </div>
 
-      <div className="mt-3 flex shrink-0 items-center gap-2 border-t border-divider pt-3">
-        {canEdit && (
-          <Button onClick={form.handleSave} disabled={form.isLoading}>
-            {form.isLoading ? 'Saving…' : 'Save changes'}
-          </Button>
-        )}
-        <Button variant="ghost" onClick={onClose} disabled={form.isLoading}>
-          {canEdit ? 'Cancel' : 'Close'}
-        </Button>
-        {isDevMode() && canEdit && (
+      {isDevMode() && canEdit && (
+        <div className="mt-3 flex shrink-0 justify-end border-t border-divider pt-3">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="ml-auto"
             onClick={form.fillWithTestData}
           >
             Fill with test data
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </>
   )
 }
