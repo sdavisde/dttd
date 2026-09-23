@@ -1,6 +1,6 @@
 # Redesign — Status Brief
 
-_Status as of 2026-09-21._
+_Status as of 2026-09-23._
 
 ## The plan
 
@@ -85,26 +85,38 @@ bar. Landed on `preview` in `e8aa2c4..3c48549`:
 
 None of it has been exercised in a browser yet.
 
+### Second batch (2026-09-23), local commits `5450933..d947c90`
+
+- **Security rebuilt** at `/admin/security` (`/admin/roles` redirects): two-pane list + inline
+  editor, renameable roles with a required description, copy-first creation, additive
+  "based on" inheritance (migration `20260923000000`, cycle-guard trigger), six No access /
+  View / Manage ladders covering every permission exactly once (`lib/security/permission-areas.ts`),
+  sensitive panel, admin-access switch, quarantined Full Access card. Inherited permissions reach
+  `userHasPermission` via the user's expanded role set.
+- **People editor** — inline 400px panel on `xl+` (sheet below), six collapsible cards, role
+  chips + "Add role" picker, selected-row tint.
+- **Community** — compact minutes list, member counts, "+ Add a committee or team" dialog.
+- **Events** — element-level parity pass; New event sidebar fixed for phones.
+- **Weekends "Fees open"** now reads the same per-person outstanding list as the dashboard and
+  Payments. **Row action menus go in the first column** on every redesigned table (site rule).
+
 ### Remaining after the merge
 
-- **Security** — the whole editor rebuild. Blocked on **redrawing the board** so the ~11
-  permissions with no home in its ladders get one (owner decision). Route is still `/admin/roles`.
 - **Editable fees** — mint a new Stripe Price via the API, store its id, and rework the webhook's
   env-based price dispatch.
-- **Non-payers** — spiritual directors still show as Outstanding until a waived row is recorded;
-  no role-based exemption exists. The dashboard's outstanding total is an aggregate and can differ
-  from the per-person Payments ledger (two-weekend servers, the Stripe cushion, partial payers).
+- **Non-payers** — spiritual directors show as Outstanding until a waived row is recorded; no
+  role-based exemption exists.
 - **Weekends** — "Active · registration open" needs a registration-state field; "View archive"
   and an explicit archive control.
-- **Community** — add a committee or team, term dates, committee lead.
-- **People** — collapsible sectioned editor with role chips.
+- **Community** — term dates and a committee "lead" need columns (`user_roles` has neither).
 - **Dashboard** — "Recent admin activity" (needs an audit log), "joined this year" (`users` has no
   `created_at`).
-- **Email log** — a skipped send (notification switch off) writes no `email_log` row; the status
-  check only allows `sent` / `failed`.
+- **Email log** — a skipped send (notification switch off) writes no `email_log` row.
 - **Prayer wheel links → weekend hub** — still not editable in the UI.
 - **Reports** — the whole page; nav shows SOON, matching the board.
-- `Results.logFailures` logs an error line for ok results too (`lib/results.ts`).
+- Housekeeping: `react-select` is unused and can leave `package.json`; the rector-ready and
+  experience-level sections in the People editor still use raw palette colors; `Results.logFailures`
+  logs an error line for ok results too.
 
 ### Leftovers
 
