@@ -8,13 +8,14 @@ import { cn, formatPhoneNumber } from '@/lib/utils'
 import { isEmpty } from 'lodash'
 import '@/components/ui/data-table/types'
 import { UserAvatarWithPreview } from '@/components/user-avatar'
+import { SelectedRowMarker } from '../components/selected-member-context'
 
 // ---------------------------------------------------------------------------
 // Board chip system (design canvas, People board): Admin renders solid brown,
 // the Pre-Weekend Couple renders cream, everything else renders muted.
 // ---------------------------------------------------------------------------
 
-function roleChipClasses(label: string): string {
+export function roleChipClasses(label: string): string {
   if (label === 'Admin') {
     return 'bg-primary text-primary-foreground'
   }
@@ -57,6 +58,8 @@ export const masterRosterColumns: ColumnDef<MasterRosterMember>[] = [
       const member = row.original
       return (
         <div className="flex items-center gap-2.5">
+          {/* Styling hook for the open-editor row tint (see people-table). */}
+          <SelectedRowMarker memberId={member.id} />
           <UserAvatarWithPreview
             user={{
               id: member.id,

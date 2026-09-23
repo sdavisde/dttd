@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Typography } from '@/components/ui/typography'
 import type { ContactFields } from '../types'
+import { editorFieldLabelClass } from './editor-section-card'
 
 interface ContactInfoSectionProps {
   contact: ContactFields
@@ -25,37 +25,41 @@ export function ContactInfoSection({
   disabled,
 }: ContactInfoSectionProps) {
   return (
-    <section className="space-y-2">
-      <Typography variant="muted" className="text-sm font-bold">
-        Contact info
-      </Typography>
-      <div className="bg-muted/20 rounded-md p-4 space-y-3 border">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label className="text-xs">First Name</Label>
-            <Input
-              value={contact.firstName}
-              onChange={(e) =>
-                onChange({ ...contact, firstName: e.target.value })
-              }
-              placeholder="First name"
-              disabled={disabled}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Last Name</Label>
-            <Input
-              value={contact.lastName}
-              onChange={(e) =>
-                onChange({ ...contact, lastName: e.target.value })
-              }
-              placeholder="Last name"
-              disabled={disabled}
-            />
-          </div>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className={editorFieldLabelClass}>First name</Label>
+          <Input
+            value={contact.firstName}
+            onChange={(e) =>
+              onChange({ ...contact, firstName: e.target.value })
+            }
+            placeholder="First name"
+            disabled={disabled}
+          />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Email</Label>
+          <Label className={editorFieldLabelClass}>Last name</Label>
+          <Input
+            value={contact.lastName}
+            onChange={(e) => onChange({ ...contact, lastName: e.target.value })}
+            placeholder="Last name"
+            disabled={disabled}
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className={editorFieldLabelClass}>Phone</Label>
+          <PhoneInput
+            className="tabular-nums"
+            value={contact.phone}
+            onChange={(e) => onChange({ ...contact, phone: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className={editorFieldLabelClass}>Email</Label>
           <Input
             type="email"
             value={contact.email}
@@ -64,31 +68,23 @@ export function ContactInfoSection({
             disabled={disabled}
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Phone</Label>
-          <PhoneInput
-            value={contact.phone}
-            onChange={(e) => onChange({ ...contact, phone: e.target.value })}
-            disabled={disabled}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Gender</Label>
-          <Select
-            value={contact.gender}
-            onValueChange={(v) => onChange({ ...contact, gender: v })}
-            disabled={disabled}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select gender" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
-    </section>
+      <div className="space-y-1">
+        <Label className={editorFieldLabelClass}>Gender</Label>
+        <Select
+          value={contact.gender}
+          onValueChange={(v) => onChange({ ...contact, gender: v })}
+          disabled={disabled}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select gender" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
   )
 }

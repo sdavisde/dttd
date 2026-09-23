@@ -2,7 +2,6 @@
 
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Typography } from '@/components/ui/typography'
 
 const SKILLS_OPTIONS: string[] = [
   'Audio/video',
@@ -38,26 +37,21 @@ export function SkillsEditSection({
   canEdit,
 }: SkillsEditSectionProps) {
   return (
-    <section className="space-y-2">
-      <Typography variant="muted" className="text-sm font-bold">
-        Gifts, Skills &amp; Abilities
-      </Typography>
-      <div className="bg-muted/20 rounded-md p-4 space-y-3 border">
-        <div className="flex flex-wrap gap-2">
-          {SKILLS_OPTIONS.map((skill) => (
-            <Badge
-              key={skill}
-              variant={skills.includes(skill) ? 'default' : 'outline'}
-              className={canEdit ? 'cursor-pointer select-none' : 'select-none'}
-              onClick={canEdit ? () => onToggle(skill) : undefined}
-            >
-              {skill}
-            </Badge>
-          ))}
-        </div>
-        {/* Show custom (non-standard) skills */}
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {SKILLS_OPTIONS.map((skill) => (
+          <Badge
+            key={skill}
+            variant={skills.includes(skill) ? 'default' : 'outline'}
+            className={canEdit ? 'cursor-pointer select-none' : 'select-none'}
+            onClick={canEdit ? () => onToggle(skill) : undefined}
+          >
+            {skill}
+          </Badge>
+        ))}
+        {/* Custom (non-standard) skills the person added themselves */}
         {skills
-          .filter((s) => !SKILLS_OPTIONS.includes(s))
+          .filter((skill) => !SKILLS_OPTIONS.includes(skill))
           .map((skill) => (
             <Badge
               key={skill}
@@ -66,26 +60,24 @@ export function SkillsEditSection({
               onClick={canEdit ? () => onToggle(skill) : undefined}
             >
               {skill}
-              {canEdit && ' \u00d7'}
+              {canEdit && ' ×'}
             </Badge>
           ))}
-        {canEdit && (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Add custom skill..."
-              value={customSkill}
-              onChange={(e) => onCustomSkillChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  onAddCustomSkill()
-                }
-              }}
-              className="text-sm"
-            />
-          </div>
-        )}
       </div>
-    </section>
+      {canEdit && (
+        <Input
+          placeholder="Add custom skill…"
+          value={customSkill}
+          onChange={(e) => onCustomSkillChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              onAddCustomSkill()
+            }
+          }}
+          className="text-sm"
+        />
+      )}
+    </div>
   )
 }

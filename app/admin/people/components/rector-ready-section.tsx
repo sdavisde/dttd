@@ -50,7 +50,7 @@ export function RectorReadySection({ status }: RectorReadySectionProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Rector Ready Status</h3>
+        <h3 className="text-sm font-semibold">Rector ready</h3>
         <div
           className={cn(
             'px-2 py-1 rounded-full text-xs font-medium',

@@ -12,11 +12,13 @@ export function ExperienceLevelSection({
 }: ExperienceLevelSectionProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Experience Level</h3>
+      <h3 className="text-sm font-semibold">Experience level</h3>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary border border-primary/20">
-          <span className="text-2xl font-bold">{level}</span>
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary border border-primary/20">
+          <span className="font-serif text-xl font-semibold tabular-nums">
+            {level}
+          </span>
         </div>
 
         <div className="space-y-1">

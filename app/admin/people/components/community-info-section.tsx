@@ -9,10 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Typography } from '@/components/ui/typography'
 import { MonthPickerPopover } from '@/components/ui/month-picker'
 import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
 import type { CommunityFields } from '../types'
+import { editorFieldLabelClass } from './editor-section-card'
 
 interface CommunityInfoSectionProps {
   community: CommunityFields
@@ -26,65 +26,61 @@ export function CommunityInfoSection({
   disabled,
 }: CommunityInfoSectionProps) {
   return (
-    <section className="space-y-2">
-      <Typography variant="muted" className="text-sm font-bold">
-        Community Information
-      </Typography>
-      <div className="bg-muted/20 rounded-md p-4 space-y-3 border">
-        <div className="space-y-1">
-          <Label className="text-xs">Church Affiliation</Label>
-          <Input
-            value={community.churchAffiliation}
-            onChange={(e) =>
-              onChange({ ...community, churchAffiliation: e.target.value })
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label className={editorFieldLabelClass}>Church affiliation</Label>
+        <Input
+          value={community.churchAffiliation}
+          onChange={(e) =>
+            onChange({ ...community, churchAffiliation: e.target.value })
+          }
+          placeholder="My Church"
+          disabled={disabled}
+        />
+      </div>
+      <div className="space-y-1">
+        <Label className={editorFieldLabelClass}>Weekend attended</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <Select
+            value={community.weekendCommunity}
+            onValueChange={(v) =>
+              onChange({ ...community, weekendCommunity: v })
             }
-            placeholder="My Church"
+            disabled={disabled}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Community" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(RECOGNIZED_COMMUNITIES).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            className="tabular-nums"
+            value={community.weekendNumber}
+            onChange={(e) =>
+              onChange({ ...community, weekendNumber: e.target.value })
+            }
+            placeholder="Weekend #"
             disabled={disabled}
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Weekend Attended</Label>
-          <div className="grid grid-cols-2 gap-3">
-            <Select
-              value={community.weekendCommunity}
-              onValueChange={(v) =>
-                onChange({ ...community, weekendCommunity: v })
-              }
-              disabled={disabled}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Community" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(RECOGNIZED_COMMUNITIES).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              type="number"
-              value={community.weekendNumber}
-              onChange={(e) =>
-                onChange({ ...community, weekendNumber: e.target.value })
-              }
-              placeholder="Weekend #"
-              disabled={disabled}
-            />
-          </div>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Essentials Training Date</Label>
-          <MonthPickerPopover
-            value={community.essentialsDate}
-            onChange={(date) =>
-              onChange({ ...community, essentialsDate: date })
-            }
-            placeholder="Pick a date"
-          />
-        </div>
       </div>
-    </section>
+      <div className="space-y-1">
+        <Label className={editorFieldLabelClass}>
+          Essentials training date
+        </Label>
+        <MonthPickerPopover
+          value={community.essentialsDate}
+          onChange={(date) => onChange({ ...community, essentialsDate: date })}
+          placeholder="Pick a date"
+        />
+      </div>
+    </div>
   )
 }

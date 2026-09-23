@@ -160,6 +160,34 @@ export function useUserEditForm({
     })
   }
 
+  /**
+   * Dev-only: drops plausible values into the editable fields so the form can
+   * be exercised without hand-typing. Never rendered outside `yarn dev`.
+   */
+  const fillWithTestData = () => {
+    setContact((prev) => ({
+      ...prev,
+      firstName: prev.firstName !== '' ? prev.firstName : 'Test',
+      lastName: prev.lastName !== '' ? prev.lastName : 'Person',
+      phone: '(830) 555-0163',
+      gender: prev.gender !== '' ? prev.gender : 'male',
+    }))
+    setAddress({
+      addressLine1: '123 Dusty Trail',
+      addressLine2: 'Apt 4B',
+      city: 'Kerrville',
+      state: 'TX',
+      zip: '78028',
+    })
+    setCommunity((prev) => ({
+      ...prev,
+      churchAffiliation: 'First Baptist Kerrville',
+      weekendCommunity: 'DTTD',
+      weekendNumber: '9',
+      essentialsDate: new Date(2024, 2, 1),
+    }))
+  }
+
   const addCustomSkill = () => {
     const trimmed = customSkill.trim()
     if (trimmed !== '') {
@@ -309,6 +337,7 @@ export function useUserEditForm({
     // Helpers
     toggleSkill,
     addCustomSkill,
+    fillWithTestData,
     handleSave,
   }
 }

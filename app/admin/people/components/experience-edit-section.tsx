@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Typography } from '@/components/ui/typography'
 import {
   Select,
   SelectContent,
@@ -46,151 +45,143 @@ export function ExperienceEditSection({
   canEdit,
 }: ExperienceEditSectionProps) {
   return (
-    <section className="space-y-2">
-      <Typography variant="muted" className="text-sm font-bold">
-        Experience &amp; Qualifications
-      </Typography>
-      <div className="bg-muted/20 rounded-md p-4 space-y-4 border">
-        <ExperienceLevelSection
-          level={member.level}
-          numDTTDWeekends={totalDTTDWeekends}
-        />
+    <div className="space-y-4">
+      <ExperienceLevelSection
+        level={member.level}
+        numDTTDWeekends={totalDTTDWeekends}
+      />
 
-        <Separator />
+      <Separator />
 
-        <RectorReadySection status={member.rectorReady} />
+      <RectorReadySection status={member.rectorReady} />
 
-        <Separator />
+      <Separator />
 
-        {/* Service History */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Service History</h3>
-          {visibleExperience.length === 0 && newExperience.length === 0 && (
-            <p className="text-sm text-muted-foreground italic">
-              No service history recorded.
-            </p>
-          )}
-          {visibleExperience.map((record) => (
-            <div
-              key={record.id}
-              className="flex items-center justify-between p-2 border rounded-md"
-            >
-              <div>
-                <span className="font-medium text-sm">{record.cha_role}</span>
-                <span className="text-sm text-muted-foreground ml-2">
-                  {record.weekend_reference}
-                </span>
-                {!isNil(record.rollo) && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-2 text-xs font-normal"
-                  >
-                    {record.rollo}
-                  </Badge>
-                )}
+      {/* Service History */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium">Service History</h3>
+        {visibleExperience.length === 0 && newExperience.length === 0 && (
+          <p className="text-sm text-muted-foreground italic">
+            No service history recorded.
+          </p>
+        )}
+        {visibleExperience.map((record) => (
+          <div
+            key={record.id}
+            className="flex items-center justify-between p-2 border rounded-md"
+          >
+            <div>
+              <span className="font-medium text-sm">{record.cha_role}</span>
+              <span className="text-sm text-muted-foreground ml-2">
+                {record.weekend_reference}
+              </span>
+              {!isNil(record.rollo) && (
+                <Badge variant="secondary" className="ml-2 text-xs font-normal">
+                  {record.rollo}
+                </Badge>
+              )}
+            </div>
+            {canEdit && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:text-destructive/90"
+                onClick={() => onDeleteExisting(record.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        ))}
+
+        {/* New experience entries (only when editing) */}
+        {canEdit &&
+          newExperience.map((entry, idx) => (
+            <div key={idx} className="space-y-2 p-2 border rounded-md">
+              <div className="grid grid-cols-2 gap-2">
+                <Select
+                  value={entry.cha_role}
+                  onValueChange={(v) =>
+                    onUpdateNew(idx, { ...entry, cha_role: v })
+                  }
+                >
+                  <SelectTrigger className="w-full text-sm">
+                    <SelectValue placeholder="Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(CHARole).map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={entry.community}
+                  onValueChange={(v) =>
+                    onUpdateNew(idx, { ...entry, community: v })
+                  }
+                >
+                  <SelectTrigger className="w-full text-sm">
+                    <SelectValue placeholder="Community" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(RECOGNIZED_COMMUNITIES).map(
+                      ([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
-              {canEdit && (
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="number"
+                  placeholder="Weekend #"
+                  value={entry.weekend_number}
+                  onChange={(e) =>
+                    onUpdateNew(idx, {
+                      ...entry,
+                      weekend_number: e.target.value,
+                    })
+                  }
+                  className="text-sm"
+                />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive/90"
-                  onClick={() => onDeleteExisting(record.id)}
+                  className="h-8 w-8 text-destructive"
+                  onClick={() => onRemoveNew(idx)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
-              )}
+              </div>
             </div>
           ))}
 
-          {/* New experience entries (only when editing) */}
-          {canEdit &&
-            newExperience.map((entry, idx) => (
-              <div key={idx} className="space-y-2 p-2 border rounded-md">
-                <div className="grid grid-cols-2 gap-2">
-                  <Select
-                    value={entry.cha_role}
-                    onValueChange={(v) =>
-                      onUpdateNew(idx, { ...entry, cha_role: v })
-                    }
-                  >
-                    <SelectTrigger className="w-full text-sm">
-                      <SelectValue placeholder="Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(CHARole).map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={entry.community}
-                    onValueChange={(v) =>
-                      onUpdateNew(idx, { ...entry, community: v })
-                    }
-                  >
-                    <SelectTrigger className="w-full text-sm">
-                      <SelectValue placeholder="Community" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(RECOGNIZED_COMMUNITIES).map(
-                        ([key, label]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    type="number"
-                    placeholder="Weekend #"
-                    value={entry.weekend_number}
-                    onChange={(e) =>
-                      onUpdateNew(idx, {
-                        ...entry,
-                        weekend_number: e.target.value,
-                      })
-                    }
-                    className="text-sm"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => onRemoveNew(idx)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-          {canEdit && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() =>
-                onAddNew({
-                  cha_role: '',
-                  community: 'DTTD',
-                  weekend_number: '',
-                  rollo: '',
-                })
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add Experience
-            </Button>
-          )}
-        </div>
+        {canEdit && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() =>
+              onAddNew({
+                cha_role: '',
+                community: 'DTTD',
+                weekend_number: '',
+                rollo: '',
+              })
+            }
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add Experience
+          </Button>
+        )}
       </div>
-    </section>
+    </div>
   )
 }
