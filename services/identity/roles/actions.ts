@@ -4,23 +4,42 @@ import * as RoleService from './role-service'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import type { Tables } from '@/database.types'
-import type { Role } from './types'
+import type { Role, RoleInput, RoleUsageById } from './types'
+import type { FullAccessImpact } from './inheritance'
 
 // Read operations - doesn't require authorizedAction since reading roles list is safe
 export const getRoles = async () => {
   return await RoleService.getRoles()
 }
 
-type UpdateRolePermissionsRequest = {
+export const getRoleUsage = authorizedAction<void, RoleUsageById>(
+  Permission.READ_USER_ROLES,
+  async () => await RoleService.getRoleUsage()
+)
+
+export const getFullAccessImpact = authorizedAction<void, FullAccessImpact>(
+  Permission.READ_USER_ROLES,
+  async () => await RoleService.getFullAccessImpact()
+)
+
+export const getRoleEffectivePermissions = authorizedAction<
+  string,
+  Permission[]
+>(
+  Permission.READ_USER_ROLES,
+  async (roleId) => await RoleService.getRoleEffectivePermissions(roleId)
+)
+
+type UpdateRoleRequest = {
   roleId: string
-  permissions: Permission[]
+  input: RoleInput
 }
-export const updateRolePermissions = authorizedAction<
-  UpdateRolePermissionsRequest,
-  null
->(Permission.WRITE_USER_ROLES, async ({ roleId, permissions }) => {
-  return await RoleService.updateRolePermissions(roleId, permissions)
-})
+export const updateRole = authorizedAction<UpdateRoleRequest, Role>(
+  Permission.WRITE_USER_ROLES,
+  async ({ roleId, input }) => {
+    return await RoleService.updateRole(roleId, input)
+  }
+)
 
 export const deleteRole = authorizedAction<string, null>(
   Permission.WRITE_USER_ROLES,
@@ -29,14 +48,21 @@ export const deleteRole = authorizedAction<string, null>(
   }
 )
 
-type CreateRoleRequest = {
-  label: string
-  permissions?: Permission[]
-}
-export const createRole = authorizedAction<CreateRoleRequest, Role>(
+export const createRole = authorizedAction<RoleInput, Role>(
   Permission.WRITE_USER_ROLES,
-  async ({ label, permissions }) => {
-    return await RoleService.createRole(label, permissions)
+  async (input) => {
+    return await RoleService.createRole(input)
+  }
+)
+
+type DuplicateRoleRequest = {
+  sourceRoleId: string
+  label?: string
+}
+export const duplicateRole = authorizedAction<DuplicateRoleRequest, Role>(
+  Permission.WRITE_USER_ROLES,
+  async ({ sourceRoleId, label }) => {
+    return await RoleService.duplicateRole(sourceRoleId, label)
   }
 )
 

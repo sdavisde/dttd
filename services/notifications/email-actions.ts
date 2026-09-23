@@ -2,7 +2,6 @@
 
 import { isNil } from 'lodash'
 import type { CreateEmailResponseSuccess } from 'resend'
-import { Resend } from 'resend'
 import SponsorshipNotificationEmail from '@/components/email/SponsorshipNotificationEmail'
 import CandidateFormsCompletedEmail from '@/components/email/CandidateFormsCompletedEmail'
 import { createClient } from '@/lib/supabase/server'
@@ -14,10 +13,17 @@ import CandidateFormsEmail from '@/components/email/CandidateFormsEmail'
 import { getHydratedCandidate } from '@/actions/candidates'
 import CandidateFeePaymentRequestEmail from '@/components/email/PaymentRequestEmail'
 import TeamPaymentNotificationEmail from '@/components/email/TeamPaymentNotificationEmail'
+import {
+  getSystemEmailFrom,
+  isNotificationEnabled,
+} from '@/services/settings/settings-service'
+import {
+  NOTIFY_NEW_SPONSORSHIPS_KEY,
+  NOTIFY_PAYMENT_RECEIPTS_KEY,
+} from '@/services/settings/site-settings'
 import * as NotificationService from './notification-service'
+import { sendEmail } from './email-client'
 import { formatWeekendLabelFor } from '@/lib/weekend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 /**
  * Send sponsorship notification email to preweekend couple
@@ -26,6 +32,13 @@ export async function sendSponsorshipNotificationEmail(
   candidateId: string
 ): Promise<Result<string, { data: CreateEmailResponseSuccess | null }>> {
   try {
+    if (!(await isNotificationEnabled(NOTIFY_NEW_SPONSORSHIPS_KEY))) {
+      logger.info(
+        `Skipped sponsorship notification email for candidate ${candidateId}: new sponsorship notifications are switched off in site settings`
+      )
+      return ok({ data: null })
+    }
+
     // Fetch sponsorship request data
     const candidateResult = await getHydratedCandidate(candidateId)
 
@@ -47,22 +60,21 @@ export async function sendSponsorshipNotificationEmail(
     }
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+    const sendResult = await sendEmail('sponsorship-notification', {
+      from: await getSystemEmailFrom(),
       to: [preWeekendEmailResult.data],
       subject: `New Sponsorship Request - ${candidate.candidate_sponsorship_info?.candidate_name}`,
       react: SponsorshipNotificationEmail(candidate),
     })
 
-    if (!isNil(error)) {
+    if (isErr(sendResult)) {
       logger.error(
-        error,
-        `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}`
+        `Failed to send sponsorship notification email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${sendResult.error}`
       )
-      return err(`Failed to send email: ${error.message}`)
+      return err(`Failed to send email: ${sendResult.error}`)
     }
 
-    return ok({ data })
+    return ok({ data: sendResult.data })
   } catch (error) {
     return err(
       `Error while sending sponsorship notification email: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -86,19 +98,18 @@ export async function sendCandidateForms(
       return err('Candidate email not found on candidate')
     }
 
-    const { data: candidateFormsEmail, error: candidateFormsEmailError } =
-      await resend.emails.send({
-        from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-        to: [candidateSponsorshipInfo.candidate_email],
-        subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
-        react: CandidateFormsEmail({ candidateId, candidateSponsorshipInfo }),
-      })
+    const candidateFormsEmailResult = await sendEmail('candidate-forms', {
+      from: await getSystemEmailFrom(),
+      to: [candidateSponsorshipInfo.candidate_email],
+      subject: `Candidate Forms - ${candidateSponsorshipInfo.candidate_name}`,
+      react: CandidateFormsEmail({ candidateId, candidateSponsorshipInfo }),
+    })
 
-    if (!isNil(candidateFormsEmailError)) {
-      return err(`Failed to send email: ${candidateFormsEmailError.message}`)
+    if (isErr(candidateFormsEmailResult)) {
+      return err(`Failed to send email: ${candidateFormsEmailResult.error}`)
     }
 
-    return ok({ data: candidateFormsEmail })
+    return ok({ data: candidateFormsEmailResult.data })
   } catch (error) {
     return err(
       `Error while sending candidate forms: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -162,32 +173,48 @@ export async function sendPaymentRequestEmail(
         candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'
     }
 
-    logger.info(
-      `Sending payment request email to ${paymentOwnerName} (${paymentOwnerEmail})`
+    // The status change below is the workflow step; only the email itself is
+    // optional, so a switched-off toggle skips the send and nothing else.
+    const paymentEmailsEnabled = await isNotificationEnabled(
+      NOTIFY_PAYMENT_RECEIPTS_KEY
     )
 
-    // Send email using Resend
-    const { data, error } = await resend.emails.send({
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
-      to: [paymentOwnerEmail],
-      subject: `Candidate Fees for ${candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'} - Dusty Trails Tres Dias`,
-      react: CandidateFeePaymentRequestEmail({
-        candidate,
-        paymentOwner,
-        paymentOwnerName,
-      }),
-    })
+    let data: CreateEmailResponseSuccess | null = null
 
-    if (!isNil(error)) {
-      logger.error(
-        `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${error.message}`
+    if (!paymentEmailsEnabled) {
+      logger.info(
+        `Skipped payment request email for candidate ${candidateId}: payment receipts & reminders are switched off in site settings`
       )
-      return err(`Failed to send email: ${error.message}`)
-    }
+    } else {
+      logger.info(
+        `Sending payment request email to ${paymentOwnerName} (${paymentOwnerEmail})`
+      )
 
-    logger.info(
-      `Payment request email sent successfully for ${candidate.candidate_sponsorship_info?.candidate_name}`
-    )
+      // Send email using Resend
+      const sendResult = await sendEmail('payment-request', {
+        from: await getSystemEmailFrom(),
+        to: [paymentOwnerEmail],
+        subject: `Candidate Fees for ${candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate'} - Dusty Trails Tres Dias`,
+        react: CandidateFeePaymentRequestEmail({
+          candidate,
+          paymentOwner,
+          paymentOwnerName,
+        }),
+      })
+
+      if (isErr(sendResult)) {
+        logger.error(
+          `Failed to send payment request email for ${candidate.candidate_sponsorship_info?.candidate_name}: ${sendResult.error}`
+        )
+        return err(`Failed to send email: ${sendResult.error}`)
+      }
+
+      data = sendResult.data
+
+      logger.info(
+        `Payment request email sent successfully for ${candidate.candidate_sponsorship_info?.candidate_name}`
+      )
+    }
 
     // Update candidate status to awaiting_payment
     const { error: updateError } = await supabase
@@ -230,6 +257,13 @@ export async function notifyAssistantHeadForTeamPayment(
   }
 
   try {
+    if (!(await isNotificationEnabled(NOTIFY_PAYMENT_RECEIPTS_KEY))) {
+      logger.info(
+        `Skipped team payment notification for weekend ${weekendId}: payment receipts & reminders are switched off in site settings`
+      )
+      return ok(true)
+    }
+
     const supabase = await createClient()
 
     // Get all weekend roster data and weekend details in parallel
@@ -298,8 +332,8 @@ export async function notifyAssistantHeadForTeamPayment(
     }
 
     // Send email to assistant head
-    const { error } = await resend.emails.send({
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+    const sendResult = await sendEmail('team-payment-notification', {
+      from: await getSystemEmailFrom(),
       to: [assistantHead.users.email],
       subject: `Team Fee Received - ${teamMember.users.first_name} ${teamMember.users.last_name}`,
       react: TeamPaymentNotificationEmail({
@@ -313,11 +347,11 @@ export async function notifyAssistantHeadForTeamPayment(
       }),
     })
 
-    if (!isNil(error)) {
+    if (isErr(sendResult)) {
       logger.error(
-        `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}: ${error.message}`
+        `Failed to send team payment notification email to assistant head for ${teamMember.users.first_name} ${teamMember.users.last_name}: ${sendResult.error}`
       )
-      return err(`Failed to send email: ${error.message}`)
+      return err(`Failed to send email: ${sendResult.error}`)
     }
 
     logger.info(
@@ -365,25 +399,24 @@ export async function sendCandidateFormsCompletedEmail(
         : (candidate.candidate_sponsorship_info?.candidate_name ?? 'Candidate')
 
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
-      from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+    const sendResult = await sendEmail('candidate-forms-completed', {
+      from: await getSystemEmailFrom(),
       to: [preWeekendEmailResult.data],
       subject: `Candidate Forms Completed - ${candidateName}`,
       react: CandidateFormsCompletedEmail(candidate),
     })
 
-    if (!isNil(error)) {
+    if (isErr(sendResult)) {
       logger.error(
-        error,
-        `Failed to send candidate forms completed email for ${candidateName}`
+        `Failed to send candidate forms completed email for ${candidateName}: ${sendResult.error}`
       )
-      return err(`Failed to send email: ${error.message}`)
+      return err(`Failed to send email: ${sendResult.error}`)
     }
 
     logger.info(
       `Candidate forms completed email sent successfully for ${candidateName}`
     )
-    return ok({ data })
+    return ok({ data: sendResult.data })
   } catch (error) {
     return err(
       `Error while sending candidate forms completed email: ${error instanceof Error ? error.message : 'Unknown error'}`

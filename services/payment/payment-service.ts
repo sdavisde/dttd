@@ -14,6 +14,13 @@ import {
   computeActiveWeekendFinancials,
   type ActiveWeekendFinancials,
 } from '@/lib/payments/compute-totals'
+import {
+  deriveOutstandingFees,
+  type FeePerson,
+  type OutstandingFee,
+} from '@/lib/payments/outstanding'
+import { pickRoleForWeekend, type RosterRoleRow } from '@/lib/payments/roles'
+import { WAIVED_PAID_BY, isWaived } from '@/lib/payments/waived'
 import type Stripe from 'stripe'
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
@@ -35,10 +42,12 @@ import type {
   TargetType,
   PaymentType,
   PaymentMethod,
+  RecordAdminPaymentInput,
   UpdatePaymentDetailsInput,
   VoidPaymentInput,
 } from './types'
 import {
+  RecordAdminPaymentSchema,
   CreatePaymentSchema,
   BackfillStripeDataSchema,
   ReassignPaymentSchema,
@@ -186,6 +195,71 @@ async function buildTargetIdentityMap(
 }
 
 /**
+ * Resolves the CHA role each payment's person served in, keyed by payment ID.
+ *
+ * Kept separate from the identity map on purpose: the two answer different
+ * questions and either can come back empty without spoiling the other. Like
+ * the identity map it batches — two queries whatever the number of payments,
+ * one per target table that can carry a role.
+ *
+ * A payment against a roster row takes that row's role. A payment against a
+ * group membership is group-scoped, so the roster row for the payment's own
+ * weekend decides — see `pickRoleForWeekend`. Candidates have no CHA role.
+ */
+async function buildTargetRoleMap(
+  rows: PaymentTransactionWithWeekend[],
+  options?: ServiceOptions
+): Promise<Map<string, string>> {
+  const rosterIds = new Set<string>()
+  const groupMemberIds = new Set<string>()
+  for (const row of rows) {
+    if (isNil(row.target_id)) continue
+    if (row.target_type === 'weekend_roster') rosterIds.add(row.target_id)
+    if (row.target_type === 'weekend_group_member') {
+      groupMemberIds.add(row.target_id)
+    }
+  }
+
+  const [rosterRolesResult, memberRolesResult] = await Promise.all([
+    PaymentRepository.getRosterRolesByRosterId([...rosterIds], options),
+    PaymentRepository.getRosterRolesByGroupMemberId(
+      [...groupMemberIds],
+      options
+    ),
+  ])
+
+  const roleByRosterId = new Map<string, string | null>()
+  for (const record of unwrapOr(rosterRolesResult, [])) {
+    roleByRosterId.set(record.rosterId, record.chaRole)
+  }
+
+  const rosterRowsByMember = new Map<string, RosterRoleRow[]>()
+  for (const record of unwrapOr(memberRolesResult, [])) {
+    if (isNil(record.groupMemberId)) continue
+    const existing = rosterRowsByMember.get(record.groupMemberId) ?? []
+    existing.push({ weekendId: record.weekendId, chaRole: record.chaRole })
+    rosterRowsByMember.set(record.groupMemberId, existing)
+  }
+
+  const roles = new Map<string, string>()
+  for (const row of rows) {
+    if (isNil(row.target_id)) continue
+    const role =
+      row.target_type === 'weekend_roster'
+        ? (roleByRosterId.get(row.target_id) ?? null)
+        : row.target_type === 'weekend_group_member'
+          ? pickRoleForWeekend(
+              rosterRowsByMember.get(row.target_id) ?? [],
+              row.weekend_id
+            )
+          : null
+    if (!isNil(role)) roles.set(row.id, role)
+  }
+
+  return roles
+}
+
+/**
  * Normalizes a payment transaction row into a PaymentTransactionDTO.
  *
  * Two different people are tracked on a payment:
@@ -198,7 +272,8 @@ async function buildTargetIdentityMap(
  */
 function normalizePaymentTransaction(
   raw: PaymentTransactionWithWeekend,
-  targetIdentities: Map<string, TargetIdentity>
+  targetIdentities: Map<string, TargetIdentity>,
+  targetRoles: Map<string, string>
 ): PaymentTransactionDTO {
   const key = targetKey(raw.target_type, raw.target_id)
   const identity = isNil(key) ? undefined : targetIdentities.get(key)
@@ -226,6 +301,7 @@ function normalizePaymentTransaction(
     target_email: identity?.email ?? null,
     weekend_number: raw.weekends?.weekend_groups?.number ?? null,
     weekend_type: (raw.weekends?.type as 'MENS' | 'WOMENS') ?? null,
+    cha_role: targetRoles.get(raw.id) ?? null,
   }
 }
 
@@ -295,7 +371,10 @@ export async function recordPayment(
       net_amount: validatedData.net_amount ?? null,
       stripe_fee: validatedData.stripe_fee ?? null,
       payment_method: validatedData.payment_method,
-      payment_owner: validatedData.payment_owner ?? null,
+      // A waived fee is always covered by the community, whatever was passed.
+      payment_owner: isWaived(validatedData)
+        ? WAIVED_PAID_BY
+        : (validatedData.payment_owner ?? null),
       notes: validatedData.notes ?? null,
       charge_id: validatedData.charge_id ?? null,
       balance_transaction_id: validatedData.balance_transaction_id ?? null,
@@ -441,9 +520,12 @@ export async function getAllPayments(
     return result
   }
 
-  const targetIdentities = await buildTargetIdentityMap(result.data, options)
+  const [targetIdentities, targetRoles] = await Promise.all([
+    buildTargetIdentityMap(result.data, options),
+    buildTargetRoleMap(result.data, options),
+  ])
   const normalizedPayments = result.data.map((raw) =>
-    normalizePaymentTransaction(raw, targetIdentities)
+    normalizePaymentTransaction(raw, targetIdentities, targetRoles)
   )
 
   // Sort by creation date (newest first) - already sorted by repository but ensure consistency
@@ -471,9 +553,12 @@ export async function getAllPaymentsIncludingVoided(
     return result
   }
 
-  const targetIdentities = await buildTargetIdentityMap(result.data, options)
+  const [targetIdentities, targetRoles] = await Promise.all([
+    buildTargetIdentityMap(result.data, options),
+    buildTargetRoleMap(result.data, options),
+  ])
   const normalizedPayments = result.data.map((raw) =>
-    normalizePaymentTransaction(raw, targetIdentities)
+    normalizePaymentTransaction(raw, targetIdentities, targetRoles)
   )
 
   normalizedPayments.sort(
@@ -524,9 +609,19 @@ export async function backfillStripeData(
 // ============================================================================
 
 /**
+ * Error value `getActiveWeekendFinancials` returns when the Stripe fee prices
+ * could not be read. Callers match on it to tell "we don't know the fees" apart
+ * from a generic failure, and to surface the right message to admins.
+ */
+export const FEE_LOOKUP_FAILED = 'fee-lookup-failed'
+
+/**
  * Computes financial health metrics for the active weekend group.
  * Fetches roster counts, candidate counts, group members, and fee prices,
  * then computes expected vs received totals per weekend.
+ *
+ * Returns `err(FEE_LOOKUP_FAILED)` when the fee prices are unavailable —
+ * without them every expected total would be wrong, not merely missing.
  */
 export async function getActiveWeekendFinancials(
   payments: PaymentTransactionDTO[],
@@ -595,14 +690,28 @@ export async function getActiveWeekendFinancials(
     ...unwrapOr(womensCandidateIds, []),
   ])
 
-  const teamFee =
-    isOk(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
-      ? teamFeeResult.data.unitAmount / 100
-      : 0
-  const candidateFee =
-    isOk(candidateFeeResult) && !isNil(candidateFeeResult.data.unitAmount)
-      ? candidateFeeResult.data.unitAmount / 100
-      : 0
+  // A missing price ID or a Stripe outage used to fall back to a fee of $0,
+  // which silently turned every balance into "fully settled". Carry it as an
+  // error instead so callers can say "can't be calculated" out loud.
+  const teamUnitAmount = isOk(teamFeeResult)
+    ? teamFeeResult.data.unitAmount
+    : null
+  const candidateUnitAmount = isOk(candidateFeeResult)
+    ? candidateFeeResult.data.unitAmount
+    : null
+  if (isNil(teamUnitAmount) || isNil(candidateUnitAmount)) {
+    logger.error({
+      msg: 'Stripe fee lookup failed; weekend financials cannot be computed',
+      teamFeeError: isErr(teamFeeResult) ? teamFeeResult.error : null,
+      candidateFeeError: isErr(candidateFeeResult)
+        ? candidateFeeResult.error
+        : null,
+      groupId,
+    })
+    return err(FEE_LOOKUP_FAILED)
+  }
+  const teamFee = teamUnitAmount / 100
+  const candidateFee = candidateUnitAmount / 100
 
   return ok(
     computeActiveWeekendFinancials(
@@ -616,6 +725,197 @@ export async function getActiveWeekendFinancials(
       activeCandidateTargetIds
     )
   )
+}
+
+// ============================================================================
+// Outstanding Fees (calculated, never stored)
+// ============================================================================
+
+/**
+ * Lists who in the active weekend group still owes a fee, and how much.
+ *
+ * The people expected to pay are the same ones getActiveWeekendFinancials
+ * counts: every active (non-dropped) roster member and every non-rejected
+ * candidate. A team member serving both weekends owes one fee and is listed
+ * once, under the first weekend they serve.
+ *
+ * Returns `err(FEE_LOOKUP_FAILED)` when the fee prices are unavailable.
+ *
+ * @param payments - All payments; voided rows are ignored, waived rows count
+ * as covering the fee
+ * @param activeWeekends - The active group's weekends
+ */
+export async function getOutstandingFees(
+  payments: PaymentTransactionDTO[],
+  activeWeekends: Record<'MENS' | 'WOMENS', Weekend>
+): Promise<Result<string, OutstandingFee[]>> {
+  const orderedWeekends = [activeWeekends.MENS, activeWeekends.WOMENS]
+  const groupId = activeWeekends.MENS.groupId ?? activeWeekends.WOMENS.groupId
+
+  const [
+    mensRoster,
+    womensRoster,
+    candidatesResult,
+    groupMembersResult,
+    teamFeeResult,
+    candidateFeeResult,
+  ] = await Promise.all([
+    WeekendRepository.findWeekendRoster(activeWeekends.MENS.id),
+    WeekendRepository.findWeekendRoster(activeWeekends.WOMENS.id),
+    PaymentRepository.findCandidateFeeTargets(orderedWeekends.map((w) => w.id)),
+    !isNil(groupId)
+      ? GroupMemberRepository.findGroupMembersByGroupId(groupId)
+      : Promise.resolve(null),
+    getTeamFee(),
+    getCandidateFee(),
+  ])
+
+  if (isErr(mensRoster)) return mensRoster
+  if (isErr(womensRoster)) return womensRoster
+  if (isErr(candidatesResult)) return candidatesResult
+
+  const teamUnitAmount = isOk(teamFeeResult)
+    ? teamFeeResult.data.unitAmount
+    : null
+  const candidateUnitAmount = isOk(candidateFeeResult)
+    ? candidateFeeResult.data.unitAmount
+    : null
+  if (isNil(teamUnitAmount) || isNil(candidateUnitAmount)) {
+    logger.error({
+      msg: 'Stripe fee lookup failed; outstanding fees cannot be computed',
+      groupId,
+    })
+    return err(FEE_LOOKUP_FAILED)
+  }
+
+  const weekendById = new Map(orderedWeekends.map((w) => [w.id, w]))
+  const groupMemberIdByUser = new Map<string, string>()
+  if (!isNil(groupMembersResult) && isOk(groupMembersResult)) {
+    for (const gm of groupMembersResult.data) {
+      groupMemberIdByUser.set(gm.user_id, gm.id)
+    }
+  }
+
+  // One entry per person: Men's roster first, so a dual-server lands there.
+  const teamByKey = new Map<string, FeePerson>()
+  for (const rosterRow of [...mensRoster.data, ...womensRoster.data]) {
+    const key = rosterRow.user_id ?? rosterRow.id
+    const existing = teamByKey.get(key)
+    if (!isNil(existing)) {
+      existing.legacyTargetIds.push(rosterRow.id)
+      continue
+    }
+
+    const weekend = isNil(rosterRow.weekend_id)
+      ? undefined
+      : weekendById.get(rosterRow.weekend_id)
+    const groupMemberId = isNil(rosterRow.user_id)
+      ? undefined
+      : groupMemberIdByUser.get(rosterRow.user_id)
+    const name =
+      `${rosterRow.users?.first_name ?? ''} ${rosterRow.users?.last_name ?? ''}`.trim()
+
+    teamByKey.set(key, {
+      // Payments target the group membership; the roster row is the fallback
+      // for a member who somehow has none, and the home of older payments.
+      targetType: isNil(groupMemberId)
+        ? 'weekend_roster'
+        : 'weekend_group_member',
+      targetId: groupMemberId ?? rosterRow.id,
+      legacyTargetIds: isNil(groupMemberId) ? [] : [rosterRow.id],
+      name: name !== '' ? name : null,
+      expectedPayer: name !== '' ? name : null,
+      // The role comes off the roster row this person was taken from, so a
+      // dual-server's role matches the weekend they are listed under.
+      chaRole: rosterRow.cha_role,
+      weekendId: weekend?.id ?? null,
+      weekendNumber: weekend?.number ?? null,
+      weekendType: weekend?.type ?? null,
+    })
+  }
+
+  const candidatePeople: FeePerson[] = candidatesResult.data.map((c) => {
+    const weekend = isNil(c.weekendId)
+      ? undefined
+      : weekendById.get(c.weekendId)
+    return {
+      targetType: 'candidate',
+      targetId: c.id,
+      legacyTargetIds: [],
+      name: c.name,
+      // The sponsorship form records who is paying: the sponsor or the
+      // candidate themselves.
+      expectedPayer: c.paymentOwner === 'candidate' ? c.name : c.sponsorName,
+      // Candidates are guests, not team — they have no CHA role.
+      chaRole: null,
+      weekendId: weekend?.id ?? null,
+      weekendNumber: weekend?.number ?? null,
+      weekendType: weekend?.type ?? null,
+    }
+  })
+
+  return ok(
+    deriveOutstandingFees(
+      [...candidatePeople, ...teamByKey.values()],
+      payments,
+      {
+        teamFee: teamUnitAmount / 100,
+        candidateFee: candidateUnitAmount / 100,
+      }
+    )
+  )
+}
+
+// ============================================================================
+// Manual Entry (admin Payments page)
+// ============================================================================
+
+/**
+ * Records a payment entered by hand: cash, a check, or a waived fee.
+ *
+ * Goes through recordPayment, so the weekend is derived from the target and a
+ * waiver is always owned by the community. The `manual_` intent prefix is what
+ * the fee helpers key on to apply the cash price rather than the online one —
+ * a waiver covers the cash price too.
+ */
+export async function recordAdminPayment(
+  input: RecordAdminPaymentInput
+): Promise<Result<string, PaymentTransactionRow>> {
+  const parseResult = RecordAdminPaymentSchema.safeParse(input)
+  if (!parseResult.success) {
+    return err(parseResult.error.message)
+  }
+  const { targetType, targetId, amount, method, paidBy, notes } =
+    parseResult.data
+
+  const actorResult = await getActorId()
+  if (isErr(actorResult)) return actorResult
+
+  const result = await recordPayment({
+    type: 'fee',
+    target_type: targetType,
+    target_id: targetId,
+    payment_intent_id: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+    gross_amount: amount,
+    payment_method: method,
+    payment_owner: isNil(paidBy) || paidBy === '' ? null : paidBy,
+    notes: isNil(notes) || notes === '' ? null : notes,
+  })
+  if (isErr(result)) return result
+
+  logger.info(
+    {
+      paymentId: result.data.id,
+      targetType,
+      targetId,
+      amount,
+      method,
+      actorId: actorResult.data,
+    },
+    method === 'waived' ? 'Fee waived' : 'Manual payment recorded'
+  )
+
+  return result
 }
 
 // ============================================================================
@@ -833,6 +1133,19 @@ export async function updatePaymentDetails(
 
   const paymentResult = await loadCorrectablePayment(paymentId)
   if (isErr(paymentResult)) return paymentResult
+
+  // Waived is not a method correction: flipping a row between money and a
+  // waiver would silently move it in or out of every collected total. Void
+  // it and record the right thing instead.
+  if (
+    !isNil(paymentMethod) &&
+    paymentMethod !== paymentResult.data.payment_method &&
+    (paymentMethod === 'waived' || isWaived(paymentResult.data))
+  ) {
+    return err(
+      'A payment cannot be changed to or from Waived. Void it and record a new one instead.'
+    )
+  }
 
   const changes: PaymentTransactionUpdate = {}
   if (!isNil(grossAmount)) changes.gross_amount = grossAmount

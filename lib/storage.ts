@@ -2,6 +2,12 @@ import { isNil } from 'lodash'
 import { createClient } from '@/lib/supabase/server'
 import type { SupabaseClient } from '@/lib/supabase/types'
 
+/**
+ * Storage the community is allowed to use, in bytes. Shared by every surface
+ * that reports usage so the Files page and the admin dashboard can't drift.
+ */
+export const STORAGE_QUOTA_BYTES = 1024 * 1024 * 1024 // 1 GB
+
 async function getFolderSize(
   supabase: SupabaseClient,
   bucketName: string,

@@ -116,6 +116,20 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void
   columnVisibility?: VisibilityState
   toolbarChildren?: ReactNode
+  /**
+   * Opt-in visual overrides for the desktop table (design-system "board" look).
+   * Consumers that omit this keep the existing default appearance.
+   */
+  appearance?: {
+    /** Classes appended to the bordered table container. */
+    container?: string
+    /** Classes appended to every header cell. */
+    header?: string
+    /** Classes appended to every body cell. */
+    cell?: string
+    /** Zebra-stripe odd rows (defaults to true, the legacy look). */
+    zebra?: boolean
+  }
 }
 
 export function DataTable<TData, TValue>({
@@ -130,7 +144,9 @@ export function DataTable<TData, TValue>({
   onRowClick,
   columnVisibility: columnVisibilityProp,
   toolbarChildren,
+  appearance,
 }: DataTableProps<TData, TValue>) {
+  const zebra = appearance?.zebra ?? true
   // Internal state (used when urlState is not provided)
   const [internalSorting, setInternalSorting] = useState<SortingState>(
     initialSort ?? []
@@ -414,7 +430,7 @@ export function DataTable<TData, TValue>({
           {toolbarChildren}
         </DataTableToolbar>
 
-        <div className="rounded-md border">
+        <div className={cn('rounded-md border', appearance?.container)}>
           <Table>
             <TableHeader>
               {isNested
@@ -422,7 +438,10 @@ export function DataTable<TData, TValue>({
                 : headerGroups.map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id}>
+                        <TableHead
+                          key={header.id}
+                          className={appearance?.header}
+                        >
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -458,7 +477,7 @@ export function DataTable<TData, TValue>({
                   <TableRow
                     key={row.id}
                     className={cn(
-                      index % 2 === 1 ? 'bg-muted/25' : undefined,
+                      zebra && index % 2 === 1 ? 'bg-muted/25' : undefined,
                       !isNil(onRowClick) && 'cursor-pointer'
                     )}
                     onClick={
@@ -470,9 +489,9 @@ export function DataTable<TData, TValue>({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className={expandedGroupCellClasses(
-                          cell.column,
-                          expandedGroups
+                        className={cn(
+                          appearance?.cell,
+                          expandedGroupCellClasses(cell.column, expandedGroups)
                         )}
                       >
                         {flexRender(

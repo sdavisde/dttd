@@ -433,6 +433,56 @@ export type Database = {
           },
         ]
       }
+      email_log: {
+        Row: {
+          community_id: string | null
+          created_at: string
+          error_summary: string | null
+          id: string
+          recipient_count: number
+          recipients: string[]
+          resend_message_id: string | null
+          sent_by_user_id: string | null
+          status: string
+          subject: string
+          template: string
+        }
+        Insert: {
+          community_id?: string | null
+          created_at?: string
+          error_summary?: string | null
+          id?: string
+          recipient_count?: number
+          recipients?: string[]
+          resend_message_id?: string | null
+          sent_by_user_id?: string | null
+          status: string
+          subject: string
+          template: string
+        }
+        Update: {
+          community_id?: string | null
+          created_at?: string
+          error_summary?: string | null
+          id?: string
+          recipient_count?: number
+          recipients?: string[]
+          resend_message_id?: string | null
+          sent_by_user_id?: string | null
+          status?: string
+          subject?: string
+          template?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'email_log_sent_by_user_id_fkey'
+            columns: ['sent_by_user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -595,6 +645,7 @@ export type Database = {
       }
       roles: {
         Row: {
+          based_on_role_id: string | null
           description: string | null
           id: string
           label: string
@@ -602,6 +653,7 @@ export type Database = {
           type: Database['public']['Enums']['role_type']
         }
         Insert: {
+          based_on_role_id?: string | null
           description?: string | null
           id?: string
           label: string
@@ -609,13 +661,22 @@ export type Database = {
           type?: Database['public']['Enums']['role_type']
         }
         Update: {
+          based_on_role_id?: string | null
           description?: string | null
           id?: string
           label?: string
           permissions?: string[]
           type?: Database['public']['Enums']['role_type']
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'roles_based_on_role_id_fkey'
+            columns: ['based_on_role_id']
+            isOneToOne: false
+            referencedRelation: 'roles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       site_settings: {
         Row: {

@@ -20,7 +20,7 @@ export type TargetType =
 /**
  * Payment method values matching the payment_transaction.payment_method column.
  */
-export type PaymentMethod = 'stripe' | 'cash' | 'check'
+export type PaymentMethod = 'stripe' | 'cash' | 'check' | 'waived'
 
 /**
  * Payment record type for the admin payments display.

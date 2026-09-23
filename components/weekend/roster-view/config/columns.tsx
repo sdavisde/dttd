@@ -109,6 +109,7 @@ export function getWeekendRosterColumns(
                   first_name: u.first_name,
                   last_name: u.last_name,
                   email: u.email,
+                  phone_number: u.phone_number,
                   profilePhoto: {
                     path: u.profile_photo_path,
                     updatedAt: u.profile_photo_updated_at,
@@ -513,6 +514,7 @@ export const droppedRosterColumns: ColumnDef<WeekendRosterMember>[] = [
                 first_name: u.first_name,
                 last_name: u.last_name,
                 email: u.email,
+                phone_number: u.phone_number,
                 profilePhoto: {
                   path: u.profile_photo_path,
                   updatedAt: u.profile_photo_updated_at,

@@ -33,7 +33,8 @@ export const JoinUserRolesOnUserId = `
       label,
       description,
       permissions,
-      type
+      type,
+      based_on_role_id
     )
   )
 `

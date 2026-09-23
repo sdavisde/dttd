@@ -239,7 +239,15 @@ export async function getAllCandidatesWithDetails(
       getCandidateFee(),
     ])
 
-    // Stripe fee in dollars (unitAmount is in cents)
+    // Stripe fee in dollars (unitAmount is in cents). A fee we can't read
+    // falls back to 0, which makes every payment summary read as paid in full
+    // — log it so the cause is visible rather than silent.
+    if (isErr(candidateFeeResult)) {
+      logger.error({
+        error: candidateFeeResult.error,
+        msg: 'Candidate fee price lookup failed; payment summaries will assume a $0 fee',
+      })
+    }
     const baseFee =
       !isErr(candidateFeeResult) && !isNil(candidateFeeResult.data.unitAmount)
         ? candidateFeeResult.data.unitAmount / 100

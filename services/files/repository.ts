@@ -79,6 +79,22 @@ export async function createSignedUrl(
   return supabase.storage.from(bucket).createSignedUrl(path, expiresIn)
 }
 
+export async function removeFiles(bucket: string, paths: string[]) {
+  const supabase = await createClient()
+  return supabase.storage.from(bucket).remove(paths)
+}
+
+/** Storage has no real folders; an empty placeholder object makes one exist. */
+export async function uploadPlaceholder(bucket: string, folderPath: string) {
+  const supabase = await createClient()
+  return supabase.storage
+    .from(bucket)
+    .upload(`${folderPath}/.placeholder`, new Blob(['']), {
+      cacheControl: '3600',
+      upsert: false,
+    })
+}
+
 export function filterPlaceholderFiles(files: FileObject[] | null | undefined) {
   return (files ?? []).filter((file) => file.name !== '.placeholder')
 }

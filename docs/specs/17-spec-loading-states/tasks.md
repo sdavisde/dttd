@@ -57,11 +57,11 @@ a segment `error.tsx` so failures don't bubble to root and blow away the shell.
 
 - [ ] 3.1 `app/admin/page.tsx` (dashboard grid)
 - [ ] 3.2 `app/admin/weekends/page.tsx`
-- [ ] 3.3 `app/admin/users/page.tsx`
+- [ ] 3.3 `app/admin/people/page.tsx`
 - [ ] 3.4 `app/admin/roles/page.tsx`
 - [ ] 3.5 `app/admin/files/page.tsx`
 - [ ] 3.6 `app/admin/payments/page.tsx`
-- [ ] 3.7 `app/admin/meetings/page.tsx`
+- [ ] 3.7 `app/admin/events/page.tsx`
 - [ ] 3.8 `app/admin/community-board/page.tsx`
 - [ ] 3.9 `app/admin/settings/page.tsx` (largest static-shell ratio — easy)
 - [ ] 3.10 `app/(public)/files/page.tsx`

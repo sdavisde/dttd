@@ -3,33 +3,7 @@
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { err, type Result } from '@/lib/results'
 import { Permission } from '@/lib/security'
-import type {
-  PagedMeetingMinuteFiles,
-  StorageSortDirection,
-  StorageSortField,
-} from '@/lib/files/types'
 import * as FileService from './file-service'
-
-export type MeetingMinutesPageParams = {
-  page: number
-  pageSize?: number
-  sortField?: StorageSortField
-  sortDirection?: StorageSortDirection
-}
-
-export async function getMeetingMinutesPageAction({
-  page,
-  pageSize = 10,
-  sortField = 'created_at',
-  sortDirection = 'desc',
-}: MeetingMinutesPageParams): Promise<Result<string, PagedMeetingMinuteFiles>> {
-  return FileService.getMeetingMinutesPage(
-    page,
-    pageSize,
-    sortField,
-    sortDirection
-  )
-}
 
 export async function getFilePublicUrlAction(folder: string, fileName: string) {
   return FileService.getFilePublicUrl(folder, fileName)
@@ -85,4 +59,33 @@ export const saveMeetingMinutesLocationAction = authorizedAction<
     fileName.trim(),
     trimmedLocation
   )
+})
+
+/** Creates a folder inside `parentPath` ('' for the top level). */
+export const createFolderAction = authorizedAction<
+  { parentPath: string; name: string },
+  { storagePath: string }
+>(Permission.FILES_UPLOAD, async ({ parentPath, name }) => {
+  if (typeof parentPath !== 'string' || typeof name !== 'string') {
+    return err('A folder name is required')
+  }
+
+  return FileService.createFolder(parentPath, name)
+})
+
+export const deleteFileAction = authorizedAction<{ storagePath: string }, null>(
+  Permission.FILES_DELETE,
+  async ({ storagePath }) => {
+    if (typeof storagePath !== 'string') return err('A file is required')
+    return FileService.deleteFile(storagePath)
+  }
+)
+
+/** Deletes a folder and everything inside it, sub-folders included. */
+export const deleteFolderAction = authorizedAction<
+  { storagePath: string },
+  { removed: number }
+>(Permission.FILES_DELETE, async ({ storagePath }) => {
+  if (typeof storagePath !== 'string') return err('A folder is required')
+  return FileService.deleteFolderRecursive(storagePath)
 })

@@ -1,7 +1,7 @@
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import type { Result } from '@/lib/results'
-import { err, isErr, ok } from '@/lib/results'
+import { err, isErr, ok, Results } from '@/lib/results'
 import { slugify, unslugify } from '@/lib/url'
 import type { FileObject } from '@supabase/storage-js'
 import type {
@@ -11,7 +11,20 @@ import type {
   StorageSortDirection,
   StorageSortField,
 } from '@/lib/files/types'
-import { MEETING_MINUTES_FOLDER } from '@/lib/files/constants'
+import {
+  COMMUNITY_FILES_BUCKET,
+  MEETING_MINUTES_FOLDER,
+} from '@/lib/files/constants'
+import {
+  findFolderBySlug,
+  isFolderObject,
+  joinStoragePath,
+  toBrowserEntries,
+  validateFolderName,
+  type FileBrowserEntry,
+  type FolderCrumb,
+  type RootFolder,
+} from '@/lib/files/browser'
 import { isAllowedFileExtension } from '@/lib/files/validation'
 import * as FileRepository from './repository'
 
@@ -301,30 +314,143 @@ export async function getFileDownloadUrl(
   return ok({ downloadUrl: data.signedUrl })
 }
 
-export async function getFileFolders(isAdmin: boolean = false) {
-  try {
-    const { data, error } = await FileRepository.listFiles('files', '')
+export type AdminFolderView = {
+  /** Real path inside the bucket; '' for the root */
+  storagePath: string
+  /** One crumb per folder from the root down to the viewed folder */
+  trail: FolderCrumb[]
+  entries: FileBrowserEntry[]
+}
 
-    if (!isNil(error) || isNil(data)) {
-      logger.error(`Error fetching root folders: ${error?.message}`)
-      return []
+/** Top-level folders of the community files bucket (the admin folder rail). */
+export async function getRootFolders(): Promise<Result<string, RootFolder[]>> {
+  const items = await getFileSystemItems(COMMUNITY_FILES_BUCKET, '')
+  return Results.map(items, (list) =>
+    list.filter(isFolderObject).map((item) => ({
+      name: item.name,
+      slug: slugify(item.name),
+    }))
+  )
+}
+
+/**
+ * Resolves URL slugs to the real folder path in the community files bucket and
+ * lists what is inside, with folders and files told apart. Admin-only sibling
+ * of `fetchFolderContents`, which the public route keeps using unchanged.
+ */
+export async function getAdminFolderView(
+  pathSegments: string[]
+): Promise<Result<string, AdminFolderView>> {
+  let storagePath = ''
+  const trail: FolderCrumb[] = []
+
+  for (const segment of pathSegments) {
+    const items = await getFileSystemItems(COMMUNITY_FILES_BUCKET, storagePath)
+    if (isErr(items)) return items
+
+    const match = findFolderBySlug(items.data, segment)
+    if (isNil(match)) {
+      return err(`Cannot find ${segment} in files/${storagePath}`)
     }
 
-    const baseUrl = isAdmin ? '/admin/files' : '/files'
-
-    return data
-      .filter((item) => item.metadata === null)
-      .map((item) => ({
-        title:
-          item.name.charAt(0).toUpperCase() +
-          item.name.slice(1).replace(/-/g, ' '),
-        url: `${baseUrl}/${slugify(item.name)}`,
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title))
-  } catch (error) {
-    logger.error(
-      `Error in getFileFolders: ${error instanceof Error ? error.message : String(error)}`
-    )
-    return []
+    storagePath = joinStoragePath(storagePath, match.name)
+    trail.push({
+      name: match.name,
+      slugs: [...(trail.at(-1)?.slugs ?? []), slugify(match.name)],
+    })
   }
+
+  const contents = await getFileSystemItems(COMMUNITY_FILES_BUCKET, storagePath)
+  return Results.map(contents, (items) => ({
+    storagePath,
+    trail,
+    entries: toBrowserEntries(items, storagePath, trail.at(-1)?.slugs ?? []),
+  }))
+}
+
+export async function createFolder(
+  parentPath: string,
+  name: string
+): Promise<Result<string, { storagePath: string }>> {
+  const validName = validateFolderName(name)
+  if (isErr(validName)) return validName
+
+  const storagePath = joinStoragePath(parentPath, validName.data)
+  const { error } = await FileRepository.uploadPlaceholder(
+    COMMUNITY_FILES_BUCKET,
+    storagePath
+  )
+
+  if (!isNil(error)) {
+    return err(
+      error.message.includes('already exists')
+        ? 'A folder with this name already exists.'
+        : error.message
+    )
+  }
+
+  return ok({ storagePath })
+}
+
+/** Every object path under a folder, placeholders and sub-folders included. */
+async function collectObjectPaths(
+  folderPath: string
+): Promise<Result<string, string[]>> {
+  const pageSize = 100
+  const paths: string[] = []
+  let offset = 0
+
+  while (true) {
+    const { data: items, error } = await FileRepository.listFiles(
+      COMMUNITY_FILES_BUCKET,
+      folderPath,
+      { limit: pageSize, offset }
+    )
+    if (!isNil(error)) return err(error.message)
+
+    const pageItems = items ?? []
+    for (const item of pageItems) {
+      const itemPath = joinStoragePath(folderPath, item.name)
+      if (isFolderObject(item)) {
+        const nested = await collectObjectPaths(itemPath)
+        if (isErr(nested)) return nested
+        paths.push(...nested.data)
+      } else {
+        paths.push(itemPath)
+      }
+    }
+
+    if (pageItems.length < pageSize) break
+    offset += pageSize
+  }
+
+  return ok(paths)
+}
+
+export async function deleteFile(
+  storagePath: string
+): Promise<Result<string, null>> {
+  if (storagePath.trim() === '') return err('A file is required')
+
+  const { error } = await FileRepository.removeFiles(COMMUNITY_FILES_BUCKET, [
+    storagePath,
+  ])
+  return isNil(error) ? ok(null) : err(error.message)
+}
+
+/** Deletes a folder and everything beneath it. */
+export async function deleteFolderRecursive(
+  storagePath: string
+): Promise<Result<string, { removed: number }>> {
+  if (storagePath.trim() === '') return err('A folder is required')
+
+  const paths = await collectObjectPaths(storagePath)
+  if (isErr(paths)) return paths
+  if (paths.data.length === 0) return ok({ removed: 0 })
+
+  const { error } = await FileRepository.removeFiles(
+    COMMUNITY_FILES_BUCKET,
+    paths.data
+  )
+  return isNil(error) ? ok({ removed: paths.data.length }) : err(error.message)
 }

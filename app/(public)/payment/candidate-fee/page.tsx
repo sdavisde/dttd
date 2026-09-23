@@ -68,8 +68,20 @@ export default async function CandidateFeesPaymentPage({
     redirect(`/home?error=${Errors.INVALID_CANDIDATE}`)
   }
 
-  // Check if candidate fees have already been paid for this candidate
+  // Check if candidate fees have already been paid for this candidate.
+  // A fee we can't read leaves `candidateFee` at 0, which skips the
+  // already-paid guard below — deliberate, so a Stripe hiccup never blocks
+  // someone from paying. What Stripe charges comes from the price ID above,
+  // not from this number, so the payer is unaffected either way.
   const feeResult = await getCandidateFee()
+  if (Results.isErr(feeResult)) {
+    logger.error({
+      path: '/payment/candidate-fee',
+      candidate_id,
+      error: feeResult.error,
+      msg: 'Candidate fee price lookup failed; skipping already-paid check',
+    })
+  }
   const candidateFee =
     !Results.isErr(feeResult) && !isNil(feeResult.data.unitAmount)
       ? feeResult.data.unitAmount / 100

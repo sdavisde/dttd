@@ -2,6 +2,7 @@ import type { PaymentTransactionDTO } from '@/services/payment'
 import { isNil } from 'lodash'
 import { formatWeekendGroupTitle } from '@/lib/weekend'
 import { NO_WEEKEND_GROUP_LABEL } from './formatters'
+import { isWaived } from './waived'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -28,28 +29,44 @@ function isTeam(p: PaymentTransactionDTO): boolean {
 // ---------------------------------------------------------------------------
 
 export type PaymentTotals = {
+  /** Payments that brought money in. Waived fees are counted separately. */
   count: number
   gross: number
   net: number
   fees: number
   candidateGross: number
   teamGross: number
+  /** Fees the community covered. Never part of gross/net — no money came in. */
+  waivedCount: number
+  waivedTotal: number
 }
 
-/** Accumulate totals from a list of payments. */
+/**
+ * Accumulate totals from a list of payments. Waived rows are tallied on their
+ * own and kept out of every money figure.
+ */
 export function computePaymentTotals(
   payments: PaymentTransactionDTO[]
 ): PaymentTotals {
   const totals: PaymentTotals = {
-    count: payments.length,
+    count: 0,
     gross: 0,
     net: 0,
     fees: 0,
     candidateGross: 0,
     teamGross: 0,
+    waivedCount: 0,
+    waivedTotal: 0,
   }
 
   for (const p of payments) {
+    if (isWaived(p)) {
+      totals.waivedCount++
+      totals.waivedTotal += p.gross_amount
+      continue
+    }
+
+    totals.count++
     totals.gross += p.gross_amount
     totals.net += netOf(p)
     totals.fees += p.stripe_fee ?? 0
@@ -91,6 +108,9 @@ export type WeekendBreakdown = {
   offlineNet: number
   onlineGross: number
   offlineGross: number
+  /** Fees the community covered for this weekend — excluded from every sum above. */
+  waivedTotal: number
+  waivedCount: number
 }
 
 export type WeekendGroup = {
@@ -171,8 +191,17 @@ export function computeWeekendReport(
         offlineNet = 0,
         onlineGross = 0,
         offlineGross = 0
+      let waivedTotal = 0,
+        waivedCount = 0
 
       for (const p of typePayments) {
+        // A waived fee is not money in: keep it out of gross, net and counts.
+        if (isWaived(p)) {
+          waivedTotal += p.gross_amount
+          waivedCount++
+          continue
+        }
+
         const pNet = netOf(p)
         const online = isOnline(p)
         totalGross += p.gross_amount
@@ -243,6 +272,8 @@ export function computeWeekendReport(
         offlineNet,
         onlineGross,
         offlineGross,
+        waivedTotal,
+        waivedCount,
       })
     }
 
@@ -271,6 +302,8 @@ export type ReportGrandTotals = {
   offlineNet: number
   onlineGross: number
   offlineGross: number
+  waivedTotal: number
+  waivedCount: number
 }
 
 /** Sum all weekend breakdowns into grand totals. */
@@ -294,6 +327,8 @@ export function computeGrandTotals(groups: WeekendGroup[]): ReportGrandTotals {
     offlineNet: 0,
     onlineGross: 0,
     offlineGross: 0,
+    waivedTotal: 0,
+    waivedCount: 0,
   }
 
   for (const group of groups) {
@@ -316,6 +351,8 @@ export function computeGrandTotals(groups: WeekendGroup[]): ReportGrandTotals {
       totals.offlineNet += w.offlineNet
       totals.onlineGross += w.onlineGross
       totals.offlineGross += w.offlineGross
+      totals.waivedTotal += w.waivedTotal
+      totals.waivedCount += w.waivedCount
     }
   }
 
@@ -337,6 +374,15 @@ export type ActiveWeekendMetrics = {
   candidatePaidCount: number
   candidateExpectedTotal: number
   candidateReceivedTotal: number
+  /**
+   * Fees the community covered for active people. Already subtracted from the
+   * expected totals above (nobody is going to pay them) and never part of the
+   * received totals (no money came in) — so they are a cost, not a shortfall.
+   * Optional only so hand-built fixtures elsewhere keep compiling;
+   * computeActiveWeekendFinancials always sets them.
+   */
+  teamWaivedTotal?: number
+  candidateWaivedTotal?: number
   /** Number of extra payments from non-active candidates (rejected/removed) */
   candidateExtraPaymentsCount: number
   /** Number of extra payments from non-active team members (dropped) */
@@ -351,7 +397,46 @@ export type ActiveWeekendFinancials = {
   candidateReceivedTotal: number
   overallExpectedTotal: number
   overallReceivedTotal: number
+  /** Always set by computeActiveWeekendFinancials; see teamWaivedTotal. */
+  overallWaivedTotal?: number
 }
+
+/** Extra charged on the online (Stripe) price over the cash price. */
+export const STRIPE_SURCHARGE = 10
+
+/** What a person is expected to pay: the Stripe price minus the surcharge. */
+export function cashPriceOf(stripeFee: number): number {
+  return Math.max(stripeFee - STRIPE_SURCHARGE, 0)
+}
+
+/**
+ * Dollars of fee the community covered for the given active people. Capped at
+ * one fee per person so a duplicate waiver can never push "expected" below
+ * what the remaining people actually owe.
+ */
+function waivedCoverage(
+  payments: PaymentTransactionDTO[],
+  activeTargetIds: Set<string>,
+  feePerPerson: number
+): number {
+  const waivedByTarget = new Map<string, number>()
+  for (const p of payments) {
+    if (!isWaived(p) || isNil(p.target_id)) continue
+    if (!activeTargetIds.has(p.target_id)) continue
+    waivedByTarget.set(
+      p.target_id,
+      (waivedByTarget.get(p.target_id) ?? 0) + p.gross_amount
+    )
+  }
+  let total = 0
+  for (const amount of waivedByTarget.values()) {
+    total += Math.min(amount, feePerPerson)
+  }
+  return total
+}
+
+const sumCollected = (payments: PaymentTransactionDTO[]): number =>
+  payments.reduce((sum, p) => (isWaived(p) ? sum : sum + p.gross_amount), 0)
 
 /**
  * Compute financial health metrics for the active weekend group.
@@ -392,9 +477,8 @@ export function computeActiveWeekendFinancials(
 
   // Expected per person is the cash price (Stripe price minus $10).
   // Any extra collected via Stripe is cushion for processing fees.
-  const STRIPE_SURCHARGE = 10
-  const teamCashPrice = Math.max(teamFee - STRIPE_SURCHARGE, 0)
-  const candidateCashPrice = Math.max(candidateFee - STRIPE_SURCHARGE, 0)
+  const teamCashPrice = cashPriceOf(teamFee)
+  const candidateCashPrice = cashPriceOf(candidateFee)
 
   const weekendMetrics: ActiveWeekendMetrics[] = []
 
@@ -444,23 +528,39 @@ export function computeActiveWeekendFinancials(
     const teamExtraPaymentsCount =
       allUniqueTeamPayers.size - uniqueTeamPayers.size
 
+    // A waived fee counts its person as paid above (the fee is covered), but
+    // it is not money: take it off what we expect to collect and leave it out
+    // of what we received, so "outstanding" never chases a covered fee.
+    const teamWaivedTotal = waivedCoverage(
+      teamPayments,
+      activeTeamTargetIds,
+      teamCashPrice
+    )
+    const candidateWaivedTotal = waivedCoverage(
+      candidatePayments,
+      activeCandidateTargetIds,
+      candidateCashPrice
+    )
+
     weekendMetrics.push({
       weekendType: type,
       weekendLabel: type === 'MENS' ? "Men's" : "Women's",
       teamExpectedCount,
       teamPaidCount: uniqueTeamPayers.size,
-      teamExpectedTotal: teamExpectedCount * teamCashPrice,
-      teamReceivedTotal: teamPayments.reduce(
-        (sum, p) => sum + p.gross_amount,
+      teamExpectedTotal: Math.max(
+        teamExpectedCount * teamCashPrice - teamWaivedTotal,
         0
       ),
+      teamReceivedTotal: sumCollected(teamPayments),
       candidateExpectedCount,
       candidatePaidCount: activeCandidatePayers.size,
-      candidateExpectedTotal: candidateExpectedCount * candidateCashPrice,
-      candidateReceivedTotal: candidatePayments.reduce(
-        (sum, p) => sum + p.gross_amount,
+      candidateExpectedTotal: Math.max(
+        candidateExpectedCount * candidateCashPrice - candidateWaivedTotal,
         0
       ),
+      candidateReceivedTotal: sumCollected(candidatePayments),
+      teamWaivedTotal,
+      candidateWaivedTotal,
       candidateExtraPaymentsCount,
       teamExtraPaymentsCount,
     })
@@ -491,5 +591,9 @@ export function computeActiveWeekendFinancials(
     candidateReceivedTotal,
     overallExpectedTotal: teamExpectedTotal + candidateExpectedTotal,
     overallReceivedTotal: teamReceivedTotal + candidateReceivedTotal,
+    overallWaivedTotal: weekendMetrics.reduce(
+      (s, w) => s + (w.teamWaivedTotal ?? 0) + (w.candidateWaivedTotal ?? 0),
+      0
+    ),
   }
 }

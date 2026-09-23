@@ -1,5 +1,5 @@
 export * from './actions'
-export { retrievePrice } from './payment-service'
+export { retrievePrice, FEE_LOOKUP_FAILED } from './payment-service'
 export type { PaymentRecord, PaymentType } from '@/lib/payments/types'
 
 // New types for payment_transaction table
@@ -19,6 +19,7 @@ export type {
 
 export type {
   ReassignPaymentInput,
+  RecordAdminPaymentInput,
   UpdatePaymentDetailsInput,
   VoidPaymentInput,
 } from './types'
@@ -30,6 +31,7 @@ export {
   CreatePaymentSchema,
   BackfillStripeDataSchema,
   ReassignPaymentSchema,
+  RecordAdminPaymentSchema,
   UpdatePaymentDetailsSchema,
   VoidPaymentSchema,
 } from './types'

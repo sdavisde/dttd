@@ -867,7 +867,15 @@ export async function getWeekendRoster(
     PaymentService.getTeamFee(),
   ])
 
-  // Stripe fee in dollars (unitAmount is in cents)
+  // Stripe fee in dollars (unitAmount is in cents). A fee we can't read falls
+  // back to 0, which makes every roster payment summary read as paid in full
+  // — log it so the cause is visible rather than silent.
+  if (isErr(teamFeeResult)) {
+    logger.error({
+      error: teamFeeResult.error,
+      msg: 'Team fee price lookup failed; roster payment summaries will assume a $0 fee',
+    })
+  }
   const baseFee =
     !isErr(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
       ? teamFeeResult.data.unitAmount / 100

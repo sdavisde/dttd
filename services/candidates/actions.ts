@@ -43,3 +43,17 @@ export async function getCandidateCountByWeekend(weekendId: string) {
 export async function getCandidateIdsByWeekend(weekendId: string) {
   return CandidateService.getCandidateIdsByWeekend(weekendId)
 }
+
+/**
+ * Gets the count of candidates on a weekend awaiting a review decision.
+ */
+export async function getCandidateReviewCountByWeekend(weekendId: string) {
+  return CandidateService.getCandidateReviewCountByWeekend(weekendId)
+}
+
+/**
+ * Gets non-rejected candidate counts for several weekends, keyed by weekend id.
+ */
+export async function getCandidateCountsByWeekends(weekendIds: string[]) {
+  return CandidateService.getCandidateCountsByWeekends(weekendIds)
+}

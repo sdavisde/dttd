@@ -18,8 +18,27 @@ import type {
   CHARole,
   WeekendAssignment,
 } from '@/lib/weekend/types'
+import { getRoleGraph as fetchRoleGraph } from '@/services/identity/roles/repository'
+import {
+  getEffectivePermissions,
+  type RoleNode,
+} from '@/services/identity/roles/inheritance'
 
-function normalizeUser(rawUser: RawUser): Result<string, User> {
+/**
+ * The role inheritance graph, fetched once per server render. Roles can be
+ * "based on" other roles, so a user's permission set must include everything
+ * their roles inherit — expanded here, in one place, before the union below.
+ * Falls back to own permissions only (fail closed) if the graph cannot load.
+ */
+const getRoleGraph = cache(async (): Promise<RoleNode[] | null> => {
+  const result = await fetchRoleGraph()
+  return unwrapOr<string, RoleNode[] | null>(result, null)
+})
+
+function normalizeUser(
+  rawUser: RawUser,
+  roleGraph: RoleNode[] | null
+): Result<string, User> {
   if (isNil(rawUser)) {
     return err('User not found')
   }
@@ -32,7 +51,10 @@ function normalizeUser(rawUser: RawUser): Result<string, User> {
     rawUser.user_roles?.map((userRole: RawUser['user_roles'][number]) => ({
       id: userRole.roles.id,
       label: userRole.roles.label,
-      permissions: userRole.roles.permissions ?? [],
+      // Effective permissions: the role's own plus everything it inherits.
+      permissions: isNil(roleGraph)
+        ? (userRole.roles.permissions ?? [])
+        : [...getEffectivePermissions(userRole.roles.id, roleGraph)],
       type: userRole.roles.type,
     })) ?? []
 
@@ -150,21 +172,27 @@ export async function getLoggedInUser(
 export async function getUserById(
   userId: string
 ): Promise<Result<string, User>> {
-  const userResult = await UserRepository.getUser(userId)
+  const [userResult, roleGraph] = await Promise.all([
+    UserRepository.getUser(userId),
+    getRoleGraph(),
+  ])
   if (isErr(userResult)) {
     return userResult
   }
-  return normalizeUser(userResult.data)
+  return normalizeUser(userResult.data, roleGraph)
 }
 
 export async function getUsers(): Promise<Result<string, Array<User>>> {
-  const result = await UserRepository.getAllUsers()
+  const [result, roleGraph] = await Promise.all([
+    UserRepository.getAllUsers(),
+    getRoleGraph(),
+  ])
   if (isErr(result)) {
     return result
   }
 
   const users = result.data
-    .map((u) => unwrapOr(normalizeUser(u), null))
+    .map((u) => unwrapOr(normalizeUser(u, roleGraph), null))
     .filter((u) => !isNil(u))
 
   return ok(users)

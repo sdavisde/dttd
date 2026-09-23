@@ -1,66 +1,139 @@
 'use client'
 
-import { useMemo } from 'react'
-import type { PaymentTransactionDTO } from '@/services/payment'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { ReactNode } from 'react'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { isNil } from 'lodash'
 import { formatCurrency } from '@/lib/payments/formatters'
-import { computePaymentTotals } from '@/lib/payments/compute-totals'
+import type { LedgerStats } from '@/lib/payments/ledger'
+import { cn } from '@/lib/utils'
 
 type PaymentsSummaryProps = {
-  payments: PaymentTransactionDTO[]
-  isFiltered: boolean
+  stats: LedgerStats
+  /**
+   * Why the outstanding figure is missing, when it is. A $0 here would read as
+   * "everyone has paid", so an unknown balance says so instead.
+   */
+  outstandingUnavailable: 'no-active-weekend' | 'fees-unknown' | 'error' | null
+  onViewOutstanding: () => void
 }
 
+const UNAVAILABLE_COPY = {
+  'no-active-weekend': 'No active weekend, so no fees are being collected',
+  'fees-unknown':
+    "Outstanding can't be calculated — the fee prices couldn't be read",
+  error: 'Outstanding is unavailable right now',
+} as const
+
+const plural = (count: number, one: string, many: string) =>
+  `${count} ${count === 1 ? one : many}`
+
+/**
+ * The board's three figure-first tiles: money in this year, what is owed
+ * right now, and fees the community covered this year. They describe the
+ * books, not the table — filters never move them. Net and Stripe-fee detail
+ * lives on the summary page, which the fourth tile opens.
+ */
 export function PaymentsSummary({
-  payments,
-  isFiltered,
+  stats,
+  outstandingUnavailable,
+  onViewOutstanding,
 }: PaymentsSummaryProps) {
-  const summary = useMemo(() => computePaymentTotals(payments), [payments])
-
-  if (summary.count === 0) return null
-
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {isFiltered ? 'Filtered Totals' : 'All Payments'} — {summary.count}{' '}
-          {summary.count === 1 ? 'payment' : 'payments'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          <div>
-            <p className="text-sm text-muted-foreground">Total Gross</p>
-            <p className="text-lg font-semibold text-green-600">
-              {formatCurrency(summary.gross)}
+    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <StatTile
+        figure={formatCurrency(stats.collectedTotal)}
+        figureClassName="text-success"
+        caption={`Collected in ${stats.year} · ${plural(stats.collectedCount, 'payment', 'payments')}`}
+      />
+
+      <div className="flex flex-col gap-0.5 rounded-md border border-secondary-border bg-secondary px-4.5 py-3.5">
+        {!isNil(outstandingUnavailable) ? (
+          <p className="text-sm text-secondary-foreground">
+            {UNAVAILABLE_COPY[outstandingUnavailable]}
+          </p>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-baseline gap-x-2.5">
+              <Figure className="text-secondary-foreground">
+                {formatCurrency(stats.outstandingTotal)}
+              </Figure>
+              {stats.outstandingCount > 0 && (
+                <button
+                  type="button"
+                  onClick={onViewOutstanding}
+                  className="-my-2 min-h-11 text-left text-[13px] font-semibold text-primary hover:text-primary-hover sm:my-0 sm:min-h-0"
+                >
+                  View the{' '}
+                  {plural(stats.outstandingCount, 'open fee', 'open fees')} →
+                </button>
+              )}
+            </div>
+            <p className="text-[13px] text-secondary-foreground">
+              Outstanding right now
+              {stats.outstandingCount === 0 && ' · every fee is settled'}
             </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Total Net</p>
-            <p className="text-lg font-semibold">
-              {formatCurrency(summary.net)}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Stripe Fees</p>
-            <p className="text-lg font-semibold text-red-500">
-              {formatCurrency(summary.fees)}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Candidate Fees</p>
-            <p className="text-lg font-semibold">
-              {formatCurrency(summary.candidateGross)}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Team Fees</p>
-            <p className="text-lg font-semibold">
-              {formatCurrency(summary.teamGross)}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          </>
+        )}
+      </div>
+
+      <StatTile
+        figure={String(stats.waivedCount)}
+        caption={
+          stats.waivedCount > 0
+            ? `Waived in ${stats.year} · ${formatCurrency(stats.waivedTotal)} covered by the community`
+            : `Waived in ${stats.year}`
+        }
+      />
+
+      <Link
+        href="/admin/payments/summary"
+        className="flex min-h-11 flex-col justify-center gap-0.5 rounded-md border bg-card px-4.5 py-3.5 transition-colors hover:bg-muted/40"
+      >
+        <span className="flex items-center gap-1.5 font-serif text-lg font-semibold tracking-tight">
+          Payment summary
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </span>
+        <span className="text-[13px] text-muted-foreground">
+          Weekend-by-weekend breakdown · expected vs received, net after fees
+        </span>
+      </Link>
+    </div>
+  )
+}
+
+function Figure({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <span
+      className={cn(
+        'font-serif text-2xl font-semibold tracking-tight tabular-nums',
+        className
+      )}
+    >
+      {children}
+    </span>
+  )
+}
+
+function StatTile({
+  figure,
+  caption,
+  figureClassName,
+}: {
+  figure: string
+  caption: string
+  figureClassName?: string
+}) {
+  return (
+    <div className="flex flex-col gap-0.5 rounded-md border bg-card px-4.5 py-3.5">
+      <Figure className={figureClassName}>{figure}</Figure>
+      <span className="text-[13px] text-muted-foreground">{caption}</span>
+    </div>
   )
 }

@@ -1,13 +1,14 @@
 import { isNil } from 'lodash'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
+import { Mail, Phone } from 'lucide-react'
 import { getAvatarUrl } from '@/lib/avatar/avatar-url'
 import { getAvatarColor, getInitials } from '@/lib/avatar/initials'
-import { cn } from '@/lib/utils'
+import { cn, formatPhoneNumber } from '@/lib/utils'
 import type { User } from '@/lib/users/types'
 
 /**
@@ -30,6 +31,8 @@ export type UserAvatarUser = {
   first_name?: string | null
   last_name?: string | null
   email?: string | null
+  /** Shown in the hover card when defined; the avatar itself never uses it. */
+  phone_number?: string | null
   profilePhoto: ProfilePhoto
 }
 
@@ -73,26 +76,53 @@ export function UserAvatar({ user, size = 36, className }: UserAvatarProps) {
 }
 
 /**
- * Wraps `UserAvatar` in a tooltip that shows a larger preview on hover.
- * Use this on surfaces without an existing hover interaction.
+ * Wraps `UserAvatar` in a hover card showing a larger photo with the user's
+ * name, email (their username) and phone number when they have one. Use this
+ * on surfaces without an existing hover interaction.
  */
 export function UserAvatarWithPreview({
   user,
   size = 36,
   className,
-  previewSize = 160,
-}: UserAvatarProps & { previewSize?: number }) {
+}: UserAvatarProps) {
+  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ')
+  const hasEmail = !isNil(user.email) && user.email !== ''
+  const hasPhone = !isNil(user.phone_number) && user.phone_number !== ''
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <HoverCard>
+      <HoverCardTrigger asChild>
         <span className="cursor-default shrink-0">
           <UserAvatar user={user} size={size} className={className} />
         </span>
-      </TooltipTrigger>
-      <TooltipContent side="right" className="p-1.5 bg-popover">
-        <UserAvatar user={user} size={previewSize} />
-      </TooltipContent>
-    </Tooltip>
+      </HoverCardTrigger>
+      <HoverCardContent side="bottom" align="start">
+        <div className="flex items-start gap-3.5">
+          <UserAvatar
+            user={user}
+            size={64}
+            className="ring-border ring-2 ring-offset-2 ring-offset-popover"
+          />
+          <div className="min-w-0 flex-1 space-y-1.5 pt-0.5">
+            <p className="font-serif text-base leading-tight font-semibold tracking-tight">
+              {fullName !== '' ? fullName : 'Unknown user'}
+            </p>
+            {hasEmail && (
+              <p className="text-muted-foreground flex items-center gap-1.5 text-[13px]">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span className="break-all">{user.email}</span>
+              </p>
+            )}
+            {hasPhone && (
+              <p className="text-muted-foreground flex items-center gap-1.5 text-[13px]">
+                <Phone className="h-3.5 w-3.5 shrink-0" />
+                {formatPhoneNumber(user.phone_number)}
+              </p>
+            )}
+          </div>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   )
 }
 
@@ -104,6 +134,7 @@ export function avatarUserFromDto(
     | 'firstName'
     | 'lastName'
     | 'email'
+    | 'phoneNumber'
     | 'profilePhotoPath'
     | 'profilePhotoUpdatedAt'
   >
@@ -113,6 +144,7 @@ export function avatarUserFromDto(
     first_name: user.firstName,
     last_name: user.lastName,
     email: user.email,
+    phone_number: user.phoneNumber,
     profilePhoto: {
       path: user.profilePhotoPath,
       updatedAt: user.profilePhotoUpdatedAt,

@@ -1,223 +1,331 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import Link from 'next/link'
+import { isNil } from 'lodash'
+import { CalendarPlus, Plus, Settings2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/ui/page-header'
 import { Typography } from '@/components/ui/typography'
-import type { WeekendGroupWithId } from '@/lib/weekend/types'
-import { WeekendStatus } from '@/lib/weekend/types'
-import { getGroupStatus } from '@/lib/weekend'
-import { WeekendGroupGrid } from './WeekendGroupGrid'
+import { formatDateRange } from '@/lib/utils'
+import {
+  formatWeekendGender,
+  formatWeekendGroupTitle,
+  getGroupStatus,
+} from '@/lib/weekend'
+import type { Weekend, WeekendGroupWithId } from '@/lib/weekend/types'
+import { WeekendStatus, WeekendType } from '@/lib/weekend/types'
+import {
+  formatPastCandidateCounts,
+  nextGroupNumber,
+  showStartPlanningRow,
+  type ActiveGroupStats,
+  type BoardGroupBuckets,
+  type WeekendStats,
+} from '@/lib/admin/weekend-stats'
 import { WeekendSidebar } from './WeekendSidebar'
 import { SetActiveWeekendButton } from './SetActiveWeekendButton'
-import { toLocalDateFromISO } from '@/lib/utils'
-import { isNil } from 'lodash'
 
 interface WeekendsProps {
-  weekendGroups: WeekendGroupWithId[]
+  buckets: BoardGroupBuckets
+  activeStats: ActiveGroupStats | null
+  /** Non-rejected candidate counts keyed by weekend id, for the past rows. */
+  pastCandidateCounts?: Record<string, number> | null
+  allGroups: WeekendGroupWithId[]
   canEdit?: boolean
 }
 
-type WeekendGroupBuckets = {
-  upcoming: WeekendGroupWithId[]
-  past: WeekendGroupWithId[]
-}
+const groupNumber = (group: WeekendGroupWithId): number | null =>
+  group.weekends.MENS?.number ?? group.weekends.WOMENS?.number ?? null
 
-const startOfToday = () => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return today
-}
+const groupDateRange = (group: WeekendGroupWithId): string =>
+  formatDateRange(
+    group.weekends.MENS?.start_date ?? group.weekends.WOMENS?.start_date,
+    group.weekends.WOMENS?.end_date ?? group.weekends.MENS?.end_date
+  )
 
-const splitWeekendGroups = (
-  groups: WeekendGroupWithId[]
-): WeekendGroupBuckets => {
-  const today = startOfToday()
-  return groups.reduce<WeekendGroupBuckets>(
-    (acc, group) => {
-      const mensStart = toLocalDateFromISO(group.weekends.MENS?.start_date)
-      const womensEnd = toLocalDateFromISO(group.weekends.WOMENS?.end_date)
-
-      const isPast = !isNil(womensEnd) && womensEnd < today
-      const isUpcoming = !isNil(mensStart) && mensStart > today
-
-      if (isPast) {
-        acc.past.push(group)
-        return acc
-      }
-
-      if (isUpcoming) {
-        acc.upcoming.push(group)
-        return acc
-      }
-
-      // Default to upcoming for groups that are current or missing dates
-      acc.upcoming.push(group)
-      return acc
-    },
-    { upcoming: [], past: [] }
+function StatTile({
+  value,
+  suffix,
+  label,
+}: {
+  value: string
+  suffix?: string
+  label: string
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="font-serif text-xl font-semibold tabular-nums">
+        {value}
+        {!isNil(suffix) && (
+          <span className="font-sans text-[13px] font-normal text-muted-foreground">
+            {' '}
+            {suffix}
+          </span>
+        )}
+      </p>
+      <p className="text-[12.5px] text-muted-foreground">{label}</p>
+    </div>
   )
 }
 
-const sortByDateAscending = (groups: WeekendGroupWithId[]) =>
-  [...groups].sort((a, b) => {
-    const aDate =
-      toLocalDateFromISO(a.weekends.MENS?.start_date) ??
-      toLocalDateFromISO(a.weekends.WOMENS?.start_date)
-    const bDate =
-      toLocalDateFromISO(b.weekends.MENS?.start_date) ??
-      toLocalDateFromISO(b.weekends.WOMENS?.start_date)
+function WeekendSubCard({
+  weekend,
+  stats,
+}: {
+  weekend: Weekend
+  stats: WeekendStats | null
+}) {
+  const genderTitle = formatWeekendGender(weekend.type, 'possessive')
+  return (
+    <div className="flex flex-col gap-3.5 rounded-lg border bg-card px-5 py-4">
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+        <p className="text-base font-semibold">
+          {isNil(genderTitle) ? 'Weekend' : `${genderTitle} Weekend`}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {formatDateRange(weekend.start_date, weekend.end_date)}
+        </p>
+      </div>
+      {!isNil(stats) && (
+        <div className="flex flex-wrap gap-x-7 gap-y-3">
+          {!isNil(stats.candidatesConfirmed) && (
+            <StatTile
+              value={`${stats.candidatesConfirmed}`}
+              suffix={`/ ${stats.candidateCapacity}`}
+              label="Candidates"
+            />
+          )}
+          {!isNil(stats.teamServing) && (
+            <StatTile value={`${stats.teamServing}`} label="Team" />
+          )}
+          {!isNil(stats.candidatesToReview) && (
+            <StatTile value={`${stats.candidatesToReview}`} label="To review" />
+          )}
+          {!isNil(stats.feesOpen) && (
+            <StatTile value={`${stats.feesOpen}`} label="Fees open" />
+          )}
+        </div>
+      )}
+      <div className="mt-auto flex flex-wrap items-center gap-2.5">
+        <Button asChild variant="outline">
+          <Link href={`/admin/weekends/${weekend.id}`}>
+            Open the weekend hub
+          </Link>
+        </Button>
+        <p className="text-[13px] text-muted-foreground">
+          Candidates, roster, and schedule live there
+        </p>
+      </div>
+    </div>
+  )
+}
 
-    if (isNil(aDate) && isNil(bDate)) {
-      return 0
-    }
+function GroupLinks({ group }: { group: WeekendGroupWithId }) {
+  return (
+    <div className="flex items-center gap-4">
+      {(
+        [
+          [WeekendType.MENS, group.weekends.MENS],
+          [WeekendType.WOMENS, group.weekends.WOMENS],
+        ] as const
+      ).map(([type, weekend]) =>
+        isNil(weekend) ? null : (
+          <Link
+            key={type}
+            href={`/admin/weekends/${weekend.id}`}
+            className="text-[13.5px] font-semibold text-primary hover:text-primary-hover"
+          >
+            {formatWeekendGender(type, 'possessive')}
+          </Link>
+        )
+      )}
+    </div>
+  )
+}
 
-    if (isNil(aDate)) {
-      return 1
-    }
-
-    if (isNil(bDate)) {
-      return -1
-    }
-
-    return aDate.getTime() - bDate.getTime()
-  })
-
-const sortByDateDescending = (groups: WeekendGroupWithId[]) =>
-  [...groups].sort((a, b) => {
-    const aDate =
-      toLocalDateFromISO(a.weekends.WOMENS?.end_date) ??
-      toLocalDateFromISO(a.weekends.MENS?.end_date)
-    const bDate =
-      toLocalDateFromISO(b.weekends.WOMENS?.end_date) ??
-      toLocalDateFromISO(b.weekends.MENS?.end_date)
-
-    if (isNil(aDate) && isNil(bDate)) {
-      return 0
-    }
-
-    if (isNil(aDate)) {
-      return 1
-    }
-
-    if (isNil(bDate)) {
-      return -1
-    }
-
-    return bDate.getTime() - aDate.getTime()
-  })
-
-export function Weekends({ weekendGroups, canEdit = false }: WeekendsProps) {
+export function Weekends({
+  buckets,
+  activeStats,
+  pastCandidateCounts = null,
+  allGroups,
+  canEdit = false,
+}: WeekendsProps) {
   const [selectedGroup, setSelectedGroup] = useState<WeekendGroupWithId | null>(
     null
   )
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  const { upcoming, past } = useMemo(
-    () => splitWeekendGroups(weekendGroups),
-    [weekendGroups]
-  )
+  const openCreate = () => {
+    if (!canEdit) return
+    setSelectedGroup(null)
+    setIsSidebarOpen(true)
+  }
 
-  const upcomingGroups = useMemo(
-    () => sortByDateAscending(upcoming),
-    [upcoming]
-  )
-  const pastGroups = useMemo(() => sortByDateDescending(past), [past])
-
-  const nextGroupNumber = useMemo(() => {
-    const maxNumber = weekendGroups.reduce((max, group) => {
-      const num =
-        group.weekends.MENS?.number ?? group.weekends.WOMENS?.number ?? 0
-      return Math.max(max, num)
-    }, 0)
-    return maxNumber + 1
-  }, [weekendGroups])
-
-  // All non-FINISHED groups are eligible for "Set Active"
-  const activatableGroups = weekendGroups.filter(
-    (g) => getGroupStatus(g) !== WeekendStatus.FINISHED
-  )
+  const openEdit = (group: WeekendGroupWithId) => {
+    if (!canEdit) return
+    setSelectedGroup(group)
+    setIsSidebarOpen(true)
+  }
 
   const handleCloseSidebar = () => {
     setIsSidebarOpen(false)
     setSelectedGroup(null)
   }
 
-  const handleGroupEdit = (group: WeekendGroupWithId) => {
-    if (!canEdit) {
-      return
-    }
-    setSelectedGroup(group)
-    setIsSidebarOpen(true)
-  }
-
-  const handleAddWeekendGroup = () => {
-    if (!canEdit) {
-      return
-    }
-    setSelectedGroup(null)
-    setIsSidebarOpen(true)
-  }
-
-  const sidebarState = isSidebarOpen ? 'open' : 'closed'
-  const sidebarAnnouncement = !isNil(selectedGroup)
-    ? `Editing weekend group ${selectedGroup.groupId}`
-    : 'No weekend group selected'
+  const activeGroup = buckets.active
 
   return (
-    <div className="space-y-6" data-sidebar-state={sidebarState}>
-      <span className="sr-only" aria-live="polite">
-        {sidebarAnnouncement}
-      </span>
-
-      <div className="flex items-center justify-between mb-2">
-        <Typography variant="h4" as="h1">
-          Weekends
-        </Typography>
+    <div className="space-y-8">
+      <PageHeader
+        title="Weekends"
+        description="Create and archive weekend groups. Day-to-day management — candidates, roster, and schedule — happens on each weekend's own hub."
+      >
         {canEdit && (
-          <div className="flex items-center gap-2">
-            <SetActiveWeekendButton weekendGroups={activatableGroups} />
-            <Button
-              onClick={handleAddWeekendGroup}
-              size="sm"
-              className="flex items-center gap-2"
-              aria-expanded={isSidebarOpen}
-            >
-              <Plus className="w-4 h-4" />
-              Add Weekends
+          <>
+            <SetActiveWeekendButton
+              weekendGroups={allGroups.filter(
+                (g) => getGroupStatus(g) !== WeekendStatus.FINISHED
+              )}
+            />
+            <Button onClick={openCreate} aria-expanded={isSidebarOpen}>
+              <Plus className="h-4 w-4" />
+              New weekend group
             </Button>
-          </div>
+          </>
         )}
-      </div>
+      </PageHeader>
 
-      <div className="w-full">
-        <div className="w-full mt-4 mb-2">
-          <Typography variant="h5">Upcoming Weekends</Typography>
+      {isNil(activeGroup) ? (
+        <div className="rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
+          No active weekend group right now.
         </div>
-        <WeekendGroupGrid
-          groups={upcomingGroups}
-          canEdit={canEdit}
-          handleGroupEdit={handleGroupEdit}
-        />
-      </div>
+      ) : (
+        <section className="rounded-lg border bg-card px-6 py-5">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <Typography variant="h4" as="h2">
+              {formatWeekendGroupTitle(groupNumber(activeGroup))}
+            </Typography>
+            <Badge className="rounded-full border-transparent bg-success/15 px-3 font-semibold text-success">
+              Active
+            </Badge>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto"
+                onClick={() => openEdit(activeGroup)}
+              >
+                <Settings2 className="h-4 w-4" />
+                Group settings
+              </Button>
+            )}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {!isNil(activeGroup.weekends.MENS) && (
+              <WeekendSubCard
+                weekend={activeGroup.weekends.MENS}
+                stats={activeStats?.MENS ?? null}
+              />
+            )}
+            {!isNil(activeGroup.weekends.WOMENS) && (
+              <WeekendSubCard
+                weekend={activeGroup.weekends.WOMENS}
+                stats={activeStats?.WOMENS ?? null}
+              />
+            )}
+          </div>
+        </section>
+      )}
 
-      <div className="w-full">
-        <div className="w-full mt-8 mb-2">
-          <Typography variant="h5">Past Weekends</Typography>
-        </div>
-        <WeekendGroupGrid
-          groups={pastGroups}
-          canEdit={canEdit}
-          handleGroupEdit={handleGroupEdit}
-          isPast
-        />
-      </div>
+      {buckets.upcoming.map((group) => (
+        <section
+          key={group.groupId}
+          className="flex flex-wrap items-center gap-x-3.5 gap-y-1 rounded-lg border bg-card px-6 py-4"
+        >
+          <p className="text-[15px] font-semibold">
+            {formatWeekendGroupTitle(groupNumber(group))}
+          </p>
+          <p className="text-[13.5px] text-muted-foreground">
+            {groupDateRange(group)} · planning
+          </p>
+          <div className="ml-auto flex items-center gap-4">
+            <GroupLinks group={group} />
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openEdit(group)}
+              >
+                <Settings2 className="h-4 w-4" />
+                Group settings
+              </Button>
+            )}
+          </div>
+        </section>
+      ))}
+
+      {showStartPlanningRow(buckets) && (
+        <section className="flex flex-wrap items-center gap-3.5 rounded-lg border border-dashed bg-card px-6 py-4">
+          <CalendarPlus
+            className="h-[18px] w-[18px] shrink-0 text-muted-foreground"
+            aria-hidden
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold">
+              {formatWeekendGroupTitle(nextGroupNumber(allGroups))}
+            </p>
+            <p className="text-[13.5px] text-muted-foreground">
+              Not scheduled yet — set dates and leadership to open planning
+            </p>
+          </div>
+          {canEdit && (
+            <Button variant="outline" onClick={openCreate}>
+              Start planning
+            </Button>
+          )}
+        </section>
+      )}
+
+      {buckets.past.length > 0 && (
+        <section className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Past weekends
+          </p>
+          <div className="rounded-lg border bg-card">
+            {buckets.past.map((group) => {
+              const candidateCounts = formatPastCandidateCounts(
+                group,
+                pastCandidateCounts
+              )
+              return (
+                <div
+                  key={group.groupId}
+                  className="flex flex-wrap items-center gap-x-3.5 gap-y-1 border-b border-divider px-5 py-3 last:border-b-0"
+                >
+                  <p className="text-sm font-semibold">
+                    {formatWeekendGroupTitle(groupNumber(group))}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {groupDateRange(group)}
+                    {!isNil(candidateCounts) && ` \u00b7 ${candidateCounts}`}
+                  </p>
+                  <div className="ml-auto">
+                    <GroupLinks group={group} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       <WeekendSidebar
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
         weekendGroup={selectedGroup}
-        nextGroupNumber={nextGroupNumber}
+        nextGroupNumber={nextGroupNumber(allGroups)}
       />
     </div>
   )

@@ -6,7 +6,11 @@ import { getRoles } from '@/services/identity/roles'
 import { getMasterRoster } from '@/services/master-roster'
 import { getContactInformation } from '@/services/notifications'
 import type { BoardMember, BoardRole, CommunityBoardData } from './types'
-import { BOARD_ROLE_SORT_ORDER, BOARD_COMMITTEE_ROLES } from './types'
+import {
+  BOARD_ROLE_SORT_ORDER,
+  BOARD_COMMITTEE_ROLES,
+  NON_COMMITTEE_ROLE_LABELS,
+} from './types'
 import type { Role } from '@/services/identity/roles'
 import type { MasterRosterMember } from '@/services/master-roster'
 
@@ -31,6 +35,7 @@ function normalizeMember(member: MasterRosterMember): BoardMember {
     firstName: member.firstName,
     lastName: member.lastName,
     email: member.email,
+    phoneNumber: member.phoneNumber,
     roles: member.roles.map((role) => ({
       id: role.id,
       label: role.label,
@@ -42,8 +47,22 @@ function normalizeMember(member: MasterRosterMember): BoardMember {
 function isCommunityBoardRole(role: BoardRole): boolean {
   return BOARD_ROLE_SORT_ORDER.includes(role.label)
 }
+/**
+ * A committee or team is any COMMITTEE-typed role that isn't already a board
+ * position or a bare access level — unioned with the legacy allowlist so rows
+ * predating the `type` column still show up. See the notes on
+ * {@link NON_COMMITTEE_ROLE_LABELS}.
+ */
 function isBoardCommitteeRole(role: BoardRole): boolean {
-  return BOARD_COMMITTEE_ROLES.includes(role.label)
+  if (isCommunityBoardRole(role)) {
+    return false
+  }
+
+  if (NON_COMMITTEE_ROLE_LABELS.includes(role.label)) {
+    return false
+  }
+
+  return role.type === 'COMMITTEE' || BOARD_COMMITTEE_ROLES.includes(role.label)
 }
 
 /**

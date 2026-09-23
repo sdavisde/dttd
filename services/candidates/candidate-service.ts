@@ -228,3 +228,21 @@ export async function getCandidateIdsByWeekend(
 ): Promise<Result<string, string[]>> {
   return CandidateRepository.getCandidateIdsByWeekend(weekendId)
 }
+
+/**
+ * Gets the count of candidates on a weekend awaiting a review decision.
+ */
+export async function getCandidateReviewCountByWeekend(
+  weekendId: string
+): Promise<Result<string, number>> {
+  return CandidateRepository.getCandidateReviewCountByWeekend(weekendId)
+}
+
+/**
+ * Gets non-rejected candidate counts for several weekends, keyed by weekend id.
+ */
+export async function getCandidateCountsByWeekends(
+  weekendIds: string[]
+): Promise<Result<string, Record<string, number>>> {
+  return CandidateRepository.getCandidateCountsByWeekends(weekendIds)
+}

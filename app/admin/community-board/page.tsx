@@ -1,29 +1,29 @@
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
-import { Typography } from '@/components/ui/typography'
+import { PageHeader } from '@/components/ui/page-header'
+import { guardAdminPage } from '@/lib/admin/page-guard'
+import { Permission } from '@/lib/security'
 import { getCommunityBoardData } from '@/services/community/board'
 import { getMeetingMinutesPage } from '@/services/files/file-service'
-import { isErr } from '@/lib/results'
-import type { PagedMeetingMinuteFiles } from '@/lib/files/types'
+import { isErr, Results } from '@/lib/results'
 import { RoleAssignments } from './components/role-assignments'
 import { MeetingMinutes } from './components/meeting-minutes'
 
-const MEETING_MINUTES_PAGE_SIZE = 10
-
-function createEmptyMeetingMinutesPageData(): PagedMeetingMinuteFiles {
-  return {
-    page: 1,
-    pageSize: MEETING_MINUTES_PAGE_SIZE,
-    sortField: 'created_at',
-    sortDirection: 'desc',
-    currentPageItems: [],
-    nextPageItems: [],
-  }
-}
+/**
+ * The card is a recent-first shortcut, not the full listing — that lives in
+ * Files, one click away.
+ */
+const MEETING_MINUTES_PREVIEW_COUNT = 5
 
 export default async function CommunityBoardPage() {
+  // Assigning positions and changing the notification email both go through
+  // actions gated on WRITE_USER_ROLES, so the affordances follow the same rule.
+  const { canEdit } = await guardAdminPage({
+    edit: [Permission.WRITE_USER_ROLES],
+  })
+
   const [communityBoardResult, meetingMinutesPageResult] = await Promise.all([
     getCommunityBoardData(),
-    getMeetingMinutesPage(1, MEETING_MINUTES_PAGE_SIZE),
+    getMeetingMinutesPage(1, MEETING_MINUTES_PREVIEW_COUNT),
   ])
 
   if (isErr(communityBoardResult)) {
@@ -33,9 +33,10 @@ export default async function CommunityBoardPage() {
   const meetingMinutesLoadError = isErr(meetingMinutesPageResult)
     ? meetingMinutesPageResult.error
     : null
-  const meetingMinutesInitialPageData = isErr(meetingMinutesPageResult)
-    ? createEmptyMeetingMinutesPageData()
-    : meetingMinutesPageResult.data
+  const meetingMinutesFiles = Results.unwrapOr(
+    Results.map(meetingMinutesPageResult, (page) => page.currentPageItems),
+    []
+  )
 
   const { boardRoles, committeeRoles, members, preWeekendCoupleContact } =
     communityBoardResult.data
@@ -43,33 +44,32 @@ export default async function CommunityBoardPage() {
   return (
     <>
       <AdminBreadcrumbs
-        title="Community Board"
+        title="Community"
         breadcrumbs={[{ label: 'Admin', href: '/admin' }]}
       />
-      <div className="container mx-auto px-8 pb-10 space-y-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <Typography variant="h2" className="border-0 pb-0">
-              Community Board
-            </Typography>
-            <Typography variant="muted">
-              Org-level roles, leadership assignments, and board meeting
-              minutes.
-            </Typography>
-          </div>
-        </div>
+      <div className="container mx-auto px-4 pb-10 sm:px-8 py-6">
+        <PageHeader
+          title="Community"
+          description="Who holds each position — the board, its committees and teams — and the board's meeting minutes."
+        />
 
         <RoleAssignments
           boardRoles={boardRoles}
           committeeRoles={committeeRoles}
           members={members}
           preWeekendCoupleContact={preWeekendCoupleContact}
-        />
+          canEdit={canEdit}
+        >
+          <MeetingMinutes
+            files={meetingMinutesFiles}
+            loadError={meetingMinutesLoadError}
+          />
+        </RoleAssignments>
 
-        <MeetingMinutes
-          initialPageData={meetingMinutesInitialPageData}
-          loadError={meetingMinutesLoadError}
-        />
+        <p className="mt-4 text-[13px] text-muted-foreground">
+          Positions here are community-wide · weekend team roles live on each
+          weekend&apos;s roster
+        </p>
       </div>
     </>
   )

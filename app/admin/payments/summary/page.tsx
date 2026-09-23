@@ -8,7 +8,9 @@ import {
 } from '@/services/payment'
 import { getActiveWeekends } from '@/services/weekend'
 import { isErr, isOk } from '@/lib/results'
+import * as Results from '@/lib/results'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 import { isNil } from 'lodash'
 import { PaymentReport } from './components/PaymentReport'
 
@@ -36,13 +38,15 @@ export default async function PaymentSummaryPage() {
   let activeWeekendFinancials: ActiveWeekendFinancials | null = null
 
   if (isOk(activeWeekendsResult)) {
+    // A failure here (including FEE_LOOKUP_FAILED, when the Stripe fee prices
+    // can't be read) leaves the active-group section out rather than showing
+    // expected totals computed from a fee we don't actually know.
     const financialsResult = await getActiveWeekendFinancials(
       paymentsResult.data,
       activeWeekendsResult.data
     )
-    if (isOk(financialsResult)) {
-      activeWeekendFinancials = financialsResult.data
-    }
+    Results.logFailures(financialsResult)
+    activeWeekendFinancials = Results.toNullable(financialsResult)
   }
 
   return (
@@ -54,7 +58,11 @@ export default async function PaymentSummaryPage() {
           { label: 'Payments', href: '/admin/payments' },
         ]}
       />
-      <div className="container mx-auto px-8">
+      <div className="container mx-auto px-4 py-6 sm:px-8">
+        <PageHeader
+          title="Payment summary"
+          description="How each weekend's fees are coming in — collection by weekend, with the active group's totals."
+        />
         <PaymentReport
           payments={paymentsResult.data}
           activeWeekendFinancials={activeWeekendFinancials}

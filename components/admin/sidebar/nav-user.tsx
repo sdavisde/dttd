@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useSession } from '@/components/auth/session-provider'
 import { canImpersonate } from '@/lib/security'
-import { ImpersonationDialog } from './impersonation-dialog'
+import { ImpersonationDialog } from '@/components/impersonation/impersonation-dialog'
 import { isNil } from 'lodash'
 
 export function NavUser() {

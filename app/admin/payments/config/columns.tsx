@@ -1,124 +1,166 @@
 'use client'
 
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
-import type { PaymentTransactionDTO } from '@/services/payment'
-import { DataTableColumnHeader } from '@/components/ui/data-table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Info } from 'lucide-react'
 import { isNil } from 'lodash'
-import { Permission } from '@/lib/security'
+import { DataTableColumnHeader } from '@/components/ui/data-table'
 import { PaymentRowActions } from '../components/PaymentRowActions'
+import { formatCurrency, formatPersonName } from '@/lib/payments/formatters'
 import {
-  formatCurrency,
-  formatPersonName,
-  formatTargetType,
-  formatPaymentMethod,
-  formatWeekendLabel,
-  getTargetTypeBadgeVariant,
-} from '@/lib/payments/formatters'
+  formatLedgerFor,
+  ledgerMethodLabel,
+  ledgerRowMatchesSearch,
+  type LedgerRow,
+  type LedgerStatus,
+} from '@/lib/payments/ledger'
 import { cn } from '@/lib/utils'
 import '@/components/ui/data-table/types'
 
 // ---------------------------------------------------------------------------
-// Helper functions
+// Helpers
 // ---------------------------------------------------------------------------
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
+/** Board-style short date: "Aug 25", with the year once it is not this year. */
+export function formatLedgerDate(dateString: string | null): string {
+  if (isNil(dateString)) return '—'
+  const date = new Date(dateString)
+  const sameYear = date.getFullYear() === new Date().getFullYear()
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    ...(sameYear ? {} : { year: 'numeric' }),
   })
 }
 
-// ---------------------------------------------------------------------------
-// Metadata Popover Component
-// ---------------------------------------------------------------------------
+const STATUS_LABELS: Record<LedgerStatus, string> = {
+  paid: 'Paid',
+  waived: 'Waived',
+  outstanding: 'Outstanding',
+  voided: 'Voided',
+}
 
-function MetadataPopover({ payment }: { payment: PaymentTransactionDTO }) {
-  const hasMetadata =
-    !isNil(payment.payment_intent_id) ||
-    !isNil(payment.charge_id) ||
-    !isNil(payment.balance_transaction_id)
+const STATUS_PILL_CLASSES: Record<LedgerStatus, string> = {
+  paid: 'bg-success/15 text-success',
+  waived: 'bg-muted text-muted-foreground',
+  outstanding:
+    'border border-secondary-border bg-secondary text-secondary-foreground',
+  voided: 'border border-border text-muted-foreground',
+}
 
-  if (!hasMetadata) {
-    return <span className="text-muted-foreground">—</span>
-  }
-
+export function LedgerStatusPill({
+  status,
+  title,
+}: {
+  status: LedgerStatus
+  title?: string
+}) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <Info className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <div className="space-y-2 text-sm">
-          <h4 className="font-medium">Payment Metadata</h4>
-          {!isNil(payment.payment_intent_id) && (
-            <div>
-              <span className="text-muted-foreground">Payment Intent:</span>
-              <code className="ml-2 text-xs bg-muted px-1 py-0.5 rounded">
-                {payment.payment_intent_id}
-              </code>
-            </div>
-          )}
-          {!isNil(payment.charge_id) && (
-            <div>
-              <span className="text-muted-foreground">Charge ID:</span>
-              <code className="ml-2 text-xs bg-muted px-1 py-0.5 rounded">
-                {payment.charge_id}
-              </code>
-            </div>
-          )}
-          {!isNil(payment.balance_transaction_id) && (
-            <div>
-              <span className="text-muted-foreground">Balance Txn:</span>
-              <code className="ml-2 text-xs bg-muted px-1 py-0.5 rounded">
-                {payment.balance_transaction_id}
-              </code>
-            </div>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
+    <span
+      title={title}
+      className={cn(
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap',
+        STATUS_PILL_CLASSES[status]
+      )}
+    >
+      {STATUS_LABELS[status]}
+    </span>
   )
 }
+
+const isVoided = (row: LedgerRow) => row.status === 'voided'
 
 // ---------------------------------------------------------------------------
 // Column definitions
 // ---------------------------------------------------------------------------
 
-export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
+/**
+ * Columns hidden from the table but kept so their filters still apply.
+ * Pass to DataTable's `columnVisibility`.
+ */
+export const LEDGER_HIDDEN_COLUMNS = { type: false } as const
+
+export const paymentsColumns: ColumnDef<LedgerRow>[] = [
   {
-    id: 'type',
-    accessorFn: (p) => formatTargetType(p.target_type),
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => <PaymentRowActions row={row.original} />,
+    enableSorting: false,
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'Actions',
+      mobilePriority: 'detail',
+    },
+  },
+  {
+    id: 'paidBy',
+    accessorFn: (row) => row.paidBy ?? '',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Type" />
+      <DataTableColumnHeader column={column} title="Paid by" />
     ),
-    cell: ({ getValue, row }) => (
-      <Badge variant={getTargetTypeBadgeVariant(row.original.target_type)}>
-        {getValue<string>()}
-      </Badge>
+    cell: ({ row }) => (
+      <span
+        className={cn(
+          'font-semibold',
+          isVoided(row.original) && 'text-muted-foreground line-through'
+        )}
+      >
+        {formatPersonName(row.original.paidBy)}
+      </span>
+    ),
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'Paid by',
+      mobilePriority: 'detail',
+    },
+  },
+  {
+    id: 'for',
+    // Sort and search on the person, not the fee-type prefix.
+    accessorFn: (row) => row.personName ?? '',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="For" />
+    ),
+    cell: ({ row }) => (
+      <span
+        className={cn(
+          isVoided(row.original) && 'text-muted-foreground line-through'
+        )}
+      >
+        {formatLedgerFor(row.original)}
+      </span>
+    ),
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'For',
+      mobilePriority: 'primary',
+    },
+  },
+  {
+    id: 'role',
+    accessorFn: (row) => row.roleLabel,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Role" />
+    ),
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{getValue<string>()}</span>
     ),
     meta: {
       filterType: 'select',
       showOnMobile: true,
-      mobileLabel: 'Type',
-      mobilePriority: 'secondary',
+      mobileLabel: 'Role',
+      mobilePriority: 'detail',
     },
   },
   {
+    // Hidden: exists so the Type chip can filter on it.
+    id: 'type',
+    accessorFn: (row) => row.typeLabel,
+    header: 'Type',
+    enableSorting: false,
+    meta: { filterType: 'select', showOnMobile: false },
+  },
+  {
     id: 'weekend',
-    accessorFn: (p) => formatWeekendLabel(p),
+    accessorFn: (row) => row.weekendLabel,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Weekend" />
     ),
@@ -129,96 +171,34 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
       filterType: 'select',
       showOnMobile: true,
       mobileLabel: 'Weekend',
+      mobilePriority: 'detail',
+    },
+  },
+  {
+    id: 'amount',
+    accessorFn: (row) => row.amount,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Amount" />
+    ),
+    cell: ({ row }) => (
+      <span
+        className={cn(
+          'tabular-nums',
+          isVoided(row.original) && 'text-muted-foreground line-through'
+        )}
+      >
+        {formatCurrency(row.original.amount)}
+      </span>
+    ),
+    meta: {
+      showOnMobile: true,
+      mobileLabel: 'Amount',
       mobilePriority: 'secondary',
     },
   },
   {
-    id: 'paidFor',
-    accessorFn: (p) => p.target_name ?? '',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Paid For" />
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            'font-medium',
-            !isNil(row.original.voided_at) &&
-              'text-muted-foreground line-through'
-          )}
-        >
-          {formatPersonName(row.original.target_name)}
-        </span>
-        {!isNil(row.original.voided_at) && (
-          <Badge
-            variant="outline"
-            title={row.original.void_reason ?? undefined}
-          >
-            Voided
-          </Badge>
-        )}
-      </div>
-    ),
-    meta: {
-      showOnMobile: true,
-      mobileLabel: 'Paid For',
-      mobilePriority: 'primary',
-    },
-  },
-  {
-    id: 'paidBy',
-    accessorFn: (p) => p.payment_owner ?? '',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Paid By" />
-    ),
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {formatPersonName(row.original.payment_owner)}
-      </span>
-    ),
-    meta: {
-      showOnMobile: true,
-      mobileLabel: 'Paid By',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'gross',
-    accessorKey: 'gross_amount',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Gross" />
-    ),
-    cell: ({ getValue }) => (
-      <span className="font-medium text-green-600">
-        {formatCurrency(getValue<number>())}
-      </span>
-    ),
-    meta: {
-      showOnMobile: true,
-      mobileLabel: 'Gross',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'net',
-    accessorKey: 'net_amount',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Net" />
-    ),
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">
-        {formatCurrency(getValue<number | null>())}
-      </span>
-    ),
-    meta: {
-      showOnMobile: true,
-      mobileLabel: 'Net',
-      mobilePriority: 'detail',
-    },
-  },
-  {
     id: 'method',
-    accessorFn: (p) => formatPaymentMethod(p.payment_method),
+    accessorFn: (row) => ledgerMethodLabel(row),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Method" />
     ),
@@ -233,61 +213,47 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
     },
   },
   {
-    id: 'notes',
-    accessorKey: 'notes',
+    id: 'status',
+    accessorFn: (row) => STATUS_LABELS[row.status],
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Notes" />
+      <DataTableColumnHeader column={column} title="Status" />
     ),
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground max-w-[200px] truncate block">
-        {getValue<string | null>() ?? '—'}
-      </span>
+    cell: ({ row }) => (
+      <LedgerStatusPill
+        status={row.original.status}
+        title={row.original.payment?.void_reason ?? undefined}
+      />
     ),
     meta: {
       showOnMobile: true,
-      mobileLabel: 'Notes',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'meta',
-    header: 'Meta',
-    cell: ({ row }) => (
-      <div onClick={(e) => e.stopPropagation()}>
-        <MetadataPopover payment={row.original} />
-      </div>
-    ),
-    enableSorting: false,
-    meta: {
-      showOnMobile: false,
+      mobileLabel: 'Status',
+      mobilePriority: 'secondary',
     },
   },
   {
     id: 'date',
-    accessorKey: 'created_at',
+    // Undefined (not null) so `sortUndefined` keeps unpaid fees at the end
+    // whichever way the dates are sorted.
+    accessorFn: (row) => row.date ?? undefined,
+    sortUndefined: 'last',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Date" />
     ),
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">
-        {formatDate(getValue<string>())}
+    cell: ({ row }) => (
+      <span
+        className="text-muted-foreground tabular-nums"
+        title={
+          isNil(row.original.date)
+            ? undefined
+            : new Date(row.original.date).toLocaleString('en-US')
+        }
+      >
+        {formatLedgerDate(row.original.date)}
       </span>
     ),
     meta: {
       showOnMobile: true,
       mobileLabel: 'Date',
-      mobilePriority: 'detail',
-    },
-  },
-  {
-    id: 'actions',
-    header: '',
-    cell: ({ row }) => <PaymentRowActions payment={row.original} />,
-    enableSorting: false,
-    meta: {
-      requiredPermission: Permission.WRITE_PAYMENTS,
-      showOnMobile: true,
-      mobileLabel: 'Actions',
       mobilePriority: 'detail',
     },
   },
@@ -297,32 +263,8 @@ export const paymentsColumns: ColumnDef<PaymentTransactionDTO>[] = [
 // Global filter function
 // ---------------------------------------------------------------------------
 
-export const paymentsGlobalFilterFn: FilterFn<PaymentTransactionDTO> = (
+export const paymentsGlobalFilterFn: FilterFn<LedgerRow> = (
   row,
   _columnId,
   filterValue
-) => {
-  const query = (filterValue as string).toLowerCase().trim()
-  if (query === '') return true
-
-  const payment = row.original
-  const paidFor = (payment.target_name ?? '').toLowerCase()
-  const paidBy = (payment.payment_owner ?? '').toLowerCase()
-  const targetType = formatTargetType(payment.target_type).toLowerCase()
-  const method = formatPaymentMethod(payment.payment_method).toLowerCase()
-  const grossAmount = formatCurrency(payment.gross_amount).toLowerCase()
-  const notes = (payment.notes ?? '').toLowerCase()
-  const intentId = (payment.payment_intent_id ?? '').toLowerCase()
-  const weekend = formatWeekendLabel(payment).toLowerCase()
-
-  return (
-    paidFor.includes(query) ||
-    paidBy.includes(query) ||
-    targetType.includes(query) ||
-    method.includes(query) ||
-    grossAmount.includes(query) ||
-    notes.includes(query) ||
-    intentId.includes(query) ||
-    weekend.includes(query)
-  )
-}
+) => ledgerRowMatchesSearch(row.original, String(filterValue ?? ''))

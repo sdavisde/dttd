@@ -1,18 +1,22 @@
 import 'server-only'
 
 import { isNil } from 'lodash'
-import { Resend } from 'resend'
-import type { Result } from '@/lib/results';
+import { endOfMonth, startOfMonth } from 'date-fns'
+import type { Result } from '@/lib/results'
 import { err, isErr, ok } from '@/lib/results'
 import { logger } from '@/lib/logger'
+import {
+  getSystemEmailFrom,
+  isNotificationEnabled,
+} from '@/services/settings/settings-service'
+import { NOTIFY_PAYMENT_RECEIPTS_KEY } from '@/services/settings/site-settings'
+import { sendEmail } from './email-client'
 import * as NotificationRepository from './repository'
 // TODO: This should use the candidates service public API instead of direct repository access
 import * as CandidateRepository from '@/services/candidates/repository'
 import type { ContactInfo, NotificationRecipient } from './types'
 import type { HydratedCandidate } from '@/lib/candidates/types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 /**
  * Gets contact information by ID and transforms to DTO.
@@ -165,6 +169,13 @@ async function sendCandidatePaymentEmail(
   paymentAmount: number,
   paymentMethod: 'card' | 'cash' | 'check'
 ): Promise<Result<string, true>> {
+  if (!(await isNotificationEnabled(NOTIFY_PAYMENT_RECEIPTS_KEY))) {
+    logger.info(
+      `Skipped candidate payment notification for candidate ${rawCandidate.id}: payment receipts & reminders are switched off in site settings`
+    )
+    return ok(true)
+  }
+
   const candidateInfo = rawCandidate.candidate_info?.at(0)
   const sponsorshipInfo = rawCandidate.candidate_sponsorship_info?.at(0)
 
@@ -184,8 +195,8 @@ async function sendCandidatePaymentEmail(
     candidate_sponsorship_info: sponsorshipInfo,
   } as HydratedCandidate
 
-  const { error } = await resend.emails.send({
-    from: 'Dusty Trails Tres Dias <noreply@dustytrailstresdias.org>',
+  const sendResult = await sendEmail('candidate-payment-completed', {
+    from: await getSystemEmailFrom(),
     to: [recipientEmail],
     subject: `Candidate Payment Received - ${candidateName}`,
     react: CandidatePaymentCompletedEmail({
@@ -196,18 +207,35 @@ async function sendCandidatePaymentEmail(
     }),
   })
 
-  if (!isNil(error)) {
+  if (isErr(sendResult)) {
     logger.error(
-      error,
-      `Failed to send candidate payment notification email for ${candidateName}`
+      `Failed to send candidate payment notification email for ${candidateName}: ${sendResult.error}`
     )
-    return err(`Failed to send email: ${error.message}`)
+    return err(`Failed to send email: ${sendResult.error}`)
   }
 
   logger.info(
     `Candidate payment notification email sent successfully for ${candidateName}`
   )
   return ok(true)
+}
+
+/**
+ * Counts the emails successfully sent so far in the current calendar month.
+ *
+ * Counts send attempts (one row per `sendEmail()` call), not individual
+ * recipient addresses -- that is the unit the email provider bills on. The
+ * `recipient_count` column is there if we ever need the finer number.
+ */
+export async function getEmailsSentThisMonth(): Promise<
+  Result<string, number>
+> {
+  const now = new Date()
+
+  return NotificationRepository.countSentEmailsBetween(
+    startOfMonth(now),
+    endOfMonth(now)
+  )
 }
 
 /**

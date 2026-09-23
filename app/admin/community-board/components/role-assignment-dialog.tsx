@@ -71,7 +71,7 @@ export function RoleAssignmentDialog({
             onChange={(event) => onSearchChange(event.target.value)}
           />
 
-          <div className="max-h-72 overflow-y-auto space-y-1">
+          <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border p-1 [scrollbar-gutter:stable]">
             {filteredMembers.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 No users found
@@ -144,6 +144,7 @@ function CommitteeMemberList({
                 first_name: member.firstName,
                 last_name: member.lastName,
                 email: member.email,
+                phone_number: member.phoneNumber,
                 profilePhoto: member.profilePhoto,
               }}
               size={28}
@@ -194,6 +195,7 @@ function IndividualMemberList({
                     first_name: member.firstName,
                     last_name: member.lastName,
                     email: member.email,
+                    phone_number: member.phoneNumber,
                     profilePhoto: member.profilePhoto,
                   }}
                   size={28}

@@ -176,7 +176,10 @@ The application uses Supabase with several key tables:
    - Hover states replaced with appropriate mobile interactions
 
 6. **Example Implementation**:
-   Reference: `/app/admin/weekends/[weekend_id]/weekend-roster-table.tsx` for complete mobile card implementation
+   Reference: the shared `components/ui/data-table/data-table.tsx` (which renders
+   `components/ui/data-table/data-table-mobile-card.tsx` below `md`) — most admin tables get the dual
+   layout for free by going through `DataTable`. For a hand-rolled mobile card layout, see
+   `components/file-management/FileBrowserTable.tsx`.
 
 #### When to Apply These Guidelines
 

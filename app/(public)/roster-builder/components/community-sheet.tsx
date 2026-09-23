@@ -171,6 +171,7 @@ function CommunityMemberCard({
                 first_name: member.firstName,
                 last_name: member.lastName,
                 email: member.email,
+                phone_number: member.phoneNumber,
                 profilePhoto: member.profilePhoto,
               }}
               size={36}
