@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Check, Pencil, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,6 +9,7 @@ import { usePreWeekendEmail } from '@/hooks/use-pre-weekend-email'
 import { useRoleAssignment } from '@/hooks/use-role-assignment'
 import { RoleAssignmentDialog } from './role-assignment-dialog'
 import { AssignmentConfirmationDialog } from './assignment-confirmation-dialog'
+import { AddCommitteeDialog } from './add-committee-dialog'
 import type { BoardRole, BoardMember } from '@/services/community/board'
 import type { ContactInfo } from '@/services/notifications'
 import { UserAvatarWithPreview } from '@/components/user-avatar'
@@ -114,6 +115,23 @@ function PositionRow({
   )
 }
 
+function AddCommitteeRow({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mt-3 flex min-h-11 w-full flex-col gap-0.5 rounded-md border border-dashed border-border px-3.5 py-3 text-left transition-colors hover:border-primary/50 hover:bg-accent/50"
+    >
+      <span className="text-[13.5px] font-semibold text-muted-foreground">
+        + Add a committee or team
+      </span>
+      <span className="text-xs text-muted-foreground/80">
+        Kitchen, music, palanca — any group with a lead worth naming
+      </span>
+    </button>
+  )
+}
+
 export function RoleAssignments({
   boardRoles,
   committeeRoles,
@@ -126,6 +144,7 @@ export function RoleAssignments({
     contact: preWeekendCoupleContact,
   })
   const roleAssignment = useRoleAssignment({ members })
+  const [addCommitteeOpen, setAddCommitteeOpen] = useState(false)
 
   const openCount = useMemo(
     () =>
@@ -225,7 +244,7 @@ export function RoleAssignments({
         </Card>
 
         <div className="flex min-w-0 flex-col gap-4">
-          {committeeRoles.length > 0 && (
+          {(committeeRoles.length > 0 || canEdit) && (
             <Card className="gap-0 py-0">
               <CardContent className="px-5 py-4">
                 <h2 className="pb-1 font-serif text-lg font-semibold tracking-tight">
@@ -251,6 +270,9 @@ export function RoleAssignments({
                     />
                   )
                 })}
+                {canEdit && (
+                  <AddCommitteeRow onClick={() => setAddCommitteeOpen(true)} />
+                )}
               </CardContent>
             </Card>
           )}
@@ -260,6 +282,12 @@ export function RoleAssignments({
 
       <RoleAssignmentDialog {...roleAssignment.dialogProps} />
       <AssignmentConfirmationDialog {...roleAssignment.confirmationProps} />
+      {canEdit && (
+        <AddCommitteeDialog
+          open={addCommitteeOpen}
+          onOpenChange={setAddCommitteeOpen}
+        />
+      )}
     </>
   )
 }
