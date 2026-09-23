@@ -3,13 +3,19 @@ import {
   CurrentWeekendView,
   CurrentWeekendViewSkeleton,
 } from '@/components/current-weekend'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 
 export default function CurrentWeekendPage() {
   return (
-    <div className="container mx-auto p-4 md:p-8">
+    <PageContent>
+      <MemberBreadcrumbs
+        title="The weekends"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+      />
       <Suspense fallback={<CurrentWeekendViewSkeleton />}>
         <CurrentWeekendView />
       </Suspense>
-    </div>
+    </PageContent>
   )
 }

@@ -394,9 +394,9 @@ export function RosterBuilderBoard({
   }, [categories, search, filterMode])
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30 dark:bg-background">
+    <div className="flex min-w-0 flex-col bg-muted/30 dark:bg-background">
       {/* Page header */}
-      <header className="border-b bg-card px-6 py-4">
+      <header className="border-b bg-card px-4 py-4 md:px-6">
         <div className="mx-auto max-w-screen-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           <div className="flex items-center gap-3 shrink-0">
             <Users className="h-5 w-5 text-primary" />
@@ -412,7 +412,7 @@ export function RosterBuilderBoard({
 
       {/* Missing secuela event warning */}
       {!hasSecuelaEvent && (
-        <div className="border-b border-amber-200 bg-amber-50 px-6 py-3 dark:border-amber-800 dark:bg-amber-950/40">
+        <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 md:px-6 dark:border-amber-800 dark:bg-amber-950/40">
           <div className="mx-auto max-w-screen-2xl flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <p>
@@ -425,7 +425,7 @@ export function RosterBuilderBoard({
       )}
 
       {/* Sticky toolbar */}
-      <div className="sticky top-0 z-20 border-b bg-muted/50 px-6 py-3 shadow-sm backdrop-blur-sm dark:bg-card/95">
+      <div className="sticky top-14 z-20 border-b bg-muted/50 px-4 py-3 shadow-sm backdrop-blur-sm md:px-6 dark:bg-card/95">
         <div className="mx-auto max-w-screen-2xl">
           <Toolbar
             search={search}
@@ -443,7 +443,7 @@ export function RosterBuilderBoard({
       </div>
 
       {/* Horizontal kanban board */}
-      <main className="flex-1 overflow-hidden px-6 py-5">
+      <div className="min-w-0 flex-1 overflow-hidden px-4 py-5 md:px-6">
         <div className="mx-auto max-w-screen-2xl">
           <ScrollArea className="w-full pb-2">
             <div className="flex gap-5 pb-4">
@@ -486,7 +486,7 @@ export function RosterBuilderBoard({
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

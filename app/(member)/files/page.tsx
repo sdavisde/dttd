@@ -11,20 +11,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function PublicFilesPage() {
   const buckets = await getBuckets()
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <Typography variant="h3" className="mb-4">
-          Community Files
-        </Typography>
-        <Typography variant="p" className="text-muted-foreground">
-          Browse and access files shared with the community.
-        </Typography>
-      </div>
+    <PageContent>
+      <MemberBreadcrumbs
+        title="Documents"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+      />
+      <PageHeader
+        title="Documents"
+        description="Files shared with the community — handbooks, directions, packing lists."
+      />
 
       {buckets.length === 0 ? (
         <Card>
@@ -80,6 +83,6 @@ export default async function PublicFilesPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContent>
   )
 }

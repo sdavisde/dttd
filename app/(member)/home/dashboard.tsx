@@ -35,7 +35,7 @@ interface DashboardProps {
 
 export function Dashboard({ user, prayerWheelUrl }: DashboardProps) {
   return (
-    <div className="my-6 space-y-6">
+    <div className="space-y-6">
       <ProfilePhotoAlert needsPhoto={isNil(user.profilePhotoPath)} />
 
       <CommunityEncouragement user={user} />

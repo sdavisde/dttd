@@ -116,7 +116,7 @@ export async function getCandidateCountByWeekend(
  * `pending_approval` is the only status in the review flow that means "forms
  * are in, the Pre-Weekend Couple owes a decision" — everything before it is
  * waiting on the candidate or sponsor, and everything after it has already
- * been decided (see `app/(public)/review-candidates`).
+ * been decided (see `app/(member)/review-candidates`).
  */
 export async function getCandidateReviewCountByWeekend(
   weekendId: string

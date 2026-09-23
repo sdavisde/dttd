@@ -2,6 +2,7 @@ import { isErr, Results } from '@/lib/results'
 import { Dashboard } from './dashboard'
 import { getLoggedInUser } from '@/services/identity/user'
 import { getPrayerWheelUrlForGender } from '@/services/settings'
+import { PageContent } from '@/components/member/page-content'
 
 export default async function Home() {
   const user = await getLoggedInUser()
@@ -14,8 +15,8 @@ export default async function Home() {
   const prayerWheelUrl = Results.unwrapOr(prayerWheelResult, null)
 
   return (
-    <div className="container mx-auto p-4 md:p-0">
+    <PageContent>
       <Dashboard user={user.data} prayerWheelUrl={prayerWheelUrl} />
-    </div>
+    </PageContent>
   )
 }

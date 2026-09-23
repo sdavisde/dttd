@@ -44,6 +44,8 @@ import { isErr } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import { toast } from 'sonner'
 import { ChangeEmailDialog } from './change-email-dialog'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 
 const profileFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -60,7 +62,11 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>
 
 function ProfilePageSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-10">
+    <PageContent size="narrow">
+      <div className="mb-4 flex h-7 items-center gap-2">
+        <Skeleton className="h-4 w-12" />
+        <Skeleton className="h-4 w-24" />
+      </div>
       <div className="mb-8 space-y-2 border-b border-border pb-6">
         <Skeleton className="h-9 w-56" />
         <Skeleton className="h-5 w-80 max-w-full" />
@@ -86,7 +92,7 @@ function ProfilePageSkeleton() {
           <Skeleton className="h-9 w-full" />
         </div>
       </div>
-    </div>
+    </PageContent>
   )
 }
 
@@ -283,10 +289,14 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-10">
+    <PageContent size="narrow">
+      <MemberBreadcrumbs
+        title="My account"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+      />
       <PageHeader
-        title="Account settings"
-        description="Manage your profile and how you sign in."
+        title="My account"
+        description="Your profile, your photo, and how you sign in."
       />
 
       <div className="space-y-8">
@@ -468,6 +478,6 @@ export default function ProfilePage() {
         onOpenChange={setCropperOpen}
         onConfirm={handleCroppedPhoto}
       />
-    </div>
+    </PageContent>
   )
 }

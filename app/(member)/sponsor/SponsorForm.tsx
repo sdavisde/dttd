@@ -163,8 +163,8 @@ export function SponsorForm() {
   const hasFormErrors = Object.keys(form.formState.errors).length > 0
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="border-0 md:border-[1px] shadow-none md:shadow-sm">
+    <div>
+      <Card className="border-0 shadow-none md:border">
         <CardHeader>
           <CardTitle>
             <Typography variant="h1">Sponsor a Candidate</Typography>

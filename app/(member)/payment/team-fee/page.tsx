@@ -8,6 +8,9 @@ import { isNil } from 'lodash'
 import { AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getUrl } from '@/lib/url'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function TeamFeesPaymentPage() {
   const teamFeePriceId = process.env.TEAM_FEE_PRICE_ID
@@ -27,7 +30,7 @@ export default async function TeamFeesPaymentPage() {
   if (isErr(groupMemberResult) || isNil(groupMemberResult.data)) {
     logger.error('No active group member found for user')
     return (
-      <div className="h-[80vh] w-screen flex items-center justify-center p-4">
+      <PageContent className="flex min-h-[60vh] items-center justify-center">
         <Alert className="max-w-md text-center">
           <AlertTriangle className="h-6 w-6 text-red-600" />
           <AlertTitle className="text-lg font-semibold">
@@ -47,7 +50,7 @@ export default async function TeamFeesPaymentPage() {
             </p>
           </AlertDescription>
         </Alert>
-      </div>
+      </PageContent>
     )
   }
 
@@ -60,7 +63,15 @@ export default async function TeamFeesPaymentPage() {
       : (user.email ?? 'Unknown')
 
   return (
-    <div className="payment-page">
+    <PageContent size="narrow">
+      <MemberBreadcrumbs
+        title="Pay a fee"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+      />
+      <PageHeader
+        title="Pay a fee"
+        description="Your team fee for the upcoming weekend."
+      />
       <Checkout
         priceId={teamFeePriceId}
         metadata={{ group_member_id: groupMemberId, payment_owner: payerName }}
@@ -68,6 +79,6 @@ export default async function TeamFeesPaymentPage() {
           '/payment/team-fee/success?session_id={CHECKOUT_SESSION_ID}'
         )}
       />
-    </div>
+    </PageContent>
   )
 }

@@ -1,4 +1,3 @@
-import { Typography } from '@/components/ui/typography'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Info } from 'lucide-react'
 import { isNil } from 'lodash'
@@ -8,6 +7,9 @@ import { WeekendFilterSelector } from '../review-candidates/components/WeekendFi
 import { CandidateListTable } from './components/CandidateListTable'
 import { ShareButton } from './components/ShareButton'
 import { ExportButton } from './components/ExportButton'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 
 interface PageProps {
   searchParams: Promise<{
@@ -33,31 +35,29 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
   )
 
   return (
-    <div className="container mx-auto p-4 min-h-[80vh]">
-      <div className="my-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <Typography variant="h1">Candidate Information</Typography>
-            <Typography variant="p" className="mb-4">
-              View candidate contact and personal information for the selected
-              weekend.
-            </Typography>
-          </div>
-          <div className="flex gap-2">
-            <ExportButton
-              candidates={activeCandidates}
-              user={user}
-              weekendName={
-                weekendOptions.find((w) => w.id === currentWeekendId)?.label
-              }
-            />
-            <ShareButton
-              title="Candidate List"
-              text="View candidate information for the weekend"
-            />
-          </div>
-        </div>
-
+    <PageContent>
+      <MemberBreadcrumbs
+        title="Candidates"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+        shareable={false}
+      />
+      <PageHeader
+        title="Candidates"
+        description="Contact and personal information for the candidates on the selected weekend."
+      >
+        <ExportButton
+          candidates={activeCandidates}
+          user={user}
+          weekendName={
+            weekendOptions.find((w) => w.id === currentWeekendId)?.label
+          }
+        />
+        <ShareButton
+          title="Candidate List"
+          text="View candidate information for the weekend"
+        />
+      </PageHeader>
+      <div className="space-y-4">
         <WeekendFilterSelector
           weekendOptions={weekendOptions}
           currentWeekendId={currentWeekendId}
@@ -76,6 +76,6 @@ export default async function CandidateListPage({ searchParams }: PageProps) {
           </Alert>
         )}
       </div>
-    </div>
+    </PageContent>
   )
 }

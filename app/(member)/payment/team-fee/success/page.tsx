@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { stripe } from '@/lib/stripe'
 import { notifyAssistantHeadForTeamPayment } from '@/services/notifications'
 import { isNil } from 'lodash'
+import { PageContent } from '@/components/member/page-content'
 
 type SearchParams = Promise<{
   session_id: string
@@ -30,7 +31,7 @@ export default async function TeamFeePaymentSuccessPage({
   }
 
   return (
-    <div className="container max-w-2xl mx-auto py-8">
+    <PageContent size="narrow">
       <Card>
         <CardContent className="p-8 text-center space-y-4">
           <h1 className="text-3xl font-bold text-green-600">
@@ -43,6 +44,6 @@ export default async function TeamFeePaymentSuccessPage({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContent>
   )
 }

@@ -10,6 +10,9 @@ import {
   WeekendRosterViewSkeleton,
   WeekendStatusBadge,
 } from '@/components/weekend'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default async function RosterPage() {
   // Auth runs concurrently with the active-weekends lookup; the redirect below
@@ -49,7 +52,8 @@ export default async function RosterPage() {
     )
 
     return (
-      <div className="container mx-auto px-8 pt-6 pb-2 md:pt-8 md:pb-4">
+      <PageContent>
+        <RosterOpening />
         <Suspense
           fallback={<WeekendRosterViewSkeleton headerSlot={headerSlot} />}
         >
@@ -59,7 +63,7 @@ export default async function RosterPage() {
             headerSlot={headerSlot}
           />
         </Suspense>
-      </div>
+      </PageContent>
     )
   }
 
@@ -81,7 +85,8 @@ export default async function RosterPage() {
 
   // Tabbed view for both weekends
   return (
-    <div className="container mx-auto px-8 pt-6 pb-2 md:pt-8 md:pb-4">
+    <PageContent>
+      <RosterOpening />
       <Tabs defaultValue={user.gender === 'male' ? 'mens' : 'womens'}>
         {weekends.map(({ value, weekend }) => (
           <TabsContent key={value} value={value}>
@@ -97,6 +102,21 @@ export default async function RosterPage() {
           </TabsContent>
         ))}
       </Tabs>
-    </div>
+    </PageContent>
+  )
+}
+
+function RosterOpening() {
+  return (
+    <>
+      <MemberBreadcrumbs
+        title="Roster"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+      />
+      <PageHeader
+        title="Roster"
+        description="Everyone serving on this weekend — find a name, a role, or a committee."
+      />
+    </>
   )
 }

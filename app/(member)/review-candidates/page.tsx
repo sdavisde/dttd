@@ -1,4 +1,3 @@
-import { Typography } from '@/components/ui/typography'
 import { CandidateReviewTable } from './components/CandidateReviewTable'
 import { WeekendFilterSelector } from './components/WeekendFilterSelector'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -9,6 +8,9 @@ import { isNil } from 'lodash'
 import { getLoggedInUser } from '@/services/identity/user'
 import { Permission, userHasPermission } from '@/lib/security'
 import { isOk } from '@/lib/results'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
+import { PageHeader } from '@/components/ui/page-header'
 
 interface PageProps {
   searchParams: Promise<{
@@ -32,13 +34,16 @@ export default async function ReviewCandidatePage({ searchParams }: PageProps) {
     userHasPermission(userResult.data, [Permission.WRITE_PAYMENTS])
 
   return (
-    <div className="container mx-auto p-4 min-h-[80vh]">
-      <div className="my-4">
-        <Typography variant="h1">Candidate List</Typography>
-        <Typography variant="p" className="mb-4">
-          A list of candidates for the upcoming weekends.
-        </Typography>
-
+    <PageContent>
+      <MemberBreadcrumbs
+        title="Review candidates"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+      />
+      <PageHeader
+        title="Review candidates"
+        description="Candidates on the upcoming weekends, from sponsorship through confirmation."
+      />
+      <div className="space-y-4">
         <WeekendFilterSelector
           weekendOptions={weekendOptions}
           currentWeekendId={currentWeekendId}
@@ -60,6 +65,6 @@ export default async function ReviewCandidatePage({ searchParams }: PageProps) {
           </Alert>
         )}
       </div>
-    </div>
+    </PageContent>
   )
 }

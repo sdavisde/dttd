@@ -36,9 +36,28 @@ Every page opens the same way, in order:
 Use `components/ui/page-header.tsx` for the title/description/actions block and
 `components/ui/typography.tsx` for headings generally (`h1`–`h4` render in the serif).
 
-`AdminBreadcrumbs` shows a copy-link button beside the current page, revealed on hover
-or focus (always visible on touch devices) — every admin page gets it with no per-page
-wiring. Pass `shareable={false}` to `AdminBreadcrumbs` to opt a page out.
+`AdminBreadcrumbs` (admin) and `MemberBreadcrumbs` (member) show a copy-link button beside
+the current page, revealed on hover or focus (always visible on touch devices) — every page
+gets it with no per-page wiring. Pass `shareable={false}` to opt a page out.
+
+## Member shell
+
+Signed-in pages live in the `app/(member)` route group and get the member shell from its layout:
+a task-named sidebar on desktop (`components/member/sidebar`, collapsible to an icon rail, state
+remembered in the `member_sidebar_state` cookie), a labeled bottom tab bar on phones
+(`components/member/tab-bar.tsx`), and a 56px top bar with the jump-to-page search palette and
+the account menu (`components/member/top-bar.tsx`). Navigation never hides behind a hamburger:
+the tab bar carries the five primary destinations and everything else is reachable from Home or
+the search (⌘K). The nav model is `lib/member/navigation.ts` — add or reorder items there, never
+in the components.
+
+Unauthenticated and candidate-facing routes (landing, sign in, join, candidate forms, candidate
+payment) stay in `app/(public)` with a bare header.
+
+Every member page opens inside `PageContent` (`components/member/page-content.tsx`, the shell's
+one gutter; `size="narrow"` for forms and reading pages) with `MemberBreadcrumbs` above the
+`PageHeader`. `MemberBreadcrumbs` renders the trail 13.5px muted, hides earlier crumbs on phones,
+and carries the same copy-link button as the admin trail (`components/ui/breadcrumb-share-button`).
 
 ## Elevation: borders, not shadows
 

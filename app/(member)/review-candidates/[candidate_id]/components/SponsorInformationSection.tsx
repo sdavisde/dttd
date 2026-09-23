@@ -11,7 +11,7 @@ import { toastError } from '@/lib/toast-error'
 import type { Database } from '@/database.types'
 import { useCallback } from 'react'
 import { Pencil } from 'lucide-react'
-import { PaymentOwnerForm } from '@/app/(public)/review-candidates/components/PaymentOwnerForm'
+import { PaymentOwnerForm } from '@/app/(member)/review-candidates/components/PaymentOwnerForm'
 
 type SponsorshipInfoUpdate =
   Database['public']['Tables']['candidate_sponsorship_info']['Update']

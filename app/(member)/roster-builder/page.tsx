@@ -10,6 +10,7 @@ import type { Weekend } from '@/lib/weekend/types'
 import { WeekendType } from '@/lib/weekend/types'
 import { RosterBuilderBoard } from './roster-builder-board'
 import { WeekendPicker } from './weekend-picker'
+import { PageContent } from '@/components/member/page-content'
 
 function weekendTitle(weekend: Weekend): string {
   const label = weekend.type === WeekendType.MENS ? 'Mens' : 'Womens'
@@ -30,26 +31,26 @@ export default async function RosterBuilderPage({
 
   if (!userHasPermission(user, [Permission.READ_TEAM_ROSTER_BUILDER])) {
     return (
-      <div className="container mx-auto px-4 pt-12 pb-8 text-center">
+      <PageContent className="pt-12 text-center">
         <h1 className="text-xl font-bold text-foreground mb-2">
           Roster Builder
         </h1>
         <p className="text-muted-foreground">
           You don&apos;t have permission to access the Roster Builder.
         </p>
-      </div>
+      </PageContent>
     )
   }
 
   const activeWeekendsResult = await getActiveWeekends()
   if (isErr(activeWeekendsResult)) {
     return (
-      <div className="container mx-auto px-4 pt-12 pb-8 text-center">
+      <PageContent className="pt-12 text-center">
         <h1 className="text-xl font-bold text-foreground mb-2">
           Roster Builder
         </h1>
         <p className="text-muted-foreground">No active weekends found.</p>
-      </div>
+      </PageContent>
     )
   }
 
@@ -90,14 +91,14 @@ async function renderBoard(weekend: Weekend, userId: string) {
 
   if (isErr(communityResult)) {
     return (
-      <div className="container mx-auto px-4 pt-12 pb-8 text-center">
+      <PageContent className="pt-12 text-center">
         <h1 className="text-xl font-bold text-foreground mb-2">
           Roster Builder
         </h1>
         <p className="text-destructive">
           Failed to load community data. Please try again.
         </p>
-      </div>
+      </PageContent>
     )
   }
 

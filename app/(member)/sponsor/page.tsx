@@ -1,5 +1,15 @@
 import { SponsorForm } from './SponsorForm'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 
 export default function SponsorPage() {
-  return <SponsorForm />
+  return (
+    <PageContent size="narrow">
+      <MemberBreadcrumbs
+        title="Sponsor someone"
+        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+      />
+      <SponsorForm />
+    </PageContent>
+  )
 }

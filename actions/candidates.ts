@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { err, ok, isErr } from '@/lib/results'
 import { isNil } from 'lodash'
-import type { SponsorFormSchema } from '@/app/(public)/sponsor/SponsorForm'
+import type { SponsorFormSchema } from '@/app/(member)/sponsor/SponsorForm'
 import type {
   CandidateStatus,
   PaymentRecord,

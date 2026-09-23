@@ -3,17 +3,18 @@ import { CheckCircle } from 'lucide-react'
 import { isErr, Results } from '@/lib/results'
 import { getLoggedInUser } from '@/services/identity/user'
 import { markSecuelaAttendance } from '@/services/weekend-group-member'
+import { PageContent } from '@/components/member/page-content'
 
 export default async function SecuelaSignInPage() {
   const userResult = await getLoggedInUser()
 
   if (isErr(userResult)) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] p-4">
+      <PageContent className="flex min-h-[60vh] items-center justify-center">
         <p className="text-muted-foreground">
           Something went wrong. Please try again later.
         </p>
-      </div>
+      </PageContent>
     )
   }
 
@@ -29,7 +30,7 @@ export default async function SecuelaSignInPage() {
     : 'the upcoming weekend'
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh] p-4">
+    <PageContent className="flex min-h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-6 max-w-md text-center">
         <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
           <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
@@ -45,6 +46,6 @@ export default async function SecuelaSignInPage() {
           </p>
         </div>
       </div>
-    </div>
+    </PageContent>
   )
 }

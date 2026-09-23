@@ -125,15 +125,20 @@ None of it has been exercised in a browser yet.
 - Open design-system questions: green is used for both community-event scope and paid/success;
   the rector-ready star is still `amber-500` because `--warning` is too pale at icon size.
 
-## Member track — designed, not started
+## Member track — shell landed, hub and review next
 
 The canvas has a Member screens page: VerbNav, Weekend Hub, Today home, phone screens, the member
-sidebar and topbar (from the CandidateReviewA board), the phone tab bar (from Main). Spec 16 lists
-all of these as deferred.
+sidebar and topbar (from the CandidateReviewA board), the phone tab bar (from Main).
 
-There is no spec, plan, task list or branch for this track, and no code. It is likely the larger
-remaining half, since the locked structure moves candidate review, the roster builder and
-edit-weekend into the member shell.
+**Shell (2026-09-23, on `preview`):** `app/(public)` was split into a bare public group (landing,
+auth, candidate forms and payment) and `app/(member)`, whose layout renders the designed shell —
+task-named collapsible sidebar, 56px top bar with a jump-to-page search palette and account menu,
+labeled phone tab bar, `MemberBreadcrumbs` + `PageHeader` opening on every page, one gutter
+(`PageContent`) and `min-w-0` containment so nothing spills horizontally. The mega-menu navbar is
+gone. Page bodies were left as they were: the weekend hub (`/weekends/[groupId]`, absorbing
+current-weekend, roster, candidate-list and review-candidates — old URLs removed, not redirected)
+and the queue-layout candidate review are the next two chunks. Deferred by owner decision:
+waitlist status, "Ask the sponsor", and the hub's Documents card.
 
 Earlier public-side design commits predate the canvas and are not part of this track: `fc9c4f1`
 landing redesign, `8964c88` home dashboard, `448bdc3` warm design foundation + profile settings.

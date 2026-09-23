@@ -12,6 +12,7 @@ import {
   CardFooter,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { PageContent } from '@/components/member/page-content'
 
 export default async function SubmittedPage({
   searchParams,
@@ -34,8 +35,8 @@ export default async function SubmittedPage({
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <Card className="border-0 md:border-[1px] shadow-none md:shadow-sm">
+    <PageContent size="narrow">
+      <Card className="border-0 shadow-none md:border">
         <CardHeader>
           <CardTitle className="text-lg flex gap-1">
             <span>Thank you for sponsoring</span>
@@ -50,6 +51,6 @@ export default async function SubmittedPage({
           <Button href="/home">Back to Home</Button>
         </CardFooter>
       </Card>
-    </div>
+    </PageContent>
   )
 }

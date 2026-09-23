@@ -1,16 +1,9 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { getHydratedCandidate } from '@/actions/candidates'
 import { Typography } from '@/components/ui/typography'
 import { StatusChip } from '@/components/candidates/status-chip'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+import { PageContent } from '@/components/member/page-content'
+import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 import * as Results from '@/lib/results'
 import { CandidateInformationSection } from './components/CandidateInformationSection'
 import { CandidateAssessmentSection } from './components/CandidateAssessmentSection'
@@ -48,25 +41,20 @@ export default async function CandidateDetailPage({ params }: PageProps) {
     candidate.candidate_sponsorship_info?.candidate_name ?? 'Unknown Candidate'
 
   return (
-    <div className="container mx-auto p-4 min-h-[80vh]">
-      {/* Breadcrumb Navigation */}
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/review-candidates">Review Candidates</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{candidateName}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <PageContent>
+      <MemberBreadcrumbs
+        title={candidateName}
+        breadcrumbs={[
+          { label: 'Home', href: '/home' },
+          { label: 'Review candidates', href: '/review-candidates' },
+        ]}
+      />
 
       {/* Page Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Typography variant="h1">{candidateName}</Typography>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <Typography variant="h1" className="min-w-0 break-words">
+          {candidateName}
+        </Typography>
         {canEdit ? (
           <StatusSelect
             candidateId={candidate.id}
@@ -82,6 +70,6 @@ export default async function CandidateDetailPage({ params }: PageProps) {
       <CandidateAssessmentSection candidate={candidate} canEdit={canEdit} />
       <CandidateFormDetailsSection candidate={candidate} canEdit={canEdit} />
       <SponsorInformationSection candidate={candidate} canEdit={canEdit} />
-    </div>
+    </PageContent>
   )
 }

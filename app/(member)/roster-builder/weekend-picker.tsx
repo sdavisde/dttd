@@ -85,7 +85,7 @@ export function WeekendPicker({ weekends }: { weekends: Weekend[] }) {
   return (
     <div className="flex flex-col bg-muted/30 dark:bg-background">
       {/* Header */}
-      <header className="border-b bg-card px-6 py-4">
+      <header className="border-b bg-card px-4 py-4 md:px-6">
         <div className="mx-auto max-w-screen-2xl flex items-center gap-3">
           <Users className="h-5 w-5 text-primary" />
           <h1 className="text-xl font-bold text-foreground">Roster Builder</h1>
@@ -93,7 +93,7 @@ export function WeekendPicker({ weekends }: { weekends: Weekend[] }) {
       </header>
 
       {/* Content — vertically centered */}
-      <main className="px-6 py-12">
+      <div className="px-4 py-12 md:px-6">
         <div className="mx-auto w-full max-w-3xl">
           {groups.map((group) => (
             <div key={group.groupId ?? 'ungrouped'}>
@@ -134,7 +134,7 @@ export function WeekendPicker({ weekends }: { weekends: Weekend[] }) {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }
