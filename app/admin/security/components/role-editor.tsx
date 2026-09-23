@@ -29,6 +29,8 @@ import {
 } from '@/components/ui/select'
 import { isErr } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
+import { useAutoSave } from '@/hooks/use-auto-save'
+import { AutoSaveStatusIndicator } from '@/components/auto-save/auto-save-status'
 import { isDevMode } from '@/lib/dev-mode'
 import { cn } from '@/lib/utils'
 import type { Permission } from '@/lib/security'
@@ -100,8 +102,9 @@ interface RoleEditorProps {
 /**
  * The detail pane, read as a settings page: a header with one summary line,
  * then the name fields, Permissions, Sensitive data and the danger zone, each
- * its own bordered panel. Nothing is written until Save — loading a role never
- * normalises its permissions.
+ * its own bordered panel. A saved role auto-saves each change once the form is
+ * valid; a new draft waits for "Create role". Loading a role never normalises
+ * its permissions — nothing is written until something is edited.
  */
 export function RoleEditor({
   role,
@@ -132,8 +135,28 @@ export function RoleEditor({
   const form = useForm<RoleInputValues>({
     resolver: zodResolver(roleInputSchema),
     defaultValues: defaults,
+    // Auto-save has no submit to trigger validation, so check on blur instead.
+    mode: 'onTouched',
   })
-  const [isSaving, setIsSaving] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+
+  const values = useWatch({ control: form.control }) as RoleInputValues
+  const parsed = roleInputSchema.safeParse(values)
+  const autoSave = useAutoSave({
+    value: values,
+    isValid: parsed.success,
+    enabled: canEdit && !isNew,
+    errorMessage: 'Unable to save this role. Please try again.',
+    save: async (next) => {
+      if (isNil(role)) return { error: 'No role to update' }
+      const result = await updateRole({
+        roleId: role.id,
+        input: roleInputSchema.parse(next),
+      })
+      if (!isErr(result)) onSaved(result.data)
+      return result
+    },
+  })
 
   const basedOnRoleId = useWatch({
     control: form.control,
@@ -144,7 +167,7 @@ export function RoleEditor({
     name: 'permissions',
   })
 
-  const readOnly = !canEdit || isSaving
+  const readOnly = !canEdit || isCreating
   const own = useMemo(
     () => new Set<Permission>(ownPermissions ?? []),
     [ownPermissions]
@@ -163,11 +186,13 @@ export function RoleEditor({
     [role?.id, roles]
   )
 
-  const setPermissions = (next: Permission[]) =>
+  const setPermissions = (next: Permission[]) => {
+    autoSave.saveImmediately()
     form.setValue('permissions', next, {
       shouldDirty: true,
       shouldValidate: true,
     })
+  }
 
   const ladders = PERMISSION_LADDERS.map((ladder) =>
     resolveLadder(ladder, own, inherited)
@@ -230,31 +255,24 @@ export function RoleEditor({
     summaryParts.push(`copied from ${copiedFrom.label}`)
   }
 
-  const isDirty = form.formState.isDirty
-  const showSaveBar = canEdit && (isNew || isDirty)
-
-  const onSubmit = async (values: RoleInputValues) => {
-    setIsSaving(true)
+  // Only drafts submit; saved roles auto-save above.
+  const onSubmit = async (input: RoleInputValues) => {
+    if (!isNew) return
+    setIsCreating(true)
     try {
-      const result = isNil(role)
-        ? await createRole(values)
-        : await updateRole({ roleId: role.id, input: values })
+      const result = await createRole(input)
       if (isErr(result)) {
-        toastError(
-          isNil(role)
-            ? 'Unable to create this role. Please try again.'
-            : 'Unable to save this role. Please try again.',
-          { error: result.error }
-        )
+        toastError('Unable to create this role. Please try again.', {
+          error: result.error,
+        })
         return
       }
-      toast.success(isNil(role) ? 'Role created' : 'Role saved')
-      form.reset(toRoleInput(result.data))
+      toast.success('Role created')
       onSaved(result.data)
     } catch (error) {
-      toastError('Unable to save this role. Please try again.', { error })
+      toastError('Unable to create this role. Please try again.', { error })
     } finally {
-      setIsSaving(false)
+      setIsCreating(false)
     }
   }
 
@@ -278,6 +296,11 @@ export function RoleEditor({
                 <h2 className="font-serif text-2xl font-semibold tracking-tight">
                   {isNew ? 'New role' : role.label}
                 </h2>
+                <AutoSaveStatusIndicator
+                  status={autoSave.status}
+                  onRetry={autoSave.flush}
+                  className="mt-2 ml-auto"
+                />
                 {canEdit && isDevMode() && (
                   <Button
                     type="button"
@@ -357,11 +380,12 @@ export function RoleEditor({
                       <Checkbox
                         checked={field.value === 'INDIVIDUAL'}
                         disabled={readOnly}
-                        onCheckedChange={(checked) =>
+                        onCheckedChange={(checked) => {
+                          autoSave.saveImmediately()
                           field.onChange(
                             checked === true ? 'INDIVIDUAL' : 'COMMITTEE'
                           )
-                        }
+                        }}
                         className="mt-0.5 size-4 shrink-0"
                       />
                     </FormControl>
@@ -395,9 +419,10 @@ export function RoleEditor({
                       </FormLabel>
                       <Select
                         value={field.value ?? NO_PARENT}
-                        onValueChange={(value) =>
+                        onValueChange={(value) => {
+                          autoSave.saveImmediately()
                           field.onChange(value === NO_PARENT ? null : value)
-                        }
+                        }}
                         disabled={readOnly}
                       >
                         <FormControl>
@@ -547,7 +572,7 @@ export function RoleEditor({
                     variant="outline"
                     size="sm"
                     className="h-11 self-start border-destructive/50 bg-card text-destructive hover:bg-destructive hover:text-white md:h-9"
-                    disabled={isSaving || !isNil(deleteBlockedReason)}
+                    disabled={!isNil(deleteBlockedReason)}
                     onClick={() => onDelete(role)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -563,18 +588,18 @@ export function RoleEditor({
             </div>
           </EditorSection>
 
-          {/* Only here once there is something to save. */}
-          {showSaveBar && (
+          {/* Drafts only: a saved role auto-saves. */}
+          {canEdit && isNew && (
             <div className="sticky bottom-0 flex items-center justify-end gap-2 rounded-md border border-border bg-card px-4 py-3">
               <p className="mr-auto text-[13px] text-muted-foreground">
-                {isNew ? 'Not saved yet' : 'Unsaved changes'}
+                Not saved yet
               </p>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="h-11 md:h-9"
-                disabled={isSaving}
+                disabled={isCreating}
                 onClick={() => {
                   form.reset(defaults)
                   onCancel()
@@ -586,9 +611,9 @@ export function RoleEditor({
                 type="submit"
                 size="sm"
                 className="h-11 md:h-9"
-                disabled={isSaving}
+                disabled={isCreating}
               >
-                {isSaving ? 'Saving…' : isNew ? 'Create role' : 'Save changes'}
+                {isCreating ? 'Creating…' : 'Create role'}
               </Button>
             </div>
           )}

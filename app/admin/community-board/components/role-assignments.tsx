@@ -1,10 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Check, Pencil, X } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { InlineAutoSaveField } from '@/components/auto-save/inline-auto-save-field'
 import { usePreWeekendEmail } from '@/hooks/use-pre-weekend-email'
 import { useRoleAssignment } from '@/hooks/use-role-assignment'
 import { RoleAssignmentDialog } from './role-assignment-dialog'
@@ -155,37 +155,21 @@ export function RoleAssignments({
   )
 
   const preWeekendDetail = preWeekendEmail.isEditingEmail ? (
-    <div className="mt-1 flex items-center gap-1.5">
-      <Input
-        id="preweekend-email"
-        type="email"
-        value={preWeekendEmail.email}
-        onChange={(e) => preWeekendEmail.setEmail(e.target.value)}
-        placeholder="email@example.com"
-        disabled={preWeekendEmail.isSavingEmail}
-        className="h-8 text-xs"
-      />
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-8 w-8 p-0"
-        onClick={preWeekendEmail.saveEmail}
-        disabled={preWeekendEmail.isSavingEmail}
-      >
-        <Check className="h-3.5 w-3.5" />
-        <span className="sr-only">Save email</span>
-      </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-8 w-8 p-0"
-        onClick={preWeekendEmail.cancelEditEmail}
-        disabled={preWeekendEmail.isSavingEmail}
-      >
-        <X className="h-3.5 w-3.5" />
-        <span className="sr-only">Cancel</span>
-      </Button>
-    </div>
+    <InlineAutoSaveField
+      initialValue={preWeekendEmail.email}
+      type="email"
+      placeholder="email@example.com"
+      ariaLabel="Pre Weekend Couple notification email"
+      inputClassName="h-8 text-xs"
+      className="mt-1"
+      errorMessage="Unable to update email address. Please try again."
+      validate={(value) =>
+        value.trim() === '' ? 'Email address cannot be empty' : null
+      }
+      save={preWeekendEmail.saveEmail}
+      onSaved={preWeekendEmail.onEmailSaved}
+      onDone={preWeekendEmail.finishEditEmail}
+    />
   ) : (
     <div className="flex items-center gap-1.5">
       <span className="truncate text-xs text-muted-foreground">

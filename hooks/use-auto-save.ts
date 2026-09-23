@@ -119,6 +119,10 @@ export function useAutoSave<T>({
   // Save whatever is still pending when the editor goes away.
   useEffect(() => () => void runSave(), [runSave])
 
+  const saveImmediately = useCallback(() => {
+    immediateRef.current = true
+  }, [])
+
   const hasUnsaved = enabled && (isDirty || phase === 'saving')
   useEffect(() => {
     if (!hasUnsaved) return
@@ -137,9 +141,7 @@ export function useAutoSave<T>({
     status,
     isDirty,
     /** Skip the debounce for the next change (selects, toggles, pickers). */
-    saveImmediately: () => {
-      immediateRef.current = true
-    },
+    saveImmediately,
     /** Save now, e.g. from a "Retry" affordance or before closing. */
     flush: runSave,
   }
