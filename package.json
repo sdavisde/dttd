@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "preview": "dotenv -e .env.preview -v SITE_URL=http://localhost:3000 -- next dev --turbopack",
+    "preview:pull": "vercel env pull .env.preview --environment=preview --yes",
     "build": "next build",
     "start": "next start",
     "lint": "npx eslint . --ext .ts,.tsx",
@@ -92,6 +94,7 @@
     "@types/react-dom": "^19",
     "@typescript-eslint/parser": "^8.49.0",
     "conventional-changelog-conventionalcommits": "^9.1.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.3.4",
     "eslint-config-prettier": "^10.1.8",
