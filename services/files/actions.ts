@@ -3,33 +3,7 @@
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { err, type Result } from '@/lib/results'
 import { Permission } from '@/lib/security'
-import type {
-  PagedMeetingMinuteFiles,
-  StorageSortDirection,
-  StorageSortField,
-} from '@/lib/files/types'
 import * as FileService from './file-service'
-
-export type MeetingMinutesPageParams = {
-  page: number
-  pageSize?: number
-  sortField?: StorageSortField
-  sortDirection?: StorageSortDirection
-}
-
-export async function getMeetingMinutesPageAction({
-  page,
-  pageSize = 10,
-  sortField = 'created_at',
-  sortDirection = 'desc',
-}: MeetingMinutesPageParams): Promise<Result<string, PagedMeetingMinuteFiles>> {
-  return FileService.getMeetingMinutesPage(
-    page,
-    pageSize,
-    sortField,
-    sortDirection
-  )
-}
 
 export async function getFilePublicUrlAction(folder: string, fileName: string) {
   return FileService.getFilePublicUrl(folder, fileName)

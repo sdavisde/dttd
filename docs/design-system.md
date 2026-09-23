@@ -71,7 +71,7 @@ card-based mobile layout below it (see the responsive guidelines in `CLAUDE.md`)
 tables get this for free from the shared `components/ui/data-table/data-table.tsx`, which
 renders `data-table-mobile-card.tsx` below `md`. For a hand-rolled example (a table that
 does not go through `DataTable`), see
-`app/admin/community-board/components/meeting-minutes-table.tsx`.
+`components/file-management/FileBrowserTable.tsx`.
 
 ## Color scheme status
 

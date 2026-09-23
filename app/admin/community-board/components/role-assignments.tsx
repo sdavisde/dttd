@@ -231,15 +231,26 @@ export function RoleAssignments({
                 <h2 className="pb-1 font-serif text-lg font-semibold tracking-tight">
                   Committees &amp; teams
                 </h2>
-                {committeeRoles.map((role) => (
-                  <PositionRow
-                    key={role.id}
-                    role={role}
-                    assigned={roleAssignment.membersByRoleId[role.id] ?? []}
-                    canEdit={canEdit}
-                    onAssignClick={() => roleAssignment.openDialog(role)}
-                  />
-                ))}
+                {committeeRoles.map((role) => {
+                  const assigned = roleAssignment.membersByRoleId[role.id] ?? []
+
+                  return (
+                    <PositionRow
+                      key={role.id}
+                      role={role}
+                      assigned={assigned}
+                      canEdit={canEdit}
+                      onAssignClick={() => roleAssignment.openDialog(role)}
+                      // An empty committee already reads "Open · No one holds
+                      // this yet", so "0 members" would only repeat it.
+                      subtitle={
+                        assigned.length > 0
+                          ? `${assigned.length} member${assigned.length === 1 ? '' : 's'}`
+                          : undefined
+                      }
+                    />
+                  )
+                })}
               </CardContent>
             </Card>
           )}

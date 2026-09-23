@@ -4,23 +4,15 @@ import { guardAdminPage } from '@/lib/admin/page-guard'
 import { Permission } from '@/lib/security'
 import { getCommunityBoardData } from '@/services/community/board'
 import { getMeetingMinutesPage } from '@/services/files/file-service'
-import { isErr } from '@/lib/results'
-import type { PagedMeetingMinuteFiles } from '@/lib/files/types'
+import { isErr, Results } from '@/lib/results'
 import { RoleAssignments } from './components/role-assignments'
 import { MeetingMinutes } from './components/meeting-minutes'
 
-const MEETING_MINUTES_PAGE_SIZE = 10
-
-function createEmptyMeetingMinutesPageData(): PagedMeetingMinuteFiles {
-  return {
-    page: 1,
-    pageSize: MEETING_MINUTES_PAGE_SIZE,
-    sortField: 'created_at',
-    sortDirection: 'desc',
-    currentPageItems: [],
-    nextPageItems: [],
-  }
-}
+/**
+ * The card is a recent-first shortcut, not the full listing — that lives in
+ * Files, one click away.
+ */
+const MEETING_MINUTES_PREVIEW_COUNT = 5
 
 export default async function CommunityBoardPage() {
   // Assigning positions and changing the notification email both go through
@@ -31,7 +23,7 @@ export default async function CommunityBoardPage() {
 
   const [communityBoardResult, meetingMinutesPageResult] = await Promise.all([
     getCommunityBoardData(),
-    getMeetingMinutesPage(1, MEETING_MINUTES_PAGE_SIZE),
+    getMeetingMinutesPage(1, MEETING_MINUTES_PREVIEW_COUNT),
   ])
 
   if (isErr(communityBoardResult)) {
@@ -41,9 +33,10 @@ export default async function CommunityBoardPage() {
   const meetingMinutesLoadError = isErr(meetingMinutesPageResult)
     ? meetingMinutesPageResult.error
     : null
-  const meetingMinutesInitialPageData = isErr(meetingMinutesPageResult)
-    ? createEmptyMeetingMinutesPageData()
-    : meetingMinutesPageResult.data
+  const meetingMinutesFiles = Results.unwrapOr(
+    Results.map(meetingMinutesPageResult, (page) => page.currentPageItems),
+    []
+  )
 
   const { boardRoles, committeeRoles, members, preWeekendCoupleContact } =
     communityBoardResult.data
@@ -68,7 +61,7 @@ export default async function CommunityBoardPage() {
           canEdit={canEdit}
         >
           <MeetingMinutes
-            initialPageData={meetingMinutesInitialPageData}
+            files={meetingMinutesFiles}
             loadError={meetingMinutesLoadError}
           />
         </RoleAssignments>

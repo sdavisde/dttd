@@ -179,7 +179,7 @@ The application uses Supabase with several key tables:
    Reference: the shared `components/ui/data-table/data-table.tsx` (which renders
    `components/ui/data-table/data-table-mobile-card.tsx` below `md`) — most admin tables get the dual
    layout for free by going through `DataTable`. For a hand-rolled mobile card layout, see
-   `app/admin/community-board/components/meeting-minutes-table.tsx`.
+   `components/file-management/FileBrowserTable.tsx`.
 
 #### When to Apply These Guidelines
 
