@@ -75,7 +75,7 @@ export function PermissionLadder({
       role="radiogroup"
       aria-label={`${ladder.label} access`}
       className={cn(
-        'grid w-full overflow-hidden rounded-md border border-border sm:w-[220px]',
+        'grid w-full overflow-hidden rounded-md border border-border sm:w-[264px]',
         rungs.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
       )}
     >
@@ -105,7 +105,7 @@ export function PermissionLadder({
                 : undefined
             }
             className={cn(
-              'flex h-11 items-center justify-center gap-1 border-r border-border px-2 text-xs font-medium last:border-r-0 sm:h-8',
+              'flex h-11 items-center justify-center gap-1 border-r border-border px-2 text-xs font-medium whitespace-nowrap last:border-r-0 sm:h-8',
               'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset',
               selected && !isLocked && 'bg-primary text-primary-foreground',
               selected && isLocked && 'bg-muted text-foreground',

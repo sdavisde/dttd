@@ -82,7 +82,7 @@ export function SettingRow({
             {description}
           </span>
         </Label>
-        <div className="flex min-h-11 w-full shrink-0 items-center sm:min-h-0 sm:w-[220px] sm:justify-end sm:pt-0.5">
+        <div className="flex min-h-11 w-full shrink-0 items-center sm:min-h-0 sm:w-[264px] sm:justify-end sm:pt-0.5">
           {control}
         </div>
       </div>
