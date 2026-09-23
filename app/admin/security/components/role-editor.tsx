@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -367,11 +366,11 @@ export function RoleEditor({
                 )}
               />
             </div>
-            <FormDescription className="-mt-2 text-[12.5px] leading-relaxed">
+            <p className="-mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
               Inheritance is additive — this role gets everything{' '}
               {parentLabel ?? 'the role it is based on'} can do, plus what you
               add here. There is no “minus”.
-            </FormDescription>
+            </p>
 
             {/* Access */}
             <section className="flex flex-col gap-1">
