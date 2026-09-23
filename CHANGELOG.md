@@ -1,3 +1,38 @@
+## [1.53.0](https://github.com/sdavisde/dttd/compare/v1.52.2...v1.53.0) (2026-09-23)
+
+### Features
+
+- **admin:** add dashboard alerts banner, real storage metric, and action items ([d069876](https://github.com/sdavisde/dttd/commit/d069876da46386106a6820ccafa5552624265047))
+- **admin:** copy join link, community permission gating and real site settings ([6eb22dd](https://github.com/sdavisde/dttd/commit/6eb22dda3ff53a4e5bdf97870e99c0f4d8586ebb))
+- **admin:** copy-link on page headers, board sidebar, to-review stat and weekend hub frame ([87f4a54](https://github.com/sdavisde/dttd/commit/87f4a545e132b4f3d7e39fcab39e4fe58dcc5d37))
+- **admin:** dashboard calendar card, storage tile and secuela item; events mobile agenda ([b75d3da](https://github.com/sdavisde/dttd/commit/b75d3dadbe6cd6909d7ca47dc4bf75bc127370c0))
+- **admin:** merge the admin redesign from preview ([8af6674](https://github.com/sdavisde/dttd/commit/8af66747e787911e7d48383787664cd5ff749a91))
+- **admin:** move the copy-link button from the page header to the breadcrumbs ([eab4fc3](https://github.com/sdavisde/dttd/commit/eab4fc3d92bc489062eb7738c0a86333c1fdc179))
+- **admin:** rebuild dashboard as the board's back office ([c81d1b8](https://github.com/sdavisde/dttd/commit/c81d1b81b100aae640da3e0c3853bf35deba3139))
+- **admin:** rebuild weekends page for board work ([2662477](https://github.com/sdavisde/dttd/commit/266247777219030b7f199e22a64f94a4d9614916))
+- **admin:** replace admin shell with final navigation and warm sidebar ([c747f43](https://github.com/sdavisde/dttd/commit/c747f4338bb9f001696ebefa383268aa289bf621))
+- **admin:** replace users page with the new People page ([42e49ad](https://github.com/sdavisde/dttd/commit/42e49ad64e43028bd7de03b401f5aa05c5203378))
+- **admin:** weekends fees-open uses the per-person list; files menu goes first ([5450933](https://github.com/sdavisde/dttd/commit/5450933ef66dba5d9cfa96ade5ca1c2ea7c3d96c))
+- **avatar:** show name, email and phone in the avatar hover card ([f31aab0](https://github.com/sdavisde/dttd/commit/f31aab0718dd1108ca4b19321158d74933e552c9))
+- **branding:** show color-inverted favicon on Vercel preview deployments ([12996c7](https://github.com/sdavisde/dttd/commit/12996c72abcac3a8898fd618c4836d0a2864dd4f))
+- **community:** add a committee or team from the Community page ([d947c90](https://github.com/sdavisde/dttd/commit/d947c904ebc1b5884c2f7c3e075537ca48c5bf28))
+- **community:** compact minutes list, member counts and first-column row menu ([25d912c](https://github.com/sdavisde/dttd/commit/25d912c173193c77247c85651d1222050647713c))
+- **design:** warm admin sidebar tokens and add design-system conventions doc ([88b341f](https://github.com/sdavisde/dttd/commit/88b341f341f2c7f99a0e693931ce1587c8ef328f))
+- **email:** log every email send through a single sendEmail wrapper ([7531ea8](https://github.com/sdavisde/dttd/commit/7531ea8ffab48a14e81cd2b34ce2d892be3443d3))
+- **files:** replace the All files view with a pick-a-folder empty state ([3ef1461](https://github.com/sdavisde/dttd/commit/3ef1461bfbad6d610ad890ebf2c7376f8b337175))
+- **files:** single-page folder browser with rail, nested folders and mobile cards ([3c48549](https://github.com/sdavisde/dttd/commit/3c485495364651f22ab559954f20265200c10f95))
+- **payments:** open the payment summary from a fourth stat tile ([cc56c9f](https://github.com/sdavisde/dttd/commit/cc56c9f8f932a32babb7e1c6a48b369c570046ef))
+- **payments:** per-person outstanding on the dashboard and a CHA role column ([5eda9ff](https://github.com/sdavisde/dttd/commit/5eda9ff8942dda6381ede424aa9a01e61902fd91))
+- **payments:** rebuild the ledger per the PaymentsA board with waived and outstanding fees ([e8aa2c4](https://github.com/sdavisde/dttd/commit/e8aa2c4d2aeff84b52db81f161e1ab04194d8f8b))
+- **people:** inline person editor with collapsible sections and role chips ([7365df3](https://github.com/sdavisde/dttd/commit/7365df3ede199fed7adf6d1b11216ae051073adc))
+- **security:** rebuild the Security page with role inheritance and permission ladders ([f11fb8e](https://github.com/sdavisde/dttd/commit/f11fb8ea71f4f55f6b9706ab4c0f44afeeb58f57))
+
+### Bug Fixes
+
+- **admin:** stop community board spilling right; trim site settings ([e78500f](https://github.com/sdavisde/dttd/commit/e78500fb4278428132047602a78df57f3a013629))
+- **admin:** stop wide tables from stretching the page horizontally ([6e92317](https://github.com/sdavisde/dttd/commit/6e92317ea5b535ef21f2337458c5cddbfdc01874))
+- **files:** list every file under All files instead of repeating the folder rail ([0fabca9](https://github.com/sdavisde/dttd/commit/0fabca9e4361ef666235d40fdaeea149ad53e664))
+
 ## [1.52.2](https://github.com/sdavisde/dttd/compare/v1.52.1...v1.52.2) (2026-09-02)
 
 ### Performance Improvements
