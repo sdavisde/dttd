@@ -59,20 +59,21 @@ import {
   getEligibilityWarning,
 } from './roster-builder-types'
 import { UserAvatar } from '@/components/user-avatar'
+import { cn } from '@/lib/utils'
+
+/** Card actions stay visible (no hover reveal) and meet 44px on touch. */
+const SLOT_ACTION_CLASS =
+  'flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors md:size-8'
 
 // ── Filled Slot Card ──────────────────────────────────────────────────────────
 
 export function FilledSlotCard({
   slot,
-  accentColor,
-  accentDraftColor,
   onRemove,
   onFinalize,
   onDrop,
 }: {
   slot: RosterSlot
-  accentColor: string
-  accentDraftColor: string
   onRemove: () => void
   onFinalize?: () => void
   onDrop?: () => void
@@ -83,19 +84,16 @@ export function FilledSlotCard({
   const isDraft = assignment.type === 'draft'
 
   return (
-    <div
-      className={`group relative rounded-lg border border-l-4 p-4 shadow-sm transition-all hover:shadow-md ${
-        isDraft
-          ? `${accentDraftColor} bg-muted/30 dark:bg-muted/10`
-          : `${accentColor} bg-card`
-      }`}
-    >
+    <div className="relative rounded-md border bg-card p-4">
       {/* Top-right actions */}
-      <div className="absolute right-2 top-2 flex items-center gap-0.5">
+      <div className="absolute right-1 top-1 flex items-center">
         {isDraft ? (
           <button
             onClick={onRemove}
-            className="rounded-full p-1 text-muted-foreground md:opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive md:group-hover:opacity-100"
+            className={cn(
+              SLOT_ACTION_CLASS,
+              'hover:bg-error/10 hover:text-error'
+            )}
             aria-label={`Remove ${fullName(member)}`}
           >
             <X className="h-3.5 w-3.5" />
@@ -104,17 +102,17 @@ export function FilledSlotCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="rounded-full p-1 text-muted-foreground md:opacity-0 transition-opacity hover:bg-muted md:group-hover:opacity-100"
+                className={cn(
+                  SLOT_ACTION_CLASS,
+                  'hover:bg-muted hover:text-foreground'
+                )}
                 aria-label={`Actions for ${fullName(member)}`}
               >
                 <MoreVertical className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                onClick={onDrop}
-                className="text-amber-600 dark:text-amber-400"
-              >
+              <DropdownMenuItem onClick={onDrop}>
                 <UserX className="mr-2 h-4 w-4" />
                 Dropped
               </DropdownMenuItem>
@@ -128,12 +126,12 @@ export function FilledSlotCard({
       </div>
 
       {/* Role label + draft badge */}
-      <div className="mb-1.5 flex items-start gap-2 pr-6">
+      <div className="mb-2 flex items-start gap-2 pr-9 md:pr-7">
         <p className="text-xs font-semibold text-muted-foreground leading-snug">
           {slotLabel(slot)}
         </p>
         {isDraft && (
-          <span className="shrink-0 rounded-full border border-muted-foreground/20 px-1.5 py-0.5 text-[10px] font-medium leading-none text-muted-foreground">
+          <span className="shrink-0 rounded-full border border-secondary-border bg-secondary px-2 py-0.5 text-[11px] font-semibold leading-none text-secondary-foreground">
             Draft
           </span>
         )}
@@ -168,8 +166,8 @@ export function FilledSlotCard({
               <span
                 className={
                   member.volunteerStatus === 'attended_secuela'
-                    ? 'text-blue-500 dark:text-blue-400'
-                    : 'text-cyan-500 dark:text-cyan-400'
+                    ? 'text-info'
+                    : 'text-muted-foreground'
                 }
               >
                 <Calendar className="h-3.5 w-3.5" />
@@ -183,19 +181,13 @@ export function FilledSlotCard({
           </Tooltip>
         )}
         {member.rectorReadyStatus.criteria.hasServedAsRector ? (
-          <span
-            title="Past Rector"
-            className="text-violet-500 dark:text-violet-400"
-          >
+          <span title="Past Rector" className="text-primary">
             <Award className="h-3.5 w-3.5" />
           </span>
         ) : (
           member.rectorReadyStatus.isReady && (
-            <span
-              title="Rector Ready"
-              className="text-amber-500 dark:text-amber-400"
-            >
-              <Star className="h-3.5 w-3.5 fill-amber-400" />
+            <span title="Rector Ready" className="text-amber-500">
+              <Star className="h-3.5 w-3.5 fill-amber-500" />
             </span>
           )
         )}
@@ -225,7 +217,7 @@ export function FilledSlotCard({
             <Button
               size="sm"
               variant="outline"
-              className="mt-3 h-7 w-full gap-1.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
+              className="mt-3 h-11 w-full gap-1.5 text-[13px] md:h-9"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               Finalize
@@ -286,19 +278,18 @@ export function EmptySlotCard({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className={`w-full rounded-lg border-2 border-dashed p-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 ${
-            slot.required
-              ? 'border-muted-foreground/25 dark:border-muted-foreground/20'
-              : 'border-muted-foreground/15 dark:border-muted-foreground/10'
-          }`}
+          className={cn(
+            'w-full rounded-md border border-dashed p-4 text-left transition-colors hover:border-primary/50 hover:bg-selected',
+            slot.required ? 'border-muted-foreground/40' : 'border-border'
+          )}
         >
           <p className="text-sm font-medium text-muted-foreground leading-snug break-words">
             {slotLabel(slot)}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground/60">
+          <p className="mt-1 text-xs text-muted-foreground/80">
             {slot.required
-              ? 'Required — click to assign'
-              : 'Optional — click to assign'}
+              ? 'Required — tap to assign'
+              : 'Optional — tap to assign'}
           </p>
         </button>
       </PopoverTrigger>
@@ -348,29 +339,30 @@ export function EmptySlotCard({
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5">
                       {m.volunteerStatus === 'attended_secuela' && (
-                        <span className="inline-flex items-center gap-0.5 text-xs text-blue-600 dark:text-blue-400">
+                        <span className="inline-flex items-center gap-0.5 text-xs text-info">
                           <Calendar className="h-3 w-3" /> Attended Secuela
                         </span>
                       )}
                       {m.volunteerStatus === 'wants_to_serve' && (
-                        <span className="inline-flex items-center gap-0.5 text-xs text-cyan-600 dark:text-cyan-400">
+                        <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" /> Wants to Serve
                         </span>
                       )}
                       {m.rectorReadyStatus.criteria.hasServedAsRector ? (
-                        <span className="inline-flex items-center gap-0.5 text-xs text-violet-600 dark:text-violet-400">
+                        <span className="inline-flex items-center gap-0.5 text-xs text-primary">
                           <Award className="h-3 w-3" /> Past Rector
                         </span>
                       ) : (
                         m.rectorReadyStatus.isReady && (
-                          <span className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
-                            <Star className="h-3 w-3" /> Rector Ready
+                          <span className="inline-flex items-center gap-0.5 text-xs text-foreground">
+                            <Star className="h-3 w-3 fill-amber-500 text-amber-500" />{' '}
+                            Rector Ready
                           </span>
                         )
                       )}
                     </div>
                     {warning !== null && (
-                      <p className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <p className="flex items-center gap-1 text-xs text-error">
                         <AlertTriangle className="h-3 w-3 shrink-0" />
                         {warning}
                       </p>

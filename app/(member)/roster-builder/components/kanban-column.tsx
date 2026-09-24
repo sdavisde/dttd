@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Plus } from 'lucide-react'
+import { ChevronDown, Plus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   Popover,
   PopoverContent,
@@ -19,7 +20,7 @@ import type { CHARole } from '@/lib/weekend/types'
 import type { RosterBuilderCommunityMember } from '@/services/roster-builder'
 import { getRolesForCategory } from '../roster-template'
 import type { RoleCategory, FilterMode } from './roster-builder-types'
-import { getCategoryColors, fullName } from './roster-builder-types'
+import { fullName } from './roster-builder-types'
 import { FilledSlotCard, EmptySlotCard } from './slot-cards'
 
 export function KanbanColumn({
@@ -44,11 +45,13 @@ export function KanbanColumn({
   onAddSlot: (categoryName: string, role: CHARole) => void
 }) {
   const [addOpen, setAddOpen] = useState(false)
+  // Phones stack the columns, so they start collapsed to a list of
+  // categories; the board is always expanded from md up.
+  const [expanded, setExpanded] = useState(false)
   const filled = category.slots.filter(
     (s) => s.assignment.type !== 'empty'
   ).length
   const total = category.slots.length
-  const colors = getCategoryColors(category.name)
   const allFilled = filled === total
 
   const visibleSlots = useMemo(() => {
@@ -78,96 +81,106 @@ export function KanbanColumn({
 
   if (visibleSlots.length === 0 && !addOpen) return null
 
+  // An active search or filter opens every matching column so hits are
+  // never hidden inside a collapsed one.
+  const isOpen =
+    expanded || searchQuery.trim().length > 0 || filterMode !== 'all'
+
   return (
-    <div
-      className={`flex w-72 shrink-0 flex-col rounded-xl border ${colors.border} bg-card shadow-sm`}
-    >
-      {/* Column header */}
-      <div className={`rounded-t-xl border-b ${colors.header} px-4 py-3`}>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div
-              className={`h-2.5 w-2.5 shrink-0 rounded-full ${colors.dot}`}
-            />
-            <span className="truncate text-sm font-semibold text-foreground">
-              {category.name}
-            </span>
-          </div>
+    <div className="flex w-full flex-col rounded-md border bg-card md:w-72 md:shrink-0">
+      {/* Column header — a collapse toggle on phones only */}
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={isOpen}
+        className={cn(
+          'flex min-h-11 items-center justify-between gap-2 px-4 py-3 text-left md:pointer-events-none md:border-b',
+          isOpen && 'border-b'
+        )}
+      >
+        <span className="truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {category.name}
+        </span>
+        <span className="flex shrink-0 items-center gap-2">
           <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${
+            className={cn(
+              'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
               allFilled
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
-                : colors.badge
-            }`}
+                ? 'bg-success/15 text-success'
+                : 'bg-muted text-muted-foreground'
+            )}
           >
             {filled}/{total}
           </span>
-        </div>
-      </div>
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 text-muted-foreground transition-transform md:hidden',
+              isOpen && 'rotate-180'
+            )}
+          />
+        </span>
+      </button>
 
-      {/* Slots */}
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-12 bg-gradient-to-t from-card via-card/60 to-transparent" />
-        <div
-          className="flex flex-col gap-2 overflow-y-auto px-3 pt-3 pb-6"
-          style={{ maxHeight: '560px' }}
-        >
-          {visibleSlots.map((slot) =>
-            slot.assignment.type !== 'empty' ? (
-              <FilledSlotCard
-                key={slot.id}
-                slot={slot}
-                accentColor={colors.accent}
-                accentDraftColor={colors.accentDraft}
-                onRemove={() => onRemove(slot.id)}
-                onFinalize={() => onFinalize(slot.id)}
-                onDrop={() => onDrop(slot.id)}
-              />
-            ) : (
-              <EmptySlotCard
-                key={slot.id}
-                slot={slot}
-                availableMembers={availableMembers}
-                onAssign={(m) => onAssign(slot.id, m)}
-              />
-            )
-          )}
+      <div className={cn(!isOpen && 'hidden', 'md:block')}>
+        {/* Slots */}
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden h-12 bg-gradient-to-t from-card via-card/60 to-transparent md:block" />
+          <div className="flex flex-col gap-2 px-3 pt-3 pb-3 md:max-h-[560px] md:overflow-y-auto md:pb-6">
+            {visibleSlots.map((slot) =>
+              slot.assignment.type !== 'empty' ? (
+                <FilledSlotCard
+                  key={slot.id}
+                  slot={slot}
+                  onRemove={() => onRemove(slot.id)}
+                  onFinalize={() => onFinalize(slot.id)}
+                  onDrop={() => onDrop(slot.id)}
+                />
+              ) : (
+                <EmptySlotCard
+                  key={slot.id}
+                  slot={slot}
+                  availableMembers={availableMembers}
+                  onAssign={(m) => onAssign(slot.id, m)}
+                />
+              )
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Add Position button */}
-      <div className="border-t px-3 py-2">
-        <Popover open={addOpen} onOpenChange={setAddOpen}>
-          <PopoverTrigger asChild>
-            <button className="flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-primary">
-              <Plus className="h-3.5 w-3.5" />
-              Add Position
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-56 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Search roles..." className="h-9" />
-              <CommandList className="max-h-48">
-                <CommandEmpty>No roles found.</CommandEmpty>
-                <CommandGroup>
-                  {categoryRoles.map((role) => (
-                    <CommandItem
-                      key={role}
-                      value={role}
-                      onSelect={() => {
-                        onAddSlot(category.name, role)
-                        setAddOpen(false)
-                      }}
-                      className="text-sm"
-                    >
-                      {role}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        {/* Add Position button */}
+        <div className="border-t px-3 py-2">
+          <Popover open={addOpen} onOpenChange={setAddOpen}>
+            <PopoverTrigger asChild>
+              <button className="flex h-11 w-full items-center justify-center gap-1.5 rounded-md px-3 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:h-9">
+                <Plus className="h-3.5 w-3.5" />
+                Add Position
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search roles..." className="h-9" />
+                <CommandList className="max-h-48">
+                  <CommandEmpty>No roles found.</CommandEmpty>
+                  <CommandGroup>
+                    {categoryRoles.map((role) => (
+                      <CommandItem
+                        key={role}
+                        value={role}
+                        onSelect={() => {
+                          onAddSlot(category.name, role)
+                          setAddOpen(false)
+                        }}
+                        className="text-sm"
+                      >
+                        {role}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
     </div>
   )

@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback, useTransition } from 'react'
 import { AlertTriangle, Users } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { isNil } from 'lodash'
@@ -60,18 +59,6 @@ export function RosterBuilderBoard({
     }
     return communityMembers.filter((m) => !assignedIds.has(m.id))
   }, [categories, communityMembers])
-
-  const { filledCount, totalCount } = useMemo(() => {
-    let filled = 0
-    let total = 0
-    for (const cat of categories) {
-      for (const slot of cat.slots) {
-        total++
-        if (slot.assignment.type !== 'empty') filled++
-      }
-    }
-    return { filledCount: filled, totalCount: total }
-  }, [categories])
 
   // Assign a member to a slot (creates a draft via server action)
   const handleAssign = useCallback(
@@ -394,7 +381,7 @@ export function RosterBuilderBoard({
   }, [categories, search, filterMode])
 
   return (
-    <div className="flex min-w-0 flex-col bg-muted/30 dark:bg-background">
+    <div className="flex min-w-0 flex-col">
       {/* Page header */}
       <header className="border-b bg-card px-4 py-4 md:px-6">
         <div className="mx-auto max-w-screen-2xl flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
@@ -412,20 +399,19 @@ export function RosterBuilderBoard({
 
       {/* Missing secuela event warning */}
       {!hasSecuelaEvent && (
-        <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 md:px-6 dark:border-amber-800 dark:bg-amber-950/40">
-          <div className="mx-auto max-w-screen-2xl flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+        <div className="border-b border-secondary-border bg-secondary px-4 py-3 md:px-6">
+          <div className="mx-auto flex max-w-screen-2xl items-center gap-2 text-sm text-secondary-foreground">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <p>
-              No Secuela event has been created for this weekend. Volunteer
-              attendance status will not appear until a Secuela event is added
-              to the calendar.
+              There&apos;s no Secuela on the calendar for this weekend yet, so
+              you won&apos;t see who signed up to serve until one is added.
             </p>
           </div>
         </div>
       )}
 
       {/* Sticky toolbar */}
-      <div className="sticky top-14 z-20 border-b bg-muted/50 px-4 py-3 shadow-sm backdrop-blur-sm md:px-6 dark:bg-card/95">
+      <div className="sticky top-14 z-20 border-b bg-background/95 px-4 py-3 backdrop-blur-sm md:px-6">
         <div className="mx-auto max-w-screen-2xl">
           <Toolbar
             search={search}
@@ -436,8 +422,6 @@ export function RosterBuilderBoard({
             communityMembers={communityMembers}
             categories={categories}
             onAssign={handleAssign}
-            filledCount={filledCount}
-            totalCount={totalCount}
           />
         </div>
       </div>
@@ -445,8 +429,11 @@ export function RosterBuilderBoard({
       {/* Horizontal kanban board */}
       <div className="min-w-0 flex-1 overflow-hidden px-4 py-5 md:px-6">
         <div className="mx-auto max-w-screen-2xl">
-          <ScrollArea className="w-full pb-2">
-            <div className="flex gap-5 pb-4">
+          {/* Phones stack the columns; md+ scrolls them sideways. Radix sizes
+              its viewport content as a table, which would let long names
+              widen the stacked layout, so it stays a block there. */}
+          <ScrollArea className="w-full pb-2 max-md:[&_[data-slot=scroll-area-viewport]>div]:!block">
+            <div className="flex flex-col gap-3 pb-4 md:flex-row md:gap-5">
               {visibleCategories.length === 0 ? (
                 <div className="flex h-48 w-full items-center justify-center">
                   <div className="text-center">
@@ -483,7 +470,7 @@ export function RosterBuilderBoard({
                 ))
               )}
             </div>
-            <ScrollBar orientation="horizontal" />
+            <ScrollBar orientation="horizontal" className="hidden md:flex" />
           </ScrollArea>
         </div>
       </div>

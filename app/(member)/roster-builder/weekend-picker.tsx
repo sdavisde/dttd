@@ -2,8 +2,6 @@
 
 import Link from 'next/link'
 import { Users, Calendar, ArrowRight } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import type { Weekend } from '@/lib/weekend/types'
 import { WeekendType } from '@/lib/weekend/types'
 import { formatDateRange } from '@/lib/utils'
@@ -32,49 +30,30 @@ function groupByNumber(weekends: Weekend[]): WeekendGroup[] {
 }
 
 function WeekendCard({ weekend }: { weekend: Weekend }) {
-  const isMens = weekend.type === WeekendType.MENS
-  const label = isMens ? "Men's" : "Women's"
-  const accentColor = isMens ? 'blue' : 'pink'
+  const label = weekend.type === WeekendType.MENS ? "Men's" : "Women's"
 
   return (
-    <Link href={`/roster-builder?weekendId=${weekend.id}`} className="flex-1">
-      <Card
-        className={`group relative cursor-pointer overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-${accentColor}-300 dark:hover:border-${accentColor}-700 border-t-4 ${
-          isMens ? 'border-t-blue-500' : 'border-t-pink-500'
-        }`}
-      >
-        <CardContent className="flex flex-col items-center text-center px-6 py-5">
-          <div
-            className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full ${
-              isMens
-                ? 'bg-blue-100 dark:bg-blue-950'
-                : 'bg-pink-100 dark:bg-pink-950'
-            }`}
-          >
-            <Users
-              className={`h-5 w-5 ${
-                isMens
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-pink-600 dark:text-pink-400'
-              }`}
-            />
-          </div>
+    <Link
+      href={`/roster-builder?weekendId=${weekend.id}`}
+      className="group flex flex-1 flex-col items-center rounded-md border bg-card px-6 py-5 text-center transition-colors hover:border-primary/40 hover:bg-selected"
+    >
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+        <Users className="h-5 w-5 text-primary" />
+      </div>
 
-          <h3 className="text-base font-semibold text-foreground mb-1">
-            {label} Weekend
-          </h3>
+      <h3 className="mb-1 text-base font-semibold text-foreground">
+        {label} Weekend
+      </h3>
 
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
-            <Calendar className="h-3 w-3 shrink-0" />
-            <span>{formatDateRange(weekend.start_date, weekend.end_date)}</span>
-          </div>
+      <div className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Calendar className="h-3 w-3 shrink-0" />
+        <span>{formatDateRange(weekend.start_date, weekend.end_date)}</span>
+      </div>
 
-          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors group-hover:text-primary/80">
-            Open Roster
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </span>
-        </CardContent>
-      </Card>
+      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors group-hover:text-primary-hover">
+        Open Roster
+        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+      </span>
     </Link>
   )
 }
@@ -83,7 +62,7 @@ export function WeekendPicker({ weekends }: { weekends: Weekend[] }) {
   const groups = groupByNumber(weekends)
 
   return (
-    <div className="flex flex-col bg-muted/30 dark:bg-background">
+    <div className="flex flex-col">
       {/* Header */}
       <header className="border-b bg-card px-4 py-4 md:px-6">
         <div className="mx-auto max-w-screen-2xl flex items-center gap-3">

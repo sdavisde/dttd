@@ -83,6 +83,9 @@ function defaultGenderFilter(weekendType: string): GenderFilter {
 
 // ── Community Member Card ─────────────────────────────────────────────────────
 
+/** One quiet chip for every qualification; the icon tells them apart. */
+const INDICATOR_CHIP_CLASS = 'border-border bg-card text-xs text-nav-foreground'
+
 function AssignmentBadge({ member }: { member: RosterBuilderCommunityMember }) {
   const status = member.assignmentStatus
   if (status.type === 'unassigned') return null
@@ -98,8 +101,8 @@ function AssignmentBadge({ member }: { member: RosterBuilderCommunityMember }) {
       variant="outline"
       className={`text-xs ${
         isDraft
-          ? 'border-dashed border-orange-300 bg-orange-50 text-orange-700 dark:border-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
-          : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+          ? 'border-secondary-border bg-secondary text-secondary-foreground'
+          : 'border-transparent bg-success/15 text-success'
       }`}
     >
       {isDraft ? 'Draft' : 'Assigned'}: {roleLabel}
@@ -158,9 +161,7 @@ function CommunityMemberCard({
 
   return (
     <div
-      className={`rounded-lg border bg-card shadow-sm transition-shadow ${
-        isAssigned ? 'opacity-50' : 'hover:shadow-md'
-      }`}
+      className={`rounded-md border bg-card ${isAssigned ? 'opacity-50' : ''}`}
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
@@ -215,10 +216,7 @@ function CommunityMemberCard({
           {member.volunteerStatus === 'attended_secuela' && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 text-xs"
-                >
+                <Badge variant="outline" className={INDICATOR_CHIP_CLASS}>
                   <Calendar className="mr-1 h-3 w-3" />
                   Attended Secuela
                 </Badge>
@@ -229,10 +227,7 @@ function CommunityMemberCard({
           {member.volunteerStatus === 'wants_to_serve' && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className="border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300 text-xs"
-                >
+                <Badge variant="outline" className={INDICATOR_CHIP_CLASS}>
                   <Calendar className="mr-1 h-3 w-3" />
                   Wants to Serve
                 </Badge>
@@ -241,38 +236,26 @@ function CommunityMemberCard({
             </Tooltip>
           )}
           {member.rectorReadyStatus.criteria.hasServedAsRector ? (
-            <Badge
-              variant="outline"
-              className="border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300 text-xs"
-            >
+            <Badge variant="outline" className={INDICATOR_CHIP_CLASS}>
               <Award className="mr-1 h-3 w-3" />
               Past Rector
             </Badge>
           ) : (
             member.rectorReadyStatus.isReady && (
-              <Badge
-                variant="outline"
-                className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 text-xs"
-              >
-                <Star className="mr-1 h-3 w-3" />
+              <Badge variant="outline" className={INDICATOR_CHIP_CLASS}>
+                <Star className="mr-1 h-3 w-3 fill-amber-500 text-amber-500" />
                 Rector Ready
               </Badge>
             )
           )}
           {member.hasGivenRollo && (
-            <Badge
-              variant="outline"
-              className="border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300 text-xs"
-            >
+            <Badge variant="outline" className={INDICATOR_CHIP_CLASS}>
               <Briefcase className="mr-1 h-3 w-3" />
               Rollista
             </Badge>
           )}
           {member.hasBeenSectionHead && (
-            <Badge
-              variant="outline"
-              className="border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-300 text-xs"
-            >
+            <Badge variant="outline" className={INDICATOR_CHIP_CLASS}>
               <CheckCircle2 className="mr-1 h-3 w-3" />
               Section Head
             </Badge>
@@ -346,7 +329,7 @@ function CommunityMemberCard({
                               <div className="flex flex-col gap-0.5 min-w-0">
                                 <span className="truncate">{label}</span>
                                 {warning !== null && (
-                                  <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                                  <span className="flex items-center gap-1 text-xs text-error">
                                     <AlertTriangle className="h-3 w-3 shrink-0" />
                                     {warning}
                                   </span>
@@ -385,7 +368,7 @@ function CommunityMemberCard({
 
       {/* Expandable experience history */}
       {expanded && (
-        <div className="border-t bg-muted/30 px-4 py-3 rounded-b-lg">
+        <div className="rounded-b-md border-t bg-muted/40 px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Experience History
           </p>
@@ -408,7 +391,7 @@ function CommunityMemberCard({
             <span
               className={
                 member.hasBeenSectionHead
-                  ? 'text-teal-600 dark:text-teal-400'
+                  ? 'font-medium text-foreground'
                   : 'text-muted-foreground'
               }
             >
@@ -417,7 +400,7 @@ function CommunityMemberCard({
             <span
               className={
                 member.hasGivenRollo
-                  ? 'text-purple-600 dark:text-purple-400'
+                  ? 'font-medium text-foreground'
                   : 'text-muted-foreground'
               }
             >
@@ -426,9 +409,9 @@ function CommunityMemberCard({
             <span
               className={
                 member.rectorReadyStatus.criteria.hasServedAsRector
-                  ? 'text-violet-600 dark:text-violet-400'
+                  ? 'font-medium text-primary'
                   : member.rectorReadyStatus.isReady
-                    ? 'text-amber-600 dark:text-amber-400'
+                    ? 'font-medium text-foreground'
                     : 'text-muted-foreground'
               }
             >
@@ -566,7 +549,7 @@ export function CommunitySheet({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9 gap-2">
+        <Button variant="outline" size="sm" className="h-11 gap-2 md:h-9">
           <Users className="h-4 w-4" />
           Browse Community
         </Button>
