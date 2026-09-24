@@ -243,3 +243,57 @@ describe('computeLedgerStats', () => {
     expect(stats.outstandingTotal).toBe(185)
   })
 })
+
+describe('overpaid rows', () => {
+  const overpaidAccount = {
+    ...openFee,
+    targetId: 'candidate-7',
+    name: 'Jo Rivers',
+    groupId: 'group-12',
+    standing: 'dropped' as const,
+    paidOnline: false,
+    feeAmount: 0,
+    coveredSoFar: 200,
+    amountDue: 0,
+    amountOver: 200,
+  }
+  const giftAccount = {
+    ...overpaidAccount,
+    targetId: 'member-sd',
+    standing: 'exempt' as const,
+  }
+  const withOverpaid = buildLedgerRows(
+    [paid],
+    [openFee],
+    [overpaidAccount, giftAccount]
+  )
+  const view = (status: LedgerFilter['status']) =>
+    filterLedgerRows(withOverpaid, filter({ status })).map((row) => row.id)
+
+  it('shows the amount over and why, only under the Overpaid filter', () => {
+    const row = withOverpaid.find(
+      (r) => r.id === 'overpaid:candidate:candidate-7'
+    )
+    expect(row).toMatchObject({ status: 'overpaid', amount: 200 })
+    expect(row?.note).toMatch(/Dropped/)
+    expect(view('all')).not.toContain('overpaid:candidate:candidate-7')
+    expect(view('overpaid')).toEqual([
+      'overpaid:candidate:candidate-7',
+      'overpaid:candidate:member-sd',
+    ])
+  })
+
+  it('counts overpaid people for the tile, leaving exempt gifts out', () => {
+    const stats = computeLedgerStats(
+      [paid],
+      [openFee],
+      new Date('2026-09-24T12:00:00Z'),
+      [overpaidAccount, giftAccount]
+    )
+    expect(stats.overpaidCount).toBe(1)
+  })
+
+  it('parses the overpaid filter from the URL', () => {
+    expect(parseLedgerStatusFilter('overpaid')).toBe('overpaid')
+  })
+})

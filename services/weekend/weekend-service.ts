@@ -41,6 +41,8 @@ import type {
 import { addressSchema } from '@/lib/users/validation'
 import * as PaymentService from '@/services/payment/payment-service'
 import { getPaymentSummary } from '@/lib/payments/utils'
+import { isFeeExemptRole } from '@/lib/payments/group-fees'
+import * as FeesService from '@/services/fees/fees-service'
 import type { PaymentTransactionRow } from '@/services/payment/types'
 import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
@@ -161,7 +163,8 @@ function getWeekendLabel(weekend: Weekend | null): string {
  */
 function normalizeRosterMember(
   raw: RawWeekendRoster,
-  baseFee: number,
+  /** The team fee this member owes (cash price), or null when they owe none. */
+  fee: number | null,
   groupMemberId: string | null = null,
   medicalProfile: WeekendRosterMember['medical_profile'] = null
 ): WeekendRosterMember {
@@ -182,7 +185,7 @@ function normalizeRosterMember(
     payment_info: all_payments[0] ?? null,
     total_paid,
     all_payments,
-    paymentSummary: getPaymentSummary(all_payments, baseFee),
+    paymentSummary: getPaymentSummary(all_payments, fee),
     forms_complete: raw.forms_complete,
     medical_profile: medicalProfile,
     team_form_summary: null,
@@ -519,6 +522,17 @@ export async function setActiveWeekendGroup(
     return err('group_id is required to set active weekend')
   }
 
+  // A group opens for payments when it's activated, so it needs a price.
+  const feesResult = await FeesService.getGroupFees(groupId)
+  if (isErr(feesResult)) {
+    logger.error(
+      { groupId, error: feesResult.error },
+      'Could not check fees before activating weekend group'
+    )
+  } else if (isNil(feesResult.data)) {
+    return err('Set this group’s fees before activating it')
+  }
+
   // 1. Find the currently active group ID before we finish it
   const activeGroupResult = await WeekendRepository.findActiveGroupId()
   const previousGroupId = unwrapOr(activeGroupResult, null)
@@ -603,10 +617,33 @@ export async function createWeekendGroup(
   // Labels are derived from the group number and weekend type at render time —
   // nothing is stored. See `getWeekendLabel` in lib/weekend/labels.
 
+  // A new group starts at the site's default fees unless told otherwise. A
+  // database trigger allows the defaults to anyone who can create a group;
+  // any other price needs MANAGE_FEES.
+  let fees = input.fees
+  if (fees === undefined) {
+    const defaultsResult = await FeesService.getFeeDefaults()
+    if (isErr(defaultsResult)) {
+      logger.error(
+        { error: defaultsResult.error },
+        'Fee defaults unavailable; creating weekend group without fees'
+      )
+    }
+    const defaults = unwrapOr(defaultsResult, null)
+    fees = isNil(defaults)
+      ? null
+      : {
+          teamFee: defaults.weekendFee,
+          candidateFee: defaults.weekendFee,
+          onlineSurcharge: defaults.onlineSurcharge,
+        }
+  }
+
   // Create the weekend_groups parent record first (FK dependency)
   const groupResult = await WeekendRepository.insertWeekendGroupRecord(
     input.groupId,
-    groupNumber.data
+    groupNumber.data,
+    fees
   )
   if (isErr(groupResult)) {
     return groupResult
@@ -729,6 +766,7 @@ export async function saveWeekendGroupFromSidebar(
         start_date: payload.womensStart,
         end_date: payload.womensEnd,
       },
+      fees: payload.fees,
     })
   }
 
@@ -802,12 +840,12 @@ export async function getWeekendRoster(
     groupMemberMap.set(rosterId, groupMemberId)
   }
 
-  // Fetch payments, forms_complete, medical profiles, and team fee in parallel
+  // Fetch payments, forms_complete, medical profiles, and the group's fees in parallel
   const [
     paymentsByRoster,
     formsCompleteByRoster,
     medicalProfilesByRoster,
-    teamFeeResult,
+    feesResult,
   ] = await Promise.all([
     Promise.all(
       rosterRecords.map(async (record) => {
@@ -864,22 +902,18 @@ export async function getWeekendRoster(
         }
       })
     ),
-    PaymentService.getTeamFee(),
+    FeesService.getGroupFeesForWeekend(weekendId),
   ])
 
-  // Stripe fee in dollars (unitAmount is in cents). A fee we can't read falls
-  // back to 0, which makes every roster payment summary read as paid in full
-  // — log it so the cause is visible rather than silent.
-  if (isErr(teamFeeResult)) {
+  // A fee we can't read is not a fee of $0 — log it, and show "Not owed"
+  // rather than a balance we'd be guessing at.
+  if (isErr(feesResult)) {
     logger.error({
-      error: teamFeeResult.error,
-      msg: 'Team fee price lookup failed; roster payment summaries will assume a $0 fee',
+      error: feesResult.error,
+      msg: 'Group fee lookup failed; roster payment summaries show no fee',
     })
   }
-  const baseFee =
-    !isErr(teamFeeResult) && !isNil(teamFeeResult.data.unitAmount)
-      ? teamFeeResult.data.unitAmount / 100
-      : 0
+  const teamFee = unwrapOr(feesResult, null)?.teamFee ?? null
 
   // Build lookup maps
   const paymentsMap = new Map<string, PaymentRecord[]>()
@@ -912,7 +946,7 @@ export async function getWeekendRoster(
   const normalizedRoster = rawRosterWithPayments.map((record) =>
     normalizeRosterMember(
       record,
-      baseFee,
+      isFeeExemptRole(record.cha_role) ? null : teamFee,
       groupMemberMap.get(record.id) ?? null,
       medicalProfileMap.get(record.id) ?? null
     )

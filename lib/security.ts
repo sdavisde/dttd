@@ -74,6 +74,8 @@ export enum Permission {
   // Payments
   READ_PAYMENTS = 'READ_PAYMENTS',
   WRITE_PAYMENTS = 'WRITE_PAYMENTS',
+  /** Set a weekend group's fees and the defaults new groups start from. */
+  MANAGE_FEES = 'MANAGE_FEES',
 
   // Security
   WRITE_USER_ROLES = 'WRITE_USER_ROLES',

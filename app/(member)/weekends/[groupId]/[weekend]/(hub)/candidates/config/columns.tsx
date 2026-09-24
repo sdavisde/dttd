@@ -81,6 +81,7 @@ function getPaymentStatusDisplay(c: HydratedCandidate): string {
   const { totalPaid, totalFee, status } = c.paymentSummary
   if (status === 'Paid') return 'Paid'
   if (status === 'Partial') return `$${totalPaid} / $${totalFee}`
+  if (status === 'Not owed') return 'Not owed'
   return 'Unpaid'
 }
 

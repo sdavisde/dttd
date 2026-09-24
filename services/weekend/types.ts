@@ -1,3 +1,4 @@
+import type { GroupFees } from '@/lib/payments/group-fees'
 /**
  * Weekend Service Types
  *
@@ -125,6 +126,8 @@ export type WeekendSidebarPayload = {
   mensEnd: string
   womensStart: string
   womensEnd: string
+  /** A new group's fees. Ignored when editing — fees change on their own. */
+  fees?: GroupFees | null
 }
 
 /**

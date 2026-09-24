@@ -38,6 +38,13 @@ import { toastError } from '@/lib/toast-error'
 import { useAutoSave } from '@/hooks/use-auto-save'
 import { AutoSaveStatusIndicator } from '@/components/auto-save/auto-save-status'
 import { formatWeekendGroupTitle } from '@/lib/weekend'
+import {
+  FeeInputs,
+  feeInputValuesFrom,
+  parseFeeInputs,
+  type FeeInputValues,
+} from '@/components/fees/fee-inputs'
+import type { FeeDefaults } from '@/services/fees'
 import type { DateRange } from '@/lib/weekend/scheduling'
 import {
   addDays,
@@ -63,6 +70,9 @@ interface WeekendSidebarProps {
   onClose: () => void
   weekendGroup: WeekendGroupWithId | null
   nextGroupNumber: number
+  /** Prefills a new group's fees. Null when the defaults couldn't be read. */
+  feeDefaults?: FeeDefaults | null
+  canManageFees?: boolean
 }
 
 function computeDefaultValues(
@@ -81,6 +91,8 @@ export function WeekendSidebar({
   onClose,
   weekendGroup,
   nextGroupNumber,
+  feeDefaults = null,
+  canManageFees = false,
 }: WeekendSidebarProps) {
   const router = useRouter()
 
@@ -143,6 +155,8 @@ export function WeekendSidebar({
             isDeleting={isDeleting}
             onRequestDelete={() => setShowDeleteDialog(true)}
             onClose={onClose}
+            feeDefaults={feeDefaults}
+            canManageFees={canManageFees}
           />
         </SheetContent>
       </Sheet>
@@ -165,6 +179,8 @@ interface WeekendSidebarFormProps {
   isDeleting: boolean
   onRequestDelete: () => void
   onClose: () => void
+  feeDefaults: FeeDefaults | null
+  canManageFees: boolean
 }
 
 /**
@@ -177,9 +193,21 @@ function WeekendSidebarForm({
   isDeleting,
   onRequestDelete,
   onClose,
+  feeDefaults,
+  canManageFees,
 }: WeekendSidebarFormProps) {
   const router = useRouter()
   const isEditing = !isNil(weekendGroup)
+
+  // A new group's price, prefilled from the site defaults. Only MANAGE_FEES
+  // holders can change it; everyone else creates the group at the defaults.
+  const [feeValues, setFeeValues] = useState<FeeInputValues | null>(
+    isNil(feeDefaults)
+      ? null
+      : feeInputValuesFrom(feeDefaults.weekendFee, feeDefaults.onlineSurcharge)
+  )
+  const parsedFees = isNil(feeValues) ? null : parseFeeInputs(feeValues)
+  const feesInvalid = canManageFees && !isNil(feeValues) && isNil(parsedFees)
 
   const form = useForm<WeekendFormValues>({
     resolver: zodResolver(weekendFormSchema),
@@ -250,9 +278,19 @@ function WeekendSidebarForm({
   // Only creating submits; an existing group auto-saves above.
   const onSubmit = async (data: WeekendFormValues) => {
     if (isEditing) return
-    const result = await saveWeekendGroupFromSidebar(
-      toPayload(data.mensStartDate, data.mensEndDate)
-    )
+    const result = await saveWeekendGroupFromSidebar({
+      ...toPayload(data.mensStartDate, data.mensEndDate),
+      // Without the permission the server applies the defaults itself.
+      ...(canManageFees && !isNil(parsedFees)
+        ? {
+            fees: {
+              teamFee: parsedFees.weekendFee,
+              candidateFee: parsedFees.weekendFee,
+              onlineSurcharge: parsedFees.onlineSurcharge,
+            },
+          }
+        : {}),
+    })
 
     if (isErr(result)) {
       toastError('Failed to create weekends. Please try again.', {
@@ -376,6 +414,35 @@ function WeekendSidebarForm({
               </p>
             </div>
           </div>
+
+          {!isEditing && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold">Fees</h3>
+                {isNil(feeValues) ? (
+                  <p className="text-sm text-muted-foreground">
+                    The group will start at the site&apos;s default fees.
+                  </p>
+                ) : (
+                  <>
+                    <FeeInputs
+                      idPrefix="new-group-fees"
+                      values={feeValues}
+                      onChange={setFeeValues}
+                      disabled={!canManageFees || isSubmitting}
+                    />
+                    {!canManageFees && (
+                      <p className="text-[13px] text-muted-foreground">
+                        These are the site defaults. Someone who can set fee
+                        amounts can change them after the group is created.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <SheetFooter className="px-4 pb-4 gap-2 sm:flex-row sm:justify-between">
@@ -392,7 +459,7 @@ function WeekendSidebarForm({
           {!isEditing && (
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || feesInvalid}
               className="sm:ml-auto"
             >
               {isSubmitting ? 'Creating...' : 'Create Weekends'}

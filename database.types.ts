@@ -895,6 +895,60 @@ export type Database = {
           },
         ]
       }
+      weekend_group_fee_changes: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          group_id: string
+          id: number
+          new_candidate_fee: number | null
+          new_online_surcharge: number | null
+          new_team_fee: number | null
+          old_candidate_fee: number | null
+          old_online_surcharge: number | null
+          old_team_fee: number | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          group_id: string
+          id?: never
+          new_candidate_fee?: number | null
+          new_online_surcharge?: number | null
+          new_team_fee?: number | null
+          old_candidate_fee?: number | null
+          old_online_surcharge?: number | null
+          old_team_fee?: number | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          group_id?: string
+          id?: never
+          new_candidate_fee?: number | null
+          new_online_surcharge?: number | null
+          new_team_fee?: number | null
+          old_candidate_fee?: number | null
+          old_online_surcharge?: number | null
+          old_team_fee?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'weekend_group_fee_changes_changed_by_fkey'
+            columns: ['changed_by']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'weekend_group_fee_changes_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'weekend_groups'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       weekend_group_members: {
         Row: {
           attended_secuela_at: string | null
@@ -936,19 +990,28 @@ export type Database = {
       }
       weekend_groups: {
         Row: {
+          candidate_fee: number | null
           created_at: string | null
           id: string
           number: number
+          online_surcharge: number | null
+          team_fee: number | null
         }
         Insert: {
+          candidate_fee?: number | null
           created_at?: string | null
           id: string
           number: number
+          online_surcharge?: number | null
+          team_fee?: number | null
         }
         Update: {
+          candidate_fee?: number | null
           created_at?: string | null
           id?: string
           number?: number
+          online_surcharge?: number | null
+          team_fee?: number | null
         }
         Relationships: []
       }

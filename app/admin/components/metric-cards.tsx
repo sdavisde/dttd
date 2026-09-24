@@ -8,11 +8,6 @@ import type {
 
 type MetricCardsProps = {
   outstanding: OutstandingMetrics | null
-  /**
-   * True when the Stripe fee prices couldn't be read. Without them there is no
-   * honest balance to show — a $0 would read as "everyone has paid".
-   */
-  outstandingFeesUnknown: boolean
   collected: CollectedMetrics | null
   memberCount: number | null
   /**
@@ -49,7 +44,6 @@ function Unavailable() {
  */
 export function MetricCards({
   outstanding,
-  outstandingFeesUnknown,
   collected,
   memberCount,
   storageTile,
@@ -57,12 +51,7 @@ export function MetricCards({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div className="flex flex-col gap-1 rounded-lg border border-secondary-border bg-secondary px-4.5 py-3.5">
-        {isNil(outstanding) && outstandingFeesUnknown && (
-          <p className="text-sm text-secondary-foreground">
-            Outstanding can&apos;t be calculated — see the alert above
-          </p>
-        )}
-        {isNil(outstanding) && !outstandingFeesUnknown && <Unavailable />}
+        {isNil(outstanding) && <Unavailable />}
         {!isNil(outstanding) && (
           <>
             <MetricFigure className="text-secondary-foreground">

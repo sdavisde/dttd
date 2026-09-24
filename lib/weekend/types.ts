@@ -98,6 +98,15 @@ export type CreateWeekendGroupInput = {
   groupId: string
   mens: WeekendWriteInput
   womens: WeekendWriteInput
+  /**
+   * The group's fees (cash price + online surcharge). When omitted the site
+   * defaults apply; null creates the group without fees ("not tracked").
+   */
+  fees?: {
+    teamFee: number
+    candidateFee: number
+    onlineSurcharge: number
+  } | null
 }
 
 export type UpdateWeekendGroupInput = {

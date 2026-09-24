@@ -28,11 +28,27 @@ describe('deriveSystemAlerts', () => {
     expect(alerts).toHaveLength(1)
     expect(alerts[0].key).toBe('stripe-fees')
     expect(alerts[0].severity).toBe('error')
-    expect(alerts[0].impact).toMatch(/pay online/)
+    expect(alerts[0].impact).toMatch(/pay by card/)
   })
 
   it('stays quiet about fees when the check never ran', () => {
     expect(keys(checks({ stripeFeesConfigured: null }))).toEqual([])
+  })
+
+  it('names the group when checkout charges a different price than its fee', () => {
+    const alerts = deriveSystemAlerts(
+      checks({ checkoutPriceMismatchGroup: 13 })
+    )
+    expect(alerts.map((a) => a.key)).toEqual(['fee-mismatch'])
+    expect(alerts[0].severity).toBe('error')
+    expect(alerts[0].title).toMatch(/DTTD #13/)
+  })
+
+  it('warns when the active group has no fees set', () => {
+    expect(keys(checks({ activeGroupFeesSet: false }))).toEqual([
+      'active-group-fees',
+    ])
+    expect(keys(checks({ activeGroupFeesSet: null }))).toEqual([])
   })
 
   it('raises an error alert when email credentials are missing', () => {

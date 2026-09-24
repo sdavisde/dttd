@@ -613,10 +613,11 @@ export async function findGroupMemberTargets(options?: ServiceOptions): Promise<
 }
 
 /**
- * Lists the candidates a set of weekends expects a fee from: everyone not
- * rejected, matching getCandidateIdsByWeekend. Carries the sponsor and the
- * sponsorship form's "who is paying" answer so an unpaid fee can name its
- * expected payer.
+ * Lists every candidate on a set of weekends with their status — whether they
+ * owe is decided by the caller (see candidateOwesFee), and a rejected
+ * candidate who already paid still has to be accounted for. Carries the
+ * sponsor and the sponsorship form's "who is paying" answer so an unpaid fee
+ * can name its expected payer.
  * @param weekendIds - The weekends to list candidates for
  * @param options - Service options including RLS bypass flag
  */
@@ -629,6 +630,7 @@ export async function findCandidateFeeTargets(
     Array<{
       id: string
       weekendId: string | null
+      status: string | null
       name: string | null
       sponsorName: string | null
       paymentOwner: string | null
@@ -641,10 +643,9 @@ export async function findCandidateFeeTargets(
   const response = await supabase
     .from('candidates')
     .select(
-      'id, weekend_id, candidate_sponsorship_info(candidate_name, sponsor_name, payment_owner)'
+      'id, weekend_id, status, candidate_sponsorship_info(candidate_name, sponsor_name, payment_owner)'
     )
     .in('weekend_id', weekendIds)
-    .neq('status', 'rejected')
 
   return map(fromSupabase(response), (rows) =>
     rows.map((row) => {
@@ -652,6 +653,7 @@ export async function findCandidateFeeTargets(
       return {
         id: row.id,
         weekendId: row.weekend_id,
+        status: row.status,
         name: sponsorship?.candidate_name ?? null,
         sponsorName: sponsorship?.sponsor_name ?? null,
         paymentOwner: sponsorship?.payment_owner ?? null,

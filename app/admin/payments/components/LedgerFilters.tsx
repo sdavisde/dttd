@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 const STATUS_FILTER_LABELS: Record<LedgerStatusFilter, string> = {
   all: 'All',
   outstanding: 'Outstanding',
+  overpaid: 'Overpaid',
   paid: 'Paid',
   waived: 'Waived',
 }
@@ -53,7 +54,7 @@ type LedgerFiltersProps = {
 }
 
 /**
- * The board's filter row: the All / Outstanding / Paid / Waived segmented
+ * The board's filter row: the All / Outstanding / Overpaid / Paid / Waived segmented
  * control and the Weekend, Type and Date chips. Wraps onto extra lines on a
  * narrow screen rather than scrolling sideways.
  */

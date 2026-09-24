@@ -15,7 +15,7 @@ import type {
   VoidPaymentInput,
 } from './types'
 import type { Weekend } from '@/lib/weekend/types'
-import type { OutstandingFee } from '@/lib/payments/outstanding'
+import type { FeeBalances } from '@/lib/payments/fee-balances'
 import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
 import { isErr, isOk, ok } from '@/lib/results'
 
@@ -133,18 +133,15 @@ export const recordAdminPayment = authorizedAction<
 })
 
 /**
- * Lists who in the active weekend group still owes a fee. Calculated from the
- * rosters and candidates on every call — outstanding fees are never stored.
- * Requires READ_PAYMENTS permission.
+ * Who still owes a fee, and who paid more than they owe, across every weekend
+ * group whose fees are set. Calculated from the rosters and candidates on
+ * every call — fee balances are never stored. Requires READ_PAYMENTS.
  */
-export const getOutstandingFees = authorizedAction<
-  {
-    payments: PaymentTransactionDTO[]
-    activeWeekends: Record<'MENS' | 'WOMENS', Weekend>
-  },
-  OutstandingFee[]
->(Permission.READ_PAYMENTS, async ({ payments, activeWeekends }) => {
-  return await PaymentService.getOutstandingFees(payments, activeWeekends)
+export const getFeeBalances = authorizedAction<
+  { payments: PaymentTransactionDTO[] },
+  FeeBalances
+>(Permission.READ_PAYMENTS, async ({ payments }) => {
+  return await PaymentService.getFeeBalances(payments)
 })
 
 /**

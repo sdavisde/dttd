@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
 import { DataTable, useDataTableUrlState } from '@/components/ui/data-table'
 import type { OutstandingFee } from '@/lib/payments/outstanding'
+import type { FeeAccount } from '@/lib/payments/fee-balances'
 import {
   buildLedgerRows,
   computeLedgerStats,
@@ -46,10 +47,12 @@ import {
 type PaymentsProps = {
   /** Includes voided payments — hidden unless shown, never in a total. */
   payments: PaymentTransactionDTO[]
-  /** Calculated unpaid fees for the active weekend group. */
+  /** Calculated unpaid fees, across every group with fees set. */
   outstandingFees: OutstandingFee[]
-  /** Why `outstandingFees` is empty, when it could not be calculated. */
-  outstandingUnavailable: 'no-active-weekend' | 'fees-unknown' | 'error' | null
+  /** People who paid more than they owe, across the same groups. */
+  overpaidFees: FeeAccount[]
+  /** True when fee balances couldn't be calculated, so both lists are empty. */
+  balancesUnavailable: boolean
   feeDefaults: FeeDefaults
   user: User | null
 }
@@ -68,7 +71,8 @@ const uniqueSorted = (values: string[]) =>
 export function Payments({
   payments,
   outstandingFees,
-  outstandingUnavailable,
+  overpaidFees,
+  balancesUnavailable,
   feeDefaults,
   user,
 }: PaymentsProps) {
@@ -82,7 +86,7 @@ export function Payments({
     defaultSort: [{ id: 'date', desc: true }],
     defaultPageSize: 25,
   })
-  // ?status=outstanding|paid|waived and ?year=2026 — History API, like the
+  // ?status=outstanding|overpaid|paid|waived and ?year=2026 — History API, like the
   // rest of the table's URL state, so the dashboard can deep-link here.
   const [statusParam, setStatusParam] = useQueryParam(
     'status',
@@ -99,12 +103,13 @@ export function Payments({
   const hasVoidedPayments = payments.some((p) => !isNil(p.voided_at))
 
   const allRows = useMemo(
-    () => buildLedgerRows(payments, outstandingFees),
-    [payments, outstandingFees]
+    () => buildLedgerRows(payments, outstandingFees, overpaidFees),
+    [payments, outstandingFees, overpaidFees]
   )
   const stats = useMemo(
-    () => computeLedgerStats(payments, outstandingFees),
-    [payments, outstandingFees]
+    () =>
+      computeLedgerStats(payments, outstandingFees, new Date(), overpaidFees),
+    [payments, outstandingFees, overpaidFees]
   )
 
   const view = useMemo(
@@ -187,6 +192,12 @@ export function Payments({
     })
   }
 
+  const handleShowPayments = (row: LedgerRow) => {
+    setStatusParam('all')
+    urlState.onGlobalFilterChange(row.personName ?? '')
+    resetPage()
+  }
+
   const handleExportCsv = () => {
     downloadCsv(
       generateLedgerCsv(filteredRows),
@@ -200,7 +211,11 @@ export function Payments({
 
   return (
     <PaymentsLedgerProvider
-      value={{ canWrite, onRecordPayment: handleRecordForRow }}
+      value={{
+        canWrite,
+        onRecordPayment: handleRecordForRow,
+        onShowPayments: handleShowPayments,
+      }}
     >
       <PageHeader
         title="Payments"
@@ -229,8 +244,9 @@ export function Payments({
       <div className="space-y-4">
         <PaymentsSummary
           stats={stats}
-          outstandingUnavailable={outstandingUnavailable}
+          balancesUnavailable={balancesUnavailable}
           onViewOutstanding={() => handleStatusChange('outstanding')}
+          onViewOverpaid={() => handleStatusChange('overpaid')}
         />
 
         <LedgerFilters
@@ -266,9 +282,11 @@ export function Payments({
             noData:
               status === 'outstanding'
                 ? 'No open fees — every fee is settled.'
-                : status === 'waived'
-                  ? 'No fees have been waived.'
-                  : 'No payments found.',
+                : status === 'overpaid'
+                  ? 'Nobody has paid more than they owe.'
+                  : status === 'waived'
+                    ? 'No fees have been waived.'
+                    : 'No payments found.',
             noResults: 'No payments match your search.',
           }}
           appearance={{

@@ -125,10 +125,10 @@ describe('permission areas', () => {
     ).toEqual(['people'])
   })
 
-  it('only Files has an implicit View rung', () => {
+  it('only Files and Fee amounts have an implicit View rung', () => {
     expect(
       PERMISSION_LADDERS.filter((l) => l.implicitView === true).map((l) => l.id)
-    ).toEqual(['files'])
+    ).toEqual(['fees', 'files'])
     for (const ladder of PERMISSION_LADDERS) {
       if (ladder.implicitView === true) {
         expect(ladder.view).toHaveLength(0)

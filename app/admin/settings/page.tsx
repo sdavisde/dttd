@@ -3,7 +3,7 @@ import { Info } from 'lucide-react'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { PageHeader } from '@/components/ui/page-header'
 import { guardAdminPage } from '@/lib/admin/page-guard'
-import { Permission } from '@/lib/security'
+import { Permission, userHasPermission } from '@/lib/security'
 import {
   getNotificationToggles,
   getSystemEmailAddress,
@@ -12,7 +12,7 @@ import { EmailCard } from './components/email-card'
 import { FeesCard, FeesCardSkeleton } from './components/fees-card'
 
 export default async function SettingsPage() {
-  const { canEdit } = await guardAdminPage({
+  const { user, canEdit } = await guardAdminPage({
     edit: [Permission.WRITE_SETTINGS],
   })
 
@@ -35,9 +35,12 @@ export default async function SettingsPage() {
 
         <div className="grid items-start gap-4 sm:grid-cols-2">
           <div className="flex min-w-0 flex-col gap-4">
-            {/* Stripe is a third party: keep it off the page's critical path. */}
             <Suspense fallback={<FeesCardSkeleton />}>
-              <FeesCard />
+              <FeesCard
+                canManageFees={userHasPermission(user, [
+                  Permission.MANAGE_FEES,
+                ])}
+              />
             </Suspense>
 
             <div className="flex items-start gap-3 rounded-md border border-dashed border-input bg-card px-5 py-4">

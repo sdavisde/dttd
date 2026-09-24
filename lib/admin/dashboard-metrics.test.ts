@@ -5,10 +5,11 @@ import {
   hasActiveWeekendGroup,
   needsPlanning,
 } from './dashboard-metrics'
+import type { OutstandingFee } from '@/lib/payments/outstanding'
 import {
-  deriveOutstandingFees,
-  type OutstandingFee,
-} from '@/lib/payments/outstanding'
+  buildFeeAccounts,
+  deriveFeeBalances,
+} from '@/lib/payments/fee-balances'
 import type { PaymentTransactionDTO } from '@/services/payment'
 import type { Weekend, WeekendGroupWithId } from '@/lib/weekend/types'
 
@@ -131,26 +132,37 @@ describe('deriveOutstanding', () => {
     expect(deriveOutstanding([])).toEqual({ total: 0, openFeeCount: 0 })
   })
 
-  it('agrees with deriveOutstandingFees, the payments-page code path', () => {
-    // One roster member expected at $185 cash ($195 - $10 surcharge), nobody paid.
-    const fees = deriveOutstandingFees(
-      [
-        {
-          targetType: 'weekend_group_member',
-          targetId: 'member-1',
-          legacyTargetIds: [],
-          name: 'Ann Simmons',
-          expectedPayer: 'Ann Simmons',
-          chaRole: 'Rover',
-          weekendId: 'ww',
-          weekendNumber: 12,
-          weekendType: 'WOMENS',
-        },
-      ],
-      [],
-      { teamFee: 195, candidateFee: 195 }
+  it('agrees with the fee balances the payments page lists', () => {
+    // One roster member in a group charging $200, nobody paid.
+    const { outstanding } = deriveFeeBalances(
+      buildFeeAccounts({
+        groups: [
+          {
+            groupId: 'g12',
+            groupNumber: 12,
+            fees: { teamFee: 200, candidateFee: 200, onlineSurcharge: 10 },
+          },
+        ],
+        weekends: [{ id: 'ww', groupId: 'g12', number: 12, type: 'WOMENS' }],
+        rosterRows: [
+          {
+            id: 'roster-1',
+            weekendId: 'ww',
+            userId: 'user-1',
+            chaRole: 'Rover',
+            status: null,
+            name: 'Ann Simmons',
+          },
+        ],
+        candidates: [],
+        groupMembers: [{ id: 'member-1', groupId: 'g12', userId: 'user-1' }],
+        payments: [],
+      })
     )
-    expect(deriveOutstanding(fees)).toEqual({ total: 185, openFeeCount: 1 })
+    expect(deriveOutstanding(outstanding)).toEqual({
+      total: 200,
+      openFeeCount: 1,
+    })
   })
 
   it('never lets one overpayment hide another person’s unpaid fee', () => {

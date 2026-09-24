@@ -8,19 +8,29 @@ import {
   formatWeekendLabel,
 } from './formatters'
 import type { OutstandingFee } from './outstanding'
+import type { FeeAccount, FeeStanding } from './fee-balances'
 import { isCollected, isWaived } from './waived'
 
-// The admin Payments ledger shows two kinds of row in one table: payments on
-// record (paid, waived, or voided) and fees still owed, which are calculated
-// rather than stored. Everything here is pure so it can be unit-tested and
+// The admin Payments ledger shows three kinds of row in one table: payments on
+// record (paid, waived, or voided), fees still owed, and people who paid more
+// than they owe. The last two are calculated rather than stored. Everything here is pure so it can be unit-tested and
 // shared by the table, the stat tiles and the CSV export.
 
-export type LedgerStatus = 'paid' | 'waived' | 'outstanding' | 'voided'
+export type LedgerStatus =
+  | 'paid'
+  | 'waived'
+  | 'outstanding'
+  | 'overpaid'
+  | 'voided'
+
+/** Rows calculated from fee balances rather than stored payments. */
+type CalculatedStatus = 'outstanding' | 'overpaid'
 
 /** The segmented control's values. `all` is the default and stays off the URL. */
 export const LEDGER_STATUS_FILTERS = [
   'all',
   'outstanding',
+  'overpaid',
   'paid',
   'waived',
 ] as const
@@ -41,10 +51,14 @@ export type LedgerRow = {
    * the Waived tab when voided rows are shown.
    */
   baseStatus: Exclude<LedgerStatus, 'voided'>
-  /** The stored payment; null for a calculated outstanding fee. */
+  /** The stored payment; null for a calculated row. */
   payment: PaymentTransactionDTO | null
-  /** The calculated fee; null for a stored payment. */
+  /** The calculated fee; set only on outstanding rows. */
   outstanding: OutstandingFee | null
+  /** The calculated account; set only on overpaid rows. */
+  overpaid: FeeAccount | null
+  /** A short explanation shown under the person, e.g. why they're overpaid. */
+  note: string | null
   paidBy: string | null
   /** "Candidate fee", "Team fee", "Donation" or "Other". */
   feeLabel: string
@@ -56,16 +70,16 @@ export type LedgerRow = {
   weekendLabel: string
   weekendType: 'MENS' | 'WOMENS' | null
   amount: number
-  /** Null for outstanding rows: nothing has been paid, so there is no method. */
+  /** Null for calculated rows: they aren't a single payment, so no method. */
   method: PaymentTransactionDTO['payment_method'] | null
-  /** ISO timestamp; null for outstanding rows. */
+  /** ISO timestamp; null for calculated rows. */
   date: string | null
 }
 
 /** Status of a stored payment. A void wins over everything else. */
 export function derivePaymentStatus(
   payment: Pick<PaymentTransactionDTO, 'payment_method' | 'voided_at'>
-): Exclude<LedgerStatus, 'outstanding'> {
+): Exclude<LedgerStatus, CalculatedStatus> {
   if (!isNil(payment.voided_at)) return 'voided'
   return isWaived(payment) ? 'waived' : 'paid'
 }
@@ -108,6 +122,8 @@ function paymentToRow(payment: PaymentTransactionDTO): LedgerRow {
     baseStatus: isWaived(payment) ? 'waived' : 'paid',
     payment,
     outstanding: null,
+    overpaid: null,
+    note: null,
     paidBy: payment.payment_owner,
     feeLabel: feeLabelFor(payment.type, payment.target_type),
     personName: payment.target_name,
@@ -121,13 +137,10 @@ function paymentToRow(payment: PaymentTransactionDTO): LedgerRow {
   }
 }
 
-function outstandingToRow(fee: OutstandingFee): LedgerRow {
+/** The columns a calculated row shares, whichever list it came from. */
+function calculatedRowBase(fee: OutstandingFee) {
   return {
-    id: `outstanding:${fee.targetType}:${fee.targetId}`,
-    status: 'outstanding',
-    baseStatus: 'outstanding',
     payment: null,
-    outstanding: fee,
     paidBy: fee.expectedPayer,
     feeLabel: feeLabelFor('fee', fee.targetType),
     personName: fee.name,
@@ -141,30 +154,72 @@ function outstandingToRow(fee: OutstandingFee): LedgerRow {
             gender: fee.weekendType,
           }),
     weekendType: fee.weekendType,
-    amount: fee.amountDue,
     method: null,
     date: null,
   }
 }
 
+function outstandingToRow(fee: OutstandingFee): LedgerRow {
+  return {
+    ...calculatedRowBase(fee),
+    id: `outstanding:${fee.targetType}:${fee.targetId}`,
+    status: 'outstanding',
+    baseStatus: 'outstanding',
+    outstanding: fee,
+    overpaid: null,
+    note: null,
+    amount: fee.amountDue,
+  }
+}
+
+/** Why someone's money is more than they owe, for the row's note. */
+export const OVERPAID_NOTES: Record<FeeStanding, string> = {
+  owes: 'Paid more than the fee',
+  exempt: 'Gift from an exempt role · no action needed',
+  dropped: 'Dropped from the team after paying',
+  rejected: 'Candidate was rejected after paying',
+  'not-approved': 'Paid before the candidate was approved',
+  'not-on-roster': 'No longer on a roster or candidate list',
+}
+
+function overpaidToRow(account: FeeAccount): LedgerRow {
+  return {
+    ...calculatedRowBase(account),
+    id: `overpaid:${account.targetType}:${account.targetId}`,
+    status: 'overpaid',
+    baseStatus: 'overpaid',
+    outstanding: null,
+    overpaid: account,
+    note: OVERPAID_NOTES[account.standing],
+    amount: account.amountOver,
+  }
+}
+
+const byWeekendThenName = (a: LedgerRow, b: LedgerRow) => {
+  const byWeekend = a.weekendLabel.localeCompare(b.weekendLabel)
+  return byWeekend !== 0
+    ? byWeekend
+    : (a.personName ?? '').localeCompare(b.personName ?? '')
+}
+
 /**
- * One list for the table: payments most recent first, unpaid fees at the end
- * (by weekend, then name, so the tail reads like a roster).
+ * One list for the table: payments most recent first, then unpaid fees, then
+ * overpaid people (each by weekend, then name, so the tail reads like a
+ * roster).
  */
 export function buildLedgerRows(
   payments: PaymentTransactionDTO[],
-  outstandingFees: OutstandingFee[]
+  outstandingFees: OutstandingFee[],
+  overpaidFees: FeeAccount[] = []
 ): LedgerRow[] {
   const paymentRows = payments
     .map(paymentToRow)
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
-  const outstandingRows = outstandingFees.map(outstandingToRow).sort((a, b) => {
-    const byWeekend = a.weekendLabel.localeCompare(b.weekendLabel)
-    return byWeekend !== 0
-      ? byWeekend
-      : (a.personName ?? '').localeCompare(b.personName ?? '')
-  })
-  return [...paymentRows, ...outstandingRows]
+  const outstandingRows = outstandingFees
+    .map(outstandingToRow)
+    .sort(byWeekendThenName)
+  const overpaidRows = overpaidFees.map(overpaidToRow).sort(byWeekendThenName)
+  return [...paymentRows, ...outstandingRows, ...overpaidRows]
 }
 
 /**
@@ -185,7 +240,7 @@ export function formatLedgerFor(row: LedgerRow): string {
   return `${row.feeLabel} · ${person}`
 }
 
-/** Calendar year a row belongs to; null for outstanding rows (they are "now"). */
+/** Calendar year a row belongs to; null for calculated rows (they are "now"). */
 export function ledgerRowYear(row: LedgerRow): number | null {
   return isNil(row.date) ? null : new Date(row.date).getFullYear()
 }
@@ -241,6 +296,9 @@ export function ledgerRowInView(
   view: LedgerViewFilter
 ): boolean {
   if (row.status === 'voided' && !view.showVoided) return false
+  // Overpaid rows restate money whose payments are already listed, so they
+  // appear only under their own filter.
+  if (row.baseStatus === 'overpaid' && view.status !== 'overpaid') return false
   if (view.status !== 'all' && row.baseStatus !== view.status) return false
   if (!isNil(view.year)) {
     // Outstanding fees have no date: they are owed right now, so they belong
@@ -281,7 +339,7 @@ export function filterLedgerRows(
   )
 }
 
-/** Method as shown in the table: nothing for outstanding rows. */
+/** Method as shown in the table: nothing for calculated rows. */
 export function ledgerMethodLabel(row: LedgerRow): string {
   return isNil(row.method) ? '—' : formatPaymentMethod(row.method)
 }
@@ -291,9 +349,11 @@ export type LedgerStats = {
   /** Real money received in `year`. Waived and voided rows never count. */
   collectedTotal: number
   collectedCount: number
-  /** Owed right now by the active weekend group. */
+  /** Owed right now, across every group with fees set. */
   outstandingTotal: number
   outstandingCount: number
+  /** People who paid more than they owe (exempt gifts excluded). */
+  overpaidCount: number
   /** Fees the community covered in `year`. */
   waivedTotal: number
   waivedCount: number
@@ -303,7 +363,8 @@ export type LedgerStats = {
 export function computeLedgerStats(
   payments: PaymentTransactionDTO[],
   outstandingFees: OutstandingFee[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  overpaidFees: FeeAccount[] = []
 ): LedgerStats {
   const year = now.getFullYear()
   const stats: LedgerStats = {
@@ -312,6 +373,7 @@ export function computeLedgerStats(
     collectedCount: 0,
     outstandingTotal: 0,
     outstandingCount: outstandingFees.length,
+    overpaidCount: overpaidFees.filter((a) => a.standing !== 'exempt').length,
     waivedTotal: 0,
     waivedCount: 0,
   }

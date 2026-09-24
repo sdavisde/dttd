@@ -35,6 +35,7 @@ const STATUS_LABELS: Record<LedgerStatus, string> = {
   paid: 'Paid',
   waived: 'Waived',
   outstanding: 'Outstanding',
+  overpaid: 'Overpaid',
   voided: 'Voided',
 }
 
@@ -43,6 +44,7 @@ const STATUS_PILL_CLASSES: Record<LedgerStatus, string> = {
   waived: 'bg-muted text-muted-foreground',
   outstanding:
     'border border-secondary-border bg-secondary text-secondary-foreground',
+  overpaid: 'border border-primary/30 bg-card text-primary',
   voided: 'border border-border text-muted-foreground',
 }
 
@@ -120,13 +122,20 @@ export const paymentsColumns: ColumnDef<LedgerRow>[] = [
       <DataTableColumnHeader column={column} title="For" />
     ),
     cell: ({ row }) => (
-      <span
-        className={cn(
-          isVoided(row.original) && 'text-muted-foreground line-through'
+      <div className="flex flex-col">
+        <span
+          className={cn(
+            isVoided(row.original) && 'text-muted-foreground line-through'
+          )}
+        >
+          {formatLedgerFor(row.original)}
+        </span>
+        {!isNil(row.original.note) && (
+          <span className="text-[13px] text-muted-foreground">
+            {row.original.note}
+          </span>
         )}
-      >
-        {formatLedgerFor(row.original)}
-      </span>
+      </div>
     ),
     meta: {
       showOnMobile: true,

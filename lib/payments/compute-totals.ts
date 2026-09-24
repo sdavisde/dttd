@@ -401,14 +401,6 @@ export type ActiveWeekendFinancials = {
   overallWaivedTotal?: number
 }
 
-/** Extra charged on the online (Stripe) price over the cash price. */
-export const STRIPE_SURCHARGE = 10
-
-/** What a person is expected to pay: the Stripe price minus the surcharge. */
-export function cashPriceOf(stripeFee: number): number {
-  return Math.max(stripeFee - STRIPE_SURCHARGE, 0)
-}
-
 /**
  * Dollars of fee the community covered for the given active people. Capped at
  * one fee per person so a duplicate waiver can never push "expected" below
@@ -445,8 +437,8 @@ const sumCollected = (payments: PaymentTransactionDTO[]): number =>
  * @param weekendIds - Map of weekend type to weekend ID for the active group
  * @param rosterCounts - Map of weekend ID to number of active (non-dropped) roster members
  * @param candidateCounts - Map of weekend ID to number of non-rejected candidates
- * @param teamFee - Team Stripe fee per person in dollars (cash price = this - $10)
- * @param candidateFee - Candidate Stripe fee per person in dollars (cash price = this - $10)
+ * @param teamCashPrice - The group's team fee per person, at the cash price
+ * @param candidateCashPrice - The group's candidate fee per person, at the cash price
  * @param activeTeamTargetIds - Set of valid team payment target IDs (active roster + group member IDs)
  * @param activeCandidateTargetIds - Set of valid candidate IDs (non-rejected)
  */
@@ -455,8 +447,8 @@ export function computeActiveWeekendFinancials(
   weekendIds: Record<'MENS' | 'WOMENS', string>,
   rosterCounts: Record<string, number>,
   candidateCounts: Record<string, number>,
-  teamFee: number,
-  candidateFee: number,
+  teamCashPrice: number,
+  candidateCashPrice: number,
   activeTeamTargetIds: Set<string>,
   activeCandidateTargetIds: Set<string>
 ): ActiveWeekendFinancials {
@@ -475,11 +467,8 @@ export function computeActiveWeekendFinancials(
     paymentsByWeekend.get(wId)!.push(p)
   }
 
-  // Expected per person is the cash price (Stripe price minus $10).
-  // Any extra collected via Stripe is cushion for processing fees.
-  const teamCashPrice = cashPriceOf(teamFee)
-  const candidateCashPrice = cashPriceOf(candidateFee)
-
+  // Expected per person is the cash price. The extra an online payer adds is
+  // cushion for processing fees, not part of what is owed.
   const weekendMetrics: ActiveWeekendMetrics[] = []
 
   for (const [type, weekendId] of Object.entries(weekendIds) as [

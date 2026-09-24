@@ -86,16 +86,22 @@ page.
   `online_surcharge = 10`, leave every other group null, and state those values in its header comment
   so they can be checked before it runs against prod
 - The system shall add a `weekend_group_fee_changes` table (`id`, `group_id`, `changed_by`,
-  `changed_at`, old and new values for all three fields, `people_affected` count). It is insert-only
-  under RLS: readable with `READ_PAYMENTS`, insertable with `MANAGE_FEES`, never updated or deleted
+  `changed_at`, old and new values for all three fields), readable with `READ_PAYMENTS` and never
+  updated or deleted. Rows are written by a trigger on `weekend_groups`, so no write path can skip
+  the log (_as built: a trigger rather than an app-side insert; no `people_affected` count_)
+- The trigger shall also enforce the fee permission: a new group at the site defaults needs no fee
+  permission, while any other value, or any change after creation, needs `MANAGE_FEES`
 - The system shall add `site_settings` keys `default_weekend_fee` (200) and `default_online_surcharge`
   (10), seeded by the migration
-- The system shall add `Permission.MANAGE_FEES`, place it in `lib/security/permission-areas.ts` as a
-  sensitive switch labelled "Set fee amounts" (distinct from the existing "Manage team fees" label on
-  `READ_WRITE_TEAM_PAYMENTS`), and make RLS on the new columns, table and settings keys require it for
-  writes (`auth_user_has_permission` already treats `FULL_ACCESS` as satisfying it)
-- The system shall regenerate `database.types.ts` and add `teamFee`, `candidateFee` and
-  `onlineSurcharge` (`number | null`) to `WeekendGroupWithId` and the group read paths
+- The system shall add `Permission.MANAGE_FEES`, labelled "Set fee amounts" (distinct from the
+  existing "Manage team fees" label on `READ_WRITE_TEAM_PAYMENTS`), as its own "Fee amounts" row on
+  the Security page, with an implicit "Everyone can view" rung like Files. (_As built: the sensitive
+  panel is reserved for candidate private data, so it didn't fit there._) Writes to the fee columns
+  and the defaults require it (`auth_user_has_permission` already treats `FULL_ACCESS` as satisfying
+  it)
+- The system shall regenerate `database.types.ts`. Group fees are read through a separate
+  `services/fees` module rather than added to `WeekendGroupWithId`, so fee reads stay independent of
+  weekend reads
 
 **Proof Artifacts:**
 
@@ -187,8 +193,7 @@ group and follows the settled "who owes" rules. This is the fix for the missing 
   only the current create permission; saving different values requires `MANAGE_FEES`
 - The system shall let `MANAGE_FEES` holders edit an existing group's fees. Before saving, a
   confirmation shows how many people in that group have paid, and what they will owe or how much they'll be
-  overpaid under the new price. Every save inserts a row into `weekend_group_fee_changes` in the same
-  transaction as the update
+  overpaid under the new price. Every save is logged to `weekend_group_fee_changes` by the trigger
 - The system shall show the group's price in the activation confirmation
   (`app/admin/weekends/components/SetActiveWeekendButton.tsx`), e.g. "Team and candidate fee: $200 cash /
   $210 online", and block activation of a group with no fee, with a link to set one

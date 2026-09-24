@@ -292,9 +292,20 @@ function OverallFinancialCard({
 
 function ActiveWeekendDashboard({
   financials,
+  feesNotSet,
 }: {
   financials: ActiveWeekendFinancials | null
+  feesNotSet: boolean
 }) {
+  if (feesNotSet) {
+    return (
+      <ReportCard className="py-6 text-center text-muted-foreground">
+        The active weekend group has no fees set, so there is nothing to collect
+        yet. Set its weekend fee on the Weekends page.
+      </ReportCard>
+    )
+  }
+
   if (isNil(financials)) {
     return (
       <ReportCard className="py-6 text-center text-muted-foreground">
@@ -568,11 +579,14 @@ function WeekendGroupCard({ group }: { group: WeekendGroup }) {
 type PaymentReportProps = {
   payments: PaymentTransactionDTO[]
   activeWeekendFinancials: ActiveWeekendFinancials | null
+  /** True when the active group has no fees set. */
+  activeFeesNotSet: boolean
 }
 
 export function PaymentReport({
   payments,
   activeWeekendFinancials,
+  activeFeesNotSet,
 }: PaymentReportProps) {
   const { weekendGroupOptions, selectedGroup, setSelectedGroup, report } =
     usePaymentReport(payments)
@@ -585,7 +599,10 @@ export function PaymentReport({
         onGroupChange={setSelectedGroup}
       />
 
-      <ActiveWeekendDashboard financials={activeWeekendFinancials} />
+      <ActiveWeekendDashboard
+        financials={activeWeekendFinancials}
+        feesNotSet={activeFeesNotSet}
+      />
 
       {report.map((group) => (
         <WeekendGroupCard key={group.groupLabel} group={group} />

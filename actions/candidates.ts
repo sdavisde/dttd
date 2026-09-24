@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
-import { err, ok, isErr } from '@/lib/results'
+import { err, ok, isErr, unwrapOr } from '@/lib/results'
 import { isNil } from 'lodash'
 import type { SponsorFormSchema } from '@/app/(member)/sponsor/SponsorForm'
 import type {
@@ -22,9 +22,9 @@ import type { Database } from '@/database.types'
 import { getCandidateCountByWeekend } from '@/services/candidates/actions'
 import {
   getPaymentForTarget,
-  getCandidateFee,
   movePaymentsToWeekend,
 } from '@/services/payment/payment-service'
+import { getTrackedGroups } from '@/services/fees/fees-service'
 import { getPaymentSummary } from '@/lib/payments/utils'
 
 type CandidateSponsorshipInfoUpdate =
@@ -222,8 +222,8 @@ export async function getAllCandidatesWithDetails(
       )
     }
 
-    // Fetch payments and Stripe fee in parallel
-    const [paymentsByCandidate, candidateFeeResult] = await Promise.all([
+    // Fetch payments and the tracked groups' fees in parallel
+    const [paymentsByCandidate, trackedGroupsResult] = await Promise.all([
       Promise.all(
         candidates.map(async (candidate) => {
           const paymentsResult = await getPaymentForTarget(
@@ -236,22 +236,23 @@ export async function getAllCandidatesWithDetails(
           }
         })
       ),
-      getCandidateFee(),
+      getTrackedGroups(),
     ])
 
-    // Stripe fee in dollars (unitAmount is in cents). A fee we can't read
-    // falls back to 0, which makes every payment summary read as paid in full
-    // — log it so the cause is visible rather than silent.
-    if (isErr(candidateFeeResult)) {
+    // Each candidate is priced from their own group. A fee we can't read is
+    // not a fee of $0 — log it and show "Not owed" rather than guess.
+    if (isErr(trackedGroupsResult)) {
       logger.error({
-        error: candidateFeeResult.error,
-        msg: 'Candidate fee price lookup failed; payment summaries will assume a $0 fee',
+        error: trackedGroupsResult.error,
+        msg: 'Group fee lookup failed; candidate payment summaries show no fee',
       })
     }
-    const baseFee =
-      !isErr(candidateFeeResult) && !isNil(candidateFeeResult.data.unitAmount)
-        ? candidateFeeResult.data.unitAmount / 100
-        : 0
+    const candidateFeeByGroup = new Map(
+      unwrapOr(trackedGroupsResult, []).map((g) => [
+        g.groupId,
+        g.fees.candidateFee,
+      ])
+    )
 
     // Create a map of candidate ID to payments
     const paymentsMap = new Map<string, PaymentRecord[]>()
@@ -268,7 +269,10 @@ export async function getAllCandidatesWithDetails(
             candidate.candidate_sponsorship_info.at(0),
           candidate_info: candidate.candidate_info.at(0),
           payments,
-          paymentSummary: getPaymentSummary(payments, baseFee),
+          paymentSummary: getPaymentSummary(
+            payments,
+            candidateFeeByGroup.get(candidate.weekends?.group_id ?? '') ?? null
+          ),
         }
       }) as HydratedCandidate[]
     )
