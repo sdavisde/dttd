@@ -5,7 +5,7 @@ import {
   WEEKEND_CANDIDATE_CAPACITY,
   type WeekendType,
 } from '@/lib/weekend/types'
-import { WEEKEND_PARAM } from '@/lib/weekend/hub'
+import { hubPath } from '@/lib/weekend/hub'
 
 // Pure helpers for the "Review candidates" queue. No server imports so the
 // whole module stays unit-testable in Jest.
@@ -13,23 +13,23 @@ import { WEEKEND_PARAM } from '@/lib/weekend/hub'
 /** The query-string key that selects a candidate in the queue. */
 export const CANDIDATE_PARAM = 'candidate'
 
-/** `/weekends/<group>/review-candidates?weekend=MENS[&candidate=<id>]` */
+/** `/weekends/<group>/mens/review-candidates[?candidate=<id>]` */
 export function reviewQueuePath(
   groupId: string,
   weekendType: WeekendType,
   candidateId?: string | null
 ): string {
-  const base = `/weekends/${groupId}/review-candidates?${WEEKEND_PARAM}=${weekendType}`
-  return isNil(candidateId) ? base : `${base}&${CANDIDATE_PARAM}=${candidateId}`
+  const base = hubPath(groupId, 'review-candidates', weekendType)
+  return isNil(candidateId) ? base : `${base}?${CANDIDATE_PARAM}=${candidateId}`
 }
 
-/** `/weekends/<group>/review-candidates/<id>?weekend=MENS` — the full details page. */
+/** `/weekends/<group>/mens/review-candidates/<id>` — the full details page. */
 export function candidateDetailsPath(
   groupId: string,
   weekendType: WeekendType,
   candidateId: string
 ): string {
-  return `/weekends/${groupId}/review-candidates/${candidateId}?${WEEKEND_PARAM}=${weekendType}`
+  return `${hubPath(groupId, 'review-candidates', weekendType)}/${candidateId}`
 }
 
 export type PaymentOwner = 'candidate' | 'sponsor'

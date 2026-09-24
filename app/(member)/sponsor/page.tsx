@@ -6,7 +6,7 @@ export default function SponsorPage() {
   return (
     <PageContent size="narrow">
       <MemberBreadcrumbs
-        title="Sponsor someone"
+        title="Sponsor a candidate"
         breadcrumbs={[{ label: 'Home', href: '/home' }]}
       />
       <SponsorForm />

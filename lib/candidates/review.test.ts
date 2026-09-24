@@ -86,13 +86,13 @@ function review(overrides: Partial<ReviewCandidate> = {}): ReviewCandidate {
 describe('paths', () => {
   it('builds queue and detail links that keep the weekend selection', () => {
     expect(reviewQueuePath('g12', 'MENS')).toBe(
-      '/weekends/g12/review-candidates?weekend=MENS'
+      '/weekends/g12/mens/review-candidates'
     )
     expect(reviewQueuePath('g12', 'WOMENS', 'c1')).toBe(
-      '/weekends/g12/review-candidates?weekend=WOMENS&candidate=c1'
+      '/weekends/g12/womens/review-candidates?candidate=c1'
     )
     expect(candidateDetailsPath('g12', 'MENS', 'c1')).toBe(
-      '/weekends/g12/review-candidates/c1?weekend=MENS'
+      '/weekends/g12/mens/review-candidates/c1'
     )
   })
 })

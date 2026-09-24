@@ -1,34 +1,39 @@
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
+import { hubPath, resolveWeekendType } from '@/lib/weekend/hub'
 import { isNil } from 'lodash'
 import {
   Calendar,
+  ClipboardCheck,
   CircleUser,
   CreditCard,
   FileText,
   FolderOpen,
   HeartHandshake,
   Home,
+  LayoutGrid,
   ShieldCheck,
-  Users,
   type LucideIcon,
 } from 'lucide-react'
 
 /**
  * Sidebar sections, in order. `null` renders as the top-level (unlabeled)
- * group; the rest are the task-named groups from the design board.
+ * group; 'Do something' and 'Find' are the task-named groups from the design
+ * board; 'Role tools' holds the links only some roles see, rendered as an
+ * unlabeled group of its own.
  */
-export type MemberNavSection = null | 'Do something' | 'Find'
+export type MemberNavSection = null | 'Do something' | 'Find' | 'Role tools'
 
 /** Stable identity for an item, independent of where its link points today. */
 export type MemberNavKey =
   | 'home'
   | 'sponsor'
   | 'my-forms'
-  | 'pay-fee'
-  | 'roster'
+  | 'online-payment'
   | 'weekends'
   | 'documents'
+  | 'review-candidates'
+  | 'roster-builder'
   | 'account'
   | 'admin'
 
@@ -42,12 +47,19 @@ export type MemberNavItem = {
   permissionsNeeded: Permission[]
   /** Only shown to people on the active weekend team. */
   requiresTeamMembership?: boolean
+  /** Only shown when there is an active weekend group to point at. */
+  requiresActiveGroup?: boolean
   /** Appears in the phone tab bar (at most five). */
   tab?: boolean
   /** Shorter label for the tab bar, when the sidebar title is too long. */
   tabLabel?: string
   /** Position in the tab bar (Main board order); lower comes first. */
   tabOrder?: number
+  /**
+   * Highlight the item for everything under this path, when `href` is more
+   * specific than the section it stands for.
+   */
+  matchHref?: string
 }
 
 /**
@@ -68,7 +80,7 @@ export const memberNavItems: MemberNavItem[] = [
   },
   {
     key: 'sponsor',
-    title: 'Sponsor someone',
+    title: 'Sponsor a candidate',
     href: '/sponsor',
     icon: HeartHandshake,
     section: 'Do something',
@@ -84,35 +96,28 @@ export const memberNavItems: MemberNavItem[] = [
     requiresTeamMembership: true,
   },
   {
-    key: 'pay-fee',
-    title: 'Pay a fee',
-    href: '/payment/team-fee',
+    key: 'online-payment',
+    title: 'Online payment',
+    href: '/payment',
     icon: CreditCard,
     section: 'Do something',
     permissionsNeeded: [],
-    requiresTeamMembership: true,
-  },
-  {
-    key: 'roster',
-    title: 'Roster',
-    // Rosters are per-weekend: the shell points this at the active group's
-    // Team tab (see `resolveMemberNavHrefs`).
-    href: '/weekends',
-    icon: Users,
-    section: 'Find',
-    permissionsNeeded: [],
     tab: true,
-    tabOrder: 2,
+    tabLabel: 'Payments',
+    tabOrder: 3,
   },
   {
     key: 'weekends',
-    title: 'The weekends',
+    title: 'The weekend',
+    // Opens the active weekend matching the viewer's gender (see
+    // `resolveMemberNavHref`); the index when nothing is active.
     href: '/weekends',
+    matchHref: '/weekends',
     icon: Calendar,
     section: 'Find',
     permissionsNeeded: [],
     tab: true,
-    tabLabel: 'Weekends',
+    tabLabel: 'Weekend',
     tabOrder: 1,
   },
   {
@@ -123,7 +128,25 @@ export const memberNavItems: MemberNavItem[] = [
     section: 'Find',
     permissionsNeeded: [],
     tab: true,
-    tabOrder: 3,
+    tabOrder: 2,
+  },
+  {
+    key: 'review-candidates',
+    title: 'Review candidates',
+    // Points at the active group's queue (see `resolveMemberNavHref`).
+    href: '/weekends',
+    icon: ClipboardCheck,
+    section: 'Role tools',
+    permissionsNeeded: [Permission.READ_CANDIDATES],
+    requiresActiveGroup: true,
+  },
+  {
+    key: 'roster-builder',
+    title: 'Roster builder',
+    href: '/roster-builder',
+    icon: LayoutGrid,
+    section: 'Role tools',
+    permissionsNeeded: [Permission.READ_TEAM_ROSTER_BUILDER],
   },
 ]
 
@@ -151,9 +174,16 @@ export const memberFooterNavItems: MemberNavItem[] = [
 
 const allItems = [...memberNavItems, ...memberFooterNavItems]
 
-export function filterMemberNav(items: MemberNavItem[], user: User) {
+export function filterMemberNav(
+  items: MemberNavItem[],
+  user: User,
+  context: MemberNavContext = { activeGroupId: null }
+) {
   return items.filter((item) => {
     if (item.requiresTeamMembership === true && isNil(user.teamMemberInfo)) {
+      return false
+    }
+    if (item.requiresActiveGroup === true && isNil(context.activeGroupId)) {
       return false
     }
     if (item.permissionsNeeded.length === 0) return true
@@ -173,24 +203,33 @@ export type SerializableMemberNavItem = {
   tab?: boolean
   tabLabel?: string
   tabOrder?: number
+  matchHref?: string
 }
 
 export type MemberNavContext = {
   /** The ACTIVE weekend group, when there is one. */
   activeGroupId: string | null
+  /** The viewer's gender, to open their own weekend (Men's or Women's). */
+  gender?: string | null
 }
 
 /**
- * Where an item points for this visit. Rosters live on each weekend's hub, so
- * "Roster" opens the active group's Team tab and falls back to the weekends
- * index when nothing is active.
+ * Where an item points for this visit. The weekend and the review queue live
+ * on each weekend's hub, so they open the active group's page for the
+ * viewer's own weekend; without an active group they keep their fallback.
  */
 export function resolveMemberNavHref(
   item: Pick<MemberNavItem, 'key' | 'href'>,
   context: MemberNavContext
 ): string {
-  if (item.key === 'roster' && !isNil(context.activeGroupId)) {
-    return `/weekends/${context.activeGroupId}/team`
+  const { activeGroupId } = context
+  if (isNil(activeGroupId)) return item.href
+  const weekendType = resolveWeekendType(null, context.gender)
+  if (item.key === 'weekends') {
+    return hubPath(activeGroupId, 'overview', weekendType)
+  }
+  if (item.key === 'review-candidates') {
+    return hubPath(activeGroupId, 'review-candidates', weekendType)
   }
   return item.href
 }
@@ -200,7 +239,7 @@ function serialize(
   context: MemberNavContext
 ): SerializableMemberNavItem[] {
   return items.map(
-    ({ key, title, href, section, tab, tabLabel, tabOrder }) => ({
+    ({ key, title, href, section, tab, tabLabel, tabOrder, matchHref }) => ({
       key,
       title,
       href: resolveMemberNavHref({ key, href }, context),
@@ -208,6 +247,7 @@ function serialize(
       tab,
       tabLabel,
       tabOrder,
+      matchHref,
     })
   )
 }
@@ -221,15 +261,22 @@ export function getMemberNav(
   user: User,
   context: MemberNavContext = { activeGroupId: null }
 ): MemberNav {
+  const withGender = { gender: user.gender, ...context }
   return {
-    main: serialize(filterMemberNav(memberNavItems, user), context),
-    footer: serialize(filterMemberNav(memberFooterNavItems, user), context),
+    main: serialize(
+      filterMemberNav(memberNavItems, user, withGender),
+      withGender
+    ),
+    footer: serialize(
+      filterMemberNav(memberFooterNavItems, user, withGender),
+      withGender
+    ),
   }
 }
 
 /**
  * The phone tab bar: every visible item flagged `tab`, in the Main board's
- * order (Home · Weekends · Roster · Documents · My account), with the short
+ * order (Home · Weekend · Documents · Payments · My account), with the short
  * tab label standing in for the sidebar title.
  */
 export function getTabBarItems(nav: MemberNav): SerializableMemberNavItem[] {
@@ -243,26 +290,35 @@ export function getMemberNavIcon(key: MemberNavKey): LucideIcon | undefined {
   return allItems.find((item) => item.key === key)?.icon
 }
 
+/** Hub URLs differ only by weekend; either one lights up the same item. */
+function normalizeWeekend(path: string) {
+  return path.replace(/^(\/weekends\/[^/]+)\/(mens|womens)(?=\/|$)/, '$1/*')
+}
+
 function matchesPath(href: string, pathname: string) {
-  return pathname === href || pathname.startsWith(`${href}/`)
+  const target = normalizeWeekend(href)
+  const path = normalizeWeekend(pathname)
+  return path === target || path.startsWith(`${target}/`)
 }
 
 /**
  * The one item to highlight for a path: the longest matching href wins, so
- * `/weekends/<id>/team` lights up Roster rather than The weekends, while
- * every other hub page (and `/files/handbook`, `/team-forms/camp-waiver`)
- * still highlights its section. On an exact tie (Roster falling back to
- * `/weekends` when nothing is active) the later item wins, so the index
- * page highlights The weekends.
+ * the review queue lights up Review candidates rather than The weekend,
+ * while every other hub page (and `/files/handbook`,
+ * `/team-forms/camp-waiver`) still highlights its section. An item's
+ * `matchHref` stands in for its href here.
  */
 export function activeMemberNavKey(
-  items: Pick<SerializableMemberNavItem, 'key' | 'href'>[],
+  items: Pick<SerializableMemberNavItem, 'key' | 'href' | 'matchHref'>[],
   pathname: string
 ): MemberNavKey | null {
-  let best: Pick<SerializableMemberNavItem, 'key' | 'href'> | null = null
+  let best: { key: MemberNavKey; href: string } | null = null
   for (const item of items) {
-    if (!matchesPath(item.href, pathname)) continue
-    if (isNil(best) || item.href.length >= best.href.length) best = item
+    const href = item.matchHref ?? item.href
+    if (!matchesPath(href, pathname)) continue
+    if (isNil(best) || href.length >= best.href.length) {
+      best = { key: item.key, href }
+    }
   }
   return best?.key ?? null
 }

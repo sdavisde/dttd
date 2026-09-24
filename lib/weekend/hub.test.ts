@@ -4,6 +4,8 @@ import {
   findSingletonEventForWeekend,
   formatCompactDateRange,
   hubPath,
+  hubTabFromPath,
+  parseWeekendSlug,
   resolveWeekendType,
   sendOffCountdown,
   upcomingEvents,
@@ -40,17 +42,36 @@ function event(overrides: Partial<Event>): Event {
 }
 
 describe('hubPath', () => {
-  it('keeps the overview at the group root and carries the weekend along', () => {
+  it('puts the weekend in the path and the overview at its root', () => {
     expect(hubPath('g12')).toBe('/weekends/g12')
-    expect(hubPath('g12', 'overview', 'MENS')).toBe(
-      '/weekends/g12?weekend=MENS'
-    )
-    expect(hubPath('g12', 'team', 'WOMENS')).toBe(
-      '/weekends/g12/team?weekend=WOMENS'
-    )
+    expect(hubPath('g12', 'overview', 'MENS')).toBe('/weekends/g12/mens')
+    expect(hubPath('g12', 'team', 'WOMENS')).toBe('/weekends/g12/womens/team')
     expect(hubPath('g12', 'review-candidates', 'MENS')).toBe(
-      '/weekends/g12/review-candidates?weekend=MENS'
+      '/weekends/g12/mens/review-candidates'
     )
+  })
+})
+
+describe('parseWeekendSlug', () => {
+  it('maps the two slugs and rejects anything else', () => {
+    expect(parseWeekendSlug('mens')).toBe('MENS')
+    expect(parseWeekendSlug('womens')).toBe('WOMENS')
+    expect(parseWeekendSlug('MENS')).toBeNull()
+    expect(parseWeekendSlug(undefined)).toBeNull()
+  })
+})
+
+describe('hubTabFromPath', () => {
+  it('reads the tab after the weekend segment', () => {
+    expect(hubTabFromPath('/weekends/g12/mens')).toBe('overview')
+    expect(hubTabFromPath('/weekends/g12/womens/team')).toBe('team')
+    expect(hubTabFromPath('/weekends/g12/mens/schedule')).toBe('schedule')
+  })
+
+  it('matches nothing off the tab row', () => {
+    expect(hubTabFromPath('/weekends/g12/mens/review-candidates')).toBeNull()
+    expect(hubTabFromPath('/weekends/g12')).toBeNull()
+    expect(hubTabFromPath('/home')).toBeNull()
   })
 })
 

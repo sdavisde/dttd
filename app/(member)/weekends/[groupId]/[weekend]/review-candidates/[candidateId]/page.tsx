@@ -9,7 +9,7 @@ import { reviewQueuePath } from '@/lib/candidates/review'
 import { appendQueryParams } from '@/lib/url'
 import { formatWeekendGroupTitle } from '@/lib/weekend'
 import { hubPath } from '@/lib/weekend/hub'
-import { loadHubContext } from '../../hub-frame'
+import { loadHubContext, type HubParams } from '../../../hub-context'
 import { ReviewStatusPill } from '../components/review-status-pill'
 import { CandidateInformationSection } from './components/CandidateInformationSection'
 import { CandidateAssessmentSection } from './components/CandidateAssessmentSection'
@@ -18,8 +18,7 @@ import { SponsorInformationSection } from './components/SponsorInformationSectio
 import { StatusSelect } from './components/StatusSelect'
 
 type PageProps = {
-  params: Promise<{ groupId: string; candidateId: string }>
-  searchParams: Promise<{ weekend?: string }>
+  params: Promise<Awaited<HubParams> & { candidateId: string }>
 }
 
 /**
@@ -27,13 +26,10 @@ type PageProps = {
  * with write access. The queue covers the decision; this page is where a
  * reviewer fixes a typo or reads the sponsor's whole write-up.
  */
-export default async function CandidateDetailsPage({
-  params,
-  searchParams,
-}: PageProps) {
-  const { groupId, candidateId } = await params
+export default async function CandidateDetailsPage({ params }: PageProps) {
+  const { groupId, weekend: slug, candidateId } = await params
   const [context, candidateResult] = await Promise.all([
-    loadHubContext(groupId, searchParams),
+    loadHubContext(groupId, slug),
     getHydratedCandidate(candidateId),
   ])
   const { user, group, weekend, weekendType } = context

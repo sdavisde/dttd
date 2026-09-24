@@ -65,11 +65,14 @@ export default async function TeamFeesPaymentPage() {
   return (
     <PageContent size="narrow">
       <MemberBreadcrumbs
-        title="Pay a fee"
-        breadcrumbs={[{ label: 'Home', href: '/home' }]}
+        title="Team fee"
+        breadcrumbs={[
+          { label: 'Home', href: '/home' },
+          { label: 'Online payment', href: '/payment' },
+        ]}
       />
       <PageHeader
-        title="Pay a fee"
+        title="Team fee"
         description="Your team fee for the upcoming weekend."
       />
       <Checkout

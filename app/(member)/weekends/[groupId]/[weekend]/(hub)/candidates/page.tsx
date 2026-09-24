@@ -4,16 +4,7 @@ import { formatWeekendTitle } from '@/lib/weekend'
 import { CandidateListTable } from './components/CandidateListTable'
 import { ExportButton } from './components/ExportButton'
 import { ShareButton } from './components/ShareButton'
-import {
-  loadHubContext,
-  WeekendHubFrame,
-  type HubSearchParams,
-} from '../hub-frame'
-
-type PageProps = {
-  params: Promise<{ groupId: string }>
-  searchParams: HubSearchParams
-}
+import { loadHubContextFromParams, type HubParams } from '../../../hub-context'
 
 /**
  * The hub's Candidates tab: contact and personal information for everyone
@@ -23,11 +14,11 @@ type PageProps = {
  */
 export default async function WeekendCandidatesPage({
   params,
-  searchParams,
-}: PageProps) {
-  const { groupId } = await params
-  const context = await loadHubContext(groupId, searchParams)
-  const { user, group, weekend, weekendType } = context
+}: {
+  params: HubParams
+}) {
+  const { user, group, weekend, weekendType } =
+    await loadHubContextFromParams(params)
 
   const candidatesResult = await getAllCandidatesWithDetails({
     weekendGroupId: group.groupId,
@@ -39,7 +30,7 @@ export default async function WeekendCandidatesPage({
   )
 
   return (
-    <WeekendHubFrame context={context} active="candidates">
+    <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Contact and personal information for the candidates on this weekend.
@@ -57,6 +48,6 @@ export default async function WeekendCandidatesPage({
         </div>
       </div>
       <CandidateListTable candidates={candidates} user={user} />
-    </WeekendHubFrame>
+    </>
   )
 }

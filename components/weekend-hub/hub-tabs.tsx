@@ -1,20 +1,26 @@
+'use client'
+
 import Link from 'next/link'
-import { HUB_TABS, hubPath, type HubTab } from '@/lib/weekend/hub'
-import type { WeekendType } from '@/lib/weekend/types'
+import { usePathname } from 'next/navigation'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import { HUB_TABS, hubPath, hubTabFromPath } from '@/lib/weekend/hub'
+import { WeekendType } from '@/lib/weekend/types'
 import { cn } from '@/lib/utils'
 
-type HubTabsProps = {
+type HubNavProps = {
   groupId: string
   weekendType: WeekendType
-  active: HubTab
 }
 
 /**
- * The hub's section row (Overview · Schedule · Team · Candidates). Plain links
- * that carry the weekend selection along; scrolls sideways on phones rather
- * than wrapping under the header.
+ * The hub's section row (Overview · Schedule · Team · Candidates). It lives
+ * in the hub layout, so it reads the active tab from the URL rather than
+ * from the page — the highlight moves the instant a tab is clicked, while
+ * the page body is still loading. Scrolls sideways on phones rather than
+ * wrapping under the header.
  */
-export function HubTabs({ groupId, weekendType, active }: HubTabsProps) {
+export function HubTabs({ groupId, weekendType }: HubNavProps) {
+  const active = hubTabFromPath(usePathname())
   return (
     <nav
       aria-label="Weekend sections"
@@ -42,5 +48,28 @@ export function HubTabs({ groupId, weekendType, active }: HubTabsProps) {
         })}
       </ul>
     </nav>
+  )
+}
+
+/** The Men's / Women's switch; keeps the viewer on the tab they're on. */
+export function HubWeekendSwitch({ groupId, weekendType }: HubNavProps) {
+  const tab = hubTabFromPath(usePathname()) ?? 'overview'
+  return (
+    <SegmentedControl
+      aria-label="Weekend"
+      value={weekendType}
+      options={[
+        {
+          value: WeekendType.MENS,
+          label: "Men's",
+          href: hubPath(groupId, tab, WeekendType.MENS),
+        },
+        {
+          value: WeekendType.WOMENS,
+          label: "Women's",
+          href: hubPath(groupId, tab, WeekendType.WOMENS),
+        },
+      ]}
+    />
   )
 }

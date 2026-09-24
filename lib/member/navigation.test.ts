@@ -7,6 +7,7 @@ import {
   memberFooterNavItems,
   memberNavItems,
   resolveMemberNavHref,
+  type MemberNavContext,
 } from '@/lib/member/navigation'
 import { Permission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
@@ -50,12 +51,13 @@ describe('memberNavItems', () => {
   it('names the menu after member tasks, in board order', () => {
     expect(memberNavItems.map((item) => item.title)).toEqual([
       'Home',
-      'Sponsor someone',
+      'Sponsor a candidate',
       'My forms',
-      'Pay a fee',
-      'Roster',
-      'The weekends',
+      'Online payment',
+      'The weekend',
       'Documents',
+      'Review candidates',
+      'Roster builder',
     ])
     expect(memberFooterNavItems.map((item) => item.title)).toEqual([
       'My account',
@@ -69,12 +71,13 @@ describe('memberNavItems', () => {
     )
     expect(sections).toEqual({
       Home: null,
-      'Sponsor someone': 'Do something',
+      'Sponsor a candidate': 'Do something',
       'My forms': 'Do something',
-      'Pay a fee': 'Do something',
-      Roster: 'Find',
-      'The weekends': 'Find',
+      'Online payment': 'Do something',
+      'The weekend': 'Find',
       Documents: 'Find',
+      'Review candidates': 'Role tools',
+      'Roster builder': 'Role tools',
     })
   })
 
@@ -89,7 +92,6 @@ describe('memberNavItems', () => {
       memberNavItems.map((item) => [item.key, item.href])
     )
     expect(hrefs.weekends).toBe('/weekends')
-    expect(hrefs.roster).toBe('/weekends')
   })
 })
 
@@ -99,7 +101,7 @@ describe('filterMemberNav', () => {
       (item) => item.title
     )
     expect(titles).not.toContain('My forms')
-    expect(titles).not.toContain('Pay a fee')
+    expect(titles).toContain('Online payment')
   })
 
   it('shows team-only items to team members', () => {
@@ -107,7 +109,23 @@ describe('filterMemberNav', () => {
       (item) => item.title
     )
     expect(titles).toContain('My forms')
-    expect(titles).toContain('Pay a fee')
+    expect(titles).toContain('Online payment')
+  })
+
+  it('shows role tools only with their permission and an active group', () => {
+    const active: MemberNavContext = { activeGroupId: 'g12' }
+    const titles = (permissions: Permission[], context = active) =>
+      getMemberNav(makeUser(permissions), context).main.map((i) => i.title)
+
+    expect(titles([])).not.toContain('Review candidates')
+    expect(titles([])).not.toContain('Roster builder')
+    expect(titles([Permission.READ_CANDIDATES])).toContain('Review candidates')
+    expect(titles([Permission.READ_TEAM_ROSTER_BUILDER])).toContain(
+      'Roster builder'
+    )
+    expect(
+      titles([Permission.READ_CANDIDATES], { activeGroupId: null })
+    ).not.toContain('Review candidates')
   })
 
   it('shows Admin only with the admin-portal permission', () => {
@@ -133,6 +151,7 @@ describe('filterMemberNav', () => {
         [
           'href',
           'key',
+          'matchHref',
           'section',
           'tab',
           'tabLabel',
@@ -145,17 +164,29 @@ describe('filterMemberNav', () => {
 })
 
 describe('resolveMemberNavHref', () => {
-  it("sends Roster to the active group's Team tab", () => {
-    const roster = memberNavItems.find((item) => item.key === 'roster')!
-    expect(resolveMemberNavHref(roster, { activeGroupId: 'g12' })).toBe(
-      '/weekends/g12/team'
+  it("sends The weekend to the viewer's own active weekend", () => {
+    const weekends = memberNavItems.find((item) => item.key === 'weekends')!
+    expect(resolveMemberNavHref(weekends, { activeGroupId: 'g12' })).toBe(
+      '/weekends/g12/mens'
     )
+    expect(
+      resolveMemberNavHref(weekends, { activeGroupId: 'g12', gender: 'female' })
+    ).toBe('/weekends/g12/womens')
   })
 
   it('falls back to the weekends index without an active group', () => {
-    const roster = memberNavItems.find((item) => item.key === 'roster')!
-    expect(resolveMemberNavHref(roster, { activeGroupId: null })).toBe(
+    const weekends = memberNavItems.find((item) => item.key === 'weekends')!
+    expect(resolveMemberNavHref(weekends, { activeGroupId: null })).toBe(
       '/weekends'
+    )
+  })
+
+  it("sends Review candidates to the active group's queue", () => {
+    const review = memberNavItems.find(
+      (item) => item.key === 'review-candidates'
+    )!
+    expect(resolveMemberNavHref(review, { activeGroupId: 'g12' })).toBe(
+      '/weekends/g12/mens/review-candidates'
     )
   })
 
@@ -166,22 +197,21 @@ describe('resolveMemberNavHref', () => {
       home: '/home',
       sponsor: '/sponsor',
       'my-forms': '/team-forms',
-      'pay-fee': '/payment/team-fee',
-      roster: '/weekends/g12/team',
-      weekends: '/weekends',
+      'online-payment': '/payment',
+      weekends: '/weekends/g12/mens',
       documents: '/files',
     })
   })
 })
 
 describe('getTabBarItems', () => {
-  it('lists the five phone tabs in order', () => {
+  it('lists the phone tabs in order', () => {
     const tabs = getTabBarItems(getMemberNav(makeUser([], onTeam)))
     expect(tabs.map((item) => item.title)).toEqual([
       'Home',
-      'Weekends',
-      'Roster',
+      'Weekend',
       'Documents',
+      'Payments',
       'My account',
     ])
   })
@@ -189,7 +219,7 @@ describe('getTabBarItems', () => {
   it('keeps the sidebar title on the item itself', () => {
     const nav = getMemberNav(makeUser([], onTeam))
     expect(nav.main.find((item) => item.key === 'weekends')?.title).toBe(
-      'The weekends'
+      'The weekend'
     )
   })
 })
@@ -205,21 +235,25 @@ describe('activeMemberNavKey', () => {
     expect(activeMemberNavKey(items, '/')).toBeNull()
   })
 
-  it('lights up Roster on the hub Team tab and The weekends elsewhere', () => {
-    expect(activeMemberNavKey(items, '/weekends/g12/team')).toBe('roster')
-    expect(activeMemberNavKey(items, '/weekends/g12')).toBe('weekends')
-    expect(activeMemberNavKey(items, '/weekends/g12/candidates')).toBe(
+  it('lights up The weekend on every weekend page', () => {
+    expect(activeMemberNavKey(items, '/weekends')).toBe('weekends')
+    expect(activeMemberNavKey(items, '/weekends/g12/mens')).toBe('weekends')
+    expect(activeMemberNavKey(items, '/weekends/g12/womens/team')).toBe(
       'weekends'
     )
-    expect(activeMemberNavKey(items, '/weekends')).toBe('weekends')
-    // Another group's team tab is still just a weekend page.
-    expect(activeMemberNavKey(items, '/weekends/g11/team')).toBe('weekends')
+    // Another group's pages still belong to the weekends section.
+    expect(activeMemberNavKey(items, '/weekends/g11/mens/team')).toBe(
+      'weekends'
+    )
   })
 
-  it('highlights The weekends on the index when nothing is active', () => {
-    const nav = getMemberNav(makeUser([], onTeam), { activeGroupId: null })
+  it('lets the review queue win over The weekend', () => {
+    const nav = getMemberNav(makeUser([Permission.READ_CANDIDATES]), {
+      activeGroupId: 'g12',
+    })
     const all = [...nav.main, ...nav.footer]
-    expect(activeMemberNavKey(all, '/weekends')).toBe('weekends')
-    expect(activeMemberNavKey(all, '/weekends/g12/team')).toBe('weekends')
+    expect(
+      activeMemberNavKey(all, '/weekends/g12/womens/review-candidates')
+    ).toBe('review-candidates')
   })
 })

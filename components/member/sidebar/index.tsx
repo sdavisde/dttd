@@ -24,12 +24,21 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from '@/components/ui/sidebar'
+import { RoleAccessMark } from '@/components/member/role-access-mark'
 
 type MemberSidebarProps = React.ComponentProps<typeof Sidebar> & {
   nav: MemberNav
 }
 
-const SECTION_ORDER: MemberNavSection[] = [null, 'Do something', 'Find']
+const SECTION_ORDER: MemberNavSection[] = [
+  null,
+  'Do something',
+  'Find',
+  'Role tools',
+]
+
+/** Sections that render as a plain group, without a heading. */
+const UNLABELED: MemberNavSection[] = [null, 'Role tools']
 
 function NavItems({
   items,
@@ -56,6 +65,9 @@ function NavItems({
               <Link href={item.href}>
                 {!isNil(Icon) && <Icon />}
                 <span>{item.title}</span>
+                {item.section === 'Role tools' && (
+                  <RoleAccessMark className="ml-auto group-data-[collapsible=icon]:hidden" />
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -72,7 +84,8 @@ function NavItems({
  */
 export function MemberSidebar({ nav, ...props }: MemberSidebarProps) {
   const pathname = usePathname()
-  // One winner across every group, so a hub Team tab lights up Roster alone.
+  // One winner across every group, so the review queue lights up Review
+  // candidates alone rather than The weekend too.
   const activeKey = activeMemberNavKey([...nav.main, ...nav.footer], pathname)
   const sections = SECTION_ORDER.map((section) => ({
     section,
@@ -105,7 +118,10 @@ export function MemberSidebar({ nav, ...props }: MemberSidebarProps) {
       <SidebarContent>
         {sections.map(({ section, items }) => (
           <SidebarGroup key={section ?? 'top'}>
-            {!isNil(section) && (
+            {section === 'Role tools' && (
+              <SidebarSeparator className="mx-0 mb-2" />
+            )}
+            {!UNLABELED.includes(section) && (
               <SidebarGroupLabel className="text-[11.5px] font-semibold tracking-[0.1em] text-muted-foreground/80 uppercase">
                 {section}
               </SidebarGroupLabel>

@@ -18,24 +18,64 @@ export const HUB_TABS: Array<{ tab: HubTab; label: string }> = [
   { tab: 'candidates', label: 'Candidates' },
 ]
 
-/** The query-string key that picks Men's or Women's on every hub page. */
+/**
+ * The legacy query-string key for Men's or Women's. Hub URLs now carry the
+ * weekend as a path segment; only the group-root redirect still reads this,
+ * so old links keep landing on the right weekend.
+ */
 export const WEEKEND_PARAM = 'weekend'
 
+/** The path segment for each weekend: `/weekends/<group>/mens/team`. */
+export type WeekendSlug = 'mens' | 'womens'
+
+const SLUG_BY_TYPE: Record<WeekendType, WeekendSlug> = {
+  [WeekendType.MENS]: 'mens',
+  [WeekendType.WOMENS]: 'womens',
+}
+
+export function weekendSlug(weekendType: WeekendType): WeekendSlug {
+  return SLUG_BY_TYPE[weekendType]
+}
+
+/** The weekend a path segment names, or null when it names neither. */
+export function parseWeekendSlug(
+  slug: string | null | undefined
+): WeekendType | null {
+  if (slug === 'mens') return WeekendType.MENS
+  if (slug === 'womens') return WeekendType.WOMENS
+  return null
+}
+
 /**
- * Builds a hub URL. The weekend selection rides along as a query parameter so
- * it survives switching tabs.
+ * Builds a hub URL. The weekend is a path segment so the shared hub layout
+ * (header, switch, tabs) can read it and stay mounted while tabs change.
+ * Without a weekend it points at the group root, which redirects to the
+ * viewer's own weekend.
  */
 export function hubPath(
   groupId: string,
   tab: HubTab | 'review-candidates' = 'overview',
   weekendType?: WeekendType | null
 ): string {
-  const base = `/weekends/${groupId}${tab === 'overview' ? '' : `/${tab}`}`
-  return isNil(weekendType) ? base : `${base}?${WEEKEND_PARAM}=${weekendType}`
+  const root = `/weekends/${groupId}`
+  if (isNil(weekendType)) return root
+  const base = `${root}/${weekendSlug(weekendType)}`
+  return tab === 'overview' ? base : `${base}/${tab}`
 }
 
 /**
- * Which weekend a hub page shows: the query parameter when it is valid,
+ * Which hub tab a pathname is on, for the client-side tab row. Anything past
+ * the weekend segment that isn't a tab (e.g. review-candidates) matches none.
+ */
+export function hubTabFromPath(pathname: string): HubTab | null {
+  const [, weekends, , slug, section] = pathname.split('/')
+  if (weekends !== 'weekends' || isNil(parseWeekendSlug(slug))) return null
+  if (isNil(section) || section === '') return 'overview'
+  return HUB_TABS.find(({ tab }) => tab === section)?.tab ?? null
+}
+
+/**
+ * Which weekend a hub page shows: the requested one when it is valid,
  * otherwise the viewer's own weekend (men → Men's, women → Women's), otherwise
  * Men's, which always comes first.
  */

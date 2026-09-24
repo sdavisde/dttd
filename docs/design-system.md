@@ -61,16 +61,22 @@ and carries the same copy-link button as the admin trail (`components/ui/breadcr
 
 ## Weekend hub
 
-Weekend operations live on each group's hub, `/weekends/[groupId]` (index at `/weekends`), in
-the member shell. The Men's / Women's choice is the `?weekend=MENS|WOMENS` query parameter, so it
-survives switching the Overview / Schedule / Team / Candidates tabs (`lib/weekend/hub.ts` builds
-every hub URL via `hubPath`; never hand-write one). Layouts can't read search params, so each tab
-page calls `loadHubContext` and renders inside `WeekendHubFrame`
-(`app/(member)/weekends/[groupId]/hub-frame.tsx`), which owns the breadcrumb, title, the
-`SegmentedControl` weekend switch, the tabs and the cream management strip. The strip is gated
-per feature (`READ_CANDIDATES`, `READ_TEAM_ROSTER_BUILDER`, `WRITE_WEEKENDS`), never by a single
-"PWC" check. Stat tiles use `components/ui/stat-tile.tsx` and follow the omit-don't-approximate
-rule: a tile whose source failed (or that the viewer may not see) is left out, never shown as 0.
+Weekend operations live on each group's hub, `/weekends/[groupId]/[weekend]` (index at
+`/weekends`), in the member shell. The Men's / Women's choice is the `mens|womens` path segment
+(`lib/weekend/hub.ts` builds every hub URL via `hubPath`; never hand-write one). The group root
+`/weekends/[groupId]` only redirects to the viewer's own weekend (honouring a legacy `?weekend=`).
+
+The Overview / Schedule / Team / Candidates tabs share `[weekend]/(hub)/layout.tsx`, which owns the
+breadcrumb, title, `SegmentedControl` weekend switch and the tabs, so it stays mounted while tabs
+change; the tab row and switch are client components that read the active tab from the pathname.
+Pages (and the layout) call `loadHubContextFromParams` (`hub-context.ts`, `cache`d per request).
+Review candidates sits beside the `(hub)` group, outside the shared header.
+
+Role-only tools (`READ_CANDIDATES`, `READ_TEAM_ROSTER_BUILDER`) show in the
+Overview's "Your part in this weekend" section and the sidebar, gated per feature (never by a
+single "PWC" check) and marked with the muted key from `components/member/role-access-mark.tsx`.
+Stat tiles use `components/ui/stat-tile.tsx` and follow the omit-don't-approximate rule: a tile
+whose source failed (or that the viewer may not see) is left out, never shown as 0.
 
 ## Elevation: borders, not shadows
 

@@ -12,12 +12,12 @@ import { appendQueryParams } from '@/lib/url'
 import { formatWeekendGender, formatWeekendGroupTitle } from '@/lib/weekend'
 import { hubPath } from '@/lib/weekend/hub'
 import { WeekendType } from '@/lib/weekend/types'
-import { loadHubContext } from '../hub-frame'
+import { loadHubContextFromParams, type HubParams } from '../../hub-context'
 import { ReviewWorkspace } from './components/review-workspace'
 
 type PageProps = {
-  params: Promise<{ groupId: string }>
-  searchParams: Promise<{ weekend?: string; candidate?: string }>
+  params: HubParams
+  searchParams: Promise<{ candidate?: string }>
 }
 
 /**
@@ -29,9 +29,8 @@ export default async function ReviewCandidatesPage({
   params,
   searchParams,
 }: PageProps) {
-  const { groupId } = await params
-  const context = await loadHubContext(groupId, searchParams)
-  const { user, group, weekend, weekendType } = context
+  const { user, group, weekend, weekendType } =
+    await loadHubContextFromParams(params)
 
   if (!userHasPermission(user, [Permission.READ_CANDIDATES])) {
     redirect(
