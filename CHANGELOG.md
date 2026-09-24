@@ -1,3 +1,25 @@
+## [1.54.0](https://github.com/sdavisde/dttd/compare/v1.53.0...v1.54.0) (2026-09-24)
+
+### Features
+
+- **admin:** auto-save the remaining admin editors ([4aad3ce](https://github.com/sdavisde/dttd/commit/4aad3ced7b9a7721b896241690dd21c042a49de6))
+- **candidates:** review queue under the weekend hub ([4f236b0](https://github.com/sdavisde/dttd/commit/4f236b044dde2e3c22e25ced9b261e81fb4c2762))
+- **files:** browse-only documents page on the admin file browser ([d35b29d](https://github.com/sdavisde/dttd/commit/d35b29db30db9e37549e1a074b30aac9bbff11e3))
+- **member:** hub layout, your-part actions, online payment and nav cleanup ([e55b354](https://github.com/sdavisde/dttd/commit/e55b35408190821e049343fb477335ca18019294))
+- **member:** merge the member redesign from preview ([6ba81aa](https://github.com/sdavisde/dttd/commit/6ba81aaac7c5193f83ee3c2d64b5c6b92dccf131))
+- **people:** auto-save the person editor instead of a Save button ([63a1705](https://github.com/sdavisde/dttd/commit/63a1705c2891be46fdcd37b1f03bbeb0a400046f))
+- **security:** inherit once in the header, checklist per area, can/can't summary ([4559325](https://github.com/sdavisde/dttd/commit/4559325699c0680bbe997c7eb4ed90d40e63caa8))
+- **shell:** member sidebar, top bar, tab bar and breadcrumbs ([6c4e1cb](https://github.com/sdavisde/dttd/commit/6c4e1cba2970d0a1acd2ddec4fd3442ba1391671))
+- **sponsor:** redesign the sponsor form and thank-you page ([8812716](https://github.com/sdavisde/dttd/commit/8812716bba4d0989df0277c948ddf80b5cb84fda))
+- **weekends:** member weekend hub with overview, schedule, team and candidates ([7acf829](https://github.com/sdavisde/dttd/commit/7acf8294d69c84cac3bf776bcdb0a519a4f3f2de))
+
+### Bug Fixes
+
+- **community-board:** keep the role assignment dialog inside the viewport ([72759b0](https://github.com/sdavisde/dttd/commit/72759b07f207b2f1022fc67fac2c02a490222517))
+- **layout:** stop member pages spilling horizontally ([2d790d6](https://github.com/sdavisde/dttd/commit/2d790d615a40985fe3d2b7676818147c6cb56f7d))
+- **member:** conformance and correctness pass on shell, hub and review ([62c4cf3](https://github.com/sdavisde/dttd/commit/62c4cf394aac3f4499d3dd61fcbf1825ac5f9ab8))
+- **security:** render the inheritance note outside the form field context ([10ce2ec](https://github.com/sdavisde/dttd/commit/10ce2ec18e84e1dd2d06b57e6980c2b77af998bb))
+
 ## [1.53.0](https://github.com/sdavisde/dttd/compare/v1.52.2...v1.53.0) (2026-09-23)
 
 ### Features
