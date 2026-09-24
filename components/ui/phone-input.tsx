@@ -3,14 +3,7 @@
 import * as React from 'react'
 import { Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-function formatPhoneNumber(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 10)
-  if (digits.length === 0) return ''
-  if (digits.length <= 3) return `(${digits}`
-  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-}
+import { formatPhoneInput as formatPhoneNumber } from '@/lib/formatting/phone-input'
 
 function PhoneInput({
   className,
