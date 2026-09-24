@@ -101,6 +101,7 @@ export default async function Page() {
       : {
           groupNumber: activeGroupNumber,
           isScheduled: !isNil(secuelaResult.data),
+          mensStartDate: activeWeekends?.MENS.start_date ?? null,
         }
 
   // Fee prices we can't read are their own failure: showing $0 outstanding
@@ -161,7 +162,7 @@ export default async function Page() {
       <div className="container mx-auto px-4 pb-12 md:px-8">
         <PageHeader
           title="Admin"
-          description="The board's back office — money, people, files, and the community calendar. Weekend operations live on each weekend's hub."
+          description="Manage the website, users and permissions, payments, and files."
         />
 
         <SystemAlertsBanner alerts={alerts} />

@@ -230,6 +230,8 @@ describe('needsPlanning', () => {
 })
 
 describe('deriveActionItems', () => {
+  // Inside the one-month window before the Men's weekend (NOW is 2026-09-03).
+  const SOON = '2026-09-20'
   const pastGroups = [
     group(
       { status: 'FINISHED', start_date: '2026-04-16' },
@@ -241,7 +243,11 @@ describe('deriveActionItems', () => {
     const items = deriveActionItems({
       outstanding: { total: 925, openFeeCount: 5 },
       weekendGroups: pastGroups,
-      activeGroupSecuela: { groupNumber: 12, isScheduled: false },
+      activeGroupSecuela: {
+        groupNumber: 12,
+        isScheduled: false,
+        mensStartDate: SOON,
+      },
       now: NOW,
     })
     expect(items).toEqual([
@@ -292,7 +298,11 @@ describe('deriveActionItems', () => {
       deriveActionItems({
         outstanding: null,
         weekendGroups: null,
-        activeGroupSecuela: { groupNumber: 12, isScheduled: false },
+        activeGroupSecuela: {
+          groupNumber: 12,
+          isScheduled: false,
+          mensStartDate: SOON,
+        },
         now: NOW,
       })
     ).toEqual([
@@ -305,7 +315,11 @@ describe('deriveActionItems', () => {
       deriveActionItems({
         outstanding: null,
         weekendGroups: null,
-        activeGroupSecuela: { groupNumber: 12, isScheduled: true },
+        activeGroupSecuela: {
+          groupNumber: 12,
+          isScheduled: true,
+          mensStartDate: SOON,
+        },
         now: NOW,
       })
     ).toEqual([])
@@ -322,12 +336,41 @@ describe('deriveActionItems', () => {
     ).toEqual([])
   })
 
+  it("waits to ask for a secuela until a month before the Men's weekend", () => {
+    const secuelaItems = (mensStartDate: string | null, now: Date) =>
+      deriveActionItems({
+        outstanding: null,
+        weekendGroups: null,
+        activeGroupSecuela: {
+          groupNumber: 12,
+          isScheduled: false,
+          mensStartDate,
+        },
+        now,
+      })
+    // More than a month out: quiet.
+    expect(secuelaItems('2026-10-16', NOW)).toEqual([])
+    // Exactly a month out: due.
+    expect(
+      secuelaItems('2026-10-16', new Date('2026-09-16T00:00:00Z'))
+    ).toHaveLength(1)
+    // The weekend has already started: still due.
+    expect(secuelaItems('2026-08-20', NOW)).toHaveLength(1)
+    // Unknown start date: can't claim it's due.
+    expect(secuelaItems(null, NOW)).toEqual([])
+    expect(secuelaItems('', NOW)).toEqual([])
+  })
+
   it('names the group even when its DTTD number is unknown', () => {
     expect(
       deriveActionItems({
         outstanding: null,
         weekendGroups: null,
-        activeGroupSecuela: { groupNumber: null, isScheduled: false },
+        activeGroupSecuela: {
+          groupNumber: null,
+          isScheduled: false,
+          mensStartDate: SOON,
+        },
         now: NOW,
       })
     ).toEqual([

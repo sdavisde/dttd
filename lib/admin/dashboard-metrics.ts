@@ -1,4 +1,5 @@
 import { isNil } from 'lodash'
+import { subMonths } from 'date-fns'
 import type { PaymentTransactionDTO } from '@/services/payment'
 import type { OutstandingFee } from '@/lib/payments/outstanding'
 import { isCollected } from '@/lib/payments/waived'
@@ -81,6 +82,19 @@ export type ActiveGroupSecuela = {
   groupNumber: number | null
   /** True once a secuela event exists for the group, past or future. */
   isScheduled: boolean
+  /** Start date of the group's Men's weekend (always the first), when known. */
+  mensStartDate: string | null
+}
+
+/**
+ * The secuela only needs a date once the group's Men's weekend is a month out;
+ * nagging earlier is noise. An unknown start date can't open the window.
+ */
+function isSecuelaDue(secuela: ActiveGroupSecuela, now: Date): boolean {
+  if (isNil(secuela.mensStartDate) || secuela.mensStartDate === '') return false
+  const start = new Date(secuela.mensStartDate)
+  if (Number.isNaN(start.getTime())) return false
+  return now >= subMonths(start, 1)
 }
 
 type ActionItemsInput = {
@@ -146,7 +160,11 @@ export function deriveActionItems({
       href: '/admin/payments?status=outstanding',
     })
   }
-  if (!isNil(activeGroupSecuela) && !activeGroupSecuela.isScheduled) {
+  if (
+    !isNil(activeGroupSecuela) &&
+    !activeGroupSecuela.isScheduled &&
+    isSecuelaDue(activeGroupSecuela, now)
+  ) {
     items.push({
       key: 'schedule-secuela',
       groupNumber: activeGroupSecuela.groupNumber,
