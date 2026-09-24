@@ -1,3 +1,9 @@
+## [1.54.1](https://github.com/sdavisde/dttd/compare/v1.54.0...v1.54.1) (2026-09-24)
+
+### Bug Fixes
+
+- **admin:** hold the secuela action item until a month before the weekend ([08fc3bc](https://github.com/sdavisde/dttd/commit/08fc3bc110506cb96207dbd2e952d9939318141c))
+
 ## [1.54.0](https://github.com/sdavisde/dttd/compare/v1.53.0...v1.54.0) (2026-09-24)
 
 ### Features
