@@ -1,88 +1,22 @@
-import { getBuckets } from '@/lib/files'
-import { Typography } from '@/components/ui/typography'
-import { Card, CardContent } from '@/components/ui/card'
-import { Folder } from 'lucide-react'
-import Link from 'next/link'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { PageContent } from '@/components/member/page-content'
-import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
-import { PageHeader } from '@/components/ui/page-header'
+import { FolderOpen } from 'lucide-react'
+import { Results } from '@/lib/results'
+import { getRootFolders } from '@/services/files/file-service'
 
-export default async function PublicFilesPage() {
-  const buckets = await getBuckets()
+/** Shown on /files before a folder is picked from the rail. */
+export default async function DocumentsRootPage() {
+  const hasFolders = Results.unwrapOr(await getRootFolders(), []).length > 0
 
   return (
-    <PageContent>
-      <MemberBreadcrumbs
-        title="Documents"
-        breadcrumbs={[{ label: 'Home', href: '/home' }]}
-      />
-      <PageHeader
-        title="Documents"
-        description="Files shared with the community — handbooks, directions, packing lists."
-      />
-
-      {buckets.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Typography variant="muted">
-              No files or folders are currently available.
-            </Typography>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {buckets.map((bucket) => (
-            <div key={bucket.name} className="space-y-4">
-              <Typography variant="h4" className="capitalize">
-                {bucket.name}
-              </Typography>
-
-              {bucket.folders.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-8">
-                    <Typography variant="muted" className="italic">
-                      No folders available in {bucket.name}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Folder Name</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {bucket.folders.map((folder) => (
-                      <TableRow key={folder.slug}>
-                        <TableCell>
-                          <Link
-                            href={`/files/${folder.slug}`}
-                            className="flex items-center gap-3 hover:bg-muted/50 transition-colors p-2 -m-2 rounded"
-                          >
-                            <Folder className="h-5 w-5 text-muted-foreground" />
-                            <span className="capitalize font-medium">
-                              {folder.name}
-                            </span>
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </PageContent>
+    <div className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-md border border-dashed bg-card px-6 py-16 text-center">
+      <FolderOpen className="mb-4 size-12 text-muted-foreground" />
+      <h2 className="mb-2 text-lg font-medium text-foreground">
+        {hasFolders ? 'Pick a folder to get started' : 'No documents yet'}
+      </h2>
+      <p className="max-w-sm text-sm text-muted-foreground">
+        {hasFolders
+          ? 'Choose a folder to see its files.'
+          : 'Nothing has been shared with the community yet. Check back soon.'}
+      </p>
+    </div>
   )
 }

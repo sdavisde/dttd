@@ -1,50 +1,77 @@
+import { Fragment } from 'react'
+import { ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchFolderContents } from '@/lib/files'
-import { isErr } from '@/lib/results'
-import { unslugify } from '@/lib/url'
+import { FileBrowserTable } from '@/components/file-management/FileBrowserTable'
+import { describeFolderContents, filesHref } from '@/lib/files/browser'
 import { logger } from '@/lib/logger'
-import { PublicFilesFolderContent } from '@/components/public-files/PublicFilesFolderContent'
-import { PageContent } from '@/components/member/page-content'
-import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
-import { PageHeader } from '@/components/ui/page-header'
+import { isErr } from '@/lib/results'
+import { getFolderView } from '@/services/files/file-service'
 
-export default async function PublicFilesNestedPage({
+/**
+ * One folder's contents, in the pane beside the layout's folder rail. The
+ * folder path sits above the listing (the page breadcrumb lives in the layout,
+ * which can't see which folder is open).
+ */
+export default async function DocumentsFolderPage({
   params,
 }: {
   params: Promise<{ path: string[] | string }>
 }) {
-  let { path: pathSegments } = await params
-  pathSegments =
-    typeof pathSegments === 'string' ? [pathSegments] : pathSegments
+  const { path } = await params
+  const pathSegments = typeof path === 'string' ? [path] : path
 
-  const contentsResult = await fetchFolderContents(pathSegments)
-  if (isErr(contentsResult)) {
-    logger.error(contentsResult.error)
+  const viewResult = await getFolderView(pathSegments)
+  if (isErr(viewResult)) {
+    logger.error({ error: viewResult.error }, 'Unable to load documents')
     notFound()
   }
 
-  const folderName = unslugify(pathSegments.at(-1) ?? 'Files')
-  const parentCrumbs = pathSegments.slice(0, -1).map((segment, index) => ({
-    label: unslugify(segment),
-    href: `/files/${pathSegments.slice(0, index + 1).join('/')}`,
-  }))
+  const { trail, entries } = viewResult.data
+  const folderLabel = trail.at(-1)?.name ?? 'Documents'
 
   return (
-    <PageContent>
-      <MemberBreadcrumbs
-        title={folderName}
-        breadcrumbs={[
-          { label: 'Home', href: '/home' },
-          { label: 'Documents', href: '/files' },
-          ...parentCrumbs,
-        ]}
-      />
-      <PageHeader title={folderName} />
+    <div className="flex min-w-0 flex-1 flex-col gap-3">
+      <nav aria-label="Folder path">
+        <ol className="flex min-w-0 flex-wrap items-center gap-1 text-sm">
+          {trail.map((crumb, index) => {
+            const isLast = index === trail.length - 1
+            return (
+              <Fragment key={crumb.slugs.join('/')}>
+                {index > 0 && (
+                  <li aria-hidden>
+                    <ChevronRight className="size-3.5 text-muted-foreground/70" />
+                  </li>
+                )}
+                <li className="min-w-0 truncate">
+                  {isLast ? (
+                    <span
+                      className="font-semibold text-foreground"
+                      aria-current="page"
+                    >
+                      {crumb.name}
+                    </span>
+                  ) : (
+                    <Link
+                      href={filesHref('member', crumb.slugs)}
+                      className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {crumb.name}
+                    </Link>
+                  )}
+                </li>
+              </Fragment>
+            )
+          })}
+        </ol>
+      </nav>
 
-      <PublicFilesFolderContent
-        files={contentsResult.data}
-        folderName={folderName}
+      <FileBrowserTable
+        area="member"
+        entries={entries}
+        caption={describeFolderContents(entries, folderLabel)}
+        emptyMessage={`Nothing in ${folderLabel} yet.`}
       />
-    </PageContent>
+    </div>
   )
 }
