@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { ShieldCheck } from 'lucide-react'
 import { getAllCandidatesWithDetails } from '@/actions/candidates'
 import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 import { PageContent } from '@/components/member/page-content'
@@ -103,10 +102,6 @@ export default async function ReviewCandidatesPage({
             },
           ]}
         />
-        <p className="flex items-center gap-2 text-[12.5px] font-semibold text-secondary-foreground sm:ml-auto">
-          <ShieldCheck className="size-3.5" aria-hidden />
-          Visible to reviewers with candidate access
-        </p>
       </div>
 
       <ReviewWorkspace
