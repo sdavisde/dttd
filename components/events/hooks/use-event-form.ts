@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
@@ -17,6 +17,7 @@ import {
 } from '@/services/events/types'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'
+import { useAutoSave } from '@/hooks/use-auto-save'
 import type {
   EventFormData,
   EventFormPrefill,
@@ -35,6 +36,57 @@ interface UseEventFormProps {
   weekendIndividualOptions?: WeekendIndividualOption[]
 }
 
+/** Fields you type into wait for the debounce; everything else saves at once. */
+const TYPED_FIELDS = new Set<string>(['title', 'location', 'time', 'endTime'])
+
+function initialValues(
+  event: Event | null | undefined,
+  prefill: EventFormPrefill | undefined
+): EventFormData {
+  if (!isNil(event)) {
+    const resetData: Partial<EventFormData> = {
+      title: event.title ?? '',
+      time: '09:00',
+      location: event.location ?? '',
+      type: event.type ?? null,
+      hasEndDateTime: !isNil(event.endDatetime),
+      endDate: null,
+      endTime: null,
+      weekendGroupId: event.weekendGroupId ?? null,
+      weekendId: event.weekendId ?? null,
+    }
+
+    if (!isNil(event.datetime)) {
+      const utcDate = new Date(event.datetime)
+      const ctDate = toZonedTime(utcDate, CT_TIMEZONE)
+      resetData.date = ctDate
+      resetData.time = format(ctDate, 'HH:mm')
+    }
+
+    if (!isNil(event.endDatetime)) {
+      const utcEndDate = new Date(event.endDatetime)
+      const ctEndDate = toZonedTime(utcEndDate, CT_TIMEZONE)
+      resetData.endDate = ctEndDate
+      resetData.endTime = format(ctEndDate, 'HH:mm')
+    }
+
+    return resetData as EventFormData
+  }
+  if (isNil(prefill)) return DEFAULT_FORM_VALUES
+  return {
+    ...DEFAULT_FORM_VALUES,
+    title: prefill.title ?? '',
+    type: prefill.type ?? null,
+    weekendGroupId: prefill.weekendGroupId ?? null,
+    weekendId: prefill.weekendId ?? null,
+  }
+}
+
+/**
+ * Form state for one event. Mount it once per event (the sidebar keys its body
+ * by event id): an existing event auto-saves once valid, a new one waits for
+ * "Create event".
+ */
 export function useEventForm({
   event,
   onClose,
@@ -43,65 +95,17 @@ export function useEventForm({
 }: UseEventFormProps) {
   const isEditing = !isNil(event)
   const router = useRouter()
-  const [originalFormData, setOriginalFormData] =
-    useState<EventFormData | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
-    defaultValues: DEFAULT_FORM_VALUES,
+    defaultValues: initialValues(event, prefill),
+    mode: 'onTouched',
   })
 
   const hasEndDateTime = form.watch('hasEndDateTime')
-
-  // Populate form when editing
-  useEffect(() => {
-    if (isEditing && !isNil(event)) {
-      const resetData: Partial<EventFormData> = {
-        title: event.title ?? '',
-        time: '09:00',
-        location: event.location ?? '',
-        type: event.type ?? null,
-        hasEndDateTime: !isNil(event.endDatetime),
-        endDate: null,
-        endTime: null,
-        weekendGroupId: event.weekendGroupId ?? null,
-        weekendId: event.weekendId ?? null,
-      }
-
-      if (!isNil(event.datetime)) {
-        const utcDate = new Date(event.datetime)
-        const ctDate = toZonedTime(utcDate, CT_TIMEZONE)
-        resetData.date = ctDate
-        resetData.time = format(ctDate, 'HH:mm')
-      }
-
-      if (!isNil(event.endDatetime)) {
-        const utcEndDate = new Date(event.endDatetime)
-        const ctEndDate = toZonedTime(utcEndDate, CT_TIMEZONE)
-        resetData.endDate = ctEndDate
-        resetData.endTime = format(ctEndDate, 'HH:mm')
-      }
-
-      const formData = resetData as EventFormData
-      form.reset(formData)
-      setOriginalFormData(formData)
-    } else {
-      const createDefaults = !isNil(prefill)
-        ? {
-            ...DEFAULT_FORM_VALUES,
-            title: prefill.title ?? '',
-            type: prefill.type ?? null,
-            weekendGroupId: prefill.weekendGroupId ?? null,
-            weekendId: prefill.weekendId ?? null,
-          }
-        : DEFAULT_FORM_VALUES
-      form.reset(createDefaults)
-      setOriginalFormData(null)
-    }
-  }, [isEditing, event, form, prefill])
 
   // When type changes to a group type, clear weekendId since it's not applicable
   const watchedType = form.watch('type') as EventTypeValue | null | undefined
@@ -139,64 +143,83 @@ export function useEventForm({
     }
   }, [watchedGroupId, watchedWeekendId, weekendIndividualOptions, form])
 
+  const toEventData = (data: EventFormData) => {
+    const [hours, minutes] = data.time.split(':').map(Number)
+    const ctDateTime = new Date(data.date)
+    ctDateTime.setHours(hours, minutes, 0, 0)
+    const utcDateTime = fromZonedTime(ctDateTime, CT_TIMEZONE)
+
+    let endDatetimeUtc: string | null = null
+    if (data.hasEndDateTime && !isNil(data.endDate) && !isNil(data.endTime)) {
+      const [endHours, endMinutes] = data.endTime.split(':').map(Number)
+      const ctEndDateTime = new Date(data.endDate)
+      ctEndDateTime.setHours(endHours, endMinutes, 0, 0)
+      endDatetimeUtc = fromZonedTime(ctEndDateTime, CT_TIMEZONE).toISOString()
+    }
+
+    const dataType = (data.type as EventTypeValue) ?? null
+    const isSubmittingSingleton =
+      dataType != null && SINGLETON_EVENT_TYPES.includes(dataType)
+
+    // For singleton types, derive weekendGroupId from the selected individual weekend
+    // For group types, clear weekendId since it doesn't apply
+    let weekendGroupId = data.weekendGroupId ?? null
+    let weekendId = data.weekendId ?? null
+    if (isSubmittingSingleton && !isNil(weekendId)) {
+      const match = weekendIndividualOptions.find((w) => w.id === weekendId)
+      if (!isNil(match)) weekendGroupId = match.groupId
+    } else if (!isSubmittingSingleton) {
+      weekendId = null
+    }
+
+    return {
+      title: data.title,
+      datetime: utcDateTime.toISOString(),
+      location: data.location ?? null,
+      type: dataType,
+      end_datetime: endDatetimeUtc,
+      weekend_group_id: weekendGroupId,
+      weekend_id: weekendId,
+    }
+  }
+
+  const values = useWatch({ control: form.control }) as EventFormData
+  const parsed = eventFormSchema.safeParse(values)
+  const autoSave = useAutoSave({
+    value: values,
+    isValid: parsed.success,
+    enabled: isEditing,
+    errorMessage: 'Unable to save event. Please try again.',
+    onSaved: () => router.refresh(),
+    save: async (next) => {
+      if (isNil(event)) return { error: 'No event to update' }
+      return updateEvent(event.id, toEventData(eventFormSchema.parse(next)))
+    },
+  })
+
+  // Selects, pickers and the checkbox skip the debounce.
+  const { saveImmediately } = autoSave
+  useEffect(() => {
+    const subscription = form.watch((_, { name }) => {
+      if (!isNil(name) && !TYPED_FIELDS.has(name)) saveImmediately()
+    })
+    return () => subscription.unsubscribe()
+  }, [form, saveImmediately])
+
+  // Only a new event submits; an existing one auto-saves above.
   const handleSubmit = async (data: EventFormData) => {
+    if (isEditing) return
     setIsSubmitting(true)
     try {
-      const [hours, minutes] = data.time.split(':').map(Number)
-      const ctDateTime = new Date(data.date)
-      ctDateTime.setHours(hours, minutes, 0, 0)
-      const utcDateTime = fromZonedTime(ctDateTime, CT_TIMEZONE)
-
-      let endDatetimeUtc: string | null = null
-      if (data.hasEndDateTime && !isNil(data.endDate) && !isNil(data.endTime)) {
-        const [endHours, endMinutes] = data.endTime.split(':').map(Number)
-        const ctEndDateTime = new Date(data.endDate)
-        ctEndDateTime.setHours(endHours, endMinutes, 0, 0)
-        endDatetimeUtc = fromZonedTime(ctEndDateTime, CT_TIMEZONE).toISOString()
+      const result = await createEvent(toEventData(data))
+      if (isErr(result)) {
+        throw new Error(result.error)
       }
-
-      const dataType = (data.type as EventTypeValue) ?? null
-      const isSubmittingSingleton =
-        dataType != null && SINGLETON_EVENT_TYPES.includes(dataType)
-
-      // For singleton types, derive weekendGroupId from the selected individual weekend
-      // For group types, clear weekendId since it doesn't apply
-      let weekendGroupId = data.weekendGroupId ?? null
-      let weekendId = data.weekendId ?? null
-      if (isSubmittingSingleton && !isNil(weekendId)) {
-        const match = weekendIndividualOptions.find((w) => w.id === weekendId)
-        if (!isNil(match)) weekendGroupId = match.groupId
-      } else if (!isSubmittingSingleton) {
-        weekendId = null
-      }
-
-      const eventData = {
-        title: data.title,
-        datetime: utcDateTime.toISOString(),
-        location: data.location ?? null,
-        type: dataType,
-        end_datetime: endDatetimeUtc,
-        weekend_group_id: weekendGroupId,
-        weekend_id: weekendId,
-      }
-
-      if (isEditing && !isNil(event)) {
-        const result = await updateEvent(event.id, eventData)
-        if (isErr(result)) {
-          throw new Error(result.error)
-        }
-        toast.success('Event updated successfully')
-      } else {
-        const result = await createEvent(eventData)
-        if (isErr(result)) {
-          throw new Error(result.error)
-        }
-        toast.success('Event created successfully')
-      }
+      toast.success('Event created successfully')
       router.refresh()
       handleClose()
     } catch (error) {
-      toastError('Unable to save event. Please try again.', { error })
+      toastError('Unable to create event. Please try again.', { error })
     } finally {
       setIsSubmitting(false)
     }
@@ -223,51 +246,11 @@ export function useEventForm({
   }
 
   const handleClose = () => {
-    form.reset(DEFAULT_FORM_VALUES)
     setShowDeleteDialog(false)
-    setOriginalFormData(null)
     onClose()
   }
 
-  // Check if form has changes
-  const currentFormData = form.watch()
-  const hasChanges = !isNil(originalFormData)
-    ? JSON.stringify({
-        title: currentFormData.title,
-        date: currentFormData.date?.toISOString(),
-        time: currentFormData.time,
-        location: currentFormData.location,
-        type: currentFormData.type,
-        hasEndDateTime: currentFormData.hasEndDateTime,
-        endDate: currentFormData.endDate?.toISOString(),
-        endTime: currentFormData.endTime,
-        weekendGroupId: currentFormData.weekendGroupId,
-        weekendId: currentFormData.weekendId,
-      }) !==
-      JSON.stringify({
-        title: originalFormData.title,
-        date: originalFormData.date?.toISOString(),
-        time: originalFormData.time,
-        location: originalFormData.location,
-        type: originalFormData.type,
-        hasEndDateTime: originalFormData.hasEndDateTime,
-        endDate: originalFormData.endDate?.toISOString(),
-        endTime: originalFormData.endTime,
-        weekendGroupId: originalFormData.weekendGroupId,
-        weekendId: originalFormData.weekendId,
-      })
-    : currentFormData.title !== '' ||
-      currentFormData.date?.toDateString() !== new Date().toDateString() ||
-      currentFormData.time !== '09:00' ||
-      currentFormData.location !== '' ||
-      currentFormData.type !== null ||
-      currentFormData.hasEndDateTime !== false ||
-      currentFormData.weekendGroupId !== null ||
-      currentFormData.weekendId !== null
-
-  const isFormValid = form.formState.isValid
-  const isSaveDisabled =
-    !isFormValid || (isEditing && !hasChanges) || isSubmitting
+  const isSaveDisabled = !form.formState.isValid || isSubmitting
 
   return {
     form,
@@ -281,5 +264,7 @@ export function useEventForm({
     handleSubmit,
     handleDelete,
     handleClose,
+    saveStatus: autoSave.status,
+    retrySave: autoSave.flush,
   }
 }

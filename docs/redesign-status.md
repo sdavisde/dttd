@@ -1,6 +1,6 @@
 # Redesign — Status Brief
 
-_Status as of 2026-09-23._
+_Status as of 2026-09-24._
 
 ## The plan
 
@@ -52,7 +52,8 @@ dependency, moved `/admin/users` to `/admin/people`, and renamed `/admin/meeting
 
 Two admin routes were left alone on purpose:
 
-- `/admin/weekends/[weekend_id]` — the weekend hub, shared with the public roster (spec 16 non-goal).
+- `/admin/weekends/[weekend_id]` — the old admin weekend hub (spec 16 non-goal); retired on 2026-09-23 in
+  favour of the member hub at `/weekends/[groupId]`.
 - `/admin/reports` — not built; the nav shows a SOON badge.
 
 `app/(public)`, `components/weekend/**` and `components/file-management/**` are zero-diff against
@@ -125,15 +126,95 @@ None of it has been exercised in a browser yet.
 - Open design-system questions: green is used for both community-event scope and paid/success;
   the rector-ready star is still `amber-500` because `--warning` is too pale at icon size.
 
-## Member track — designed, not started
+## Member track — shell, hub, review and sponsor form landed
 
 The canvas has a Member screens page: VerbNav, Weekend Hub, Today home, phone screens, the member
-sidebar and topbar (from the CandidateReviewA board), the phone tab bar (from Main). Spec 16 lists
-all of these as deferred.
+sidebar and topbar (from the CandidateReviewA board), the phone tab bar (from Main).
 
-There is no spec, plan, task list or branch for this track, and no code. It is likely the larger
-remaining half, since the locked structure moves candidate review, the roster builder and
-edit-weekend into the member shell.
+**Shell (2026-09-23, on `preview`):** `app/(public)` was split into a bare public group (landing,
+auth, candidate forms and payment) and `app/(member)`, whose layout renders the designed shell —
+task-named collapsible sidebar, 56px top bar with a jump-to-page search palette and account menu,
+labeled phone tab bar, `MemberBreadcrumbs` + `PageHeader` opening on every page, one gutter
+(`PageContent`) and `min-w-0` containment so nothing spills horizontally. The mega-menu navbar is
+gone. Page bodies were left as they were: the weekend hub (`/weekends/[groupId]`, absorbing
+current-weekend, roster, candidate-list and review-candidates — old URLs removed, not redirected)
+and the queue-layout candidate review are the next two chunks. Deferred by owner decision:
+waitlist status, "Ask the sponsor", and the hub's Documents card.
+
+**Weekend hub (2026-09-23, on `preview`):** `/weekends` lists every group (active first) and
+`/weekends/[groupId]` is the hub (URLs since reshaped, see the 2026-09-24 round below) — Overview (confirmed / 42, team serving, days until send-off,
+fees outstanding for payments readers; Coming up; Your part in this weekend; prayer wheel),
+Schedule (the existing calendar + list), Team (the existing roster view) and Candidates (the
+existing candidate-info table), with the Men's / Women's switch as `?weekend=`. The cream strip
+is per feature: Review candidates · N waiting, Roster builder, Edit weekend (→ Admin › Weekends
+until a member-side editor exists). Retired outright: `/current-weekend`, `/roster`,
+`/candidate-list`, `/admin/weekends/[weekend_id]`; the sidebar's Roster now opens the active
+group's Team tab. Known gaps: no weekend location column (read from the weekend event), CHA-role
+permissions only apply to the ACTIVE group, the roster builder and sponsor form still work on the
+active group only.
+
+**Owner feedback round (2026-09-24, `e55b354`):** hub URLs are now
+`/weekends/[groupId]/[mens|womens]/<tab>` under a shared `(hub)` layout, so the header, weekend
+switch and tabs stay mounted between tabs; the group root only redirects to the viewer's own weekend
+(honouring a legacy `?weekend=`). The header shows dates and location plus a "Sponsor a candidate"
+button; the fees tile, the Weekend schedule button and the cream management strip are gone. "Your
+part in this weekend" is a full-width section with personal to-dos (forms, team fee — green when
+done) and role tools (review candidates, roster builder) marked only by a muted key. Nav: "Online
+payment" (`/payment`) for everyone — only the viewer's own team fee is live, the rest "Coming soon";
+Roster removed; "The weekend" opens the active weekend for the viewer's gender; role tools sit in an
+unlabeled sidebar group; Payments phone tab. "Sponsor someone" is "Sponsor a candidate" everywhere.
+The review queue moved with the hub to `/weekends/[groupId]/[weekend]/review-candidates`.
+
+**Sponsor form (2026-09-24, `8812716`):** one narrow page with four titled sections, plain-words
+labels, per-field errors and `toastError` failures; weekend and yes/no choices are selectable cards;
+the viewer's own weekend is preselected and their contact, church and weekend attended come from
+their profile. An empty state replaces the form when no weekend is open. The thank-you page lists
+what happens next and only shows to the candidate's sponsor.
+
+**Roster builder (2026-09-24):** restyled to design tokens — neutral columns, borders
+not shadows, `SegmentedControl` filters, cream Secuela banner, stacked collapsible columns on phones,
+new `loading.tsx`. By owner decision it stays a standalone full-width page (not under the hub) with
+its own header, no breadcrumb, and the `?weekendId=` picker.
+
+**Documents (2026-09-24):** `/files` now uses the admin Files browser read-only — folder rail,
+folders and files in one table with Open / Download row menus, mobile cards, pick-a-folder empty
+state — with no upload, new-folder, delete or storage meter, whatever the viewer's permissions.
+It lists only the community `files` bucket (the old page also listed `avatars`). The old
+`components/public-files` table and the bucket-listing helpers are gone.
+
+**Review candidates (2026-09-23, on `preview`):** the locked queue layout now lives at
+`/weekends/[groupId]/review-candidates?weekend=&candidate=` (breadcrumb under the hub, `READ_CANDIDATES`
+gate that bounces to the hub overview otherwise). Left: search, Needs review / All / Archived chips,
+one row per candidate with a plain-words status pill; right: sponsorship and forms-&-fee cards, a
+medical row whose text is stripped server-side unless the viewer holds `READ_CANDIDATE_MEDICAL_INFO`,
+and the decision bar. "Approve for Men's #12" is today's request-payment step (status →
+awaiting_payment + fee email), renamed; "Move to waitlist" and "Ask the sponsor" are disabled with a
+"Coming soon" tooltip per owner decision. Send forms, move weekend, record cash/check and archive sit
+in the "…" menu; `updateCandidateStatus` is now gated on `WRITE_CANDIDATES`. The old editable
+detail page survives as "Full details" under the same route, with medical and emergency-contact
+fields gated per permission. The standalone `/review-candidates` route is gone; PWC emails now deep
+link into the queue via the candidate's weekend. Phones show the queue and open the detail in a
+sheet.
+
+### Member track — remaining
+
+- **Off-design bodies inside the new shell:** the hub's Schedule, Team and Candidates tabs still
+  render the legacy `CalendarEventSection`, `WeekendRosterView` and zebra `CandidateListTable`;
+  profile (still a Save button, not auto-save), team forms, the Home "Today" screen and the review
+  "Full details" page are unrestyled.
+- **Active group only:** the roster builder and sponsor form only offer active weekends; the sponsor
+  form takes no weekend preselect from the URL (the hub's "Sponsor a candidate" links to bare
+  `/sponsor`). CHA-role permissions also only apply to the active group.
+- **Hub tabs not built:** Documents (skipped — files have no weekend association) and a Payments
+  tab (needs a fee-status model). Online payment for anything but the own team fee is "Coming soon".
+- **Deferred by owner:** candidate waitlist status and "Ask the sponsor" email; a member-side
+  "Edit weekend".
+- **Unguarded server actions (pre-existing):** manual cash/check payments
+  (`services/candidates/actions.ts`, `services/weekend/actions.ts` — "Public - no auth"), the email
+  senders in `services/notifications/email-actions.ts`, and `updateCandidatePaymentOwner` in
+  `actions/candidates.ts` (its neighbours are wrapped in `WRITE_CANDIDATES`).
+- **Housekeeping:** `app/error.tsx` still has a hard-coded `ErrorNavbar`; an empty untracked
+  `app/(member)/review-candidates/[candidate_id]/` directory can be deleted.
 
 Earlier public-side design commits predate the canvas and are not part of this track: `fc9c4f1`
 landing redesign, `8964c88` home dashboard, `448bdc3` warm design foundation + profile settings.
@@ -143,7 +224,10 @@ landing redesign, `8964c88` home dashboard, `448bdc3` warm design foundation + p
 1. Apply migration `20260921100000` locally, test the admin redesign on the `preview` deploy
    (nothing in the pre-merge batch has been run in a browser), then merge `preview` into `main`.
 2. Owner-run `yarn db:reset` to restore the local seeded login.
-3. Redraw the Security board, then write the member-side spec (spec 18) from the canvas.
+3. Restyle the hub's Schedule, Team and Candidates tab bodies, then profile, team forms and Home
+   "Today".
+4. Add permission checks to the manual-payment and email-sender actions.
+5. Redraw the Security board.
 
 ## Related
 

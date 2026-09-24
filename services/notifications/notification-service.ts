@@ -17,6 +17,7 @@ import * as CandidateRepository from '@/services/candidates/repository'
 import type { ContactInfo, NotificationRecipient } from './types'
 import type { HydratedCandidate } from '@/lib/candidates/types'
 import CandidatePaymentCompletedEmail from '@/components/email/CandidatePaymentCompletedEmail'
+import { getCandidateReviewUrl } from './review-links'
 
 /**
  * Gets contact information by ID and transforms to DTO.
@@ -204,6 +205,7 @@ async function sendCandidatePaymentEmail(
       paymentAmount,
       paymentMethod,
       paymentOwner,
+      reviewUrl: await getCandidateReviewUrl(candidate),
     }),
   })
 

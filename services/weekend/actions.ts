@@ -125,6 +125,41 @@ export async function getActiveWeekendLeadershipTeam() {
   return WeekendService.getActiveWeekendLeadershipTeam()
 }
 
+/**
+ * Every weekend group, newest first.
+ * Public - the member hub index lists every weekend.
+ */
+export async function getAllWeekendGroups() {
+  return WeekendService.getAllWeekendGroups()
+}
+
+/**
+ * The ACTIVE group id, or null.
+ * Public - the member shell builds the Roster link from it.
+ */
+export async function getActiveGroupId() {
+  return WeekendService.getActiveGroupId()
+}
+
+/**
+ * Counts active roster rows on a weekend.
+ * Public - the hub's "team members serving" tile.
+ */
+export async function getRosterCountByWeekend(weekendId: string) {
+  return WeekendService.getRosterCountByWeekend(weekendId)
+}
+
+/**
+ * A member's own roster row on a weekend, for any group.
+ * Public - the hub's "your part in this weekend" card.
+ */
+export async function getRosterAssignmentForUser(
+  userId: string,
+  weekendId: string
+) {
+  return WeekendService.getRosterAssignmentForUser(userId, weekendId)
+}
+
 // ============================================================================
 // Protected Actions (Authorization Required)
 // ============================================================================

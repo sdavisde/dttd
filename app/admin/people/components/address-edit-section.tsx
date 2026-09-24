@@ -1,19 +1,23 @@
 'use client'
 
+import { isNil } from 'lodash'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import type { FieldErrors } from '../hooks/use-user-edit-form'
 import type { AddressFields } from '../types'
-import { editorFieldLabelClass } from './editor-section-card'
+import { EditorFieldError, editorFieldLabelClass } from './editor-section-card'
 
 interface AddressEditSectionProps {
   address: AddressFields
   onChange: (fields: AddressFields) => void
+  errors?: FieldErrors<AddressFields>
   disabled: boolean
 }
 
 export function AddressEditSection({
   address,
   onChange,
+  errors = {},
   disabled,
 }: AddressEditSectionProps) {
   return (
@@ -26,8 +30,10 @@ export function AddressEditSection({
             onChange({ ...address, addressLine1: e.target.value })
           }
           placeholder="123 Main St"
+          aria-invalid={!isNil(errors.addressLine1)}
           disabled={disabled}
         />
+        <EditorFieldError message={errors.addressLine1} />
       </div>
       <div className="space-y-1">
         <Label className={editorFieldLabelClass}>Apt / suite (optional)</Label>
@@ -47,8 +53,10 @@ export function AddressEditSection({
             value={address.city}
             onChange={(e) => onChange({ ...address, city: e.target.value })}
             placeholder="City"
+            aria-invalid={!isNil(errors.city)}
             disabled={disabled}
           />
+          <EditorFieldError message={errors.city} />
         </div>
         <div className="space-y-1">
           <Label className={editorFieldLabelClass}>State</Label>
@@ -56,8 +64,10 @@ export function AddressEditSection({
             value={address.state}
             onChange={(e) => onChange({ ...address, state: e.target.value })}
             placeholder="TX"
+            aria-invalid={!isNil(errors.state)}
             disabled={disabled}
           />
+          <EditorFieldError message={errors.state} />
         </div>
         <div className="space-y-1">
           <Label className={editorFieldLabelClass}>Zip</Label>
@@ -66,8 +76,10 @@ export function AddressEditSection({
             value={address.zip}
             onChange={(e) => onChange({ ...address, zip: e.target.value })}
             placeholder="12345"
+            aria-invalid={!isNil(errors.zip)}
             disabled={disabled}
           />
+          <EditorFieldError message={errors.zip} />
         </div>
       </div>
     </div>

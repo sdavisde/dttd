@@ -203,12 +203,16 @@ export const updateUserContactInfo = async (
 export const updateUserBasicInfo = async (userId: string, data: BasicInfo) => {
   const supabase = await createClient()
 
-  const weekendAttendedStr = formatCommunityWeekendRef(
-    toCommunityWeekendRef({
-      community: data.weekend_attended.community,
-      number: parseInt(data.weekend_attended.weekend_number),
-    })
-  )
+  // The admin editor allows clearing the weekend; store null rather than `#NaN`.
+  const weekendAttendedStr =
+    data.weekend_attended.community === ''
+      ? null
+      : formatCommunityWeekendRef(
+          toCommunityWeekendRef({
+            community: data.weekend_attended.community,
+            number: parseInt(data.weekend_attended.weekend_number),
+          })
+        )
 
   const response = await supabase
     .from('users')

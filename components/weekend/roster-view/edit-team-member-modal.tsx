@@ -9,38 +9,23 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Form } from '@/components/ui/form'
 import { ChaRoleField } from '@/components/weekend/cha-role-field'
 import { RolloField } from '@/components/weekend/rollo-field'
-import type { SubmitHandler } from 'react-hook-form'
-import { useForm } from 'react-hook-form'
+import { AutoSaveStatusIndicator } from '@/components/auto-save/auto-save-status'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { updateWeekendRosterMember } from '@/services/weekend'
 import { isErr } from '@/lib/results'
-import { logger } from '@/lib/logger'
+import { toastError } from '@/lib/toast-error'
+import { useAutoSave } from '@/hooks/use-auto-save'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
-import { AlertCircle } from 'lucide-react'
+import { useState } from 'react'
 import { isNil } from 'lodash'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
+// Status isn't edited here (only via Drop), so it isn't part of the form.
 const editTeamMemberFormSchema = z.object({
-  status: z.string().min(1, { message: 'Status is required' }),
   cha_role: z.string().min(1, { message: 'Role is required' }),
   rollo: z.string().optional(),
 })
@@ -70,90 +55,72 @@ type EditTeamMemberModalProps = {
   rosterMember: RosterMember | null
 }
 
-const statusOptions = [
-  { value: 'awaiting_payment', label: 'Awaiting Payment' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'drop', label: 'Drop' },
-]
-
 export function EditTeamMemberModal({
   open,
   onClose,
   rosterMember,
 }: EditTeamMemberModalProps) {
+  if (isNil(rosterMember)) {
+    return null
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={() => onClose()}>
+      <SheetContent className="max-w-full w-[400px] sm:w-[540px]">
+        {/* Keyed per member so each one starts from its own saved values. */}
+        <EditTeamMemberBody
+          key={rosterMember.id}
+          rosterMember={rosterMember}
+          onClose={onClose}
+        />
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+/** Role and rollo save as soon as they change; dropping stays a deliberate button. */
+function EditTeamMemberBody({
+  rosterMember,
+  onClose,
+}: {
+  rosterMember: RosterMember
+  onClose: () => void
+}) {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDropping, setIsDropping] = useState(false)
 
   const form = useForm<EditTeamMemberFormValues>({
     defaultValues: {
-      status: rosterMember?.status ?? '',
-      cha_role: rosterMember?.cha_role ?? '',
-      rollo: rosterMember?.rollo ?? '',
+      cha_role: rosterMember.cha_role ?? '',
+      rollo: rosterMember.rollo ?? '',
     },
     resolver: zodResolver(editTeamMemberFormSchema),
+    mode: 'onTouched',
   })
 
-  const { handleSubmit, reset, setError, watch } = form
-  const selectedRole = watch('cha_role')
+  const values = useWatch({
+    control: form.control,
+  }) as EditTeamMemberFormValues
+  const selectedRole = values.cha_role
 
-  // Update form values when rosterMember changes
-  React.useEffect(() => {
-    if (!isNil(rosterMember)) {
-      form.setValue('status', rosterMember.status ?? '')
-      form.setValue('cha_role', rosterMember.cha_role ?? '')
-      form.setValue('rollo', rosterMember.rollo ?? '')
-    }
-  }, [rosterMember, form])
-
-  const handleClose = () => {
-    reset()
-    onClose()
-  }
-
-  const onSubmit: SubmitHandler<EditTeamMemberFormValues> = async ({
-    status,
-    cha_role,
-    rollo,
-  }) => {
-    if (isNil(rosterMember)) {
-      setError('root', { message: 'No roster member selected' })
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      const result = await updateWeekendRosterMember({
+  const autoSave = useAutoSave({
+    value: values,
+    isValid: editTeamMemberFormSchema.safeParse(values).success,
+    delay: 0,
+    errorMessage: 'Unable to update this team member. Please try again.',
+    onSaved: () => router.refresh(),
+    save: ({ cha_role, rollo }) =>
+      updateWeekendRosterMember({
         rosterId: rosterMember.id,
         updates: {
-          status,
           cha_role,
-          rollo: rollo ?? null,
+          rollo: isNil(rollo) || rollo === '' ? null : rollo,
         },
-      })
-
-      if (isErr(result)) {
-        logger.error(`💢 failed to update roster member: ${result.error}`)
-        setError('root', { message: 'Failed to update roster member' })
-        return
-      }
-
-      router.refresh()
-      handleClose()
-    } catch (error) {
-      setError('root', { message: 'An unexpected error occurred' })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+      }),
+  })
 
   const handleDrop = async () => {
-    if (isNil(rosterMember)) {
-      setError('root', { message: 'No roster member selected' })
-      return
-    }
-
-    setIsSubmitting(true)
+    setIsDropping(true)
 
     try {
       const result = await updateWeekendRosterMember({
@@ -162,100 +129,73 @@ export function EditTeamMemberModal({
       })
 
       if (isErr(result)) {
-        logger.error(`💢 failed to drop roster member: ${result.error}`)
-        setError('root', { message: 'Failed to drop roster member' })
+        toastError('Unable to drop this team member. Please try again.', {
+          error: result.error,
+        })
         return
       }
 
       router.refresh()
-      handleClose()
+      onClose()
     } catch (error) {
-      setError('root', { message: 'An unexpected error occurred' })
+      toastError('Unable to drop this team member. Please try again.', {
+        error,
+      })
     } finally {
-      setIsSubmitting(false)
+      setIsDropping(false)
     }
   }
 
-  if (isNil(rosterMember)) {
-    return null
-  }
-
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="max-w-full w-[400px] sm:w-[540px]">
-        <SheetHeader>
+    <>
+      <SheetHeader>
+        <div className="flex items-center gap-3 pr-8">
           <SheetTitle>Edit Team Member</SheetTitle>
-          <SheetDescription>
-            Edit {rosterMember.users?.first_name}{' '}
-            {rosterMember.users?.last_name}&apos;s roster information.
-          </SheetDescription>
-        </SheetHeader>
+          <AutoSaveStatusIndicator
+            status={autoSave.status}
+            onRetry={autoSave.flush}
+            className="ml-auto"
+          />
+        </div>
+        <SheetDescription>
+          Edit {rosterMember.users?.first_name} {rosterMember.users?.last_name}
+          &apos;s roster information. Changes save as you go.
+        </SheetDescription>
+      </SheetHeader>
 
-        <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4">
-            <ChaRoleField
-              control={form.control}
-              name="cha_role"
-              label="CHA Role"
-              placeholder="Select a role..."
-              required
-            />
+      <Form {...form}>
+        <form
+          onSubmit={(event) => event.preventDefault()}
+          className="space-y-6 p-4"
+        >
+          <ChaRoleField
+            control={form.control}
+            name="cha_role"
+            label="CHA Role"
+            placeholder="Select a role..."
+            required
+          />
 
-            <RolloField
-              control={form.control}
-              name="rollo"
-              selectedRole={selectedRole}
-            />
+          <RolloField
+            control={form.control}
+            name="rollo"
+            selectedRole={selectedRole}
+          />
+        </form>
+      </Form>
 
-            {!isNil(form.formState.errors.root) && (
-              <Alert variant="destructive">
-                <AlertCircle />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>
-                  {form.formState.errors.root.message}
-                </AlertDescription>
-              </Alert>
-            )}
-          </form>
-        </Form>
-
-        <SheetFooter className="flex flex-col gap-3">
-          {/* Drop Button - Full width and prominent */}
-          <Button
-            type="button"
-            variant="destructive"
-            size="lg"
-            onClick={handleDrop}
-            disabled={isSubmitting}
-            className="w-full"
-          >
-            Drop Team Member
-          </Button>
-
-          {/* Action buttons row */}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={handleClose}
-              className="flex-1"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              size="lg"
-              disabled={isSubmitting}
-              onClick={handleSubmit(onSubmit)}
-              className="flex-1"
-            >
-              {isSubmitting ? 'Updating...' : 'Update Team Member'}
-            </Button>
-          </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+      <SheetFooter>
+        <Button
+          type="button"
+          variant="destructive"
+          size="lg"
+          onClick={handleDrop}
+          disabled={isDropping}
+          className="w-full"
+        >
+          {isDropping ? 'Dropping...' : 'Drop Team Member'}
+        </Button>
+      </SheetFooter>
+    </>
   )
 }

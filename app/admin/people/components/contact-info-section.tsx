@@ -1,5 +1,6 @@
 'use client'
 
+import { isNil } from 'lodash'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PhoneInput } from '@/components/ui/phone-input'
@@ -10,18 +11,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { FieldErrors, SectionChange } from '../hooks/use-user-edit-form'
 import type { ContactFields } from '../types'
-import { editorFieldLabelClass } from './editor-section-card'
+import { EditorFieldError, editorFieldLabelClass } from './editor-section-card'
 
 interface ContactInfoSectionProps {
   contact: ContactFields
-  onChange: (fields: ContactFields) => void
+  onChange: SectionChange<ContactFields>
+  errors?: FieldErrors<ContactFields>
   disabled: boolean
 }
 
 export function ContactInfoSection({
   contact,
   onChange,
+  errors = {},
   disabled,
 }: ContactInfoSectionProps) {
   return (
@@ -65,15 +69,19 @@ export function ContactInfoSection({
             value={contact.email}
             onChange={(e) => onChange({ ...contact, email: e.target.value })}
             placeholder="email@example.com"
+            aria-invalid={!isNil(errors.email)}
             disabled={disabled}
           />
+          <EditorFieldError message={errors.email} />
         </div>
       </div>
       <div className="space-y-1">
         <Label className={editorFieldLabelClass}>Gender</Label>
         <Select
           value={contact.gender}
-          onValueChange={(v) => onChange({ ...contact, gender: v })}
+          onValueChange={(v) =>
+            onChange({ ...contact, gender: v }, { immediate: true })
+          }
           disabled={disabled}
         >
           <SelectTrigger className="w-full">

@@ -246,3 +246,26 @@ export async function getCandidateCountsByWeekends(
 ): Promise<Result<string, Record<string, number>>> {
   return CandidateRepository.getCandidateCountsByWeekends(weekendIds)
 }
+
+/**
+ * Counts the confirmed candidates on a weekend (spot fully settled).
+ */
+export async function getConfirmedCandidateCountByWeekend(
+  weekendId: string
+): Promise<Result<string, number>> {
+  return CandidateRepository.getConfirmedCandidateCountByWeekend(weekendId)
+}
+
+/**
+ * The candidates a member is sponsoring on a weekend, matched by the email
+ * the sponsor form recorded.
+ */
+export async function getSponsoredCandidatesForWeekend(
+  sponsorEmail: string,
+  weekendId: string
+): Promise<Result<string, CandidateRepository.SponsoredCandidateRow[]>> {
+  return CandidateRepository.findSponsoredCandidatesForWeekend(
+    sponsorEmail,
+    weekendId
+  )
+}

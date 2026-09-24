@@ -28,7 +28,7 @@ function PageHeader({
       )}
       {...props}
     >
-      <div className="space-y-1.5">
+      <div className="min-w-0 space-y-1.5">
         <h1 className="font-serif text-3xl font-semibold tracking-tight lg:text-4xl">
           {title}
         </h1>
@@ -37,7 +37,9 @@ function PageHeader({
         )}
       </div>
       {!isNil(children) && (
-        <div className="flex shrink-0 items-center gap-2">{children}</div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {children}
+        </div>
       )}
     </div>
   )

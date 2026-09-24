@@ -2,7 +2,7 @@ import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import type { Result } from '@/lib/results'
 import { err, isErr, ok, Results } from '@/lib/results'
-import { slugify, unslugify } from '@/lib/url'
+import { slugify } from '@/lib/url'
 import type { FileObject } from '@supabase/storage-js'
 import type {
   MeetingMinuteFile,
@@ -27,48 +27,6 @@ import {
 } from '@/lib/files/browser'
 import { isAllowedFileExtension } from '@/lib/files/validation'
 import * as FileRepository from './repository'
-
-export type Bucket = {
-  name: string
-  folders: {
-    name: string
-    slug: string
-  }[]
-}
-
-export async function getBuckets(): Promise<Bucket[]> {
-  const { data: buckets, error: bucketsError } =
-    await FileRepository.listBuckets()
-
-  if (!isNil(bucketsError) || isNil(buckets)) {
-    logger.error(`Error fetching buckets: ${bucketsError?.message}`)
-    return []
-  }
-
-  return Promise.all(
-    buckets.map(async (bucket) => {
-      const { data: folders, error: foldersError } =
-        await FileRepository.listFiles(bucket.name, '')
-
-      if (!isNil(foldersError) || isNil(folders)) {
-        logger.error(
-          `Error fetching folders for bucket ${bucket.name}: ${foldersError?.message}`
-        )
-        return { name: bucket.name, folders: [] }
-      }
-
-      return {
-        name: bucket.name,
-        folders: folders
-          .filter((item) => item.metadata === null)
-          .map((folder) => ({
-            name: folder.name,
-            slug: slugify(folder.name),
-          })),
-      }
-    })
-  )
-}
 
 export async function getFileSystemItems(
   bucket: string = 'files',
@@ -107,38 +65,6 @@ export async function getFileSystemItems(
       a.name.localeCompare(b.name)
     )
   )
-}
-
-export async function fetchFolderContents(
-  pathSegments: string[]
-): Promise<Result<string, Array<FileObject>>> {
-  if (pathSegments.length === 0) return ok([])
-  const folderPath = pathSegments.map(unslugify)
-
-  let currentPath = ''
-
-  for (const segment of folderPath) {
-    const { data: items, error } = await FileRepository.listFiles(
-      'files',
-      currentPath
-    )
-
-    if (!isNil(error) || isNil(items)) {
-      return err(`Error validating path segment ${segment}: ${error?.message}`)
-    }
-
-    const folderExists = items.some(
-      (item) => item.metadata === null && item.name === segment
-    )
-
-    if (!folderExists) {
-      return err(`Cannot find ${segment} in files/${currentPath}`)
-    }
-
-    currentPath = currentPath !== '' ? `${currentPath}/${segment}` : segment
-  }
-
-  return getFileSystemItems('files', currentPath)
 }
 
 export async function getMeetingMinutesFiles(): Promise<
@@ -314,7 +240,7 @@ export async function getFileDownloadUrl(
   return ok({ downloadUrl: data.signedUrl })
 }
 
-export type AdminFolderView = {
+export type FolderView = {
   /** Real path inside the bucket; '' for the root */
   storagePath: string
   /** One crumb per folder from the root down to the viewed folder */
@@ -322,7 +248,7 @@ export type AdminFolderView = {
   entries: FileBrowserEntry[]
 }
 
-/** Top-level folders of the community files bucket (the admin folder rail). */
+/** Top-level folders of the community files bucket (the folder rail). */
 export async function getRootFolders(): Promise<Result<string, RootFolder[]>> {
   const items = await getFileSystemItems(COMMUNITY_FILES_BUCKET, '')
   return Results.map(items, (list) =>
@@ -335,12 +261,12 @@ export async function getRootFolders(): Promise<Result<string, RootFolder[]>> {
 
 /**
  * Resolves URL slugs to the real folder path in the community files bucket and
- * lists what is inside, with folders and files told apart. Admin-only sibling
- * of `fetchFolderContents`, which the public route keeps using unchanged.
+ * lists what is inside, with folders and files told apart. Backs both the
+ * admin Files page and the member Documents page.
  */
-export async function getAdminFolderView(
+export async function getFolderView(
   pathSegments: string[]
-): Promise<Result<string, AdminFolderView>> {
+): Promise<Result<string, FolderView>> {
   let storagePath = ''
   const trail: FolderCrumb[] = []
 

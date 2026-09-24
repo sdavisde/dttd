@@ -3,6 +3,7 @@ import type { Role } from '@/services/identity/roles'
 import {
   defaultCopySource,
   draftFromRole,
+  effectivePermissionCount,
   inheritedPermissions,
   parentOptions,
   toRoleInput,
@@ -54,6 +55,27 @@ describe('inheritedPermissions', () => {
     expect(inheritedPermissions('board', roles)).toEqual(
       new Set([Permission.READ_PAYMENTS, Permission.READ_ADMIN_PORTAL])
     )
+  })
+})
+
+describe('effectivePermissionCount', () => {
+  it('counts own and inherited permissions once each', () => {
+    expect(
+      effectivePermissionCount(
+        [Permission.READ_PAYMENTS],
+        new Set([Permission.READ_ADMIN_PORTAL])
+      )
+    ).toBe(2)
+    expect(
+      effectivePermissionCount(
+        [Permission.READ_PAYMENTS, Permission.READ_ADMIN_PORTAL],
+        new Set([Permission.READ_ADMIN_PORTAL])
+      )
+    ).toBe(2)
+  })
+
+  it('is zero when the role grants nothing', () => {
+    expect(effectivePermissionCount([], new Set())).toBe(0)
   })
 })
 

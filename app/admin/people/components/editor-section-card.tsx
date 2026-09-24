@@ -17,6 +17,12 @@ import { cn } from '@/lib/utils'
 export const editorFieldLabelClass =
   'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground'
 
+/** Inline validation message under an editor field; renders nothing when valid. */
+export function EditorFieldError({ message }: { message?: string }) {
+  if (isNil(message)) return null
+  return <p className="text-xs text-destructive">{message}</p>
+}
+
 interface EditorSectionCardProps {
   title: string
   /** Appended to the heading in muted text, e.g. "· served DTTD #10, #11". */

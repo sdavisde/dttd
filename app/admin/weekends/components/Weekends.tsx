@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { isNil } from 'lodash'
-import { CalendarPlus, Plus, Settings2 } from 'lucide-react'
+import { ArrowUpRight, CalendarPlus, Plus, Settings2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
@@ -14,6 +14,7 @@ import {
   formatWeekendGroupTitle,
   getGroupStatus,
 } from '@/lib/weekend'
+import { hubPath } from '@/lib/weekend/hub'
 import type { Weekend, WeekendGroupWithId } from '@/lib/weekend/types'
 import { WeekendStatus, WeekendType } from '@/lib/weekend/types'
 import {
@@ -110,8 +111,17 @@ function WeekendSubCard({
       )}
       <div className="mt-auto flex flex-wrap items-center gap-2.5">
         <Button asChild variant="outline">
-          <Link href={`/admin/weekends/${weekend.id}`}>
+          <Link
+            href={
+              isNil(weekend.groupId)
+                ? '/weekends'
+                : hubPath(weekend.groupId, 'overview', weekend.type)
+            }
+            title="Opens the weekend hub on the member site, outside Admin"
+          >
             Open the weekend hub
+            <ArrowUpRight className="h-4 w-4" aria-hidden />
+            <span className="sr-only">(leaves Admin)</span>
           </Link>
         </Button>
         <p className="text-[13px] text-muted-foreground">
@@ -134,7 +144,7 @@ function GroupLinks({ group }: { group: WeekendGroupWithId }) {
         isNil(weekend) ? null : (
           <Link
             key={type}
-            href={`/admin/weekends/${weekend.id}`}
+            href={hubPath(group.groupId, 'overview', type)}
             className="text-[13.5px] font-semibold text-primary hover:text-primary-hover"
           >
             {formatWeekendGender(type, 'possessive')}

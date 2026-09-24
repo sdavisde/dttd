@@ -1,0 +1,287 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { DollarSign, CreditCard, FileText, User } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import type { ReviewCandidate } from '@/lib/candidates/review'
+import { recordManualCandidatePayment } from '@/services/candidates/actions'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { toastError } from '@/lib/toast-error'
+import { isOk } from '@/lib/results'
+import { isNil } from 'lodash'
+
+type CandidateCashCheckPaymentModalProps = {
+  open: boolean
+  onClose: () => void
+  candidate: ReviewCandidate | null
+}
+
+export function CandidateCashCheckPaymentModal({
+  open,
+  onClose,
+  candidate,
+}: CandidateCashCheckPaymentModalProps) {
+  const [paymentAmount, setPaymentAmount] = useState('')
+  const [paymentType, setPaymentType] = useState<'cash' | 'check' | null>(null)
+  const [paidBy, setPaidBy] = useState('')
+  const [notes, setNotes] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
+
+  const candidateName = candidate?.name ?? 'Unknown Candidate'
+  const sponsorName = candidate?.sponsor.name ?? ''
+  const paymentOwnerType = candidate?.sponsor.paymentOwner ?? 'candidate'
+
+  // Determine the default payer name based on who is supposed to pay
+  const defaultPayerName =
+    paymentOwnerType === 'sponsor' ? sponsorName : candidateName
+
+  // Initialize paidBy with appropriate name when modal opens
+  useEffect(() => {
+    if (open && !isNil(candidate)) {
+      setPaidBy(defaultPayerName)
+    }
+  }, [open, candidate, defaultPayerName])
+
+  if (isNil(candidate)) {
+    return null
+  }
+
+  const {
+    totalFee,
+    totalPaid: currentPaid,
+    balance: remainingBalance,
+  } = candidate.fee
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isNil(paymentType)) return
+    setIsSubmitting(true)
+
+    try {
+      const result = await recordManualCandidatePayment(
+        candidate.id,
+        parseFloat(paymentAmount),
+        paymentType,
+        paidBy.trim() !== '' ? paidBy.trim() : defaultPayerName,
+        notes
+      )
+
+      if (isOk(result)) {
+        toast.success(
+          `${paymentType === 'cash' ? 'Cash' : 'Check'} payment of $${paymentAmount} recorded successfully`
+        )
+
+        // Reset form and close modal
+        setPaymentAmount('')
+        setPaymentType(null)
+        setPaidBy('')
+        setNotes('')
+        onClose()
+
+        // Refresh the page to update the payment display
+        router.refresh()
+      } else {
+        toastError('Unable to record the payment. Please try again.', {
+          error: result.error,
+        })
+      }
+    } catch (error) {
+      toastError('Unable to record the payment. Please try again.', { error })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleClose = () => {
+    // Reset form when closing
+    setPaymentAmount('')
+    setPaymentType(null)
+    setPaidBy('')
+    setNotes('')
+    onClose()
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 font-serif text-xl font-semibold tracking-tight">
+            <CreditCard className="size-5" aria-hidden />
+            Record a cash or check payment
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Candidate Name */}
+          <div className="text-sm">
+            <span className="font-medium text-muted-foreground">
+              Candidate:
+            </span>
+            <span className="ml-2 font-semibold">{candidateName}</span>
+          </div>
+
+          {/* Payment Type - moved above summary */}
+          <div className="space-y-2">
+            <Label htmlFor="payment-type">Payment Type</Label>
+            <Select
+              value={paymentType ?? ''}
+              onValueChange={(value: 'cash' | 'check') => setPaymentType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment type..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Cash
+                  </div>
+                </SelectItem>
+                <SelectItem value="check">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Check
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Paid By */}
+          <div className="space-y-2">
+            <Label htmlFor="paid-by">Paid By</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="paid-by"
+                type="text"
+                value={paidBy}
+                onChange={(e) => setPaidBy(e.target.value)}
+                placeholder="Name of person paying"
+                className="pl-10"
+                disabled={isNil(paymentType)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pre-filled based on payment responsibility. Change if someone else
+              is paying.
+            </p>
+          </div>
+
+          {/* Payment Summary */}
+          <div className="space-y-2 rounded-md border bg-muted p-3">
+            {isNil(paymentType) ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Select a payment method to see fee details
+              </p>
+            ) : (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span>Total Candidate Fee:</span>
+                  <span className="font-medium">${totalFee}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Already Paid:</span>
+                  <span className="font-medium">${currentPaid}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>Remaining Balance:</span>
+                  <span
+                    className={
+                      remainingBalance > 0
+                        ? 'text-secondary-foreground'
+                        : 'text-success'
+                    }
+                  >
+                    ${remainingBalance}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Payment Amount */}
+            <div className="space-y-2">
+              <Label htmlFor="payment-amount">Payment Amount</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="pl-10"
+                  required
+                  disabled={isNil(paymentType)}
+                />
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="payment-notes">
+                Notes {paymentType === 'check' && '(Check Number, etc.)'}
+              </Label>
+              <Textarea
+                id="payment-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={
+                  paymentType === 'check'
+                    ? 'Check #1234, Bank Name, etc.'
+                    : 'Optional notes about the payment...'
+                }
+                rows={3}
+                disabled={isNil(paymentType)}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                className="flex-1"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={
+                  isSubmitting || paymentAmount === '' || isNil(paymentType)
+                }
+              >
+                {isSubmitting ? 'Recording...' : 'Record Payment'}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

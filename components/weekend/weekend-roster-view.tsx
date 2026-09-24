@@ -6,7 +6,6 @@ import {
   DroppedRosterSection,
   ActiveRosterHeader,
   WeekendStatusBadge,
-  LeadershipTeamPreview,
 } from '@/components/weekend'
 import { ExperienceDistributionChart } from '@/components/weekend/experience-distribution-chart'
 import { Typography } from '@/components/ui/typography'
@@ -17,6 +16,7 @@ import { Users } from 'lucide-react'
 import { isNil } from 'lodash'
 import { WeekendStatus } from '@/lib/weekend/types'
 import { formatWeekendTitle } from '@/lib/weekend'
+import { hubPath } from '@/lib/weekend/hub'
 import { getWeekendRosterViewData } from '@/services/weekend'
 import { Permission, userHasPermission } from '@/lib/security'
 import type { User } from '@/lib/users/types'
@@ -95,7 +95,7 @@ export async function WeekendRosterView({
             {/* Left side: Weekend info */}
             {!hideWeekendHeader && (
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="mb-2 flex flex-wrap items-center gap-3">
                   <Typography variant="h5" className="text-2xl">
                     {weekendTitle}
                   </Typography>
@@ -116,7 +116,11 @@ export async function WeekendRosterView({
                 {!isNil(weekend.groupId) && (
                   <Button asChild variant="outline" size="sm" className="mt-3">
                     <Link
-                      href={`/candidate-list?weekend=${weekend.groupId}&weekendType=${weekend.type}`}
+                      href={hubPath(
+                        weekend.groupId,
+                        'candidates',
+                        weekend.type
+                      )}
                     >
                       <Users className="h-4 w-4" />
                       Candidates

@@ -4,10 +4,15 @@ import {
   applyRung,
   applySwitch,
   deriveLadderState,
+  heldCount,
+  isLadderLocked,
+  nextRung,
+  partwayRung,
   resolveLadder,
   resolveSwitch,
   rungOf,
   rungPermissions,
+  togglePermission,
 } from './role-rungs'
 
 const ladder = (id: string) => {
@@ -171,6 +176,129 @@ describe('applySwitch', () => {
     expect(applySwitch(on, Permission.FULL_ACCESS, false)).toEqual([
       Permission.READ_PAYMENTS,
     ])
+  })
+})
+
+describe('togglePermission', () => {
+  it('adds a missing permission and removes a held one', () => {
+    const own = [Permission.READ_PAYMENTS]
+    const added = togglePermission(own, Permission.WRITE_PAYMENTS)
+    expect(added).toEqual([Permission.READ_PAYMENTS, Permission.WRITE_PAYMENTS])
+    expect(togglePermission(added, Permission.READ_PAYMENTS)).toEqual([
+      Permission.WRITE_PAYMENTS,
+    ])
+    expect(own).toEqual([Permission.READ_PAYMENTS])
+  })
+
+  it('walks a ladder from No access to View one tick at a time', () => {
+    let own: Permission[] = []
+    for (const permission of candidates.view) {
+      const before = deriveLadderState(candidates, new Set(own))
+      expect(rungOf(before)).toBe('none')
+      own = togglePermission(own, permission)
+    }
+    expect(deriveLadderState(candidates, new Set(own))).toEqual({
+      kind: 'rung',
+      rung: 'view',
+    })
+  })
+})
+
+describe('heldCount', () => {
+  it('counts only the ladder’s own permissions', () => {
+    expect(heldCount(candidates, new Set())).toBe(0)
+    expect(
+      heldCount(
+        candidates,
+        new Set([
+          Permission.READ_CANDIDATES,
+          Permission.READ_CANDIDATE_CHURCH,
+          Permission.READ_PAYMENTS,
+        ])
+      )
+    ).toBe(2)
+    expect(
+      heldCount(candidates, new Set([...candidates.view, ...candidates.manage]))
+    ).toBe(10)
+  })
+})
+
+describe('nextRung and partwayRung', () => {
+  it('steps up one rung and stops at Manage', () => {
+    expect(nextRung('none')).toBe('view')
+    expect(nextRung('view')).toBe('manage')
+    expect(nextRung('manage')).toBeNull()
+  })
+
+  it('names the rung a Custom set is partway to', () => {
+    expect(
+      partwayRung(
+        deriveLadderState(candidates, new Set([Permission.READ_CANDIDATES]))
+      )
+    ).toBe('view')
+    expect(
+      partwayRung(
+        deriveLadderState(
+          candidates,
+          new Set([...candidates.view, Permission.WRITE_CANDIDATES])
+        )
+      )
+    ).toBe('manage')
+    expect(
+      partwayRung(deriveLadderState(files, new Set([Permission.FILES_UPLOAD])))
+    ).toBe('manage')
+  })
+
+  it('is null when the set sits on a rung', () => {
+    expect(partwayRung(deriveLadderState(payments, new Set()))).toBeNull()
+    expect(
+      partwayRung(deriveLadderState(payments, new Set(payments.view)))
+    ).toBeNull()
+  })
+})
+
+describe('isLadderLocked', () => {
+  it('locks a rung the parent grants in full', () => {
+    expect(
+      isLadderLocked(
+        resolveLadder(payments, new Set(), new Set([Permission.READ_PAYMENTS]))
+      )
+    ).toBe(true)
+  })
+
+  it('does not lock a rung the role raises or adds itself', () => {
+    expect(
+      isLadderLocked(
+        resolveLadder(
+          payments,
+          new Set([Permission.WRITE_PAYMENTS]),
+          new Set([Permission.READ_PAYMENTS])
+        )
+      )
+    ).toBe(false)
+    expect(
+      isLadderLocked(
+        resolveLadder(payments, new Set([Permission.READ_PAYMENTS]), new Set())
+      )
+    ).toBe(false)
+  })
+
+  it('does not lock a Custom set the parent only partly grants', () => {
+    expect(
+      isLadderLocked(
+        resolveLadder(
+          candidates,
+          new Set(),
+          new Set([Permission.READ_CANDIDATES])
+        )
+      )
+    ).toBe(false)
+  })
+
+  it('never locks the Files baseline when no parent grants it', () => {
+    expect(isLadderLocked(resolveLadder(files, new Set(), new Set()))).toBe(
+      false
+    )
   })
 })
 

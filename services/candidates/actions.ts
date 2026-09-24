@@ -57,3 +57,23 @@ export async function getCandidateReviewCountByWeekend(weekendId: string) {
 export async function getCandidateCountsByWeekends(weekendIds: string[]) {
   return CandidateService.getCandidateCountsByWeekends(weekendIds)
 }
+
+/**
+ * Gets the count of confirmed candidates for a specific weekend.
+ */
+export async function getConfirmedCandidateCountByWeekend(weekendId: string) {
+  return CandidateService.getConfirmedCandidateCountByWeekend(weekendId)
+}
+
+/**
+ * Gets the candidates a member sponsors on a weekend (matched by sponsor email).
+ */
+export async function getSponsoredCandidatesForWeekend(
+  sponsorEmail: string,
+  weekendId: string
+) {
+  return CandidateService.getSponsoredCandidatesForWeekend(
+    sponsorEmail,
+    weekendId
+  )
+}

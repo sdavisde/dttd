@@ -36,6 +36,18 @@ export function inheritedPermissions(
   return getEffectivePermissions(basedOnRoleId, roles)
 }
 
+/**
+ * How many distinct permissions the role effectively grants — what it holds
+ * itself plus everything the parent chain hands down. Used for the one-line
+ * summary under the role name.
+ */
+export function effectivePermissionCount(
+  own: readonly Permission[],
+  inherited: ReadonlySet<Permission>
+): number {
+  return new Set<Permission>([...own, ...inherited]).size
+}
+
 /** Roles this one may be based on: not itself, and nothing that would form a loop. */
 export function parentOptions(
   roleId: string | null,

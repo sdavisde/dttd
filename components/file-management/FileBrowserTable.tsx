@@ -34,7 +34,11 @@ import { DeleteConfirmationDialog } from '@/components/ui/delete-confirmation-di
 import { useSession } from '@/components/auth/session-provider'
 import { createClient } from '@/lib/supabase/client'
 import { COMMUNITY_FILES_BUCKET } from '@/lib/files/constants'
-import { adminFilesHref, type FileBrowserEntry } from '@/lib/files/browser'
+import {
+  filesHref,
+  type FileBrowserEntry,
+  type FilesArea,
+} from '@/lib/files/browser'
 import { formatFileSize } from '@/lib/files/upload-errors'
 import { isErr } from '@/lib/results'
 import { Permission, userHasPermission } from '@/lib/security'
@@ -43,6 +47,8 @@ import { cn, formatTimestampDate } from '@/lib/utils'
 import { deleteFileAction, deleteFolderAction } from '@/services/files/actions'
 
 type FileBrowserTableProps = {
+  /** Member Documents is browse-only: no delete, whatever the viewer's permissions */
+  area: FilesArea
   entries: FileBrowserEntry[]
   /** Line below the listing, e.g. "2 folders and 5 files in Team Handbooks" */
   caption: string
@@ -78,6 +84,7 @@ const formatUpdated = (entry: FileBrowserEntry) =>
  * Folder rows navigate into the folder; file rows open the file.
  */
 export function FileBrowserTable({
+  area,
   entries,
   caption,
   emptyMessage,
@@ -91,7 +98,9 @@ export function FileBrowserTable({
   const [isDeleting, setIsDeleting] = useState(false)
 
   const canDelete =
-    !isNil(user) && userHasPermission(user, [Permission.FILES_DELETE])
+    area === 'admin' &&
+    !isNil(user) &&
+    userHasPermission(user, [Permission.FILES_DELETE])
 
   const fileUrl = (entry: FileBrowserEntry) =>
     supabase.storage
@@ -100,7 +109,7 @@ export function FileBrowserTable({
 
   const openEntry = (entry: FileBrowserEntry) => {
     if (entry.kind === 'folder') {
-      router.push(adminFilesHref(entry.slugs))
+      router.push(filesHref(area, entry.slugs))
     } else {
       window.open(fileUrl(entry), '_blank', 'noopener,noreferrer')
     }
@@ -149,7 +158,7 @@ export function FileBrowserTable({
   const renderName = (entry: FileBrowserEntry, className?: string) =>
     entry.kind === 'folder' ? (
       <Link
-        href={adminFilesHref(entry.slugs)}
+        href={filesHref(area, entry.slugs)}
         onClick={(event) => event.stopPropagation()}
         className={cn('truncate font-semibold hover:underline', className)}
       >

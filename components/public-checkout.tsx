@@ -42,7 +42,10 @@ export default function PublicCheckout({
         setCheckoutLoading(true)
         setError(null)
 
-        const checkoutMetadata = omitBy(metadata, isNil) as Record<string, string>
+        const checkoutMetadata = omitBy(metadata, isNil) as Record<
+          string,
+          string
+        >
         const secret = await beginCheckout(priceId, returnUrl, checkoutMetadata)
         if (isMounted) {
           setClientSecret(secret)
@@ -111,7 +114,7 @@ export default function PublicCheckout({
   // Show loading spinner while checkout is initializing
   if (checkoutLoading || (isNil(clientSecret) && isNil(error))) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full flex-col items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin" />
       </div>
     )
@@ -121,7 +124,7 @@ export default function PublicCheckout({
   if (!isNil(error)) {
     logger.error(`PublicCheckout error: ${error}`)
     return (
-      <div className="h-screen w-screen flex items-center justify-center">
+      <div className="flex min-h-[60vh] w-full flex-col items-center justify-center">
         <Typography variant="h5" className="text-red-600 text-center">
           Something went wrong
         </Typography>

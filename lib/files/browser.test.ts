@@ -2,6 +2,7 @@ import type { FileObject } from '@supabase/storage-js'
 import { isErr, isOk } from '@/lib/results'
 import {
   adminFilesHref,
+  filesHref,
   describeFolderContents,
   findFolderBySlug,
   toBrowserEntries,
@@ -82,6 +83,13 @@ describe('adminFilesHref', () => {
   it('builds root and nested links', () => {
     expect(adminFilesHref([])).toBe('/admin/files')
     expect(adminFilesHref(['a', 'b'])).toBe('/admin/files/a/b')
+  })
+})
+
+describe('filesHref', () => {
+  it('builds member Documents links', () => {
+    expect(filesHref('member', [])).toBe('/files')
+    expect(filesHref('member', ['a', 'b'])).toBe('/files/a/b')
   })
 })
 

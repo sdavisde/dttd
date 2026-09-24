@@ -16,10 +16,7 @@ import {
 } from '@/lib/files/browser'
 import { logger } from '@/lib/logger'
 import { isErr, Results } from '@/lib/results'
-import {
-  getAdminFolderView,
-  getRootFolders,
-} from '@/services/files/file-service'
+import { getFolderView, getRootFolders } from '@/services/files/file-service'
 import { getLoggedInUser } from '@/services/identity/user'
 import { StorageMeter } from './storage-meter'
 
@@ -36,7 +33,7 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
   const isRoot = pathSegments.length === 0
   const [userResult, viewResult, rootFoldersResult] = await Promise.all([
     getLoggedInUser(),
-    isRoot ? null : getAdminFolderView(pathSegments),
+    isRoot ? null : getFolderView(pathSegments),
     getRootFolders(),
   ])
 
@@ -99,14 +96,12 @@ export async function FilesPage({ pathSegments }: FilesPageProps) {
         </PageHeader>
 
         <div className="flex flex-col gap-4 md:flex-row md:gap-5">
-          <FolderRail
-            folders={rootFolders}
-            activeSlug={trail.at(0)?.slugs.at(0) ?? null}
-          />
+          <FolderRail area="admin" folders={rootFolders} />
           {isNil(view) ? (
             <NoFolderSelected folders={rootFolders} />
           ) : (
             <FileBrowserTable
+              area="admin"
               entries={view.entries}
               caption={describeFolderContents(view.entries, folderLabel)}
               emptyMessage={`Nothing in ${folderLabel} yet.`}

@@ -198,6 +198,27 @@ export const formatTimestampDate = (datetime?: string | null): string => {
 }
 
 /**
+ * Board-style short date for a timestamp: "Aug 20", adding the year once it
+ * is not this year ("Aug 20, 2025"). Community time, like every timestamp.
+ *
+ * @example formatShortDate('2026-08-20T14:30:00Z') // "Aug 20"
+ */
+export const formatShortDate = (datetime?: string | null): string => {
+  if (isNil(datetime) || datetime === '') return '-'
+
+  const date = new Date(datetime)
+  if (isNaN(date.getTime())) return '-'
+
+  const sameYear = date.getFullYear() === new Date().getFullYear()
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    ...(sameYear ? {} : { year: 'numeric' }),
+    timeZone: COMMUNITY_TIMEZONE,
+  })
+}
+
+/**
  * Serializes a `Date` to a "YYYY-MM-DD" string using its local calendar day.
  *
  * `toISOString().split('T')[0]` looks equivalent but converts to UTC first, so

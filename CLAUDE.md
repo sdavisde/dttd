@@ -47,7 +47,6 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
     - `files/` - Public file access and management
     - `payment/` - Stripe payment flows
     - `sponsor/` - Sponsorship form and submission
-    - `review-candidates/` - Candidate review interface
     - `roster/` - Public roster page
   - `admin/` - Admin dashboard with role-based access
     - `files/` - File management system
@@ -123,6 +122,19 @@ The application uses Supabase with several key tables:
 - React Hook Form with Zod schemas for form validation
 - Server/client component separation following Next.js best practices
 - Import UI components from `@/components/ui/` directory only
+
+### Auto-save Instead of Save Buttons
+
+Edit forms auto-save rather than showing a "Save changes" button: if auto-saving is more convenient for
+the user, do it.
+
+- Use `useAutoSave` from `@/hooks/use-auto-save`: 800ms debounce once the form is valid; call
+  `saveImmediately()` before selects, toggles and pickers change. It serialises saves and flushes on
+  unmount, so key the editor by record id (`key={id}`) so each record starts from its own values.
+- Show `AutoSaveStatusIndicator` (`@/components/auto-save/auto-save-status`) in the editor header, not
+  a footer. For a single inline value (pencil → input), use `InlineAutoSaveField`.
+- Creating a record keeps an explicit Create button. Exception: the Edit payment dialog keeps its
+  explicit save.
 
 ### Responsive Design Guidelines for Admin Pages
 

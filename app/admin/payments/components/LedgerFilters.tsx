@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -77,32 +78,15 @@ export function LedgerFilters({
 }: LedgerFiltersProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div
-        role="radiogroup"
+      <SegmentedControl
         aria-label="Show"
-        className="flex max-w-full overflow-hidden rounded-md border bg-card"
-      >
-        {LEDGER_STATUS_FILTERS.map((value) => {
-          const active = status === value
-          return (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              onClick={() => onStatusChange(value)}
-              className={cn(
-                'h-11 px-3 text-[13px] transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:px-4 md:h-8',
-                active
-                  ? 'bg-primary font-semibold text-primary-foreground'
-                  : 'font-medium text-nav-foreground hover:bg-muted'
-              )}
-            >
-              {STATUS_FILTER_LABELS[value]}
-            </button>
-          )
-        })}
-      </div>
+        value={status}
+        onValueChange={onStatusChange}
+        options={LEDGER_STATUS_FILTERS.map((value) => ({
+          value,
+          label: STATUS_FILTER_LABELS[value],
+        }))}
+      />
 
       <MultiSelectChip
         label="Weekend"

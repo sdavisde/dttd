@@ -5,11 +5,6 @@ import type { SearchOptions, FileObject } from '@supabase/storage-js'
 
 type SortOptions = NonNullable<SearchOptions['sortBy']>
 
-export async function listBuckets() {
-  const supabase = await createClient()
-  return supabase.storage.listBuckets()
-}
-
 export async function listFiles(
   bucket: string,
   path: string,

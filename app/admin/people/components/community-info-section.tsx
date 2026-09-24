@@ -1,5 +1,6 @@
 'use client'
 
+import { isNil } from 'lodash'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -11,18 +12,21 @@ import {
 } from '@/components/ui/select'
 import { MonthPickerPopover } from '@/components/ui/month-picker'
 import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
+import type { FieldErrors, SectionChange } from '../hooks/use-user-edit-form'
 import type { CommunityFields } from '../types'
-import { editorFieldLabelClass } from './editor-section-card'
+import { EditorFieldError, editorFieldLabelClass } from './editor-section-card'
 
 interface CommunityInfoSectionProps {
   community: CommunityFields
-  onChange: (fields: CommunityFields) => void
+  onChange: SectionChange<CommunityFields>
+  errors?: FieldErrors<CommunityFields>
   disabled: boolean
 }
 
 export function CommunityInfoSection({
   community,
   onChange,
+  errors = {},
   disabled,
 }: CommunityInfoSectionProps) {
   return (
@@ -44,11 +48,17 @@ export function CommunityInfoSection({
           <Select
             value={community.weekendCommunity}
             onValueChange={(v) =>
-              onChange({ ...community, weekendCommunity: v })
+              onChange(
+                { ...community, weekendCommunity: v },
+                { immediate: true }
+              )
             }
             disabled={disabled}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              className="w-full"
+              aria-invalid={!isNil(errors.weekendCommunity)}
+            >
               <SelectValue placeholder="Community" />
             </SelectTrigger>
             <SelectContent>
@@ -67,9 +77,13 @@ export function CommunityInfoSection({
               onChange({ ...community, weekendNumber: e.target.value })
             }
             placeholder="Weekend #"
+            aria-invalid={!isNil(errors.weekendNumber)}
             disabled={disabled}
           />
         </div>
+        <EditorFieldError
+          message={errors.weekendCommunity ?? errors.weekendNumber}
+        />
       </div>
       <div className="space-y-1">
         <Label className={editorFieldLabelClass}>
@@ -77,7 +91,12 @@ export function CommunityInfoSection({
         </Label>
         <MonthPickerPopover
           value={community.essentialsDate}
-          onChange={(date) => onChange({ ...community, essentialsDate: date })}
+          onChange={(date) =>
+            onChange(
+              { ...community, essentialsDate: date },
+              { immediate: true }
+            )
+          }
           placeholder="Pick a date"
         />
       </div>

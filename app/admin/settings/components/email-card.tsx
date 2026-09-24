@@ -2,15 +2,15 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Pencil, X } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { isNil } from 'lodash'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { InlineAutoSaveField } from '@/components/auto-save/inline-auto-save-field'
 import { Switch } from '@/components/ui/switch'
-import { isErr } from '@/lib/results'
+import { isErr, ok } from '@/lib/results'
 import { toastError } from '@/lib/toast-error'
 import {
   setNotificationToggle,
@@ -95,47 +95,6 @@ function SystemEmailRow({
 }) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
-  const [value, setValue] = useState(address)
-  const [isSaving, setIsSaving] = useState(false)
-
-  const startEdit = () => {
-    setValue(address)
-    setIsEditing(true)
-  }
-
-  const cancelEdit = () => {
-    setValue(address)
-    setIsEditing(false)
-  }
-
-  const save = async () => {
-    const validation = validateSystemEmailAddress(value)
-
-    if (!validation.valid) {
-      toast.error(validation.reason)
-      return
-    }
-
-    setIsSaving(true)
-    try {
-      const result = await updateSystemEmailAddress(value.trim())
-
-      if (!isNil(result) && isErr(result)) {
-        toastError('Unable to update the system email address.', {
-          error: result.error,
-        })
-        return
-      }
-
-      toast.success('System email address updated')
-      setIsEditing(false)
-      router.refresh()
-    } catch (error) {
-      toastError('Unable to update the system email address.', { error })
-    } finally {
-      setIsSaving(false)
-    }
-  }
 
   return (
     <SettingRow
@@ -154,40 +113,31 @@ function SystemEmailRow({
       }
     >
       {isEditing ? (
-        <div className="flex w-full items-center gap-1.5 sm:w-auto">
-          <Input
-            type="email"
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-            placeholder={`noreply@${VERIFIED_SENDING_DOMAIN}`}
-            disabled={isSaving}
-            className="h-9 text-sm sm:w-72"
-            aria-label="System email address"
-          />
-          <Button
-            size="sm"
-            variant="ghost"
-            className="size-11 p-0 sm:size-9"
-            onClick={save}
-            disabled={isSaving}
-          >
-            <Check className="size-4" />
-            <span className="sr-only">Save system email address</span>
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="size-11 p-0 sm:size-9"
-            onClick={cancelEdit}
-            disabled={isSaving}
-          >
-            <X className="size-4" />
-            <span className="sr-only">Cancel</span>
-          </Button>
-        </div>
+        <InlineAutoSaveField
+          initialValue={address}
+          type="email"
+          placeholder={`noreply@${VERIFIED_SENDING_DOMAIN}`}
+          ariaLabel="System email address"
+          inputClassName="h-9 text-sm sm:w-72"
+          className="w-full sm:w-auto"
+          errorMessage="Unable to update the system email address."
+          validate={(value) => {
+            const validation = validateSystemEmailAddress(value)
+            return validation.valid ? null : validation.reason
+          }}
+          save={async (value) =>
+            (await updateSystemEmailAddress(value)) ?? ok(null)
+          }
+          onSaved={() => router.refresh()}
+          onDone={() => setIsEditing(false)}
+        />
       ) : (
         canEdit && (
-          <Button size="sm" variant="outline" onClick={startEdit}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsEditing(true)}
+          >
             <Pencil className="size-3.5" />
             Edit
           </Button>

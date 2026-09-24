@@ -50,9 +50,11 @@ export function RoleAssignmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
+      {/* Fixed height capped to the viewport: the dialog never grows or scrolls as a whole, only
+          the member list scrolls, and the size doesn't jump while filtering. */}
+      <DialogContent className="flex h-[min(40rem,calc(100dvh-2rem))] flex-col gap-4 overflow-hidden sm:max-w-lg">
+        <DialogHeader className="shrink-0 pr-6">
+          <DialogTitle className="leading-tight">
             {isCommittee
               ? `Manage ${role?.label ?? 'Committee'} Members`
               : `Assign ${role?.label ?? 'role'}`}
@@ -64,46 +66,45 @@ export function RoleAssignmentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <Input
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
+        <Input
+          className="shrink-0"
+          placeholder="Search by name or email..."
+          value={search}
+          onChange={(event) => onSearchChange(event.target.value)}
+        />
 
-          <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border p-1 [scrollbar-gutter:stable]">
-            {filteredMembers.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No users found
-              </p>
-            ) : isCommittee ? (
-              <CommitteeMemberList
-                members={filteredMembers}
-                selectedMembers={selectedMembers}
-                onToggleMember={onToggleMember}
-                isSaving={isSaving}
-              />
-            ) : (
-              <IndividualMemberList
-                members={filteredMembers}
-                activeRoleId={role?.id ?? ''}
-                onAssign={onAssign}
-                isSaving={isSaving}
-              />
-            )}
-          </div>
-
-          {isCommittee && (
-            <DialogFooter>
-              <Button variant="outline" onClick={onClose} disabled={isSaving}>
-                Cancel
-              </Button>
-              <Button onClick={onSaveCommittee} disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Members'}
-              </Button>
-            </DialogFooter>
+        <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain rounded-md border p-1">
+          {filteredMembers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No users found
+            </p>
+          ) : isCommittee ? (
+            <CommitteeMemberList
+              members={filteredMembers}
+              selectedMembers={selectedMembers}
+              onToggleMember={onToggleMember}
+              isSaving={isSaving}
+            />
+          ) : (
+            <IndividualMemberList
+              members={filteredMembers}
+              activeRoleId={role?.id ?? ''}
+              onAssign={onAssign}
+              isSaving={isSaving}
+            />
           )}
         </div>
+
+        {isCommittee && (
+          <DialogFooter className="shrink-0">
+            <Button variant="outline" onClick={onClose} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button onClick={onSaveCommittee} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Members'}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -132,9 +133,10 @@ function CommitteeMemberList({
         return (
           <label
             key={member.id}
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer ${isSaving ? 'opacity-50 pointer-events-none' : ''}`}
+            className={`flex min-h-11 w-full min-w-0 items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors cursor-pointer ${isSaving ? 'opacity-50 pointer-events-none' : ''}`}
           >
             <Checkbox
+              className="shrink-0"
               checked={isSelected}
               onCheckedChange={() => onToggleMember(member.id)}
             />
@@ -149,8 +151,12 @@ function CommitteeMemberList({
               }}
               size={28}
             />
-            <MemberInfo name={name} email={member.email} />
-            <RoleBadges memberId={member.id} roleLabels={roleLabels} />
+            <MemberInfo
+              memberId={member.id}
+              name={name}
+              email={member.email}
+              roleLabels={roleLabels}
+            />
           </label>
         )
       })}
@@ -185,25 +191,25 @@ function IndividualMemberList({
             key={member.id}
             onClick={() => onAssign(member)}
             disabled={isSaving || isAssignedToActive}
-            className="w-full text-left px-3 py-2 rounded-md hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex min-h-11 w-full min-w-0 items-center gap-3 text-left px-3 py-2 rounded-md hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <UserAvatarWithPreview
-                  user={{
-                    id: member.id,
-                    first_name: member.firstName,
-                    last_name: member.lastName,
-                    email: member.email,
-                    phone_number: member.phoneNumber,
-                    profilePhoto: member.profilePhoto,
-                  }}
-                  size={28}
-                />
-                <MemberInfo name={name} email={member.email} />
-              </div>
-              <RoleBadges memberId={member.id} roleLabels={roleLabels} />
-            </div>
+            <UserAvatarWithPreview
+              user={{
+                id: member.id,
+                first_name: member.firstName,
+                last_name: member.lastName,
+                email: member.email,
+                phone_number: member.phoneNumber,
+                profilePhoto: member.profilePhoto,
+              }}
+              size={28}
+            />
+            <MemberInfo
+              memberId={member.id}
+              name={name}
+              email={member.email}
+              roleLabels={roleLabels}
+            />
           </button>
         )
       })}
@@ -212,34 +218,34 @@ function IndividualMemberList({
 }
 
 type MemberInfoProps = {
+  memberId: string
   name: string
   email: string | null
-}
-
-function MemberInfo({ name, email }: MemberInfoProps) {
-  return (
-    <div className="flex-1">
-      <div className="font-medium">{name}</div>
-      <div className="text-sm text-muted-foreground">{email ?? 'No email'}</div>
-    </div>
-  )
-}
-
-type RoleBadgesProps = {
-  memberId: string
   roleLabels: string[]
 }
 
-function RoleBadges({ memberId, roleLabels }: RoleBadgesProps) {
-  if (roleLabels.length === 0) return null
-
+// Badges sit under the name/email rather than beside them so long emails and many roles can't push
+// the row wider than the dialog on narrow screens.
+function MemberInfo({ memberId, name, email, roleLabels }: MemberInfoProps) {
   return (
-    <div className="flex flex-wrap justify-end gap-1">
-      {roleLabels.map((label) => (
-        <Badge key={`${memberId}-${label}`} variant="outline">
-          {label}
-        </Badge>
-      ))}
+    <div className="min-w-0 flex-1">
+      <div className="truncate font-medium">{name}</div>
+      <div className="truncate text-sm text-muted-foreground">
+        {email ?? 'No email'}
+      </div>
+      {roleLabels.length > 0 && (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {roleLabels.map((label) => (
+            <Badge
+              key={`${memberId}-${label}`}
+              variant="outline"
+              className="max-w-full truncate"
+            >
+              {label}
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

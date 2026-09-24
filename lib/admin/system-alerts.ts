@@ -142,7 +142,7 @@ export function deriveSystemAlerts({
       severity: 'warning',
       title: 'No weekend group is active',
       impact:
-        "Money tiles, rosters, and the community's current-weekend page have nothing to show until a group is marked active.",
+        "Money tiles, rosters, and the community's weekend hub have nothing to show until a group is marked active.",
       action: 'Open weekend management to activate the next group.',
       href: '/admin/weekends',
       linkLabel: 'Go to weekends',

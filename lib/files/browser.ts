@@ -4,7 +4,7 @@ import { err, ok, type Result } from '@/lib/results'
 import { slugify, unslugify } from '@/lib/url'
 
 /**
- * Pure helpers behind the admin Files browser: telling folders from files,
+ * Pure helpers behind the Files browser (admin Files and member Documents): telling folders from files,
  * resolving URL slugs back to real storage names, and shaping list rows.
  */
 
@@ -99,8 +99,24 @@ export function describeFolderContents(
   return `${pluralize(folders, 'folder')} and ${pluralize(files, 'file')} in ${folderLabel}`
 }
 
+/**
+ * Which Files browser a link belongs to: the admin back office (manage) or the
+ * member Documents page (browse only).
+ */
+export type FilesArea = 'admin' | 'member'
+
+const FILES_ROOT: Record<FilesArea, string> = {
+  admin: '/admin/files',
+  member: '/files',
+}
+
+export function filesHref(area: FilesArea, slugs: string[]): string {
+  const root = FILES_ROOT[area]
+  return slugs.length === 0 ? root : `${root}/${slugs.join('/')}`
+}
+
 export function adminFilesHref(slugs: string[]): string {
-  return slugs.length === 0 ? '/admin/files' : `/admin/files/${slugs.join('/')}`
+  return filesHref('admin', slugs)
 }
 
 /** Validates and trims a new folder name. */

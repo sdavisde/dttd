@@ -95,7 +95,7 @@ type ActionItemsInput = {
 
 /**
  * True when some weekend in some group is marked ACTIVE. The money tiles, the
- * rosters, and the community's current-weekend page all key off this, so its
+ * rosters, and the community's weekend hub all key off this, so its
  * absence is worth saying out loud rather than rendering blanks.
  */
 export function hasActiveWeekendGroup(groups: WeekendGroupWithId[]): boolean {

@@ -2,83 +2,42 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
 import {
   updateContactInformation,
   type ContactInfo,
 } from '@/services/notifications'
-import { isErr } from '@/lib/results'
-import { toastError } from '@/lib/toast-error'
-import { isNil } from 'lodash'
+import { ok } from '@/lib/results'
 
 type UsePreWeekendEmailProps = {
   contact: ContactInfo
 }
 
-type UsePreWeekendEmailReturn = {
-  email: string
-  isEditingEmail: boolean
-  isSavingEmail: boolean
-  setEmail: (email: string) => void
-  startEditEmail: () => void
-  saveEmail: () => Promise<void>
-  cancelEditEmail: () => void
-}
-
-export function usePreWeekendEmail({
-  contact,
-}: UsePreWeekendEmailProps): UsePreWeekendEmailReturn {
+/**
+ * The Pre-Weekend Couple's notification email, edited inline and auto-saved
+ * (see `InlineAutoSaveField`). `email` is the last saved value.
+ */
+export function usePreWeekendEmail({ contact }: UsePreWeekendEmailProps) {
   const router = useRouter()
   const [email, setEmail] = useState(contact.emailAddress ?? '')
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  const [isEditingEmail, setIsEditingEmail] = useState(false)
 
-  const startEditEmail = () => {
-    setIsEditing(true)
-  }
+  const saveEmail = async (emailAddress: string) =>
+    (await updateContactInformation({
+      contactId: 'preweekend-couple',
+      emailAddress,
+    })) ?? ok(null)
 
-  const cancelEditEmail = () => {
-    setEmail(contact.emailAddress ?? '')
-    setIsEditing(false)
-  }
-
-  const saveEmail = async () => {
-    if (email.trim() === '') {
-      toast.error('Email address cannot be empty')
-      return
-    }
-
-    setIsSaving(true)
-    try {
-      const result = await updateContactInformation({
-        contactId: 'preweekend-couple',
-        emailAddress: email.trim(),
-      })
-
-      if (!isNil(result) && isErr(result)) {
-        toastError('Unable to update email address. Please try again.', {
-          error: result.error,
-        })
-        return
-      }
-
-      toast.success('Pre-Weekend Couple email updated successfully')
-      setIsEditing(false)
-      router.refresh()
-    } catch (error) {
-      toastError('Unable to update email address. Please try again.', { error })
-    } finally {
-      setIsSaving(false)
-    }
+  const onEmailSaved = (saved: string) => {
+    setEmail(saved.trim())
+    router.refresh()
   }
 
   return {
     email,
-    isEditingEmail: isEditing,
-    isSavingEmail: isSaving,
-    setEmail,
-    startEditEmail,
+    isEditingEmail,
+    startEditEmail: () => setIsEditingEmail(true),
+    finishEditEmail: () => setIsEditingEmail(false),
     saveEmail,
-    cancelEditEmail,
+    onEmailSaved,
   }
 }

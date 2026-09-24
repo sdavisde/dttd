@@ -3,7 +3,7 @@ import 'server-only'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { fromSupabase, err, ok } from '@/lib/results'
-import { Tables } from '@/database.types'
+import type { Tables } from '@/database.types'
 import { isSupabaseError } from '@/lib/supabase/utils'
 import { isNil } from 'lodash'
 
@@ -116,7 +116,7 @@ export async function getCandidateCountByWeekend(
  * `pending_approval` is the only status in the review flow that means "forms
  * are in, the Pre-Weekend Couple owes a decision" — everything before it is
  * waiting on the candidate or sponsor, and everything after it has already
- * been decided (see `app/(public)/review-candidates`).
+ * been decided (see the hub's review-candidates page).
  */
 export async function getCandidateReviewCountByWeekend(
   weekendId: string
@@ -168,4 +168,81 @@ export async function getCandidateCountsByWeekends(
   }
 
   return ok(counts)
+}
+
+/**
+ * Counts the candidates on a weekend whose spot is fully settled — the hub's
+ * "confirmed / 42" figure. Distinct from `getCandidateCountByWeekend`, which
+ * also counts everyone still working through sponsorship, forms or payment.
+ */
+export async function getConfirmedCandidateCountByWeekend(
+  weekendId: string
+): Promise<Result<string, number>> {
+  const supabase = await createClient()
+
+  const { count, error } = await supabase
+    .from('candidates')
+    .select('*', { count: 'exact', head: true })
+    .eq('weekend_id', weekendId)
+    .eq('status', 'confirmed')
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok(count ?? 0)
+}
+
+export type SponsoredCandidateRow = {
+  id: string
+  status: Tables<'candidates'>['status']
+  candidateName: string | null
+}
+
+/**
+ * The non-rejected candidates one sponsor has on a weekend. Sponsorship rows
+ * carry no user id — the sponsor form stamps the signed-in member's email on
+ * `sponsor_email` — so the match is by email, case-insensitively.
+ */
+export async function findSponsoredCandidatesForWeekend(
+  sponsorEmail: string,
+  weekendId: string
+): Promise<Result<string, SponsoredCandidateRow[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('candidates')
+    .select(
+      'id, status, candidate_sponsorship_info!inner(candidate_name, sponsor_email), candidate_info(first_name, last_name)'
+    )
+    .eq('weekend_id', weekendId)
+    .neq('status', 'rejected')
+    // `_` and `%` are wildcards to ILIKE; an email like a_b@x.com must match
+    // itself, not a_b, acb, ...
+    .ilike(
+      'candidate_sponsorship_info.sponsor_email',
+      sponsorEmail.replace(/[\\%_]/g, '\\$&')
+    )
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  const rows = (data ?? []).map((row) => {
+    const info = row.candidate_info?.at(0)
+    const fullName =
+      !isNil(info?.first_name) && !isNil(info?.last_name)
+        ? `${info.first_name} ${info.last_name}`
+        : null
+    return {
+      id: row.id,
+      status: row.status,
+      candidateName:
+        fullName ??
+        row.candidate_sponsorship_info?.at(0)?.candidate_name ??
+        null,
+    }
+  })
+
+  return ok(rows)
 }
