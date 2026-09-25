@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { isNil } from 'lodash'
+import { IntentLink } from '@/components/ui/intent-link'
 import { cn } from '@/lib/utils'
 
 export type SegmentedOption<T extends string> = {
@@ -25,7 +25,7 @@ type SegmentedControlProps<T extends string> = {
  * a bordered pill row whose active segment fills brown. Segments are 44px
  * tall on touch screens and step down to the compact height at md+, where a
  * pointer is doing the clicking. Link segments let a server page switch
- * without any client state.
+ * without any client state; they prefetch on intent (hover / focus / touch).
  */
 export function SegmentedControl<T extends string>({
   value,
@@ -57,7 +57,7 @@ export function SegmentedControl<T extends string>({
         const active = option.value === value
         if (!isNil(option.href)) {
           return (
-            <Link
+            <IntentLink
               key={option.value}
               href={option.href}
               role="radio"
@@ -65,7 +65,7 @@ export function SegmentedControl<T extends string>({
               className={segmentClass(active)}
             >
               {option.label}
-            </Link>
+            </IntentLink>
           )
         }
         return (
