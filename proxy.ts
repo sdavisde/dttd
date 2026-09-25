@@ -35,20 +35,6 @@ export const PUBLIC_REGEX_ROUTES = [
 ]
 
 /**
- * A `<Link>` prefetch (Next's own header, or the browser's purpose hint).
- * The render behind it still authenticates from the cookies, and the real
- * navigation runs the proxy again, so refreshing the token here would only
- * add a GoTrue round-trip per visible link.
- */
-function isPrefetchRequest(req: NextRequest): boolean {
-  const purpose = req.headers.get('purpose') ?? req.headers.get('sec-purpose')
-  return (
-    req.headers.get('next-router-prefetch') !== null ||
-    purpose?.includes('prefetch') === true
-  )
-}
-
-/**
  * A.K.A. middleware - this function has been renamed as part of Next 16
  */
 export async function proxy(req: NextRequest) {
@@ -65,16 +51,20 @@ export async function proxy(req: NextRequest) {
     req.headers.set(AUDIT_ROUTE_HEADER, pathname)
   }
 
-  if (isPrefetchRequest(req)) {
-    return NextResponse.next({ request: req })
-  }
-
   logger.info(`running middleware: ${req.nextUrl.pathname}`)
   return await updateSession(req)
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    {
+      source:
+        '/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+      // A `<Link>` prefetch never needs a token refresh: the render behind it
+      // authenticates from the cookies, and the real navigation runs the
+      // proxy again. Next strips the flight headers before `proxy()` runs,
+      // so this can only be decided here, in the matcher.
+      missing: [{ type: 'header', key: 'next-router-prefetch' }],
+    },
   ],
 }
