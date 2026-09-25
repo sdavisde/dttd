@@ -2,10 +2,33 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import type { Database } from '@/database.types'
+import {
+  AUDIT_REQ_HEADER,
+  AUDIT_ROUTE_HEADER,
+  auditModeFromHeaders,
+  createAuditFetch,
+  type AuditClient,
+} from './audit-fetch'
+
+/**
+ * Audit-only (`AUDIT_LOG`): a fetch that tags each Supabase call with the
+ * request id the proxy stamped on the incoming request. Undefined otherwise,
+ * so supabase-js keeps its default fetch.
+ */
+function auditFetch(client: AuditClient) {
+  return createAuditFetch(client, async () => {
+    const h = await headers()
+    return {
+      reqId: h.get(AUDIT_REQ_HEADER) ?? undefined,
+      route: h.get(AUDIT_ROUTE_HEADER) ?? undefined,
+      mode: auditModeFromHeaders((name) => h.get(name)),
+    }
+  })
+}
 
 /**
  * Creates a Supabase client for use in server components and server actions.
@@ -31,6 +54,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      global: { fetch: auditFetch('user') },
       cookies: {
         getAll() {
           return cookieStore.getAll()
@@ -74,6 +98,7 @@ export function createAdminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SECRET_KEY!,
     {
+      global: { fetch: auditFetch('admin') },
       auth: {
         autoRefreshToken: false,
         persistSession: false,
