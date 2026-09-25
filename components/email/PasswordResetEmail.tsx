@@ -9,8 +9,8 @@ import {
   Text,
   Hr,
   Button,
+  Tailwind,
 } from '@react-email/components'
-import { Tailwind } from '@react-email/tailwind'
 
 interface PasswordResetEmailProps {
   resetUrl: string

@@ -89,7 +89,7 @@ export default function PublicCheckout({
           checkoutRef.current = null
         }
 
-        const checkout = await stripe.initEmbeddedCheckout({
+        const checkout = await stripe.createEmbeddedCheckoutPage({
           clientSecret,
         })
 

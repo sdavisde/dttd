@@ -7,6 +7,8 @@ export const SKIP_REGEX_ROUTES = [
   /^\/payment\/candidate-fee(\/.*)?$/,
   /^\/candidate\/.*$/,
   /^\/api\/.*$/,
+  // Sentry tunnelRoute (see next.config.ts) - must stay reachable for logged-out users
+  /^\/monitoring$/,
 ]
 
 /**

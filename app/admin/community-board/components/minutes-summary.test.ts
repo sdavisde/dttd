@@ -7,7 +7,11 @@ import {
 
 const NOW = new Date('2025-09-23T12:00:00Z')
 
-function minuteFile(overrides: Partial<MeetingMinuteFile>): MeetingMinuteFile {
+type MinuteFileOverrides = Omit<Partial<MeetingMinuteFile>, 'metadata'> & {
+  metadata?: Partial<NonNullable<MeetingMinuteFile['metadata']>>
+}
+
+function minuteFile(overrides: MinuteFileOverrides): MeetingMinuteFile {
   return {
     id: 'file-1',
     name: 'Board minutes - August 2025.pdf',

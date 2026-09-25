@@ -8,8 +8,8 @@ import {
   Section,
   Text,
   Hr,
+  Tailwind,
 } from '@react-email/components'
-import { Tailwind } from '@react-email/tailwind'
 
 interface EmailChangeNotificationEmailProps {
   oldEmail: string

@@ -403,7 +403,7 @@ export const updateCandidateSponsorshipField = authorizedAction<
 
     const { error: updateError } = await supabase
       .from('candidate_sponsorship_info')
-      .update({ [field]: value })
+      .update({ [field]: value } as CandidateSponsorshipInfoUpdate)
       .eq('candidate_id', candidateId)
 
     if (!isNil(updateError)) {
@@ -435,7 +435,7 @@ export const updateCandidateInfoField = authorizedAction<
 
     const { error: updateError } = await supabase
       .from('candidate_info')
-      .update({ [field]: value })
+      .update({ [field]: value } as CandidateInfoUpdate)
       .eq('candidate_id', candidateId)
 
     if (!isNil(updateError)) {

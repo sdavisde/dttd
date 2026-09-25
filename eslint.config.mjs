@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
       ...tseslint.configs.recommendedTypeChecked.rules,
+      // eslint-plugin-react-hooks 7.1 widened detection; existing sites are tracked for cleanup
+      'react-hooks/set-state-in-effect': 'warn',
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       '@typescript-eslint/consistent-type-imports': [
         'error',

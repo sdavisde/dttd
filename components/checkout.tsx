@@ -86,7 +86,7 @@ export default function Checkout({ target, returnUrl }: CheckoutProps) {
           checkoutRef.current = null
         }
 
-        const checkout = await stripe.initEmbeddedCheckout({
+        const checkout = await stripe.createEmbeddedCheckoutPage({
           clientSecret,
         })
 
