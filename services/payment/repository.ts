@@ -161,6 +161,32 @@ export async function getPaymentsByTargetId(
 }
 
 /**
+ * Gets the live payment transactions of several targets of one type in a
+ * single query, newest first. The same rows `getPaymentsByTargetId` returns
+ * for each target; callers group them by `target_id`.
+ * @param targetType - The type of every target
+ * @param targetIds - The IDs of the target entities
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing array of payment transactions or an error
+ */
+export async function getPaymentsByTargetIds(
+  targetType: NonNullable<TargetType>,
+  targetIds: string[],
+  options?: ServiceOptions
+): Promise<Result<string, PaymentTransactionRow[]>> {
+  if (targetIds.length === 0) return ok([])
+  const supabase = await getClient(options)
+  const response = await supabase
+    .from('payment_transaction')
+    .select('*')
+    .eq('target_type', targetType)
+    .in('target_id', targetIds)
+    .is('voided_at', null)
+    .order('created_at', { ascending: false })
+  return fromSupabase(response)
+}
+
+/**
  * Gets all payment transactions.
  * Note: Payer info (name/email) is resolved in the service layer since
  * target_id is a polymorphic UUID without FK constraints.

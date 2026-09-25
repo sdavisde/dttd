@@ -1,17 +1,19 @@
 import 'server-only'
 
 import { cache } from 'react'
-import { getWeekendGroup } from '@/services/weekend'
-import { getEventsForWeekendGroup } from '@/services/events'
+import { getCachedWeekendGroup } from '@/services/weekend/cached'
+import { getCachedEventsForGroup } from '@/services/events/cached'
 
-// Per-request memoised reads shared by the hub frame and the tab pages, so a
-// hub page costs one group lookup and one events query no matter how many
-// components ask.
+// Shared reads for the hub frame and the tab pages. Both come from the
+// cross-request cache (the group and its events are the same for every
+// viewer; writes to them call updateTag), and `cache` memoises them per
+// render so a hub page costs one lookup each no matter how many components
+// ask.
 
 export const loadHubGroup = cache(async (groupId: string) =>
-  getWeekendGroup(groupId)
+  getCachedWeekendGroup(groupId)
 )
 
 export const loadHubEvents = cache(async (groupId: string) =>
-  getEventsForWeekendGroup(groupId)
+  getCachedEventsForGroup(groupId)
 )

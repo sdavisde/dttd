@@ -23,6 +23,7 @@ export {
   getActiveGroupId,
   getRosterCountByWeekend,
   getRosterAssignmentForUser,
+  getRosterWeekendIdsForUser,
   // Protected actions (auth required)
   getWeekendGroupsByStatus,
   setActiveWeekendGroup,

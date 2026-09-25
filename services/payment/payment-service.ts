@@ -443,6 +443,40 @@ export async function getPaymentForTarget(
 }
 
 /**
+ * Gets the payments of several targets of one type in one round-trip,
+ * grouped by target id. A target with no payments maps to an empty list,
+ * exactly as `getPaymentForTarget` would return for it.
+ *
+ * @param targetType - The type of every target
+ * @param targetIds - The IDs of the target entities
+ * @param options - Service options including RLS bypass flag
+ * @returns Result containing a map of target id to its payments, newest first
+ */
+export async function getPaymentsForTargets(
+  targetType: NonNullable<TargetType>,
+  targetIds: string[],
+  options?: ServiceOptions
+): Promise<Result<string, Map<string, PaymentTransactionRow[]>>> {
+  return map(
+    await PaymentRepository.getPaymentsByTargetIds(
+      targetType,
+      targetIds,
+      options
+    ),
+    (rows) => {
+      const byTarget = new Map<string, PaymentTransactionRow[]>(
+        targetIds.map((id) => [id, []])
+      )
+      for (const row of rows) {
+        if (isNil(row.target_id)) continue
+        byTarget.get(row.target_id)?.push(row)
+      }
+      return byTarget
+    }
+  )
+}
+
+/**
  * Reassigns all of a target's payment transactions to a different weekend.
  * Used when a candidate is moved between weekends so their payments follow them.
  *

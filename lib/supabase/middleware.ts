@@ -4,6 +4,11 @@ import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import { validateRedirectUrl } from '@/lib/redirect'
 import { PUBLIC_REGEX_ROUTES } from '@/proxy'
+import {
+  AUDIT_REQ_HEADER,
+  AUDIT_ROUTE_HEADER,
+  createAuditFetch,
+} from '@/lib/supabase/audit-fetch'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -14,6 +19,13 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      global: {
+        fetch: createAuditFetch('middleware', () => ({
+          reqId: request.headers.get(AUDIT_REQ_HEADER) ?? undefined,
+          route: request.headers.get(AUDIT_ROUTE_HEADER) ?? undefined,
+          mode: 'proxy',
+        })),
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll()

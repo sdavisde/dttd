@@ -1,7 +1,12 @@
 import 'server-only'
 
 import { isNil } from 'lodash'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import {
+  createClient,
+  createAdminClient,
+  readClient,
+  type ReadOptions,
+} from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { ok, err } from '@/lib/results'
 import type { Tables } from '@/database.types'
@@ -9,9 +14,10 @@ import type { Tables } from '@/database.types'
 type RawSiteSetting = Tables<'site_settings'>
 
 export async function getSettingByKey(
-  key: string
+  key: string,
+  options?: ReadOptions
 ): Promise<Result<string, RawSiteSetting | null>> {
-  const supabase = await createClient()
+  const supabase = await readClient(options)
 
   const { data, error } = await supabase
     .from('site_settings')
@@ -58,9 +64,10 @@ export async function getSettingByKeyAdmin(
 }
 
 export async function getSettingsByKeys(
-  keys: string[]
+  keys: string[],
+  options?: ReadOptions
 ): Promise<Result<string, RawSiteSetting[]>> {
-  const supabase = await createClient()
+  const supabase = await readClient(options)
 
   const { data, error } = await supabase
     .from('site_settings')

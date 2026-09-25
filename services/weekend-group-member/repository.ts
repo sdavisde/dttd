@@ -12,6 +12,8 @@ import type {
   RawMedicalProfile,
 } from './types'
 
+export type { RawGroupMember } from './types'
+
 /**
  * Upserts a weekend_group_members row for a given group and user.
  * Safe to call multiple times — ON CONFLICT DO NOTHING ensures idempotency.
@@ -308,6 +310,31 @@ export async function getGroupMemberByRosterId(
 }
 
 /**
+ * The group members of several users in one group, in one query — what
+ * `getGroupMemberByRosterId` resolves row by row once the roster's weekend
+ * has been mapped to its group.
+ */
+export async function findGroupMembersByGroupAndUsers(
+  groupId: string,
+  userIds: string[]
+): Promise<Result<string, RawGroupMember[]>> {
+  if (userIds.length === 0) return ok([])
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_group_members')
+    .select('*')
+    .eq('group_id', groupId)
+    .in('user_id', userIds)
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to fetch group members: ${error.message}`)
+  }
+
+  return ok((data ?? []) as RawGroupMember[])
+}
+
+/**
  * Upserts a form completion record for a group member.
  */
 export async function upsertFormCompletion(
@@ -345,6 +372,27 @@ export async function getFormCompletions(
     .from('team_form_completions')
     .select('*')
     .eq('weekend_group_member_id', groupMemberId)
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to fetch form completions: ${error.message}`)
+  }
+
+  return ok((data ?? []) as RawFormCompletion[])
+}
+
+/**
+ * The form completions of several group members in one query.
+ */
+export async function getFormCompletionsForMembers(
+  groupMemberIds: string[]
+): Promise<Result<string, RawFormCompletion[]>> {
+  if (groupMemberIds.length === 0) return ok([])
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('team_form_completions')
+    .select('*')
+    .in('weekend_group_member_id', groupMemberIds)
 
   if (isSupabaseError(error)) {
     return err(`Failed to fetch form completions: ${error.message}`)
@@ -419,6 +467,30 @@ export async function getUserMedicalProfile(
   }
 
   return ok(data as RawMedicalProfile | null)
+}
+
+/**
+ * The medical profiles of several users in one query, on the session client
+ * so row-level security still applies: a viewer without FULL_ACCESS gets
+ * only their own row, exactly as the per-user lookup returns null for
+ * everyone else's.
+ */
+export async function getUserMedicalProfiles(
+  userIds: string[]
+): Promise<Result<string, RawMedicalProfile[]>> {
+  if (userIds.length === 0) return ok([])
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('user_medical_profiles')
+    .select('*')
+    .in('user_id', userIds)
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to fetch medical profiles: ${error.message}`)
+  }
+
+  return ok((data ?? []) as RawMedicalProfile[])
 }
 
 /**

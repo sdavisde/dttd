@@ -10,8 +10,8 @@ import {
   Text,
   Hr,
   Button,
+  Tailwind,
 } from '@react-email/components'
-import { Tailwind } from '@react-email/tailwind'
 import { isNil } from 'lodash'
 
 type SponsorshipNotificationEmailProps = HydratedCandidate & {

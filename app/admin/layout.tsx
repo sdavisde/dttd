@@ -6,6 +6,7 @@ import * as Results from '@/lib/results'
 import { permissionLock, Permission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
+import { SessionScope } from '@/components/auth/session-provider'
 import { getVisibleNavItems } from '@/lib/admin/navigation'
 import { isNil } from 'lodash'
 
@@ -26,19 +27,22 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    // 240px per the admin design board. Overridden here rather than in
-    // components/ui/sidebar.tsx so other sidebar consumers keep the default.
-    <SidebarProvider
-      style={{ '--sidebar-width': '15rem' } as React.CSSProperties}
-    >
-      <AdminSidebar items={getVisibleNavItems(user)} />
-      {/* min-w-0 lets this flex item shrink below its content's width, so wide
+    <SessionScope user={user}>
+      {/* 240px per the admin design board. Overridden here rather than in
+          components/ui/sidebar.tsx so other sidebar consumers keep the
+          default. */}
+      <SidebarProvider
+        style={{ '--sidebar-width': '15rem' } as React.CSSProperties}
+      >
+        <AdminSidebar items={getVisibleNavItems(user)} />
+        {/* min-w-0 lets this flex item shrink below its content's width, so wide
           children (tables) scroll inside their own container instead of
           stretching the whole page horizontally. */}
-      <SidebarInset className="min-w-0">
-        <main className="w-full min-h-[80vh]">{children}</main>
-        <Footer />
-      </SidebarInset>
-    </SidebarProvider>
+        <SidebarInset className="min-w-0">
+          <main className="w-full min-h-[80vh]">{children}</main>
+          <Footer />
+        </SidebarInset>
+      </SidebarProvider>
+    </SessionScope>
   )
 }

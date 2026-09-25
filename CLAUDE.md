@@ -29,10 +29,10 @@ Dusty Trails Tres Dias (DTTD) is a Christian community management platform for s
 
 ### Technology Stack
 
-- **Frontend**: Next.js 15.3.2 (App Router), TypeScript, React 19, shadcn/ui components, Tailwind CSS v4
+- **Frontend**: Next.js 16 (App Router), TypeScript 6, React 19, shadcn/ui components, Tailwind CSS v4
 - **Backend**: Supabase (PostgreSQL), Supabase Auth, Supabase SSR
-- **State**: TanStack React Query v4, React Hook Form + Zod v4 validation
-- **Payments**: Stripe integration (v18.2.0)
+- **State**: TanStack React Query v5, React Hook Form + Zod v4 validation
+- **Payments**: Stripe integration (stripe-node v18)
 - **Email**: Resend service, React Email components
 - **Logging**: Pino logger
 - **UI Libraries**: Radix UI primitives, Lucide React icons, Next Themes, Sonner toasts

@@ -6,7 +6,7 @@ import { PageContent } from '@/components/member/page-content'
 import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 import { formatPhoneInput } from '@/lib/formatting/phone-input'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getActiveWeekends } from '@/services/weekend'
+import { getCachedActiveWeekends } from '@/services/weekend/cached'
 import { isErr, Results } from '@/lib/results'
 import type { User } from '@/lib/users/types'
 import { formatWeekendTitle } from '@/lib/weekend'
@@ -46,7 +46,7 @@ function defaultsFromProfile(user: User): SponsorFormDefaults {
 export default async function SponsorPage() {
   const [userResult, weekendsResult] = await Promise.all([
     getLoggedInUser(),
-    getActiveWeekends(),
+    getCachedActiveWeekends(),
   ])
   if (isErr(userResult)) redirect('/login')
   const user = userResult.data

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getActiveGroupId } from '@/services/weekend'
+import { getCachedActiveGroupId } from '@/services/weekend/cached'
 import { isErr, Results } from '@/lib/results'
 import { Permission, userHasPermission } from '@/lib/security'
 import { getMemberNav, getTabBarItems } from '@/lib/member/navigation'
@@ -11,6 +11,7 @@ import { TopBar } from '@/components/member/top-bar'
 import { TabBar } from '@/components/member/tab-bar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Footer } from '@/components/footer'
+import { SessionScope } from '@/components/auth/session-provider'
 
 export const metadata: Metadata = {
   title: 'Dusty Trails Tres Dias',
@@ -34,7 +35,7 @@ export default async function MemberLayout({
   const [userResult, cookieStore, activeGroupResult] = await Promise.all([
     getLoggedInUser(),
     cookies(),
-    getActiveGroupId(),
+    getCachedActiveGroupId(),
   ])
   if (isErr(userResult)) {
     redirect('/login')
@@ -48,29 +49,31 @@ export default async function MemberLayout({
   const sidebarOpen = cookieStore.get(SIDEBAR_COOKIE)?.value !== 'false'
 
   return (
-    // 264px per the VerbNav board; overridden here so other sidebar consumers
-    // keep the primitive's default.
-    <SidebarProvider
-      defaultOpen={sidebarOpen}
-      cookieName={SIDEBAR_COOKIE}
-      style={{ '--sidebar-width': '16.5rem' } as React.CSSProperties}
-    >
-      <MemberSidebar nav={nav} />
-      {/* min-w-0 lets this flex item shrink below its content's width, so wide
+    <SessionScope user={user}>
+      {/* 264px per the VerbNav board; overridden here so other sidebar
+          consumers keep the primitive's default. */}
+      <SidebarProvider
+        defaultOpen={sidebarOpen}
+        cookieName={SIDEBAR_COOKIE}
+        style={{ '--sidebar-width': '16.5rem' } as React.CSSProperties}
+      >
+        <MemberSidebar nav={nav} />
+        {/* min-w-0 lets this flex item shrink below its content's width, so wide
           children (tables, kanban boards) scroll inside their own container
           instead of stretching the whole page horizontally. The bottom padding
           clears the fixed tab bar on phones. */}
-      <SidebarInset className="min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
-        <TopBar
-          nav={nav}
-          showAdmin={userHasPermission(user, [Permission.READ_ADMIN_PORTAL])}
-        />
-        <div className="flex min-h-[80vh] w-full min-w-0 flex-1 flex-col">
-          {children}
-        </div>
-        <Footer />
-      </SidebarInset>
-      <TabBar items={getTabBarItems(nav)} />
-    </SidebarProvider>
+        <SidebarInset className="min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+          <TopBar
+            nav={nav}
+            showAdmin={userHasPermission(user, [Permission.READ_ADMIN_PORTAL])}
+          />
+          <div className="flex min-h-[80vh] w-full min-w-0 flex-1 flex-col">
+            {children}
+          </div>
+          <Footer />
+        </SidebarInset>
+        <TabBar items={getTabBarItems(nav)} />
+      </SidebarProvider>
+    </SessionScope>
   )
 }

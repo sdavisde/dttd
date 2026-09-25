@@ -1,9 +1,16 @@
-import { withSentryConfig } from '@sentry/nextjs'
+import { withSentryConfig } from '@sentry/nextjs/config'
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   // todo: flip this on for performance benefits after understanding the diffs
   cacheComponents: false,
+  experimental: {
+    // How long the client router reuses a prefetched or visited segment
+    // before asking the server again. Server actions that write call
+    // updateTag / revalidatePath and router.refresh(), both of which drop
+    // the router cache, so the viewer's own edits are never stale.
+    staleTimes: { dynamic: 60, static: 300 },
+  },
 }
 
 export default withSentryConfig(nextConfig, {

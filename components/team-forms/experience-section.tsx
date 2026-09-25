@@ -64,16 +64,17 @@ export function ExperienceSection() {
         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {fields.map((field, index) => {
             const experienceItem = watch(`experience.${index}`)
-            const isExisting = !isNil(experienceItem.id)
+            const isExisting = !isNil(experienceItem?.id)
             if (isExisting) {
               return (
                 <div
                   key={field.id}
                   className="col-span-1 flex items-center justify-between p-2 border rounded-md"
                 >
-                  <p className="font-semibold">{experienceItem.cha_role}</p>
+                  <p className="font-semibold">{experienceItem?.cha_role}</p>
                   <p className="text-sm text-muted-foreground">
-                    {experienceItem.community} #{experienceItem.weekend_number}
+                    {experienceItem?.community} #
+                    {experienceItem?.weekend_number}
                   </p>
                 </div>
               )

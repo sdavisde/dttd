@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { IntentLink } from '@/components/ui/intent-link'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { HUB_TABS, hubPath, hubTabFromPath } from '@/lib/weekend/hub'
 import { WeekendType } from '@/lib/weekend/types'
@@ -17,7 +17,9 @@ type HubNavProps = {
  * in the hub layout, so it reads the active tab from the URL rather than
  * from the page — the highlight moves the instant a tab is clicked, while
  * the page body is still loading. Scrolls sideways on phones rather than
- * wrapping under the header.
+ * wrapping under the header. Tabs prefetch their page (data included) on
+ * hover / focus / touch, not on sight, so a tab the viewer reaches for is
+ * usually already in the router cache.
  */
 export function HubTabs({ groupId, weekendType }: HubNavProps) {
   const active = hubTabFromPath(usePathname())
@@ -31,7 +33,7 @@ export function HubTabs({ groupId, weekendType }: HubNavProps) {
           const isActive = tab === active
           return (
             <li key={tab}>
-              <Link
+              <IntentLink
                 href={hubPath(groupId, tab, weekendType)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
@@ -42,7 +44,7 @@ export function HubTabs({ groupId, weekendType }: HubNavProps) {
                 )}
               >
                 {label}
-              </Link>
+              </IntentLink>
             </li>
           )
         })}

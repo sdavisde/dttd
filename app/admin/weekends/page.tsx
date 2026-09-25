@@ -10,7 +10,10 @@ import {
 import { isErr } from '@/lib/results'
 import * as Results from '@/lib/results'
 import { isNil } from 'lodash'
-import { getWeekendGroupsByStatus, getWeekendRoster } from '@/services/weekend'
+import {
+  getRosterCountByWeekend,
+  getWeekendGroupsByStatus,
+} from '@/services/weekend'
 import {
   getCandidateCountByWeekend,
   getCandidateCountsByWeekends,
@@ -65,8 +68,8 @@ export default async function WeekendsPage() {
       womensToReview,
       paymentsResult,
     ] = await Promise.all([
-      getWeekendRoster(mens.id),
-      getWeekendRoster(womens.id),
+      getRosterCountByWeekend(mens.id),
+      getRosterCountByWeekend(womens.id),
       getCandidateCountByWeekend(mens.id),
       getCandidateCountByWeekend(womens.id),
       getCandidateReviewCountByWeekend(mens.id),
@@ -105,13 +108,13 @@ export default async function WeekendsPage() {
     activeStats = {
       MENS: deriveWeekendStats({
         candidateCount: Results.toNullable(mensCandidates),
-        rosterCount: Results.toNullable(mensRoster)?.length ?? null,
+        rosterCount: Results.toNullable(mensRoster),
         reviewCount: Results.toNullable(mensToReview),
         openFeeCount: openFeeCountFor(mens.id),
       }),
       WOMENS: deriveWeekendStats({
         candidateCount: Results.toNullable(womensCandidates),
-        rosterCount: Results.toNullable(womensRoster)?.length ?? null,
+        rosterCount: Results.toNullable(womensRoster),
         reviewCount: Results.toNullable(womensToReview),
         openFeeCount: openFeeCountFor(womens.id),
       }),

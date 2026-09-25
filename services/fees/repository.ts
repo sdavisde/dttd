@@ -1,6 +1,10 @@
 import 'server-only'
 
-import { createClient } from '@/lib/supabase/server'
+import {
+  createClient,
+  readClient,
+  type ReadOptions,
+} from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { fromSupabase, map } from '@/lib/results'
 import type { GroupFees } from '@/lib/payments/group-fees'
@@ -32,9 +36,10 @@ export async function findTrackedGroups(): Promise<
 
 /** One group's fee columns; null when the group doesn't exist. */
 export async function findGroupFeeRow(
-  groupId: string
+  groupId: string,
+  options?: ReadOptions
 ): Promise<Result<string, RawGroupFeeRow | null>> {
-  const supabase = await createClient()
+  const supabase = await readClient(options)
   const response = await supabase
     .from('weekend_groups')
     .select(GROUP_FEE_COLUMNS)

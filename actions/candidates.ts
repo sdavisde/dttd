@@ -21,7 +21,7 @@ import { formatWeekendLabelFor } from '@/lib/weekend'
 import type { Database } from '@/database.types'
 import { getCandidateCountByWeekend } from '@/services/candidates/actions'
 import {
-  getPaymentForTarget,
+  getPaymentsForTargets,
   movePaymentsToWeekend,
 } from '@/services/payment/payment-service'
 import { getTrackedGroups } from '@/services/fees/fees-service'
@@ -222,19 +222,12 @@ export async function getAllCandidatesWithDetails(
       )
     }
 
-    // Fetch payments and the tracked groups' fees in parallel
-    const [paymentsByCandidate, trackedGroupsResult] = await Promise.all([
-      Promise.all(
-        candidates.map(async (candidate) => {
-          const paymentsResult = await getPaymentForTarget(
-            'candidate',
-            candidate.id
-          )
-          return {
-            candidateId: candidate.id,
-            payments: isErr(paymentsResult) ? [] : paymentsResult.data,
-          }
-        })
+    // Fetch every candidate's payments (one query) and the tracked groups'
+    // fees in parallel
+    const [paymentsResult, trackedGroupsResult] = await Promise.all([
+      getPaymentsForTargets(
+        'candidate',
+        candidates.map((candidate) => candidate.id)
       ),
       getTrackedGroups(),
     ])
@@ -254,11 +247,12 @@ export async function getAllCandidatesWithDetails(
       ])
     )
 
-    // Create a map of candidate ID to payments
-    const paymentsMap = new Map<string, PaymentRecord[]>()
-    for (const { candidateId, payments } of paymentsByCandidate) {
-      paymentsMap.set(candidateId, payments)
-    }
+    // Candidate ID to payments; a failed read leaves every list empty, as a
+    // failed per-candidate read did.
+    const paymentsMap: Map<string, PaymentRecord[]> = unwrapOr(
+      paymentsResult,
+      new Map<string, PaymentRecord[]>()
+    )
 
     return ok(
       candidates.map((candidate) => {
@@ -403,7 +397,7 @@ export const updateCandidateSponsorshipField = authorizedAction<
 
     const { error: updateError } = await supabase
       .from('candidate_sponsorship_info')
-      .update({ [field]: value })
+      .update({ [field]: value } as CandidateSponsorshipInfoUpdate)
       .eq('candidate_id', candidateId)
 
     if (!isNil(updateError)) {
@@ -435,7 +429,7 @@ export const updateCandidateInfoField = authorizedAction<
 
     const { error: updateError } = await supabase
       .from('candidate_info')
-      .update({ [field]: value })
+      .update({ [field]: value } as CandidateInfoUpdate)
       .eq('candidate_id', candidateId)
 
     if (!isNil(updateError)) {

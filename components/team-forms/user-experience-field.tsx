@@ -20,11 +20,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RECOGNIZED_COMMUNITIES } from '@/lib/communities/whitelist'
+import type { TeamInfoFormValues } from './schemas'
 
 type UserExperienceFieldProps = {
-  control: Control<any>
+  control: Control<TeamInfoFormValues>
   index: number
-  baseFieldName: string
+  baseFieldName: `experience.${number}`
   remove: (index: number) => void
 }
 

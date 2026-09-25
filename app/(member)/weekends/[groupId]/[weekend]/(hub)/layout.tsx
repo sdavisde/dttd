@@ -7,7 +7,7 @@ import { HubTabs, HubWeekendSwitch } from '@/components/weekend-hub/hub-tabs'
 import { Results } from '@/lib/results'
 import { formatWeekendGender, formatWeekendGroupTitle } from '@/lib/weekend'
 import { formatCompactDateRange, weekendLocation } from '@/lib/weekend/hub'
-import { loadHubContextFromParams, type HubParams } from '../../hub-context'
+import { loadHubGroupContext, type HubParams } from '../../hub-context'
 import { loadHubEvents } from '../../hub-data'
 
 type HubLayoutProps = {
@@ -19,16 +19,22 @@ type HubLayoutProps = {
  * The hub's shared opening: breadcrumb, serif title, the sponsor button
  * with the Men's / Women's switch beneath it, and the section tabs. As a layout it stays mounted while tabs
  * change — only the body below the tabs reloads (with its own skeleton).
+ * Everything here is shared data, so it never waits on the viewer lookup;
+ * the group and its events load side by side.
  */
 export default async function WeekendHubLayout({
   params,
   children,
 }: HubLayoutProps) {
-  const { group, weekendType, weekend } = await loadHubContextFromParams(params)
+  const { groupId, weekend: slug } = await params
+  const [{ group, weekendType, weekend }, eventsResult] = await Promise.all([
+    loadHubGroupContext(groupId, slug),
+    loadHubEvents(groupId),
+  ])
   const groupTitle = formatWeekendGroupTitle(weekend.number)
   const gender = formatWeekendGender(weekendType, 'possessive') ?? ''
 
-  const events = Results.unwrapOr(await loadHubEvents(group.groupId), [])
+  const events = Results.unwrapOr(eventsResult, [])
   const location = weekendLocation(events, weekend)
   const range = formatCompactDateRange(weekend.start_date, weekend.end_date)
   const description = [range, location]
