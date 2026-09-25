@@ -1,3 +1,11 @@
+## [1.55.0](https://github.com/sdavisde/dttd/compare/v1.54.1...v1.55.0) (2026-09-25)
+
+### Features
+
+- **payments:** charge online checkout from the group's fees ([0f6a80d](https://github.com/sdavisde/dttd/commit/0f6a80dad7a0f4cb55415bc68818f7effcb7851a))
+- **payments:** merge per-group weekend fees from preview ([e874cd0](https://github.com/sdavisde/dttd/commit/e874cd0f221326dc295a39933b650812cec2efdf))
+- **payments:** store fees per weekend group and track balances across groups ([3817041](https://github.com/sdavisde/dttd/commit/3817041b88aedbeae7c6368b8d85fbeb2452c319)), closes [#13](https://github.com/sdavisde/dttd/issues/13) [#12](https://github.com/sdavisde/dttd/issues/12) [#13](https://github.com/sdavisde/dttd/issues/13)
+
 ## [1.54.1](https://github.com/sdavisde/dttd/compare/v1.54.0...v1.54.1) (2026-09-24)
 
 ### Bug Fixes
