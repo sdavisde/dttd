@@ -11,6 +11,7 @@ import { TopBar } from '@/components/member/top-bar'
 import { TabBar } from '@/components/member/tab-bar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Footer } from '@/components/footer'
+import { SessionHydrator } from '@/components/auth/session-hydrator'
 
 export const metadata: Metadata = {
   title: 'Dusty Trails Tres Dias',
@@ -55,6 +56,7 @@ export default async function MemberLayout({
       cookieName={SIDEBAR_COOKIE}
       style={{ '--sidebar-width': '16.5rem' } as React.CSSProperties}
     >
+      <SessionHydrator user={user} />
       <MemberSidebar nav={nav} />
       {/* min-w-0 lets this flex item shrink below its content's width, so wide
           children (tables, kanban boards) scroll inside their own container

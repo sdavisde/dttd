@@ -6,6 +6,7 @@ import * as Results from '@/lib/results'
 import { permissionLock, Permission } from '@/lib/security'
 import { redirect } from 'next/navigation'
 import { Footer } from '@/components/footer'
+import { SessionHydrator } from '@/components/auth/session-hydrator'
 import { getVisibleNavItems } from '@/lib/admin/navigation'
 import { isNil } from 'lodash'
 
@@ -31,6 +32,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     <SidebarProvider
       style={{ '--sidebar-width': '15rem' } as React.CSSProperties}
     >
+      <SessionHydrator user={user} />
       <AdminSidebar items={getVisibleNavItems(user)} />
       {/* min-w-0 lets this flex item shrink below its content's width, so wide
           children (tables) scroll inside their own container instead of

@@ -35,12 +35,15 @@ export function ImpersonationDialog({
 }: ImpersonationDialogProps) {
   const router = useRouter()
   const { user: currentUser, refreshSession } = useSession()
+  // The full user list is only needed once the dialog is open; the menu that
+  // mounts this dialog closed must not fetch it on every page load.
   const { data: users } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const result = Results.toNullable(await getAllUsers())
       return result ?? []
     },
+    enabled: open,
   })
   const [search, setSearch] = useState('')
 

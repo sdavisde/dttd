@@ -12,8 +12,11 @@ export const SKIP_REGEX_ROUTES = [
   /^\/payment\/candidate-fee(\/.*)?$/,
   /^\/candidate\/.*$/,
   /^\/api\/.*$/,
-  // Sentry tunnelRoute (see next.config.ts) - must stay reachable for logged-out users
-  /^\/monitoring$/,
+  // The Sentry tunnelRoute (see next.config.ts) and Vercel's injected scripts
+  // never render a page, so there is no session to refresh and no redirect to
+  // enforce; the tunnel must also stay reachable for logged-out users.
+  /^\/monitoring(\/.*)?$/,
+  /^\/_vercel\/.*$/,
 ]
 
 /**
@@ -32,6 +35,20 @@ export const PUBLIC_REGEX_ROUTES = [
 ]
 
 /**
+ * A `<Link>` prefetch (Next's own header, or the browser's purpose hint).
+ * The render behind it still authenticates from the cookies, and the real
+ * navigation runs the proxy again, so refreshing the token here would only
+ * add a GoTrue round-trip per visible link.
+ */
+function isPrefetchRequest(req: NextRequest): boolean {
+  const purpose = req.headers.get('purpose') ?? req.headers.get('sec-purpose')
+  return (
+    req.headers.get('next-router-prefetch') !== null ||
+    purpose?.includes('prefetch') === true
+  )
+}
+
+/**
  * A.K.A. middleware - this function has been renamed as part of Next 16
  */
 export async function proxy(req: NextRequest) {
@@ -46,6 +63,10 @@ export async function proxy(req: NextRequest) {
     // correlated with the page render that issued them.
     req.headers.set(AUDIT_REQ_HEADER, crypto.randomUUID().slice(0, 8))
     req.headers.set(AUDIT_ROUTE_HEADER, pathname)
+  }
+
+  if (isPrefetchRequest(req)) {
+    return NextResponse.next({ request: req })
   }
 
   logger.info(`running middleware: ${req.nextUrl.pathname}`)
