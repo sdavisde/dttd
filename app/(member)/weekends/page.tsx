@@ -4,7 +4,7 @@ import { isNil } from 'lodash'
 import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 import { PageContent } from '@/components/member/page-content'
 import { PageHeader } from '@/components/ui/page-header'
-import { getAllWeekendGroups } from '@/services/weekend'
+import { getCachedAllWeekendGroups } from '@/services/weekend/cached'
 import { Results } from '@/lib/results'
 import { bucketGroupsForBoard } from '@/lib/admin/weekend-stats'
 import { formatWeekendGroupTitle, getGroupStatus } from '@/lib/weekend'
@@ -102,7 +102,7 @@ function GroupCard({
 }
 
 export default async function WeekendsIndexPage() {
-  const groupsResult = await getAllWeekendGroups()
+  const groupsResult = await getCachedAllWeekendGroups()
   Results.logFailures(groupsResult)
   const buckets = bucketGroupsForBoard(Results.unwrapOr(groupsResult, []))
 

@@ -1,9 +1,10 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { isNil } from 'lodash'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
+import { TAGS } from '@/lib/cache/tags'
 import { isErr, ok } from '@/lib/results'
 import type { GroupFees } from '@/lib/payments/group-fees'
 import {
@@ -46,7 +47,11 @@ export const updateFeeDefaults = authorizedAction<FeeDefaults, FeeDefaults>(
   Permission.MANAGE_FEES,
   async (defaults) => {
     const result = await FeesService.updateFeeDefaults(defaults)
-    if (!isErr(result)) revalidateFeeViews()
+    if (!isErr(result)) {
+      // Defaults live in site_settings.
+      updateTag(TAGS.settings)
+      revalidateFeeViews()
+    }
     return result
   }
 )
@@ -60,7 +65,11 @@ export const updateGroupFees = authorizedAction<
   GroupFees
 >(Permission.MANAGE_FEES, async ({ groupId, fees }) => {
   const result = await FeesService.setGroupFees(groupId, fees)
-  if (!isErr(result)) revalidateFeeViews()
+  if (!isErr(result)) {
+    updateTag(TAGS.groupFees)
+    updateTag(TAGS.weekendGroup(groupId))
+    revalidateFeeViews()
+  }
   return result
 })
 

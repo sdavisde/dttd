@@ -23,6 +23,7 @@ import {
   validateSystemEmailAddress,
 } from './site-settings'
 import * as SettingsRepository from './repository'
+import type { ReadOptions } from '@/lib/supabase/server'
 
 function normalizeSetting(raw: {
   key: string
@@ -54,13 +55,13 @@ export async function getSetting(
   return ok(normalizeSetting(result.data))
 }
 
-export async function getPrayerWheelUrls(): Promise<
-  Result<string, PrayerWheelUrls>
-> {
-  const result = await SettingsRepository.getSettingsByKeys([
-    MENS_PRAYER_WHEEL_URL,
-    WOMENS_PRAYER_WHEEL_URL,
-  ])
+export async function getPrayerWheelUrls(
+  options?: ReadOptions
+): Promise<Result<string, PrayerWheelUrls>> {
+  const result = await SettingsRepository.getSettingsByKeys(
+    [MENS_PRAYER_WHEEL_URL, WOMENS_PRAYER_WHEEL_URL],
+    options
+  )
 
   if (isErr(result)) {
     return err(`Failed to get prayer wheel URLs: ${result.error}`)
@@ -79,12 +80,13 @@ export async function getPrayerWheelUrls(): Promise<
  * Men sign up for the women's prayer wheel and vice versa.
  */
 export async function getPrayerWheelUrlForGender(
-  gender: string | null
+  gender: string | null,
+  options?: ReadOptions
 ): Promise<Result<string, string | null>> {
   const key =
     gender === 'male' ? WOMENS_PRAYER_WHEEL_URL : MENS_PRAYER_WHEEL_URL
 
-  const result = await SettingsRepository.getSettingByKey(key)
+  const result = await SettingsRepository.getSettingByKey(key, options)
 
   if (isErr(result)) {
     return err(`Failed to get prayer wheel URL: ${result.error}`)

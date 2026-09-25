@@ -1,11 +1,20 @@
 'use server'
 
+import { updateTag } from 'next/cache'
+import { isErr, type Result } from '@/lib/results'
+import { TAGS } from '@/lib/cache/tags'
 import * as RoleService from './role-service'
 import { authorizedAction } from '@/lib/actions/authorized-action'
 import { Permission } from '@/lib/security'
 import type { Tables } from '@/database.types'
 import type { Role, RoleInput, RoleUsageById } from './types'
 import type { FullAccessImpact } from './inheritance'
+
+/** Drops the cached role graph after a successful write to `roles`. */
+function invalidatingRoles<T>(result: Result<string, T>): Result<string, T> {
+  if (!isErr(result)) updateTag(TAGS.roles)
+  return result
+}
 
 // Read operations - doesn't require authorizedAction since reading roles list is safe
 export const getRoles = async () => {
@@ -37,21 +46,21 @@ type UpdateRoleRequest = {
 export const updateRole = authorizedAction<UpdateRoleRequest, Role>(
   Permission.WRITE_USER_ROLES,
   async ({ roleId, input }) => {
-    return await RoleService.updateRole(roleId, input)
+    return invalidatingRoles(await RoleService.updateRole(roleId, input))
   }
 )
 
 export const deleteRole = authorizedAction<string, null>(
   Permission.WRITE_USER_ROLES,
   async (roleId) => {
-    return await RoleService.deleteRole(roleId)
+    return invalidatingRoles(await RoleService.deleteRole(roleId))
   }
 )
 
 export const createRole = authorizedAction<RoleInput, Role>(
   Permission.WRITE_USER_ROLES,
   async (input) => {
-    return await RoleService.createRole(input)
+    return invalidatingRoles(await RoleService.createRole(input))
   }
 )
 
@@ -62,7 +71,9 @@ type DuplicateRoleRequest = {
 export const duplicateRole = authorizedAction<DuplicateRoleRequest, Role>(
   Permission.WRITE_USER_ROLES,
   async ({ sourceRoleId, label }) => {
-    return await RoleService.duplicateRole(sourceRoleId, label)
+    return invalidatingRoles(
+      await RoleService.duplicateRole(sourceRoleId, label)
+    )
   }
 )
 

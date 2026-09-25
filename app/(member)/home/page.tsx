@@ -1,7 +1,7 @@
 import { isErr, Results } from '@/lib/results'
 import { Dashboard } from './dashboard'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getPrayerWheelUrlForGender } from '@/services/settings'
+import { getCachedPrayerWheelUrlForGender } from '@/services/settings/cached'
 import { PageContent } from '@/components/member/page-content'
 
 export default async function Home() {
@@ -11,7 +11,9 @@ export default async function Home() {
     return <div>Error: {user.error}</div>
   }
 
-  const prayerWheelResult = await getPrayerWheelUrlForGender(user.data.gender)
+  const prayerWheelResult = await getCachedPrayerWheelUrlForGender(
+    user.data.gender
+  )
   const prayerWheelUrl = Results.unwrapOr(prayerWheelResult, null)
 
   return (

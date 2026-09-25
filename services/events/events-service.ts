@@ -10,6 +10,7 @@ import type {
   EventUpdateInput,
 } from './types'
 import * as EventsRepository from './repository'
+import type { ReadOptions } from '@/lib/supabase/server'
 
 // ============================================================================
 // Helper Functions (Private)
@@ -115,9 +116,10 @@ export async function getUpcomingEventsForPeriod(
  * @param groupId - The weekend group ID
  */
 export async function getEventsForWeekendGroup(
-  groupId: string
+  groupId: string,
+  options?: ReadOptions
 ): Promise<Result<string, Event[]>> {
-  const result = await EventsRepository.findEventsByGroupId(groupId)
+  const result = await EventsRepository.findEventsByGroupId(groupId, options)
 
   if (isErr(result)) {
     return err(`Failed to get events for weekend group: ${result.error}`)

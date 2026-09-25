@@ -12,6 +12,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import * as SettingsRepository from '@/services/settings/repository'
 import * as WeekendRepository from '@/services/weekend/repository'
 import * as FeesRepository from './repository'
+import type { ReadOptions } from '@/lib/supabase/server'
 import {
   DEFAULT_ONLINE_SURCHARGE_KEY,
   DEFAULT_WEEKEND_FEE_KEY,
@@ -35,21 +36,26 @@ export async function getTrackedGroups(): Promise<
 
 /** A group's fees; null when the group isn't tracked (or doesn't exist). */
 export async function getGroupFees(
-  groupId: string
+  groupId: string,
+  options?: ReadOptions
 ): Promise<Result<string, GroupFees | null>> {
-  return map(await FeesRepository.findGroupFeeRow(groupId), (row) =>
+  return map(await FeesRepository.findGroupFeeRow(groupId, options), (row) =>
     isNil(row) ? null : groupFeesFromColumns(row)
   )
 }
 
 /** The fees of the group a weekend belongs to; null when it isn't tracked. */
 export async function getGroupFeesForWeekend(
-  weekendId: string
+  weekendId: string,
+  options?: ReadOptions
 ): Promise<Result<string, GroupFees | null>> {
-  const weekendResult = await WeekendRepository.findWeekendById(weekendId)
+  const weekendResult = await WeekendRepository.findWeekendById(
+    weekendId,
+    options
+  )
   if (isErr(weekendResult)) return weekendResult
   const groupId = weekendResult.data?.group_id
-  return isNil(groupId) ? ok(null) : getGroupFees(groupId)
+  return isNil(groupId) ? ok(null) : getGroupFees(groupId, options)
 }
 
 function validateFees(fees: GroupFees): Result<string, GroupFees> {

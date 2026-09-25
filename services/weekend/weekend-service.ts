@@ -13,6 +13,7 @@ import { formatWeekendGroupTitle } from '@/lib/weekend'
 import { COMMUNITY_NAME } from '@/lib/weekend/constants'
 import { logger } from '@/lib/logger'
 import type { Tables } from '@/database.types'
+import type { ReadOptions } from '@/lib/supabase/server'
 import type {
   Weekend,
   WeekendStatusValue,
@@ -43,6 +44,7 @@ import * as PaymentService from '@/services/payment/payment-service'
 import { getPaymentSummary } from '@/lib/payments/utils'
 import { isFeeExemptRole } from '@/lib/payments/group-fees'
 import * as FeesService from '@/services/fees/fees-service'
+import { getCachedGroupFeesForWeekend } from '@/services/fees/cached'
 import type { PaymentTransactionRow } from '@/services/payment/types'
 import { CHARole } from '@/lib/weekend/types'
 import * as WeekendRepository from './repository'
@@ -239,38 +241,45 @@ async function getTeamFormSummariesForUsers(
 // ============================================================================
 
 /**
+ * Fetches active weekends grouped by type. The un-memoised read, for the
+ * cached reader in `./cached.ts`; pages call {@link getActiveWeekends}.
+ */
+export async function readActiveWeekends(
+  options?: ReadOptions
+): Promise<Result<string, Record<WeekendType, Weekend>>> {
+  const result = await WeekendRepository.findActiveWeekends(options)
+
+  if (isErr(result)) {
+    return result
+  }
+
+  const data = result.data
+  if (isEmpty(data)) {
+    return err('No active weekends found')
+  }
+
+  const normalizedGroups = data.map(normalizeWeekend)
+  return toWeekendGroup(normalizedGroups)
+}
+
+/**
  * Fetches active weekends grouped by type. Wrapped in `cache()` so the navbar
  * and the pages beneath it share a single query per server render.
  */
-export const getActiveWeekends = cache(
-  async (): Promise<Result<string, Record<WeekendType, Weekend>>> => {
-    const result = await WeekendRepository.findActiveWeekends()
-
-    if (isErr(result)) {
-      return result
-    }
-
-    const data = result.data
-    if (isEmpty(data)) {
-      return err('No active weekends found')
-    }
-
-    const normalizedGroups = data.map(normalizeWeekend)
-    return toWeekendGroup(normalizedGroups)
-  }
-)
+export const getActiveWeekends = cache(async () => readActiveWeekends())
 
 /**
  * Fetches a weekend group by its group ID.
  */
 export async function getWeekendGroup(
-  groupId: string
+  groupId: string,
+  options?: ReadOptions
 ): Promise<Result<string, WeekendGroupWithId>> {
   if (groupId === '') {
     return err('group_id is required to fetch a group')
   }
 
-  const result = await WeekendRepository.findWeekendsByGroupId(groupId)
+  const result = await WeekendRepository.findWeekendsByGroupId(groupId, options)
 
   if (isErr(result)) {
     return result
@@ -289,9 +298,13 @@ export async function getWeekendGroup(
  * Fetches all weekend groups, optionally filtered by statuses.
  */
 export async function getWeekendGroupsByStatus(
-  statuses?: WeekendStatusValue[]
+  statuses?: WeekendStatusValue[],
+  options?: ReadOptions
 ): Promise<Result<string, WeekendGroupWithId[]>> {
-  const result = await WeekendRepository.findWeekendsByStatuses(statuses)
+  const result = await WeekendRepository.findWeekendsByStatuses(
+    statuses,
+    options
+  )
 
   if (isErr(result)) {
     return result
@@ -787,9 +800,10 @@ export async function saveWeekendGroupFromSidebar(
  * Fetches a single weekend by ID.
  */
 export async function getWeekendById(
-  weekendId: string
+  weekendId: string,
+  options?: ReadOptions
 ): Promise<Result<string, Weekend>> {
-  const result = await WeekendRepository.findWeekendById(weekendId)
+  const result = await WeekendRepository.findWeekendById(weekendId, options)
 
   if (isErr(result)) {
     return result
@@ -902,7 +916,7 @@ export async function getWeekendRoster(
         }
       })
     ),
-    FeesService.getGroupFeesForWeekend(weekendId),
+    getCachedGroupFeesForWeekend(weekendId),
   ])
 
   // A fee we can't read is not a fee of $0 — log it, and show "Not owed"
@@ -1186,19 +1200,19 @@ export async function getWeekendOptions(): Promise<
  * Every weekend group with both of its weekends, newest first. Member-safe:
  * the hub index lists every weekend to everyone, unlike the admin board.
  */
-export async function getAllWeekendGroups(): Promise<
-  Result<string, WeekendGroupWithId[]>
-> {
-  return map(await getWeekendGroupsByStatus(), (groups) =>
+export async function getAllWeekendGroups(
+  options?: ReadOptions
+): Promise<Result<string, WeekendGroupWithId[]>> {
+  return map(await getWeekendGroupsByStatus(undefined, options), (groups) =>
     [...groups].reverse()
   )
 }
 
 /** The group id currently marked ACTIVE, or null when there is none. */
-export async function getActiveGroupId(): Promise<
-  Result<string, string | null>
-> {
-  return WeekendRepository.findActiveGroupId()
+export async function getActiveGroupId(
+  options?: ReadOptions
+): Promise<Result<string, string | null>> {
+  return WeekendRepository.findActiveGroupId(options)
 }
 
 /** Active (non-dropped) roster rows on a weekend — team members serving. */
@@ -1233,11 +1247,14 @@ export type WeekendRosterViewData = {
  *
  * @param weekendId - The ID of the weekend to load data for
  * @param user - The logged-in user (for permission checks)
+ * @param weekend - The weekend, when the caller already has it (the hub
+ *   resolves it from the shared cache); skips the lookup by id
  * @returns All data needed to render the weekend roster view
  */
 export async function getWeekendRosterViewData(
   weekendId: string,
-  user: User
+  user: User,
+  weekend?: Weekend
 ): Promise<Result<string, WeekendRosterViewData>> {
   const canEditRoster = userHasPermission(user, [Permission.WRITE_TEAM_ROSTER])
   const canViewExperienceDistribution = userHasPermission(user, [
@@ -1249,7 +1266,7 @@ export async function getWeekendRosterViewData(
 
   const [weekendResult, rosterResult, usersResult, experienceResult] =
     await Promise.all([
-      getWeekendById(weekendId),
+      isNil(weekend) ? getWeekendById(weekendId) : Promise.resolve(ok(weekend)),
       getWeekendRoster(weekendId),
       canEditRoster ? getAllUsers() : Promise.resolve(ok([])),
       canViewExperienceDistribution
@@ -1265,7 +1282,7 @@ export async function getWeekendRosterViewData(
     return rosterResult
   }
 
-  const weekend = weekendResult.data
+  const resolvedWeekend = weekendResult.data
   // Church affiliation is permission-gated, so drop it before it reaches the
   // client for viewers who aren't allowed to see team form info.
   let roster: WeekendRosterMember[]
@@ -1306,7 +1323,7 @@ export async function getWeekendRosterViewData(
   const availableUsers = users.filter((u) => !rosterUserIds.has(u.id))
 
   return ok({
-    weekend,
+    weekend: resolvedWeekend,
     roster,
     experienceDistribution,
     availableUsers,

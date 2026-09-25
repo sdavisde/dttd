@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
-import { getActiveGroupId } from '@/services/weekend'
+import { getCachedActiveGroupId } from '@/services/weekend/cached'
 import { isErr, Results } from '@/lib/results'
 import { Permission, userHasPermission } from '@/lib/security'
 import { getMemberNav, getTabBarItems } from '@/lib/member/navigation'
@@ -35,7 +35,7 @@ export default async function MemberLayout({
   const [userResult, cookieStore, activeGroupResult] = await Promise.all([
     getLoggedInUser(),
     cookies(),
-    getActiveGroupId(),
+    getCachedActiveGroupId(),
   ])
   if (isErr(userResult)) {
     redirect('/login')

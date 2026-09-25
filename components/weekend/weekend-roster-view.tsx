@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Users } from 'lucide-react'
 import { isNil } from 'lodash'
-import { WeekendStatus } from '@/lib/weekend/types'
+import { WeekendStatus, type Weekend } from '@/lib/weekend/types'
 import { formatWeekendTitle } from '@/lib/weekend'
 import { hubPath } from '@/lib/weekend/hub'
 import { getWeekendRosterViewData } from '@/services/weekend'
@@ -26,6 +26,8 @@ import { Results } from '@/lib/results'
 export type WeekendRosterViewProps = {
   weekendId: string
   user: User
+  /** The weekend, when the page already resolved it; saves the lookup by id. */
+  weekend?: Weekend
 
   // Optional slot for header content (e.g., tabs for switching weekends, status badge)
   headerSlot?: React.ReactNode
@@ -42,11 +44,12 @@ export type WeekendRosterViewProps = {
 export async function WeekendRosterView({
   weekendId,
   user,
+  weekend: knownWeekend,
   headerSlot,
   hideWeekendHeader = false,
 }: WeekendRosterViewProps) {
   // Load all data using the service
-  const result = await getWeekendRosterViewData(weekendId, user)
+  const result = await getWeekendRosterViewData(weekendId, user, knownWeekend)
 
   if (Results.isErr(result)) {
     throw new Error(result.error)

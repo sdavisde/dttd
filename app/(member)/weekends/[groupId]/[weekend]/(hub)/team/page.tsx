@@ -14,7 +14,12 @@ export default async function WeekendTeamPage({
 
   return (
     <Suspense fallback={<WeekendRosterViewSkeleton hideWeekendHeader />}>
-      <WeekendRosterView weekendId={weekend.id} user={user} hideWeekendHeader />
+      <WeekendRosterView
+        weekendId={weekend.id}
+        weekend={weekend}
+        user={user}
+        hideWeekendHeader
+      />
     </Suspense>
   )
 }

@@ -1,7 +1,11 @@
 import 'server-only'
 
 import { isNil } from 'lodash'
-import { createClient } from '@/lib/supabase/server'
+import {
+  createClient,
+  readClient,
+  type ReadOptions,
+} from '@/lib/supabase/server'
 import { fromSupabase, ok } from '@/lib/results'
 import type { RoleInput } from './types'
 
@@ -15,8 +19,8 @@ export const getAllRoles = async () => {
  * The inheritance graph only: enough to expand effective permissions without
  * dragging labels/descriptions along. Shared with the user service.
  */
-export const getRoleGraph = async () => {
-  const supabase = await createClient()
+export const getRoleGraph = async (options?: ReadOptions) => {
+  const supabase = await readClient(options)
   const response = await supabase
     .from('roles')
     .select('id, permissions, based_on_role_id')

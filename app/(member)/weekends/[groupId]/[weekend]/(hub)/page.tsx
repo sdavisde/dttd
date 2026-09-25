@@ -16,7 +16,7 @@ import {
 import { getMyTeamFeeStatus } from '@/services/payment'
 import { isTeamFeeSettled } from '@/lib/payments/checkout-price'
 import { formatFee } from '@/lib/payments/group-fees'
-import { getPrayerWheelUrls } from '@/services/settings'
+import { getCachedPrayerWheelUrls } from '@/services/settings/cached'
 import {
   getRosterAssignmentForUser,
   getRosterCountByWeekend,
@@ -76,7 +76,7 @@ export default async function WeekendHubOverviewPage({
     loadHubEvents(group.groupId),
     getSponsoredCandidatesForWeekend(user.email, weekend.id),
     getRosterAssignmentForUser(user.id, weekend.id),
-    getPrayerWheelUrls(),
+    getCachedPrayerWheelUrls(),
     canReviewCandidates
       ? getCandidateReviewCountByWeekend(weekend.id)
       : Promise.resolve(null),

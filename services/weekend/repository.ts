@@ -1,6 +1,11 @@
 import 'server-only'
 
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import {
+  createClient,
+  createAdminClient,
+  readClient,
+  type ReadOptions,
+} from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { fromSupabase, err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
@@ -68,10 +73,10 @@ export type RawWeekendRosterDB = {
 /**
  * Fetches all weekends with ACTIVE status.
  */
-export async function findActiveWeekends(): Promise<
-  Result<string, RawWeekendRecord[]>
-> {
-  const supabase = await createClient()
+export async function findActiveWeekends(
+  options?: ReadOptions
+): Promise<Result<string, RawWeekendRecord[]>> {
+  const supabase = await readClient(options)
 
   const { data, error } = await supabase
     .from('weekends')
@@ -89,9 +94,10 @@ export async function findActiveWeekends(): Promise<
  * Fetches all weekends belonging to a specific group.
  */
 export async function findWeekendsByGroupId(
-  groupId: string
+  groupId: string,
+  options?: ReadOptions
 ): Promise<Result<string, RawWeekendRecord[]>> {
-  const supabase = await createClient()
+  const supabase = await readClient(options)
 
   const { data, error } = await supabase
     .from('weekends')
@@ -160,9 +166,10 @@ export async function findRosterRowsForFees(
  * Fetches all weekends, optionally filtered by statuses.
  */
 export async function findWeekendsByStatuses(
-  statuses?: WeekendStatusValue[]
+  statuses?: WeekendStatusValue[],
+  options?: ReadOptions
 ): Promise<Result<string, RawWeekendRecord[]>> {
-  const supabase = await createClient()
+  const supabase = await readClient(options)
   let query = supabase.from('weekends').select('*, weekend_groups(number)')
 
   if (!isNil(statuses) && statuses.length > 0) {
@@ -184,9 +191,10 @@ export async function findWeekendsByStatuses(
  * Fetches a single weekend by ID, joining weekend_groups to restore the number field.
  */
 export async function findWeekendById(
-  id: string
+  id: string,
+  options?: ReadOptions
 ): Promise<Result<string, RawWeekendRecord | null>> {
-  const supabase = await createClient()
+  const supabase = await readClient(options)
 
   const { data, error } = await supabase
     .from('weekends')
@@ -881,10 +889,10 @@ export async function findWeekendIdsByGroupId(
  * Finds the group_id of currently ACTIVE weekends (if any).
  * Returns the first group_id found, or null if no active weekends exist.
  */
-export async function findActiveGroupId(): Promise<
-  Result<string, string | null>
-> {
-  const supabase = await createClient()
+export async function findActiveGroupId(
+  options?: ReadOptions
+): Promise<Result<string, string | null>> {
+  const supabase = await readClient(options)
 
   const { data, error } = await supabase
     .from('weekends')

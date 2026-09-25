@@ -18,20 +18,22 @@ import type {
   CHARole,
   WeekendAssignment,
 } from '@/lib/weekend/types'
-import { getRoleGraph as fetchRoleGraph } from '@/services/identity/roles/repository'
+import { getCachedRoleGraph } from '@/services/identity/roles/cached'
 import {
   getEffectivePermissions,
   type RoleNode,
 } from '@/services/identity/roles/inheritance'
 
 /**
- * The role inheritance graph, fetched once per server render. Roles can be
- * "based on" other roles, so a user's permission set must include everything
- * their roles inherit — expanded here, in one place, before the union below.
- * Falls back to own permissions only (fail closed) if the graph cannot load.
+ * The role inheritance graph, read once per server render from the shared
+ * cache (it is the same for every user; role writes invalidate it). Roles
+ * can be "based on" other roles, so a user's permission set must include
+ * everything their roles inherit — expanded here, in one place, before the
+ * union below. Falls back to own permissions only (fail closed) if the graph
+ * cannot load.
  */
 const getRoleGraph = cache(async (): Promise<RoleNode[] | null> => {
-  const result = await fetchRoleGraph()
+  const result = await getCachedRoleGraph()
   return unwrapOr<string, RoleNode[] | null>(result, null)
 })
 

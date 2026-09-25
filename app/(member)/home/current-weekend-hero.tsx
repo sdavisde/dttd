@@ -3,7 +3,7 @@ import { ArrowRight, CalendarDays, HandHeart } from 'lucide-react'
 import { isNil } from 'lodash'
 import type { User } from '@/lib/users/types'
 import { isErr, Results } from '@/lib/results'
-import { getActiveWeekends } from '@/services/weekend'
+import { getCachedActiveWeekends } from '@/services/weekend/cached'
 import { getCandidateCountByWeekend } from '@/services/candidates'
 import {
   WeekendType,
@@ -34,7 +34,7 @@ interface CurrentWeekendHeroProps {
  * are serving. Falls back to a quiet card when no weekend is active.
  */
 export async function CurrentWeekendHero({ user }: CurrentWeekendHeroProps) {
-  const weekendsResult = await getActiveWeekends()
+  const weekendsResult = await getCachedActiveWeekends()
 
   if (isErr(weekendsResult)) {
     return <EmptyWeekendHero />

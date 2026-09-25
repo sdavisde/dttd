@@ -1,6 +1,10 @@
 import 'server-only'
 
-import { createClient } from '@/lib/supabase/server'
+import {
+  createClient,
+  readClient,
+  type ReadOptions,
+} from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
 import { err, ok } from '@/lib/results'
 import { isSupabaseError } from '@/lib/supabase/utils'
@@ -125,9 +129,10 @@ export async function findEventsForPeriod(
  * Fetches events for a specific weekend group.
  */
 export async function findEventsByGroupId(
-  groupId: string
+  groupId: string,
+  options?: ReadOptions
 ): Promise<Result<string, RawEventRecord[]>> {
-  const supabase = await createClient()
+  const supabase = await readClient(options)
 
   const { data, error } = await supabase
     .from('events')
