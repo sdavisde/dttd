@@ -1,7 +1,10 @@
 import { CalendarEventSection } from '@/components/current-weekend/CalendarEventSection'
 import { Results } from '@/lib/results'
 import { eventsForWeekend } from '@/lib/weekend/hub'
-import { loadHubContextFromParams, type HubParams } from '../../../hub-context'
+import {
+  loadHubGroupContextFromParams,
+  type HubParams,
+} from '../../../hub-context'
 import { loadHubEvents } from '../../../hub-data'
 
 export default async function WeekendSchedulePage({
@@ -9,7 +12,7 @@ export default async function WeekendSchedulePage({
 }: {
   params: HubParams
 }) {
-  const { group, weekend } = await loadHubContextFromParams(params)
+  const { group, weekend } = await loadHubGroupContextFromParams(params)
 
   const eventsResult = await loadHubEvents(group.groupId)
   Results.logFailures(eventsResult)

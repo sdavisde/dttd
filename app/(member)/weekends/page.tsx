@@ -5,11 +5,20 @@ import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 import { PageContent } from '@/components/member/page-content'
 import { PageHeader } from '@/components/ui/page-header'
 import { getCachedAllWeekendGroups } from '@/services/weekend/cached'
+import { getLoggedInUser } from '@/services/identity/user'
 import { Results } from '@/lib/results'
 import { bucketGroupsForBoard } from '@/lib/admin/weekend-stats'
 import { formatWeekendGroupTitle, getGroupStatus } from '@/lib/weekend'
-import { formatCompactDateRange, hubPath } from '@/lib/weekend/hub'
-import { WeekendStatus, type WeekendGroupWithId } from '@/lib/weekend/types'
+import {
+  formatCompactDateRange,
+  hubPath,
+  resolveWeekendType,
+} from '@/lib/weekend/hub'
+import {
+  WeekendStatus,
+  WeekendType,
+  type WeekendGroupWithId,
+} from '@/lib/weekend/types'
 import { cn } from '@/lib/utils'
 
 const groupNumber = (group: WeekendGroupWithId) =>
@@ -48,9 +57,12 @@ function StatusPill({ status }: { status: WeekendStatus | null }) {
 
 function GroupCard({
   group,
+  weekendType,
   emphasis = false,
 }: {
   group: WeekendGroupWithId
+  /** The viewer's own weekend, so the card opens it without a redirect hop. */
+  weekendType: WeekendType
   emphasis?: boolean
 }) {
   const status = getGroupStatus(group) as WeekendStatus | null
@@ -64,7 +76,7 @@ function GroupCard({
   )
   return (
     <Link
-      href={hubPath(group.groupId)}
+      href={hubPath(group.groupId, 'overview', weekendType)}
       className={cn(
         'group flex items-center gap-4 rounded-lg border bg-card transition-colors hover:bg-muted/40',
         emphasis ? 'px-6 py-5' : 'px-5 py-4'
@@ -102,9 +114,20 @@ function GroupCard({
 }
 
 export default async function WeekendsIndexPage() {
-  const groupsResult = await getCachedAllWeekendGroups()
+  // The viewer is already resolved by the member shell on a full load; it
+  // only decides which weekend the cards open (the same choice the group
+  // root's redirect makes), so a failed lookup falls back to Men's.
+  const [groupsResult, userResult] = await Promise.all([
+    getCachedAllWeekendGroups(),
+    getLoggedInUser(),
+  ])
   Results.logFailures(groupsResult)
   const buckets = bucketGroupsForBoard(Results.unwrapOr(groupsResult, []))
+  const weekendType = Results.match(
+    userResult,
+    (user) => resolveWeekendType(null, user.gender),
+    () => WeekendType.MENS
+  )
 
   return (
     <PageContent>
@@ -123,7 +146,11 @@ export default async function WeekendsIndexPage() {
             No weekend is active right now.
           </p>
         ) : (
-          <GroupCard group={buckets.active} emphasis />
+          <GroupCard
+            group={buckets.active}
+            weekendType={weekendType}
+            emphasis
+          />
         )}
 
         {buckets.upcoming.length > 0 && (
@@ -132,7 +159,11 @@ export default async function WeekendsIndexPage() {
               Coming up
             </h2>
             {buckets.upcoming.map((group) => (
-              <GroupCard key={group.groupId} group={group} />
+              <GroupCard
+                key={group.groupId}
+                group={group}
+                weekendType={weekendType}
+              />
             ))}
           </section>
         )}
@@ -143,7 +174,11 @@ export default async function WeekendsIndexPage() {
               Past weekends
             </h2>
             {buckets.past.map((group) => (
-              <GroupCard key={group.groupId} group={group} />
+              <GroupCard
+                key={group.groupId}
+                group={group}
+                weekendType={weekendType}
+              />
             ))}
           </section>
         )}
