@@ -154,6 +154,17 @@ export async function getRosterCountByWeekend(weekendId: string) {
 }
 
 /**
+ * The weekends, among those given, a user has a roster row on.
+ * Public - the roster builder opens the viewer's own weekend by default.
+ */
+export async function getRosterWeekendIdsForUser(
+  userId: string,
+  weekendIds: string[]
+) {
+  return WeekendService.getRosterWeekendIdsForUser(userId, weekendIds)
+}
+
+/**
  * A member's own roster row on a weekend, for any group.
  * Public - the hub's "your part in this weekend" card.
  */

@@ -2,7 +2,8 @@ import { isNil } from 'lodash'
 import { redirect } from 'next/navigation'
 import { getLoggedInUser } from '@/services/identity/user'
 import { userHasPermission, Permission } from '@/lib/security'
-import { getActiveWeekends, getWeekendRoster } from '@/services/weekend'
+import { getRosterWeekendIdsForUser } from '@/services/weekend'
+import { getCachedActiveWeekends } from '@/services/weekend/cached'
 import { getRosterBuilderCommunityData } from '@/services/roster-builder'
 import { getSecuelaDateForGroup } from '@/services/events'
 import { isErr, isOk } from '@/lib/results'
@@ -42,7 +43,7 @@ export default async function RosterBuilderPage({
     )
   }
 
-  const activeWeekendsResult = await getActiveWeekends()
+  const activeWeekendsResult = await getCachedActiveWeekends()
   if (isErr(activeWeekendsResult)) {
     return (
       <PageContent className="pt-12 text-center">
@@ -66,14 +67,18 @@ export default async function RosterBuilderPage({
     }
   }
 
-  // Try to auto-select: find a weekend the user is on the roster for
-  for (const weekend of allWeekends) {
-    const rosterResult = await getWeekendRoster(weekend.id)
-    if (isOk(rosterResult)) {
-      const isOnRoster = rosterResult.data.some((m) => m.user_id === user.id)
-      if (isOnRoster) {
-        return renderBoard(weekend, user.id)
-      }
+  // Try to auto-select: the first active weekend (Men's first) the user is
+  // on the roster for, from one membership query rather than a roster load
+  // per weekend.
+  const membershipResult = await getRosterWeekendIdsForUser(
+    user.id,
+    allWeekends.map((w) => w.id)
+  )
+  if (isOk(membershipResult)) {
+    const onRoster = new Set(membershipResult.data)
+    const ownWeekend = allWeekends.find((w) => onRoster.has(w.id))
+    if (!isNil(ownWeekend)) {
+      return renderBoard(ownWeekend, user.id)
     }
   }
 

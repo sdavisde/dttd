@@ -1009,6 +1009,37 @@ export async function countActiveRosterByWeekend(
   return ok(count ?? 0)
 }
 
+/**
+ * Which of the given weekends a user has a roster row on (dropped rows
+ * included, as the full roster read counts them) — one query instead of a
+ * roster load per weekend.
+ */
+export async function findRosterWeekendIdsForUser(
+  userId: string,
+  weekendIds: string[]
+): Promise<Result<string, string[]>> {
+  if (weekendIds.length === 0) return ok([])
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_roster')
+    .select('weekend_id')
+    .eq('user_id', userId)
+    .in('weekend_id', weekendIds)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok([
+    ...new Set(
+      (data ?? [])
+        .map((row) => row.weekend_id)
+        .filter((id): id is string => !isNil(id))
+    ),
+  ])
+}
+
 export type RosterAssignmentRow = Pick<
   Tables<'weekend_roster'>,
   'id' | 'cha_role' | 'additional_cha_role' | 'rollo' | 'status'

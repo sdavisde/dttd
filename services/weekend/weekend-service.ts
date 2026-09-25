@@ -819,12 +819,20 @@ export async function getWeekendById(
 /**
  * Fetches the roster for a weekend with normalized data.
  * Payments are fetched from the payment_transaction table.
+ *
+ * One query per table, never one per row: the roster, the weekend (for its
+ * group id), the group members, then payments, form completions and medical
+ * profiles for every row at once, plus the group's fees from the shared
+ * cache. Medical profiles stay on the session client so row-level security
+ * still limits a viewer without FULL_ACCESS to their own row.
  */
 export async function getWeekendRoster(
   weekendId: string
 ): Promise<Result<string, Array<WeekendRosterMember>>> {
-  const result =
-    await WeekendRepository.findWeekendRosterIncludingDropped(weekendId)
+  const [result, weekendResult] = await Promise.all([
+    WeekendRepository.findWeekendRosterIncludingDropped(weekendId),
+    WeekendRepository.findWeekendById(weekendId),
+  ])
 
   if (isErr(result)) {
     return result
@@ -835,87 +843,47 @@ export async function getWeekendRoster(
   }
 
   const rosterRecords = result.data
+  const userIds = [
+    ...new Set(
+      rosterRecords
+        .map((record) => record.user_id)
+        .filter((id): id is string => !isNil(id))
+    ),
+  ]
 
-  // Resolve group member IDs for all roster records, then fetch payments and forms_complete
-  const groupMemberResults = await Promise.all(
-    rosterRecords.map(async (record) => {
-      const memberResult = await GroupMemberRepository.getGroupMemberByRosterId(
-        record.id
-      )
-      return {
-        rosterId: record.id,
-        groupMemberId: unwrapOr(memberResult, null)?.id ?? null,
-      }
-    })
+  // Every roster row belongs to this weekend, so its group id maps each row
+  // to its group member — what getGroupMemberByRosterId resolves row by row.
+  const groupId = unwrapOr(weekendResult, null)?.group_id ?? null
+  const [membersResult, medicalResult] = await Promise.all([
+    isNil(groupId)
+      ? Promise.resolve(ok<GroupMemberRepository.RawGroupMember[]>([]))
+      : GroupMemberRepository.findGroupMembersByGroupAndUsers(groupId, userIds),
+    GroupMemberRepository.getUserMedicalProfiles(userIds),
+  ])
+
+  const memberIdByUserId = new Map(
+    unwrapOr(membersResult, []).map((member) => [member.user_id, member.id])
   )
+  const groupMemberMap = new Map<string, string | null>(
+    rosterRecords.map((record) => [
+      record.id,
+      isNil(record.user_id)
+        ? null
+        : (memberIdByUserId.get(record.user_id) ?? null),
+    ])
+  )
+  const groupMemberIds = [
+    ...new Set(
+      [...groupMemberMap.values()].filter((id): id is string => !isNil(id))
+    ),
+  ]
 
-  const groupMemberMap = new Map<string, string | null>()
-  for (const { rosterId, groupMemberId } of groupMemberResults) {
-    groupMemberMap.set(rosterId, groupMemberId)
-  }
-
-  // Fetch payments, forms_complete, medical profiles, and the group's fees in parallel
-  const [
-    paymentsByRoster,
-    formsCompleteByRoster,
-    medicalProfilesByRoster,
-    feesResult,
-  ] = await Promise.all([
-    Promise.all(
-      rosterRecords.map(async (record) => {
-        const groupMemberId = groupMemberMap.get(record.id) ?? null
-        if (isNil(groupMemberId)) {
-          return { rosterId: record.id, payments: [] }
-        }
-        const paymentsResult = await PaymentService.getPaymentForTarget(
-          'weekend_group_member',
-          groupMemberId
-        )
-        return {
-          rosterId: record.id,
-          payments: unwrapOr(paymentsResult, []),
-        }
-      })
+  const [paymentsResult, completionsResult, feesResult] = await Promise.all([
+    PaymentService.getPaymentsForTargets(
+      'weekend_group_member',
+      groupMemberIds
     ),
-    Promise.all(
-      rosterRecords.map(async (record) => {
-        const groupMemberId = groupMemberMap.get(record.id) ?? null
-        if (isNil(groupMemberId)) {
-          return { rosterId: record.id, forms_complete: false }
-        }
-        const completionsResult =
-          await GroupMemberRepository.getFormCompletions(groupMemberId)
-        if (isErr(completionsResult)) {
-          return { rosterId: record.id, forms_complete: false }
-        }
-        return {
-          rosterId: record.id,
-          forms_complete: completionsResult.data.length >= 5,
-        }
-      })
-    ),
-    Promise.all(
-      rosterRecords.map(async (record) => {
-        if (isNil(record.user_id)) {
-          return { rosterId: record.id, medicalProfile: null }
-        }
-        const profileResult = await GroupMemberRepository.getUserMedicalProfile(
-          record.user_id
-        )
-        if (isErr(profileResult) || isNil(profileResult.data)) {
-          return { rosterId: record.id, medicalProfile: null }
-        }
-        const profile = profileResult.data
-        return {
-          rosterId: record.id,
-          medicalProfile: {
-            emergency_contact_name: profile.emergency_contact_name,
-            emergency_contact_phone: profile.emergency_contact_phone,
-            medical_conditions: profile.medical_conditions,
-          },
-        }
-      })
-    ),
+    GroupMemberRepository.getFormCompletionsForMembers(groupMemberIds),
     getCachedGroupFeesForWeekend(weekendId),
   ])
 
@@ -930,22 +898,60 @@ export async function getWeekendRoster(
   const teamFee = unwrapOr(feesResult, null)?.teamFee ?? null
 
   // Build lookup maps
+  const paymentsByMember = unwrapOr(
+    paymentsResult,
+    new Map<string, PaymentRecord[]>()
+  )
   const paymentsMap = new Map<string, PaymentRecord[]>()
-  for (const { rosterId, payments } of paymentsByRoster) {
-    paymentsMap.set(rosterId, payments)
+  for (const record of rosterRecords) {
+    const groupMemberId = groupMemberMap.get(record.id) ?? null
+    paymentsMap.set(
+      record.id,
+      isNil(groupMemberId) ? [] : (paymentsByMember.get(groupMemberId) ?? [])
+    )
   }
 
+  const completionCountByMember = new Map<string, number>()
+  for (const completion of unwrapOr(completionsResult, [])) {
+    const memberId = completion.weekend_group_member_id
+    if (isNil(memberId)) continue
+    completionCountByMember.set(
+      memberId,
+      (completionCountByMember.get(memberId) ?? 0) + 1
+    )
+  }
   const formsCompleteMap = new Map<string, boolean>()
-  for (const { rosterId, forms_complete } of formsCompleteByRoster) {
-    formsCompleteMap.set(rosterId, forms_complete)
+  for (const record of rosterRecords) {
+    const groupMemberId = groupMemberMap.get(record.id) ?? null
+    formsCompleteMap.set(
+      record.id,
+      !isNil(groupMemberId) &&
+        !isErr(completionsResult) &&
+        (completionCountByMember.get(groupMemberId) ?? 0) >= 5
+    )
   }
 
+  const profileByUserId = new Map(
+    unwrapOr(medicalResult, []).map((profile) => [profile.user_id, profile])
+  )
   const medicalProfileMap = new Map<
     string,
     WeekendRosterMember['medical_profile']
   >()
-  for (const { rosterId, medicalProfile } of medicalProfilesByRoster) {
-    medicalProfileMap.set(rosterId, medicalProfile)
+  for (const record of rosterRecords) {
+    const profile = isNil(record.user_id)
+      ? null
+      : (profileByUserId.get(record.user_id) ?? null)
+    medicalProfileMap.set(
+      record.id,
+      isNil(profile)
+        ? null
+        : {
+            emergency_contact_name: profile.emergency_contact_name,
+            emergency_contact_phone: profile.emergency_contact_phone,
+            medical_conditions: profile.medical_conditions,
+          }
+    )
   }
 
   // Combine roster records with their payments, forms_complete, and groupMemberId
@@ -1220,6 +1226,14 @@ export async function getRosterCountByWeekend(
   weekendId: string
 ): Promise<Result<string, number>> {
   return WeekendRepository.countActiveRosterByWeekend(weekendId)
+}
+
+/** The weekends, among those given, a user has a roster row on. */
+export async function getRosterWeekendIdsForUser(
+  userId: string,
+  weekendIds: string[]
+): Promise<Result<string, string[]>> {
+  return WeekendRepository.findRosterWeekendIdsForUser(userId, weekendIds)
 }
 
 /** One member's active roster row on a weekend, for any group. */
