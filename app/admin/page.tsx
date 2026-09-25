@@ -13,15 +13,10 @@ import {
   type ActiveGroupSecuela,
 } from '@/lib/admin/dashboard-metrics'
 import { deriveSystemAlerts } from '@/lib/admin/system-alerts'
-import {
-  getAllPayments,
-  getCandidateFee,
-  getFeeBalances,
-  getTeamFee,
-} from '@/services/payment'
+import { getAllPayments, getFeeBalances } from '@/services/payment'
 import { getGroupFees } from '@/services/fees'
 import type { FeeBalances } from '@/lib/payments/fee-balances'
-import { onlinePriceOf, type GroupFees } from '@/lib/payments/group-fees'
+import type { GroupFees } from '@/lib/payments/group-fees'
 import { getMasterRoster } from '@/services/master-roster'
 import { getSecuelaDateForGroup, getUpcomingEvents } from '@/services/events'
 import { getActiveWeekends, getWeekendGroupsByStatus } from '@/services/weekend'
@@ -90,18 +85,10 @@ export default async function Page() {
   const activeFeesPromise: Promise<Result<string, GroupFees | null>> | null =
     isNil(activeGroupId) ? null : getGroupFees(activeGroupId)
 
-  const [
-    balancesResult,
-    secuelaResult,
-    activeFeesResult,
-    teamPriceResult,
-    candidatePriceResult,
-  ] = await Promise.all([
+  const [balancesResult, secuelaResult, activeFeesResult] = await Promise.all([
     balancesPromise,
     secuelaPromise,
     activeFeesPromise,
-    getTeamFee(),
-    getCandidateFee(),
   ])
   if (!isNil(balancesResult)) Results.logFailures(balancesResult)
   if (!isNil(secuelaResult)) Results.logFailures(secuelaResult)
@@ -121,24 +108,11 @@ export default async function Page() {
           mensStartDate: activeWeekends?.MENS.start_date ?? null,
         }
 
-  // Online checkout still charges the Stripe price (spec 18, step 2 moves it
-  // to group fees). Flag it when that price no longer matches the group.
+  // Undefined when there's no active group or its fees couldn't be read.
   const activeFees =
     isNil(activeFeesResult) || Results.isErr(activeFeesResult)
       ? undefined
       : activeFeesResult.data
-  const stripePriceOf = (result: typeof teamPriceResult) =>
-    Results.isOk(result) && !isNil(result.data.unitAmount)
-      ? result.data.unitAmount / 100
-      : null
-  const teamPrice = stripePriceOf(teamPriceResult)
-  const candidatePrice = stripePriceOf(candidatePriceResult)
-  const checkoutPriceMismatch =
-    !isNil(activeFees) &&
-    !isNil(teamPrice) &&
-    !isNil(candidatePrice) &&
-    (teamPrice !== onlinePriceOf(activeFees.teamFee, activeFees) ||
-      candidatePrice !== onlinePriceOf(activeFees.candidateFee, activeFees))
 
   const outstanding = isNil(outstandingFees)
     ? null
@@ -170,10 +144,6 @@ export default async function Page() {
   }
 
   const alerts = deriveSystemAlerts({
-    stripeFeesConfigured: !isNil(teamPrice) && !isNil(candidatePrice),
-    checkoutPriceMismatchGroup: checkoutPriceMismatch
-      ? activeGroupNumber
-      : null,
     activeGroupFeesSet: activeFees === undefined ? null : !isNil(activeFees),
     activeWeekendGroup: isNil(weekendGroups)
       ? null

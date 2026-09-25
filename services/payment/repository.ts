@@ -3,7 +3,7 @@ import 'server-only'
 import { isNil } from 'lodash'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import type { Result } from '@/lib/results'
-import { fromSupabase, map, ok } from '@/lib/results'
+import { fromSupabase, isErr, map, ok } from '@/lib/results'
 import type {
   ServiceOptions,
   PaymentTransactionRow,
@@ -707,4 +707,125 @@ export async function findRosterWeekend(
     found: !isNil(row),
     weekendId: row?.weekend_id ?? null,
   }))
+}
+
+// ---------------------------------------------------------------------------
+// Checkout pricing
+// ---------------------------------------------------------------------------
+// Checkout runs for anonymous sponsors (candidate fee) as well as signed-in
+// team members, and must price from data the payer can't necessarily read,
+// so these reads use the admin client. They return only what pricing needs.
+
+type RawGroupFeeColumns = {
+  number: number
+  team_fee: number | null
+  candidate_fee: number | null
+  online_surcharge: number | null
+}
+
+export type CandidateCheckoutRow = {
+  id: string
+  status: string | null
+  groupId: string | null
+  group: RawGroupFeeColumns | null
+  candidateName: string | null
+  sponsorName: string | null
+  paymentOwner: string | null
+}
+
+/** A candidate with their group's fees and who is paying. Null when not found. */
+export async function findCandidateCheckoutRow(
+  candidateId: string
+): Promise<Result<string, CandidateCheckoutRow | null>> {
+  const supabase = createAdminClient()
+  const response = await supabase
+    .from('candidates')
+    .select(
+      'id, status, weekends(group_id, weekend_groups(number, team_fee, candidate_fee, online_surcharge)), candidate_sponsorship_info(candidate_name, sponsor_name, payment_owner)'
+    )
+    .eq('id', candidateId)
+    .maybeSingle()
+
+  return map(fromSupabase(response), (row) => {
+    if (isNil(row)) return null
+    const sponsorship = row.candidate_sponsorship_info.at(0)
+    return {
+      id: row.id,
+      status: row.status,
+      groupId: row.weekends?.group_id ?? null,
+      group: row.weekends?.weekend_groups ?? null,
+      candidateName: sponsorship?.candidate_name ?? null,
+      sponsorName: sponsorship?.sponsor_name ?? null,
+      paymentOwner: sponsorship?.payment_owner ?? null,
+    }
+  })
+}
+
+export type GroupMemberCheckoutRow = {
+  id: string
+  userId: string
+  groupId: string
+  group: RawGroupFeeColumns | null
+  name: string | null
+  /** The member's roster rows in this group, dropped ones included. */
+  rosterRows: Array<{
+    id: string
+    chaRole: string | null
+    status: string | null
+  }>
+}
+
+/** A group member with their group's fees and roster rows. Null when not found. */
+export async function findGroupMemberCheckoutRow(
+  groupMemberId: string
+): Promise<Result<string, GroupMemberCheckoutRow | null>> {
+  const supabase = createAdminClient()
+  const memberResponse = await supabase
+    .from('weekend_group_members')
+    .select(
+      'id, user_id, group_id, weekend_groups(number, team_fee, candidate_fee, online_surcharge), users(first_name, last_name)'
+    )
+    .eq('id', groupMemberId)
+    .maybeSingle()
+
+  const memberResult = fromSupabase(memberResponse)
+  if (isErr(memberResult)) return memberResult
+  const member = memberResult.data
+  if (isNil(member)) return ok(null)
+
+  const rosterResponse = await supabase
+    .from('weekend_roster')
+    .select('id, cha_role, status, weekends!inner(group_id)')
+    .eq('user_id', member.user_id)
+    .eq('weekends.group_id', member.group_id)
+
+  return map(fromSupabase(rosterResponse), (rows) => ({
+    id: member.id,
+    userId: member.user_id,
+    groupId: member.group_id,
+    group: member.weekend_groups,
+    name: formatUserName(member.users),
+    rosterRows: rows.map((r) => ({
+      id: r.id,
+      chaRole: r.cha_role,
+      status: r.status,
+    })),
+  }))
+}
+
+/** Live (non-voided) money on record for any of the given targets. */
+export async function sumLivePaymentsForTargets(
+  targetIds: string[]
+): Promise<Result<string, number>> {
+  if (targetIds.length === 0) return ok(0)
+  const supabase = createAdminClient()
+  const response = await supabase
+    .from('payment_transaction')
+    .select('gross_amount')
+    .in('target_id', targetIds)
+    .is('voided_at', null)
+
+  return map(fromSupabase(response), (rows) =>
+    rows.reduce((sum, r) => sum + Number(r.gross_amount), 0)
+  )
 }

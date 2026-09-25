@@ -1,4 +1,5 @@
 import 'server-only'
+import { checkoutFeeTypeFromMetadata } from '@/lib/payments/checkout-price'
 
 import type Stripe from 'stripe'
 import { ok, isErr, Results } from '@/lib/results'
@@ -50,22 +51,19 @@ export const checkoutSessionCompletedHandler: WebhookHandler<Stripe.CheckoutSess
         'Processing completed checkout session'
       )
 
-      const priceId = session.metadata?.price_id
-
-      // Route based on price ID
-      switch (priceId) {
-        case process.env.CANDIDATE_FEE_PRICE_ID:
+      switch (checkoutFeeTypeFromMetadata(session.metadata)) {
+        case 'candidate':
           return handleCandidatePayment(session, ctx)
 
-        case process.env.TEAM_FEE_PRICE_ID:
+        case 'team':
           return handleTeamPayment(session, ctx)
 
         default:
           logger.warn(
-            { priceId },
-            'Unknown price ID in checkout session - ignoring'
+            { feeType: session.metadata?.fee_type },
+            'Unknown fee type in checkout session - ignoring'
           )
-          // Return success but not processed - unknown price IDs are not an error
+          // Return success but not processed - unknown sessions are not an error
           return ok({ processed: false })
       }
     },

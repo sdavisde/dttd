@@ -3,7 +3,6 @@ import { deriveSystemAlerts, type SystemAlertChecks } from './system-alerts'
 /** Everything healthy — each test flips only the check it is about. */
 function checks(overrides: Partial<SystemAlertChecks> = {}): SystemAlertChecks {
   return {
-    stripeFeesConfigured: true,
     activeWeekendGroup: true,
     stripeCheckoutConfigured: true,
     stripeWebhookConfigured: true,
@@ -21,27 +20,6 @@ function keys(input: SystemAlertChecks): string[] {
 describe('deriveSystemAlerts', () => {
   it('is empty when every check passes, so the banner renders nothing', () => {
     expect(deriveSystemAlerts(checks())).toEqual([])
-  })
-
-  it('raises an error alert when the Stripe fee prices cannot be read', () => {
-    const alerts = deriveSystemAlerts(checks({ stripeFeesConfigured: false }))
-    expect(alerts).toHaveLength(1)
-    expect(alerts[0].key).toBe('stripe-fees')
-    expect(alerts[0].severity).toBe('error')
-    expect(alerts[0].impact).toMatch(/pay by card/)
-  })
-
-  it('stays quiet about fees when the check never ran', () => {
-    expect(keys(checks({ stripeFeesConfigured: null }))).toEqual([])
-  })
-
-  it('names the group when checkout charges a different price than its fee', () => {
-    const alerts = deriveSystemAlerts(
-      checks({ checkoutPriceMismatchGroup: 13 })
-    )
-    expect(alerts.map((a) => a.key)).toEqual(['fee-mismatch'])
-    expect(alerts[0].severity).toBe('error')
-    expect(alerts[0].title).toMatch(/DTTD #13/)
   })
 
   it('warns when the active group has no fees set', () => {
@@ -108,7 +86,7 @@ describe('deriveSystemAlerts', () => {
     expect(
       keys(
         checks({
-          stripeFeesConfigured: false,
+          activeGroupFeesSet: false,
           activeWeekendGroup: false,
           stripeCheckoutConfigured: false,
           stripeWebhookConfigured: false,
@@ -118,12 +96,12 @@ describe('deriveSystemAlerts', () => {
         })
       )
     ).toEqual([
-      'stripe-fees',
       'stripe-checkout',
       'stripe-webhook',
       'email',
       'site-url',
       'no-active-weekend',
+      'active-group-fees',
       'degraded-data',
     ])
   })
@@ -131,7 +109,7 @@ describe('deriveSystemAlerts', () => {
   it('gives every alert a title, impact, and action', () => {
     const alerts = deriveSystemAlerts(
       checks({
-        stripeFeesConfigured: false,
+        activeGroupFeesSet: false,
         activeWeekendGroup: false,
         stripeCheckoutConfigured: false,
         stripeWebhookConfigured: false,

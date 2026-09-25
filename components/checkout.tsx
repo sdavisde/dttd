@@ -1,6 +1,8 @@
 'use client'
 import { loadStripe } from '@stripe/stripe-js'
 import { beginCheckout } from '@/actions/checkout'
+import { isErr } from '@/lib/results'
+import type { CheckoutTarget } from '@/lib/payments/checkout-price'
 import { useSession } from './auth/session-provider'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -15,21 +17,19 @@ if (isNil(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)) {
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 interface CheckoutProps {
-  priceId: string
-  metadata: Record<string, string | undefined>
+  /** Who the payment is for. The server works out the amount. */
+  target: CheckoutTarget
   returnUrl: string
 }
 
-export default function Checkout({
-  priceId,
-  metadata,
-  returnUrl,
-}: CheckoutProps) {
+export default function Checkout({ target, returnUrl }: CheckoutProps) {
   const { user, loading: loadingUser } = useSession()
   const checkoutRef = useRef<any>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const targetId =
+    target.kind === 'team' ? target.groupMemberId : target.candidateId
 
   // Fetch client secret when user is available
   useEffect(() => {
@@ -42,15 +42,12 @@ export default function Checkout({
         setCheckoutLoading(true)
         setError(null)
 
-        const checkoutMetadata = {
-          ...metadata,
-          user_id: user.id,
-          user_email: user.email,
-        }
-
-        const secret = await beginCheckout(priceId, returnUrl, checkoutMetadata)
-        if (isMounted) {
-          setClientSecret(secret)
+        const result = await beginCheckout(target, returnUrl)
+        if (!isMounted) return
+        if (isErr(result)) {
+          setError(result.error)
+        } else {
+          setClientSecret(result.data)
         }
       } catch (err) {
         if (isMounted) {
@@ -70,7 +67,9 @@ export default function Checkout({
     return () => {
       isMounted = false
     }
-  }, [loadingUser, user, priceId, returnUrl, metadata])
+    // `target` is rebuilt from props each render; key the effect on its id.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingUser, user, target.kind, targetId, returnUrl])
 
   // Initialize and cleanup Stripe checkout
   useEffect(() => {

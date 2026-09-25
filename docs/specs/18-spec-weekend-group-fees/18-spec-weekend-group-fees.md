@@ -240,6 +240,19 @@ and verified separately from Step 1.
   and their callers, and replace `TEAM_FEE_PRICE_ID`/`CANDIDATE_FEE_PRICE_ID` with product-ID env vars
   (removed from env only after the fallback routing window, see Open Questions)
 
+_As built:_
+
+- Checkout charges what is still owed plus the surcharge, so someone who paid part in cash pays the
+  rest online.
+- The product comes from `TEAM_FEE_PRODUCT_ID` / `CANDIDATE_FEE_PRODUCT_ID` (no price on the
+  product). With no payments in flight at the switch, the price-ID fallbacks (product lookup and
+  webhook `price_id` routing) were dropped rather than kept for a transition window.
+- `beginCheckout` returns a `Result` rather than throwing, because Next.js hides thrown server-action
+  messages in production.
+- The payer name is derived on the server rather than sent by the browser.
+- Online checkout refuses anyone who owes nothing, including spiritual directors; a voluntary gift is
+  recorded by hand for now.
+
 **Proof Artifacts:**
 
 - Test: the checkout amount calculation (group fee + surcharge, refusal when untracked or settled) is
@@ -308,7 +321,5 @@ and verified separately from Step 1.
 
 ## Open Questions
 
-- How long to keep the webhook's `price_id` fallback after Step 2. Stripe checkout sessions expire after
-  24 hours by default, so one release cycle is likely enough
 - Whether the fee-history view belongs on the group's admin page or the Payments summary. Default: the
   group

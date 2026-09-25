@@ -1,6 +1,5 @@
 import 'server-only'
 
-import { stripe } from '@/lib/stripe'
 import type { Result } from '@/lib/results'
 import { err, isErr, isOk, map, ok, unwrapOr } from '@/lib/results'
 import * as PaymentRepository from './repository'
@@ -19,20 +18,26 @@ import {
 } from '@/lib/payments/fee-balances'
 import {
   candidateOwesFee,
+  groupFeesFromColumns,
   isFeeExemptRole,
   type TrackedGroup,
 } from '@/lib/payments/group-fees'
+import {
+  priceCheckout,
+  type CheckoutFeeType,
+  type CheckoutPrice,
+  type CheckoutRefusal,
+  type CheckoutTarget,
+} from '@/lib/payments/checkout-price'
 import * as FeesService from '@/services/fees/fees-service'
 import { pickRoleForWeekend, type RosterRoleRow } from '@/lib/payments/roles'
 import { WAIVED_PAID_BY, isWaived } from '@/lib/payments/waived'
-import type Stripe from 'stripe'
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import { getLoggedInUser } from '@/services/identity/user'
 import { formatWeekendGroupTitle, formatWeekendLabelFor } from '@/lib/weekend'
 import type { Weekend } from '@/lib/weekend/types'
 import type {
-  PriceInfo,
   ServiceOptions,
   TargetIdentity,
   CreatePaymentInput,
@@ -60,73 +65,107 @@ import {
 } from './types'
 
 // ============================================================================
-// Stripe Price Functions
+// Checkout pricing
 // ============================================================================
 
-/**
- * Converts a Stripe Price object to a plain PriceInfo object.
- * This is necessary because Stripe objects have methods and cannot
- * be serialized when passed from server to client components.
- */
-function toPriceInfo(price: Stripe.Price): PriceInfo {
-  return {
-    id: price.id,
-    unitAmount: price.unit_amount,
-    currency: price.currency,
-  }
+export type CheckoutQuote = {
+  /** What to charge, or why checkout won't start. */
+  price: Result<CheckoutRefusal, CheckoutPrice>
+  /** Recorded as the payment's payer. */
+  payerName: string
+  groupId: string | null
+  groupNumber: number | null
+  /** The team member's user; null for a candidate. */
+  userId: string | null
 }
 
 /**
- * Retrieves a Stripe price object by its ID.
- * Used to fetch pricing information for checkout flows.
- * @param priceId - The Stripe price ID (e.g., 'price_xxx')
- * @returns The full Stripe Price object containing amount, currency, and product details
- * @throws Stripe.errors.StripeInvalidRequestError if the price ID is invalid
+ * Prices an online payment from the payer's group fees and what is already
+ * on record, with the same rules outstanding fees use: candidates owe once
+ * approved, spiritual directors owe nothing, dropped members owe nothing.
  */
-export async function retrievePrice(priceId: string): Promise<Stripe.Price> {
-  return await stripe.prices.retrieve(priceId)
+export async function getCheckoutQuote(
+  target: CheckoutTarget
+): Promise<Result<string, CheckoutQuote>> {
+  if (target.kind === 'candidate') {
+    const rowResult = await PaymentRepository.findCandidateCheckoutRow(
+      target.candidateId
+    )
+    if (isErr(rowResult)) return rowResult
+    const row = rowResult.data
+    if (isNil(row)) return err('Candidate not found')
+
+    const coveredResult = await PaymentRepository.sumLivePaymentsForTargets([
+      row.id,
+    ])
+    if (isErr(coveredResult)) return coveredResult
+
+    return ok({
+      price: priceCheckout({
+        feeType: 'candidate',
+        fees: isNil(row.group) ? null : groupFeesFromColumns(row.group),
+        owes: candidateOwesFee(row.status),
+        coveredSoFar: coveredResult.data,
+      }),
+      // The sponsorship form records who is paying: the sponsor or the
+      // candidate themselves.
+      payerName:
+        (row.paymentOwner === 'sponsor'
+          ? row.sponsorName
+          : row.candidateName) ??
+        row.candidateName ??
+        'Unknown',
+      groupId: row.groupId,
+      groupNumber: row.group?.number ?? null,
+      userId: null,
+    })
+  }
+
+  const rowResult = await PaymentRepository.findGroupMemberCheckoutRow(
+    target.groupMemberId
+  )
+  if (isErr(rowResult)) return rowResult
+  const row = rowResult.data
+  if (isNil(row)) return err('Team member not found')
+
+  // Older payments were recorded against roster rows; they still count.
+  const coveredResult = await PaymentRepository.sumLivePaymentsForTargets([
+    row.id,
+    ...row.rosterRows.map((r) => r.id),
+  ])
+  if (isErr(coveredResult)) return coveredResult
+
+  const active = row.rosterRows.filter((r) => r.status !== 'drop')
+  return ok({
+    price: priceCheckout({
+      feeType: 'team',
+      fees: isNil(row.group) ? null : groupFeesFromColumns(row.group),
+      owes:
+        active.length > 0 && !active.every((r) => isFeeExemptRole(r.chaRole)),
+      coveredSoFar: coveredResult.data,
+    }),
+    payerName: row.name ?? 'Unknown',
+    groupId: row.groupId,
+    groupNumber: row.group?.number ?? null,
+    userId: row.userId,
+  })
 }
 
 /**
- * Retrieves a Stripe price and wraps it in a Result type.
- * @param priceId - The Stripe price ID to retrieve
- * @returns Result containing a plain PriceInfo object or an error message
+ * The Stripe product a fee is sold under (TEAM_FEE_PRODUCT_ID /
+ * CANDIDATE_FEE_PRODUCT_ID). The amount comes from the group's fees; the
+ * product only keeps Stripe reports grouped by fee type.
  */
-export async function getPrice(
-  priceId: string
-): Promise<Result<string, PriceInfo>> {
-  try {
-    const price = await retrievePrice(priceId)
-    return ok(toPriceInfo(price))
-  } catch {
-    return err('Failed to retrieve price information')
-  }
-}
-
-/**
- * Retrieves the team fee price from Stripe.
- * Uses the TEAM_FEE_PRICE_ID environment variable.
- * @returns Result containing a plain PriceInfo object or an error message
- */
-export async function getTeamFee(): Promise<Result<string, PriceInfo>> {
-  const priceId = process.env.TEAM_FEE_PRICE_ID
-  if (isNil(priceId)) {
-    return err('Team fee price ID is not configured')
-  }
-  return getPrice(priceId)
-}
-
-/**
- * Retrieves the candidate fee price from Stripe.
- * Uses the CANDIDATE_FEE_PRICE_ID environment variable.
- * @returns Result containing a plain PriceInfo object or an error message
- */
-export async function getCandidateFee(): Promise<Result<string, PriceInfo>> {
-  const priceId = process.env.CANDIDATE_FEE_PRICE_ID
-  if (isNil(priceId)) {
-    return err('Candidate fee price ID is not configured')
-  }
-  return getPrice(priceId)
+export function resolveFeeProductId(
+  feeType: CheckoutFeeType
+): Result<string, string> {
+  const productId =
+    feeType === 'team'
+      ? process.env.TEAM_FEE_PRODUCT_ID
+      : process.env.CANDIDATE_FEE_PRODUCT_ID
+  return isNil(productId) || productId === ''
+    ? err(`No Stripe product configured for the ${feeType} fee`)
+    : ok(productId)
 }
 
 // ============================================================================

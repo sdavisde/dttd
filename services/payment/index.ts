@@ -1,11 +1,10 @@
 export * from './actions'
-export { retrievePrice, FEES_NOT_SET } from './payment-service'
+export { FEES_NOT_SET } from './payment-service'
 export type { PaymentRecord, PaymentType } from '@/lib/payments/types'
 
 // New types for payment_transaction table
 export type {
   ServiceOptions,
-  PriceInfo,
   PaymentTargetOption,
   PaymentTransactionDTO,
   PaymentTransactionRow,

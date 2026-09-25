@@ -13,7 +13,9 @@ import {
   getConfirmedCandidateCountByWeekend,
   getSponsoredCandidatesForWeekend,
 } from '@/services/candidates'
-import { hasTeamPayment } from '@/services/payment'
+import { getMyTeamFeeStatus } from '@/services/payment'
+import { isTeamFeeSettled } from '@/lib/payments/checkout-price'
+import { formatFee } from '@/lib/payments/group-fees'
 import { getPrayerWheelUrls } from '@/services/settings'
 import {
   getRosterAssignmentForUser,
@@ -67,7 +69,7 @@ export default async function WeekendHubOverviewPage({
     prayerWheelResult,
     reviewCountResult,
     formsDoneResult,
-    feePaidResult,
+    feeStatusResult,
   ] = await Promise.all([
     getConfirmedCandidateCountByWeekend(weekend.id),
     getRosterCountByWeekend(weekend.id),
@@ -83,7 +85,7 @@ export default async function WeekendHubOverviewPage({
       : hasCompletedAllTeamForms(groupMemberId),
     isNil(groupMemberId)
       ? Promise.resolve(null)
-      : hasTeamPayment(groupMemberId),
+      : getMyTeamFeeStatus(groupMemberId),
   ])
   Results.logFailures(
     confirmedResult,
@@ -106,9 +108,9 @@ export default async function WeekendHubOverviewPage({
   const formsDone = isNil(formsDoneResult)
     ? null
     : Results.unwrapOr(formsDoneResult, false)
-  const feePaid = isNil(feePaidResult)
+  const feeStatus = isNil(feeStatusResult)
     ? null
-    : Results.unwrapOr(feePaidResult, false)
+    : Results.toNullable(feeStatusResult)
 
   const gender = formatWeekendGender(weekendType, 'possessive') ?? 'this'
   const weekendLabel = isNil(weekend.number)
@@ -133,17 +135,24 @@ export default async function WeekendHubOverviewPage({
           icon: FileText,
           done: formsDone,
         },
-    isNil(feePaid)
+    isNil(feeStatus)
       ? null
       : {
           key: 'fee',
           title: 'Team fee',
-          description: feePaid
-            ? 'Paid — thank you.'
-            : 'Pay your team fee online.',
+          description:
+            feeStatus.state === 'paid'
+              ? 'Paid — thank you.'
+              : feeStatus.state === 'not-owed'
+                ? 'No team fee for your role.'
+                : feeStatus.state === 'fees-not-set'
+                  ? "The team fee hasn't been set yet."
+                  : feeStatus.coveredSoFar > 0
+                    ? `${formatFee(feeStatus.amountDue)} left to pay.`
+                    : 'Pay your team fee online.',
           href: '/payment',
           icon: CreditCard,
-          done: feePaid,
+          done: isTeamFeeSettled(feeStatus),
         },
     canReviewCandidates
       ? {

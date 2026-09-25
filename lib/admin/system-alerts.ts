@@ -11,8 +11,6 @@ import { isNil } from 'lodash'
 export type SystemAlertSeverity = 'error' | 'warning'
 
 export type SystemAlertKey =
-  | 'stripe-fees'
-  | 'fee-mismatch'
   | 'active-group-fees'
   | 'stripe-checkout'
   | 'stripe-webhook'
@@ -35,19 +33,6 @@ export type SystemAlert = {
 }
 
 export type SystemAlertChecks = {
-  /**
-   * False when the Stripe fee prices could not be read (missing price ID or a
-   * Stripe failure). Null when the check never ran — e.g. the payments source
-   * failed first — in which case `degradedSources` carries the story instead.
-   */
-  stripeFeesConfigured: boolean | null
-  /**
-   * The active group's DTTD number when online checkout would charge a
-   * different price than the group's stored fee + surcharge. Checkout still
-   * charges the Stripe price until it reads group fees (spec 18, step 2).
-   * Null when prices match or the check couldn't run.
-   */
-  checkoutPriceMismatchGroup?: number | null
   /**
    * False when the active group has no fees set, so nobody in it shows as
    * owing. Null when there's no active group or the check couldn't run.
@@ -85,8 +70,6 @@ function listSources(sources: string[]): string {
  * first. An empty list means the banner renders nothing.
  */
 export function deriveSystemAlerts({
-  stripeFeesConfigured,
-  checkoutPriceMismatchGroup = null,
   activeGroupFeesSet = null,
   activeWeekendGroup,
   stripeCheckoutConfigured,
@@ -96,44 +79,6 @@ export function deriveSystemAlerts({
   degradedSources,
 }: SystemAlertChecks): SystemAlert[] {
   const alerts: SystemAlert[] = []
-
-  if (stripeFeesConfigured === false) {
-    alerts.push({
-      key: 'stripe-fees',
-      severity: 'error',
-      title: "Weekend fees can't be read from Stripe",
-      impact:
-        'Online payments use the price set in Stripe, which can’t be read right now, so people may not be able to pay by card.',
-      action: 'Ask a developer to check the Stripe fee price setup.',
-    })
-  }
-
-  if (!isNil(checkoutPriceMismatchGroup)) {
-    alerts.push({
-      key: 'fee-mismatch',
-      severity: 'error',
-      title: `Online payments are charging a different price than DTTD #${checkoutPriceMismatchGroup}'s fee`,
-      impact:
-        'Card payments still use the price set in Stripe, which no longer matches the fee on the weekend group, so online payers are charged the wrong amount.',
-      action:
-        'Ask a developer to update the Stripe price to match, or change the group’s fee back.',
-      href: '/admin/weekends',
-      linkLabel: 'Go to weekends',
-    })
-  }
-
-  if (activeGroupFeesSet === false) {
-    alerts.push({
-      key: 'active-group-fees',
-      severity: 'warning',
-      title: 'The active weekend group has no fees set',
-      impact:
-        "Nobody in the group shows as owing anything, so open fees can't be tracked.",
-      action: 'Set the weekend fee on the group.',
-      href: '/admin/weekends',
-      linkLabel: 'Go to weekends',
-    })
-  }
 
   if (!stripeCheckoutConfigured) {
     alerts.push({
@@ -187,6 +132,19 @@ export function deriveSystemAlerts({
       impact:
         "Money tiles, rosters, and the community's weekend hub have nothing to show until a group is marked active.",
       action: 'Open weekend management to activate the next group.',
+      href: '/admin/weekends',
+      linkLabel: 'Go to weekends',
+    })
+  }
+
+  if (activeGroupFeesSet === false) {
+    alerts.push({
+      key: 'active-group-fees',
+      severity: 'warning',
+      title: 'The active weekend group has no fees set',
+      impact:
+        "Nobody in the group shows as owing anything, so open fees can't be tracked.",
+      action: 'Set the weekend fee on the group.',
       href: '/admin/weekends',
       linkLabel: 'Go to weekends',
     })

@@ -16,35 +16,33 @@ import type {
 } from './types'
 import type { Weekend } from '@/lib/weekend/types'
 import type { FeeBalances } from '@/lib/payments/fee-balances'
-import { getGroupMemberByRosterId } from '@/services/weekend-group-member/repository'
-import { isErr, isOk, ok } from '@/lib/results'
+import type { Result } from '@/lib/results'
+import { err, isErr, isOk, ok } from '@/lib/results'
+import { getLoggedInUser } from '@/services/identity/user'
+import {
+  teamFeeStatusFromPrice,
+  type TeamFeeStatus,
+} from '@/lib/payments/checkout-price'
 
 /**
- * Retrieves a Stripe price by its ID.
- * This is a public action that does not require authentication.
+ * The signed-in member's own team fee: paid only once the full amount is
+ * covered, so a partial payment or a raised fee still shows money owed. Uses
+ * the same calculation as online checkout.
  */
-export async function getPrice(priceId: string) {
-  return await PaymentService.getPrice(priceId)
-}
+export async function getMyTeamFeeStatus(
+  groupMemberId: string
+): Promise<Result<string, TeamFeeStatus>> {
+  const quoteResult = await PaymentService.getCheckoutQuote({
+    kind: 'team',
+    groupMemberId,
+  })
+  if (isErr(quoteResult)) return quoteResult
 
-/**
- * Checks if a team member has made any payment.
- * Accepts either a rosterId (bridges to groupMemberId) or a groupMemberId directly.
- * This is a public action used during the payment flow and homepage TODO check.
- */
-export async function hasTeamPayment(rosterOrGroupMemberId: string) {
-  // Try to resolve as a rosterId first (bridge for pre-task-4 callers passing teamMemberInfo.id)
-  const groupMemberResult = await getGroupMemberByRosterId(
-    rosterOrGroupMemberId
-  )
-  const groupMemberId = isErr(groupMemberResult)
-    ? rosterOrGroupMemberId // fall back: assume it's already a groupMemberId
-    : groupMemberResult.data.id
-
-  return await PaymentService.hasPaymentForTarget(
-    'weekend_group_member',
-    groupMemberId
-  )
+  const userResult = await getLoggedInUser()
+  if (isErr(userResult) || userResult.data?.id !== quoteResult.data.userId) {
+    return err('Not your team fee')
+  }
+  return ok(teamFeeStatusFromPrice(quoteResult.data.price))
 }
 
 /**
@@ -154,24 +152,6 @@ function revalidatePaymentViews() {
   revalidatePath('/admin')
   // Every hub page (overview tiles, Candidates tab) under any group.
   revalidatePath('/weekends/[groupId]', 'layout')
-}
-
-/**
- * Retrieves the team fee price from Stripe.
- * This is a public action used during the payment flow.
- * Cached with max lifetime since Stripe prices rarely change.
- */
-export async function getTeamFee() {
-  return await PaymentService.getTeamFee()
-}
-
-/**
- * Retrieves the candidate fee price from Stripe.
- * This is a public action used during the payment flow.
- * Cached with max lifetime since Stripe prices rarely change.
- */
-export async function getCandidateFee() {
-  return await PaymentService.getCandidateFee()
 }
 
 /**
