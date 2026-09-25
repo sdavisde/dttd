@@ -22,65 +22,99 @@ type Session = {
 
 const sessionContext = createContext<Session | null>(null)
 
-/** Lets a server layout hand its already-resolved user to the session. */
-type Hydrate = (user: User | null) => void
-const hydrateContext = createContext<Hydrate | null>(null)
+/**
+ * Re-reads the signed-in user through the `getLoggedInUser` server action;
+ * the one lookup that is still made on demand (after a profile save or an
+ * impersonation change) rather than by a server layout.
+ */
+function useSessionRefresh(apply: (user: User | null) => void) {
+  const [loading, setLoading] = useState(false)
+  const refreshSession = useCallback(() => {
+    setLoading(true)
+    getLoggedInUser()
+      .then((result) => {
+        if (isErr(result)) {
+          logger.error(`Error refreshing session: ${result.error}`)
+          apply(null)
+        } else {
+          apply(result.data)
+        }
+      })
+      .catch((error: unknown) => {
+        logger.error(`Unexpected error refreshing session: ${String(error)}`)
+        apply(null)
+      })
+      .finally(() => setLoading(false))
+  }, [apply])
+  return { loading, refreshSession }
+}
 
 type SessionProviderProps = {
   children: React.ReactNode
 }
 
 /**
- * Holds the signed-in user for client components. The user comes from the
- * server layouts (through `SessionHydrator`), which already resolved it for
- * their own render, so no page load or navigation pays an extra lookup.
- * `refreshSession` re-reads it on demand (after a profile save or an
- * impersonation change).
+ * The root session: no user until a shell inside it provides one. Public
+ * pages read this (nobody is signed in there); the member and admin shells
+ * wrap their tree in `SessionScope` with the user they resolved on the
+ * server, so no page load or navigation pays a lookup for it.
  */
 export function SessionProvider({ children }: SessionProviderProps) {
   const [user, setUser] = useState<User | null>(null)
-  // True until a layout hydrates the session or a refresh settles.
-  const [isLoading, setIsLoading] = useState(true)
-
-  const hydrate = useCallback<Hydrate>((next) => {
-    setUser(next)
-    setIsLoading(false)
-  }, [])
-
-  const refreshSession = useCallback(() => {
-    setIsLoading(true)
-    getLoggedInUser()
-      .then((result) => {
-        if (isErr(result)) {
-          logger.error(`Error refreshing session: ${result.error}`)
-          setUser(null)
-        } else {
-          setUser(result.data)
-        }
-      })
-      .catch((error: unknown) => {
-        logger.error(`Unexpected error refreshing session: ${String(error)}`)
-        setUser(null)
-      })
-      .finally(() => setIsLoading(false))
-  }, [])
+  const { loading, refreshSession } = useSessionRefresh(setUser)
 
   const value = useMemo(
     () => ({
       user,
       isAuthenticated: !isNil(user),
-      loading: isLoading,
+      loading,
       refreshSession,
     }),
-    [user, isLoading, refreshSession]
+    [user, loading, refreshSession]
   )
 
   return (
-    <hydrateContext.Provider value={hydrate}>
-      <sessionContext.Provider value={value}>
-        {children}
-      </sessionContext.Provider>
-    </hydrateContext.Provider>
+    <sessionContext.Provider value={value}>{children}</sessionContext.Provider>
+  )
+}
+
+type SessionScopeProps = {
+  /** The user the server layout resolved for this render. */
+  user: User
+  children: React.ReactNode
+}
+
+/**
+ * Provides a server-resolved user to everything beneath it, from the render
+ * itself — no effect and no state update, so hydration commits the shell
+ * as streamed. A `refreshSession` result overrides it until the layout
+ * re-renders with a newer user (e.g. after `router.refresh()`).
+ */
+export function SessionScope({ user, children }: SessionScopeProps) {
+  const [override, setOverride] = useState<{
+    base: User
+    value: User | null
+  } | null>(null)
+  const apply = useCallback(
+    (value: User | null) => setOverride({ base: user, value }),
+    [user]
+  )
+  const { loading, refreshSession } = useSessionRefresh(apply)
+
+  const current =
+    !isNil(override) && override.base === user ? override.value : user
+  const value = useMemo(
+    () => ({
+      user: current,
+      isAuthenticated: !isNil(current),
+      loading,
+      refreshSession,
+    }),
+    [current, loading, refreshSession]
+  )
+
+  return (
+    <sessionContext.Provider value={value}>{children}</sessionContext.Provider>
   )
 }
 
@@ -90,13 +124,4 @@ export function useSession() {
     throw new Error('useSession must be used within a SessionProvider')
   }
   return session
-}
-
-/** @internal for `SessionHydrator` */
-export function useSessionHydrate() {
-  const hydrate = useContext(hydrateContext)
-  if (isNil(hydrate)) {
-    throw new Error('useSessionHydrate must be used within a SessionProvider')
-  }
-  return hydrate
 }
