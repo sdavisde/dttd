@@ -1,3 +1,20 @@
+## [1.55.1](https://github.com/[secure]/dttd/compare/v1.55.0...v1.55.1) (2026-09-25)
+
+### Bug Fixes
+
+- **proxy:** exclude Link prefetches through the matcher, not a header check ([d459bd2](https://github.com/[secure]/dttd/commit/d459bd2636546dcdb00fa409d118be411e476e08))
+- **release:** keep the conventionalcommits preset on 9.x for semantic-release ([bef5382](https://github.com/[secure]/dttd/commit/bef5382d59599f6eade6adc428d8e126b2c7f4be))
+- **release:** merge the semantic-release preset pin from preview ([6eebb77](https://github.com/[secure]/dttd/commit/6eebb77479e41546039c2c3c6607aad356fa6ac7))
+
+### Performance Improvements
+
+- **auth:** stop paying a GoTrue call per prefetch and per navigation ([e5b1e7a](https://github.com/[secure]/dttd/commit/e5b1e7a8fd7756a5719613d3affb3a8798d662fe))
+- **cache:** share weekend, event, role, setting and fee reads across requests ([b357d46](https://github.com/[secure]/dttd/commit/b357d467c9b311fe8534d2c458bc3ef78b8c8b93))
+- **caching:** merge the caching layers from preview ([a0a4b19](https://github.com/[secure]/dttd/commit/a0a4b196fd1881d3acbe8700499b244baef01a75))
+- **hub:** prefetch tabs on intent and reuse visited tabs for a minute ([290ff09](https://github.com/[secure]/dttd/commit/290ff090f4206eb9bb9c9f7e5e7f3c27242a057a))
+- **hub:** resolve the group without the viewer and link straight to the overview ([0462fd4](https://github.com/[secure]/dttd/commit/0462fd4c75021a80c2434a683228a04a320c56aa))
+- **roster:** batch the per-row roster and candidate lookups ([c295d4b](https://github.com/[secure]/dttd/commit/c295d4badb12f362864cb995f7c7d8fcdcd6c81e))
+
 ## [1.55.0](https://github.com/sdavisde/dttd/compare/v1.54.1...v1.55.0) (2026-09-25)
 
 ### Features
