@@ -285,6 +285,9 @@ function describeFee(candidate: ReviewCandidate): string {
   if (fee.status === 'Partial') {
     return `Candidate fee · ${formatCurrency(fee.totalPaid)} of ${total} paid`
   }
+  if (fee.status === 'Not owed') {
+    return 'Candidate fee · not set for this weekend'
+  }
   return `Candidate fee · ${total} not yet paid`
 }
 

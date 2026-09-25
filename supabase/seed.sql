@@ -988,12 +988,14 @@ WHERE public.users.id = numbered.id;
 -- 3 past (FINISHED), 1 current (ACTIVE), 1 future (PLANNING)
 
 -- Weekend groups must be inserted before weekends (FK dependency)
-INSERT INTO public.weekend_groups (id, number) VALUES
-  ('d0000001-0000-4000-8000-000000000001', 42),
-  ('d0000002-0000-4000-8000-000000000002', 43),
-  ('d0000003-0000-4000-8000-000000000003', 44),
-  ('d0000004-0000-4000-8000-000000000004', 45),
-  ('d0000005-0000-4000-8000-000000000005', 46);
+-- #42 and #43 have no fees: they predate fee tracking, like DTTD's groups
+-- before #12, so outstanding fees skip them.
+INSERT INTO public.weekend_groups (id, number, team_fee, candidate_fee, online_surcharge) VALUES
+  ('d0000001-0000-4000-8000-000000000001', 42, NULL, NULL, NULL),
+  ('d0000002-0000-4000-8000-000000000002', 43, NULL, NULL, NULL),
+  ('d0000003-0000-4000-8000-000000000003', 44, 200, 200, 10),
+  ('d0000004-0000-4000-8000-000000000004', 45, 200, 200, 10),
+  ('d0000005-0000-4000-8000-000000000005', 46, 200, 200, 10);
 
 INSERT INTO public.weekends (id, group_id, type, title, start_date, end_date, status) VALUES
   -- Weekend Group 1: FINISHED (Spring 2024)

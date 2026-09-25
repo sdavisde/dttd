@@ -1,11 +1,13 @@
 'use client'
 import { loadStripe } from '@stripe/stripe-js'
 import { beginCheckout } from '@/actions/checkout'
+import { isErr } from '@/lib/results'
+import type { CheckoutTarget } from '@/lib/payments/checkout-price'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Typography } from './ui/typography'
 import { logger } from '@/lib/logger'
-import { omitBy, isNil } from 'lodash'
+import { isNil } from 'lodash'
 
 if (isNil(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)) {
   throw new Error('Missing Stripe publishable key')
@@ -14,8 +16,8 @@ if (isNil(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)) {
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 interface PublicCheckoutProps {
-  priceId: string
-  metadata: Record<string, string | undefined>
+  /** Who the payment is for. The server works out the amount. */
+  target: CheckoutTarget
   returnUrl: string
 }
 
@@ -24,14 +26,15 @@ interface PublicCheckoutProps {
  * Unlike the regular Checkout component, this doesn't wait for a user session.
  */
 export default function PublicCheckout({
-  priceId,
-  metadata,
+  target,
   returnUrl,
 }: PublicCheckoutProps) {
   const checkoutRef = useRef<any>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const targetId =
+    target.kind === 'team' ? target.groupMemberId : target.candidateId
 
   // Fetch client secret immediately (no auth required)
   useEffect(() => {
@@ -42,13 +45,12 @@ export default function PublicCheckout({
         setCheckoutLoading(true)
         setError(null)
 
-        const checkoutMetadata = omitBy(metadata, isNil) as Record<
-          string,
-          string
-        >
-        const secret = await beginCheckout(priceId, returnUrl, checkoutMetadata)
-        if (isMounted) {
-          setClientSecret(secret)
+        const result = await beginCheckout(target, returnUrl)
+        if (!isMounted) return
+        if (isErr(result)) {
+          setError(result.error)
+        } else {
+          setClientSecret(result.data)
         }
       } catch (err) {
         if (isMounted) {
@@ -68,7 +70,9 @@ export default function PublicCheckout({
     return () => {
       isMounted = false
     }
-  }, [priceId, returnUrl, metadata])
+    // `target` is rebuilt from props each render; key the effect on its id.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target.kind, targetId, returnUrl])
 
   // Initialize and cleanup Stripe checkout
   useEffect(() => {

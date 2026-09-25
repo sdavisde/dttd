@@ -107,6 +107,56 @@ export async function findWeekendsByGroupId(
 }
 
 /**
+ * Fetches the weekends of several groups in one query.
+ */
+export async function findWeekendsByGroupIds(
+  groupIds: string[]
+): Promise<Result<string, RawWeekendRecord[]>> {
+  if (groupIds.length === 0) return ok([])
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekends')
+    .select('*, weekend_groups(number)')
+    .in('group_id', groupIds)
+
+  if (isSupabaseError(error)) {
+    return err(error.message)
+  }
+
+  return ok((data ?? []) as RawWeekendRecord[])
+}
+
+export type RawFeeRosterRow = {
+  id: string
+  weekend_id: string | null
+  user_id: string | null
+  cha_role: string | null
+  status: string | null
+  users: { first_name: string | null; last_name: string | null } | null
+}
+
+/**
+ * Roster rows for several weekends, dropped members included — a dropped
+ * member who already paid still has to be accounted for.
+ */
+export async function findRosterRowsForFees(
+  weekendIds: string[]
+): Promise<Result<string, RawFeeRosterRow[]>> {
+  if (weekendIds.length === 0) return ok([])
+  const supabase = await createClient()
+
+  const response = await supabase
+    .from('weekend_roster')
+    .select(
+      'id, weekend_id, user_id, cha_role, status, users(first_name, last_name)'
+    )
+    .in('weekend_id', weekendIds)
+
+  return fromSupabase(response)
+}
+
+/**
  * Fetches all weekends, optionally filtered by statuses.
  */
 export async function findWeekendsByStatuses(
@@ -157,11 +207,22 @@ export async function findWeekendById(
  */
 export async function insertWeekendGroupRecord(
   id: string,
-  number: number
+  number: number,
+  fees: {
+    teamFee: number
+    candidateFee: number
+    onlineSurcharge: number
+  } | null
 ): Promise<Result<string, void>> {
   const supabase = await createClient()
 
-  const { error } = await supabase.from('weekend_groups').insert({ id, number })
+  const { error } = await supabase.from('weekend_groups').insert({
+    id,
+    number,
+    team_fee: fees?.teamFee ?? null,
+    candidate_fee: fees?.candidateFee ?? null,
+    online_surcharge: fees?.onlineSurcharge ?? null,
+  })
 
   if (isSupabaseError(error)) {
     return err(error.message)

@@ -5,6 +5,7 @@ import {
   ArrowLeftRight,
   Ban,
   FileText,
+  List,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -33,10 +34,37 @@ type OpenDialog = 'details' | 'reassign' | 'edit' | 'void' | null
 
 export function PaymentRowActions({ row }: PaymentRowActionsProps) {
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null)
-  const { canWrite, onRecordPayment } = usePaymentsLedger()
+  const { canWrite, onRecordPayment, onShowPayments } = usePaymentsLedger()
   const payment = row.payment
 
   const closeDialog = () => setOpenDialog(null)
+
+  // An overpaid person is calculated from their payments; the fix (void or
+  // reassign) happens on those payments, so this opens them.
+  if (row.status === 'overpaid') {
+    return (
+      <div onClick={(e) => e.stopPropagation()}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-11 w-11 p-0 md:h-8 md:w-8"
+            >
+              <span className="sr-only">Overpayment actions</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => onShowPayments(row)}>
+              <List className="mr-2 h-4 w-4" />
+              Show their payments
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    )
+  }
 
   // An unpaid fee is calculated, not stored: there is nothing to reassign or
   // void, only a payment to record.

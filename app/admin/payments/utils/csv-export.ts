@@ -10,6 +10,7 @@ const STATUS_LABELS: Record<LedgerStatus, string> = {
   paid: 'Paid',
   waived: 'Waived',
   outstanding: 'Outstanding',
+  overpaid: 'Overpaid',
   voided: 'Voided',
 }
 
@@ -54,7 +55,10 @@ export const LEDGER_CSV_COLUMNS: CsvColumn[] = [
   },
   { header: 'Stripe fee', value: (row) => money(row.payment?.stripe_fee) },
   { header: 'Net', value: (row) => money(row.payment?.net_amount) },
-  { header: 'Notes', value: (row) => row.payment?.notes ?? '' },
+  {
+    header: 'Notes',
+    value: (row) => row.payment?.notes ?? row.note ?? '',
+  },
   {
     header: 'Void reason',
     value: (row) => row.payment?.void_reason ?? '',

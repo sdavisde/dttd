@@ -11,7 +11,7 @@ import { isNil } from 'lodash'
 export type SystemAlertSeverity = 'error' | 'warning'
 
 export type SystemAlertKey =
-  | 'stripe-fees'
+  | 'active-group-fees'
   | 'stripe-checkout'
   | 'stripe-webhook'
   | 'email'
@@ -34,11 +34,10 @@ export type SystemAlert = {
 
 export type SystemAlertChecks = {
   /**
-   * False when the Stripe fee prices could not be read (missing price ID or a
-   * Stripe failure). Null when the check never ran — e.g. the payments source
-   * failed first — in which case `degradedSources` carries the story instead.
+   * False when the active group has no fees set, so nobody in it shows as
+   * owing. Null when there's no active group or the check couldn't run.
    */
-  stripeFeesConfigured: boolean | null
+  activeGroupFeesSet?: boolean | null
   /**
    * False when no weekend group is ACTIVE. Null when the weekends source
    * itself failed, which is a degraded source rather than a missing group.
@@ -71,7 +70,7 @@ function listSources(sources: string[]): string {
  * first. An empty list means the banner renders nothing.
  */
 export function deriveSystemAlerts({
-  stripeFeesConfigured,
+  activeGroupFeesSet = null,
   activeWeekendGroup,
   stripeCheckoutConfigured,
   stripeWebhookConfigured,
@@ -80,17 +79,6 @@ export function deriveSystemAlerts({
   degradedSources,
 }: SystemAlertChecks): SystemAlert[] {
   const alerts: SystemAlert[] = []
-
-  if (stripeFeesConfigured === false) {
-    alerts.push({
-      key: 'stripe-fees',
-      severity: 'error',
-      title: "Weekend fees can't be read from Stripe",
-      impact:
-        "Nobody knows what a team or candidate fee costs right now, so outstanding balances can't be calculated and people may not be able to pay online.",
-      action: 'Ask a developer to check the Stripe fee price setup.',
-    })
-  }
 
   if (!stripeCheckoutConfigured) {
     alerts.push({
@@ -144,6 +132,19 @@ export function deriveSystemAlerts({
       impact:
         "Money tiles, rosters, and the community's weekend hub have nothing to show until a group is marked active.",
       action: 'Open weekend management to activate the next group.',
+      href: '/admin/weekends',
+      linkLabel: 'Go to weekends',
+    })
+  }
+
+  if (activeGroupFeesSet === false) {
+    alerts.push({
+      key: 'active-group-fees',
+      severity: 'warning',
+      title: 'The active weekend group has no fees set',
+      impact:
+        "Nobody in the group shows as owing anything, so open fees can't be tracked.",
+      action: 'Set the weekend fee on the group.',
       href: '/admin/weekends',
       linkLabel: 'Go to weekends',
     })

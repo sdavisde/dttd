@@ -8,11 +8,14 @@ type PaymentsLedgerContextValue = {
   canWrite: boolean
   /** Opens "Record a payment", prefilled for an outstanding row's person. */
   onRecordPayment: (row: LedgerRow) => void
+  /** Lists an overpaid row's person's payments, so one can be voided or reassigned. */
+  onShowPayments: (row: LedgerRow) => void
 }
 
 const PaymentsLedgerContext = createContext<PaymentsLedgerContextValue>({
   canWrite: false,
   onRecordPayment: () => {},
+  onShowPayments: () => {},
 })
 
 export const PaymentsLedgerProvider = PaymentsLedgerContext.Provider

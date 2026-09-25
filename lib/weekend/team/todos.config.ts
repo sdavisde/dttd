@@ -1,4 +1,5 @@
-import { hasTeamPayment } from '@/services/payment'
+import { getMyTeamFeeStatus } from '@/services/payment'
+import { isTeamFeeSettled } from '@/lib/payments/checkout-price'
 import { hasCompletedAllTeamForms } from '@/actions/team-forms'
 import { isOk } from '@/lib/results'
 import type { TodoItemConfig } from './todos.types'
@@ -24,8 +25,9 @@ export const teamTodoItems: TodoItemConfig[] = [
     label: 'Pay team fees',
     href: '/payment/team-fee',
     checkCompletion: async ({ user }) => {
-      const result = await hasTeamPayment(user.teamMemberInfo.groupMemberId)
-      return isOk(result) && result.data
+      // Done only once the full fee is covered (or the role owes none).
+      const result = await getMyTeamFeeStatus(user.teamMemberInfo.groupMemberId)
+      return isOk(result) && isTeamFeeSettled(result.data)
     },
   },
   {

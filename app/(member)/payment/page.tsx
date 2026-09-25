@@ -14,7 +14,8 @@ import { PageHeader } from '@/components/ui/page-header'
 import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 import { PageContent } from '@/components/member/page-content'
 import { getLoggedInUser } from '@/services/identity/user'
-import { hasTeamPayment } from '@/services/payment'
+import { getMyTeamFeeStatus } from '@/services/payment'
+import { formatFee } from '@/lib/payments/group-fees'
 import { isErr, Results } from '@/lib/results'
 import { cn } from '@/lib/utils'
 
@@ -39,9 +40,11 @@ export default async function OnlinePaymentPage() {
   const user = userResult.data
 
   const groupMemberId = user.teamMemberInfo?.groupMemberId ?? null
-  const feePaid = isNil(groupMemberId)
+  // Paid means the full fee is covered — a partial payment, or a fee raised
+  // after paying, still leaves something to pay here.
+  const feeStatus = isNil(groupMemberId)
     ? null
-    : Results.unwrapOr(await hasTeamPayment(groupMemberId), false)
+    : Results.toNullable(await getMyTeamFeeStatus(groupMemberId))
 
   const teamFee: PaymentOption = isNil(groupMemberId)
     ? {
@@ -51,7 +54,7 @@ export default async function OnlinePaymentPage() {
           "For people serving on the current weekend's team. Once you're on the roster, you can pay here.",
         icon: UserRound,
       }
-    : feePaid === true
+    : feeStatus?.state === 'paid'
       ? {
           key: 'team-fee',
           title: 'My team fee',
@@ -59,13 +62,32 @@ export default async function OnlinePaymentPage() {
           icon: UserRound,
           status: 'Paid',
         }
-      : {
-          key: 'team-fee',
-          title: 'My team fee',
-          description: 'Pay your team fee for the current weekend by card.',
-          icon: UserRound,
-          href: '/payment/team-fee',
-        }
+      : feeStatus?.state === 'not-owed'
+        ? {
+            key: 'team-fee',
+            title: 'My team fee',
+            description: "You don't owe a team fee for this weekend.",
+            icon: UserRound,
+            status: 'Not owed',
+          }
+        : feeStatus?.state === 'fees-not-set'
+          ? {
+              key: 'team-fee',
+              title: 'My team fee',
+              description:
+                "The team fee for this weekend hasn't been set yet. Check back soon.",
+              icon: UserRound,
+            }
+          : {
+              key: 'team-fee',
+              title: 'My team fee',
+              description:
+                feeStatus?.state === 'owes' && feeStatus.coveredSoFar > 0
+                  ? `${formatFee(feeStatus.amountDue)} left to pay on your ${formatFee(feeStatus.fee)} team fee.`
+                  : 'Pay your team fee for the current weekend by card.',
+              icon: UserRound,
+              href: '/payment/team-fee',
+            }
 
   const options: PaymentOption[] = [
     teamFee,

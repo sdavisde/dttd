@@ -13,12 +13,10 @@ import {
   type ActiveGroupSecuela,
 } from '@/lib/admin/dashboard-metrics'
 import { deriveSystemAlerts } from '@/lib/admin/system-alerts'
-import {
-  FEE_LOOKUP_FAILED,
-  getAllPayments,
-  getOutstandingFees,
-} from '@/services/payment'
-import type { OutstandingFee } from '@/lib/payments/outstanding'
+import { getAllPayments, getFeeBalances } from '@/services/payment'
+import { getGroupFees } from '@/services/fees'
+import type { FeeBalances } from '@/lib/payments/fee-balances'
+import type { GroupFees } from '@/lib/payments/group-fees'
 import { getMasterRoster } from '@/services/master-roster'
 import { getSecuelaDateForGroup, getUpcomingEvents } from '@/services/events'
 import { getActiveWeekends, getWeekendGroupsByStatus } from '@/services/weekend'
@@ -69,30 +67,36 @@ export default async function Page() {
   const activeGroupNumber =
     activeWeekends?.MENS.number ?? activeWeekends?.WOMENS.number ?? null
 
-  // Both of these need the active weekends, so they wait for the first round —
-  // but they stay separate reads, each degrading only what it feeds.
-  // Outstanding money comes from the same per-person calculation the Payments
-  // ledger lists, so the tile and that page can never disagree.
-  const outstandingPromise: Promise<Result<string, OutstandingFee[]>> | null =
-    !isNil(payments) && !isNil(activeWeekends)
-      ? getOutstandingFees({ payments, activeWeekends })
-      : null
+  // These wait for the first round (payments, the active group) but stay
+  // separate reads, each degrading only what it feeds. Outstanding money
+  // comes from the same per-person calculation the Payments ledger lists, so
+  // the tile and that page can never disagree — and it covers every group
+  // with fees set, not just the active one.
+  const balancesPromise: Promise<Result<string, FeeBalances>> | null = isNil(
+    payments
+  )
+    ? null
+    : getFeeBalances({ payments })
   const secuelaPromise: Promise<Result<string, string | null>> | null = isNil(
     activeGroupId
   )
     ? null
     : getSecuelaDateForGroup(activeGroupId)
+  const activeFeesPromise: Promise<Result<string, GroupFees | null>> | null =
+    isNil(activeGroupId) ? null : getGroupFees(activeGroupId)
 
-  const [outstandingResult, secuelaResult] = await Promise.all([
-    outstandingPromise,
+  const [balancesResult, secuelaResult, activeFeesResult] = await Promise.all([
+    balancesPromise,
     secuelaPromise,
+    activeFeesPromise,
   ])
-  if (!isNil(outstandingResult)) Results.logFailures(outstandingResult)
+  if (!isNil(balancesResult)) Results.logFailures(balancesResult)
   if (!isNil(secuelaResult)) Results.logFailures(secuelaResult)
+  if (!isNil(activeFeesResult)) Results.logFailures(activeFeesResult)
 
-  const outstandingFees = isNil(outstandingResult)
+  const outstandingFees = isNil(balancesResult)
     ? null
-    : Results.toNullable(outstandingResult)
+    : (Results.toNullable(balancesResult)?.outstanding ?? null)
 
   // A secuela we couldn't look up is not a secuela we can say is missing.
   const activeGroupSecuela: ActiveGroupSecuela | null =
@@ -104,12 +108,11 @@ export default async function Page() {
           mensStartDate: activeWeekends?.MENS.start_date ?? null,
         }
 
-  // Fee prices we can't read are their own failure: showing $0 outstanding
-  // would claim every fee is settled when we simply don't know the price.
-  const feesUnknown =
-    !isNil(outstandingResult) &&
-    Results.isErr(outstandingResult) &&
-    outstandingResult.error === FEE_LOOKUP_FAILED
+  // Undefined when there's no active group or its fees couldn't be read.
+  const activeFees =
+    isNil(activeFeesResult) || Results.isErr(activeFeesResult)
+      ? undefined
+      : activeFeesResult.data
 
   const outstanding = isNil(outstandingFees)
     ? null
@@ -136,14 +139,12 @@ export default async function Page() {
   if (Results.isErr(rosterResult)) degradedSources.push('Community roster')
   if (isNil(events)) degradedSources.push('Events')
   if (isNil(weekendGroups)) degradedSources.push('Weekends')
-  if (!feesUnknown && !isNil(outstandingResult) && isNil(outstandingFees)) {
+  if (!isNil(balancesResult) && isNil(outstandingFees)) {
     degradedSources.push('Outstanding fees')
   }
 
   const alerts = deriveSystemAlerts({
-    // Only ever assert the broken case: a financials read that failed for some
-    // other reason tells us nothing about the fee prices either way.
-    stripeFeesConfigured: feesUnknown ? false : null,
+    activeGroupFeesSet: activeFees === undefined ? null : !isNil(activeFees),
     activeWeekendGroup: isNil(weekendGroups)
       ? null
       : hasActiveWeekendGroup(weekendGroups),
@@ -169,7 +170,6 @@ export default async function Page() {
 
         <MetricCards
           outstanding={outstanding}
-          outstandingFeesUnknown={feesUnknown}
           collected={collected}
           memberCount={memberCount}
           storageTile={

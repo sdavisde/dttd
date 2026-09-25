@@ -9,6 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Start production server**: `yarn start`
 - **Lint code**: `yarn lint`
 - **Generate Supabase types**: `yarn db:generate` (regenerates `database.types.ts`)
+- **Stripe webhooks (local)**: `yarn stripe:listen` forwards test-mode events to `/api/webhooks/stripe`
+  (requires `stripe login` with a test-mode account; its `whsec_` secret must match `STRIPE_WEBHOOK_SECRET`)
 - **Database Operations**:
   - yarn db:start - starts all supabase containers, if they aren't already running
   - yarn db:stop - stops all supabase containers

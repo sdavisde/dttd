@@ -1,4 +1,4 @@
-import { Permission } from '@/lib/security'
+import { Permission, userHasPermission } from '@/lib/security'
 import { guardAdminPage } from '@/lib/admin/page-guard'
 import {
   bucketGroupsForBoard,
@@ -16,15 +16,21 @@ import {
   getCandidateCountsByWeekends,
   getCandidateReviewCountByWeekend,
 } from '@/services/candidates'
-import { getAllPayments, getOutstandingFees } from '@/services/payment'
+import { getAllPayments, getFeeBalances } from '@/services/payment'
+import { getFeeDefaults, getTrackedGroupFees } from '@/services/fees'
+import type { GroupFees } from '@/lib/payments/group-fees'
 import { AdminBreadcrumbs } from '@/components/admin/breadcrumbs'
 import { Weekends } from './components/Weekends'
 
 export default async function WeekendsPage() {
-  const { canEdit } = await guardAdminPage({
+  const { user, canEdit } = await guardAdminPage({
     required: [Permission.READ_WEEKENDS],
     edit: [Permission.WRITE_WEEKENDS],
   })
+
+  // Fees are small, independent reads: a failure just leaves prices off the
+  // rows (and the create form falls back to the server-side defaults).
+  const feesPromise = Promise.all([getTrackedGroupFees(), getFeeDefaults()])
 
   const weekendGroupsResult = await getWeekendGroupsByStatus({})
   if (isErr(weekendGroupsResult)) {
@@ -78,19 +84,16 @@ export default async function WeekendsPage() {
 
     // Open fees come from the same per-person list the dashboard tile and the
     // Payments ledger read, so the three pages can never disagree. A failed
-    // read (including FEE_LOOKUP_FAILED, when the Stripe fee prices can't be
-    // read) nulls the stat rather than reporting a count derived from a fee we
-    // don't actually know.
+    // read nulls the stat rather than reporting a count we don't know.
     const payments = Results.toNullable(paymentsResult)
     let openFees: Record<string, WeekendOpenFees> | null = null
     if (!isNil(payments)) {
-      const outstandingResult = await getOutstandingFees({
-        payments,
-        activeWeekends: buckets.active.weekends,
-      })
-      Results.logFailures(outstandingResult)
+      const balancesResult = await getFeeBalances({ payments })
+      Results.logFailures(balancesResult)
       openFees = Results.toNullable(
-        Results.map(outstandingResult, countOpenFeesByWeekend)
+        Results.map(balancesResult, (balances) =>
+          countOpenFeesByWeekend(balances.outstanding)
+        )
       )
     }
 
@@ -119,6 +122,14 @@ export default async function WeekendsPage() {
   Results.logFailures(pastCountsResult)
   const pastCandidateCounts = Results.toNullable(pastCountsResult)
 
+  const [trackedGroupsResult, feeDefaultsResult] = await feesPromise
+  Results.logFailures(trackedGroupsResult, feeDefaultsResult)
+  const feesByGroupId: Record<string, GroupFees> | null = Results.toNullable(
+    Results.map(trackedGroupsResult, (groups) =>
+      Object.fromEntries(groups.map((g) => [g.groupId, g.fees]))
+    )
+  )
+
   return (
     <>
       <AdminBreadcrumbs
@@ -132,6 +143,10 @@ export default async function WeekendsPage() {
           pastCandidateCounts={pastCandidateCounts}
           allGroups={weekendGroups}
           canEdit={canEdit}
+          feesByGroupId={feesByGroupId}
+          feeDefaults={Results.toNullable(feeDefaultsResult)}
+          canManageFees={userHasPermission(user, [Permission.MANAGE_FEES])}
+          canReadPayments={userHasPermission(user, [Permission.READ_PAYMENTS])}
         />
       </div>
     </>

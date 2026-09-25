@@ -1,11 +1,17 @@
 import Checkout from '@/components/checkout'
 import { notFound } from 'next/navigation'
+import { getCheckoutQuote } from '@/services/payment/payment-service'
+import {
+  CHECKOUT_REFUSAL_MESSAGES,
+  type CheckoutTarget,
+} from '@/lib/payments/checkout-price'
+import { formatFee } from '@/lib/payments/group-fees'
 import { logger } from '@/lib/logger'
 import { getActiveGroupMemberForUser } from '@/services/weekend-group-member/repository'
 import { getLoggedInUser } from '@/services/identity/user'
 import { isErr } from '@/lib/results'
 import { isNil } from 'lodash'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getUrl } from '@/lib/url'
 import { PageContent } from '@/components/member/page-content'
@@ -13,12 +19,6 @@ import { MemberBreadcrumbs } from '@/components/member/breadcrumbs'
 import { PageHeader } from '@/components/ui/page-header'
 
 export default async function TeamFeesPaymentPage() {
-  const teamFeePriceId = process.env.TEAM_FEE_PRICE_ID
-  if (isNil(teamFeePriceId) || teamFeePriceId === '') {
-    logger.error('Missing team fee price id')
-    return notFound()
-  }
-
   const userResult = await getLoggedInUser()
   const user = userResult?.data
   if (isErr(userResult) || isNil(user)) {
@@ -54,13 +54,23 @@ export default async function TeamFeesPaymentPage() {
     )
   }
 
-  const groupMemberId = groupMemberResult.data.id
+  const target: CheckoutTarget = {
+    kind: 'team',
+    groupMemberId: groupMemberResult.data.id,
+  }
 
-  // Build payer name for payment tracking
-  const payerName =
-    !isNil(user.firstName) && !isNil(user.lastName)
-      ? `${user.firstName} ${user.lastName}`
-      : (user.email ?? 'Unknown')
+  // The price comes from the member's weekend group, worked out on the server.
+  const quoteResult = await getCheckoutQuote(target)
+  if (isErr(quoteResult)) {
+    logger.error({ error: quoteResult.error }, 'Team fee quote failed')
+    return notFound()
+  }
+  const { price } = quoteResult.data
+  const description = isErr(price)
+    ? 'Your team fee for the upcoming weekend.'
+    : price.data.coveredSoFar > 0
+      ? `${formatFee(price.data.amountDue)} left of your ${formatFee(price.data.fee)} team fee, plus ${formatFee(price.data.onlineSurcharge)} card processing.`
+      : `Your ${formatFee(price.data.fee)} team fee, plus ${formatFee(price.data.onlineSurcharge)} card processing.`
 
   return (
     <PageContent size="narrow">
@@ -71,17 +81,23 @@ export default async function TeamFeesPaymentPage() {
           { label: 'Online payment', href: '/payment' },
         ]}
       />
-      <PageHeader
-        title="Team fee"
-        description="Your team fee for the upcoming weekend."
-      />
-      <Checkout
-        priceId={teamFeePriceId}
-        metadata={{ group_member_id: groupMemberId, payment_owner: payerName }}
-        returnUrl={getUrl(
-          '/payment/team-fee/success?session_id={CHECKOUT_SESSION_ID}'
-        )}
-      />
+      <PageHeader title="Team fee" description={description} />
+      {isErr(price) ? (
+        <Alert>
+          <CheckCircle2 className="h-5 w-5" />
+          <AlertTitle>Nothing to pay online</AlertTitle>
+          <AlertDescription>
+            {CHECKOUT_REFUSAL_MESSAGES.team[price.error]}
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Checkout
+          target={target}
+          returnUrl={getUrl(
+            '/payment/team-fee/success?session_id={CHECKOUT_SESSION_ID}'
+          )}
+        />
+      )}
     </PageContent>
   )
 }

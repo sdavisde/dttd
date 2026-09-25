@@ -1,5 +1,4 @@
 import {
-  cashPriceOf,
   computeActiveWeekendFinancials,
   computeGrandTotals,
   computePaymentTotals,
@@ -85,8 +84,8 @@ describe('computeActiveWeekendFinancials', () => {
       weekendIds,
       {},
       { 'weekend-mens': 3 },
-      195,
-      195,
+      185,
+      185,
       new Set(),
       candidateIds
     )
@@ -139,12 +138,5 @@ describe('computeActiveWeekendFinancials', () => {
     expect(financials.weekends[0].candidateReceivedTotal).toBe(195)
     expect(financials.weekends[0].candidateExpectedTotal).toBe(555)
     expect(financials.weekends[0].candidateWaivedTotal).toBe(0)
-  })
-})
-
-describe('cashPriceOf', () => {
-  it('is the Stripe price less the surcharge, never negative', () => {
-    expect(cashPriceOf(195)).toBe(185)
-    expect(cashPriceOf(5)).toBe(0)
   })
 })

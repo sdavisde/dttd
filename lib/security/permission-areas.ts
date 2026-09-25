@@ -18,6 +18,7 @@ export type LadderId =
   | 'weekends'
   | 'team-rosters'
   | 'payments'
+  | 'fees'
   | 'files'
   | 'people'
 
@@ -84,6 +85,15 @@ export const PERMISSION_LADDERS: readonly PermissionLadder[] = [
       'The payment ledger. Manage adds recording, editing, and voiding payments.',
     view: [Permission.READ_PAYMENTS],
     manage: [Permission.WRITE_PAYMENTS],
+  },
+  {
+    id: 'fees',
+    label: 'Fee amounts',
+    helper:
+      'Everyone can see what a weekend costs. Manage adds changing a weekend group’s fees and the defaults new groups start from.',
+    view: [],
+    manage: [Permission.MANAGE_FEES],
+    implicitView: true,
   },
   {
     id: 'files',
@@ -163,6 +173,7 @@ export const PERMISSION_LABELS: Readonly<Record<Permission, string>> = {
   [Permission.WRITE_EVENTS]: 'Edit events',
   [Permission.READ_PAYMENTS]: 'See payments',
   [Permission.WRITE_PAYMENTS]: 'Record and edit payments',
+  [Permission.MANAGE_FEES]: 'Set fee amounts',
   [Permission.WRITE_USER_ROLES]: 'Assign roles and edit what roles can do',
   [Permission.READ_USER_ROLES]: 'See who holds which role',
   [Permission.FULL_ACCESS]: 'Full access',
@@ -206,6 +217,8 @@ export const PERMISSION_DESCRIPTIONS: Readonly<Record<Permission, string>> = {
   [Permission.WRITE_EVENTS]: 'Add and change community events',
   [Permission.READ_PAYMENTS]: 'The payment ledger',
   [Permission.WRITE_PAYMENTS]: 'Record, edit and void payments',
+  [Permission.MANAGE_FEES]:
+    'Weekend group fees and the defaults for new groups',
   [Permission.WRITE_USER_ROLES]:
     'Give people roles and change what roles can do',
   [Permission.READ_USER_ROLES]: 'The master roster and each person’s roles',

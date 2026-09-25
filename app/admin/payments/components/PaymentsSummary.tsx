@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { isNil } from 'lodash'
 import { formatCurrency } from '@/lib/payments/formatters'
 import type { LedgerStats } from '@/lib/payments/ledger'
 import { cn } from '@/lib/utils'
@@ -11,19 +10,13 @@ import { cn } from '@/lib/utils'
 type PaymentsSummaryProps = {
   stats: LedgerStats
   /**
-   * Why the outstanding figure is missing, when it is. A $0 here would read as
+   * True when fee balances couldn't be calculated. A $0 here would read as
    * "everyone has paid", so an unknown balance says so instead.
    */
-  outstandingUnavailable: 'no-active-weekend' | 'fees-unknown' | 'error' | null
+  balancesUnavailable: boolean
   onViewOutstanding: () => void
+  onViewOverpaid: () => void
 }
-
-const UNAVAILABLE_COPY = {
-  'no-active-weekend': 'No active weekend, so no fees are being collected',
-  'fees-unknown':
-    "Outstanding can't be calculated — the fee prices couldn't be read",
-  error: 'Outstanding is unavailable right now',
-} as const
 
 const plural = (count: number, one: string, many: string) =>
   `${count} ${count === 1 ? one : many}`
@@ -36,8 +29,9 @@ const plural = (count: number, one: string, many: string) =>
  */
 export function PaymentsSummary({
   stats,
-  outstandingUnavailable,
+  balancesUnavailable,
   onViewOutstanding,
+  onViewOverpaid,
 }: PaymentsSummaryProps) {
   return (
     <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
@@ -48,9 +42,9 @@ export function PaymentsSummary({
       />
 
       <div className="flex flex-col gap-0.5 rounded-md border border-secondary-border bg-secondary px-4.5 py-3.5">
-        {!isNil(outstandingUnavailable) ? (
+        {balancesUnavailable ? (
           <p className="text-sm text-secondary-foreground">
-            {UNAVAILABLE_COPY[outstandingUnavailable]}
+            Outstanding is unavailable right now
           </p>
         ) : (
           <>
@@ -72,6 +66,18 @@ export function PaymentsSummary({
             <p className="text-[13px] text-secondary-foreground">
               Outstanding right now
               {stats.outstandingCount === 0 && ' · every fee is settled'}
+              {stats.overpaidCount > 0 && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    onClick={onViewOverpaid}
+                    className="-my-2 min-h-11 font-semibold text-primary hover:text-primary-hover sm:my-0 sm:min-h-0"
+                  >
+                    {plural(stats.overpaidCount, 'person', 'people')} overpaid →
+                  </button>
+                </>
+              )}
             </p>
           </>
         )}

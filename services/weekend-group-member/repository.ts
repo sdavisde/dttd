@@ -70,6 +70,27 @@ export async function findGroupMembersByGroupId(
 }
 
 /**
+ * Fetches the group members of several groups in one query.
+ */
+export async function findGroupMembersByGroupIds(
+  groupIds: string[]
+): Promise<Result<string, RawGroupMember[]>> {
+  if (groupIds.length === 0) return ok([])
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('weekend_group_members')
+    .select('*')
+    .in('group_id', groupIds)
+
+  if (isSupabaseError(error)) {
+    return err(`Failed to fetch group members: ${error.message}`)
+  }
+
+  return ok(data ?? [])
+}
+
+/**
  * Returns the active group member for a user by joining weekend_group_members
  * through weekend_groups to weekends where status = 'ACTIVE'.
  */

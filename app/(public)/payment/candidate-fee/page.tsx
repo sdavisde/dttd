@@ -6,7 +6,8 @@ import { getUrl } from '@/lib/url'
 import { Errors } from '@/lib/error'
 import { isEmpty, isNil } from 'lodash'
 import { getCandidateById } from '@/services/candidates'
-import { getCandidateFee } from '@/services/payment/payment-service'
+import { getCheckoutQuote } from '@/services/payment/payment-service'
+import type { CheckoutTarget } from '@/lib/payments/checkout-price'
 
 interface CandidateFeesPaymentPageProps {
   searchParams: Promise<{
@@ -29,11 +30,6 @@ export default async function CandidateFeesPaymentPage({
   searchParams,
 }: CandidateFeesPaymentPageProps) {
   const { candidate_id } = await searchParams
-
-  const candidateFeePriceId = process.env.CANDIDATE_FEE_PRICE_ID
-  if (isNil(candidateFeePriceId) || candidateFeePriceId === '') {
-    throw new Error('Missing candidate fee price id')
-  }
 
   if (isNil(candidate_id) || isEmpty(candidate_id)) {
     logger.error({
@@ -68,34 +64,39 @@ export default async function CandidateFeesPaymentPage({
     redirect(`/home?error=${Errors.INVALID_CANDIDATE}`)
   }
 
-  // Check if candidate fees have already been paid for this candidate.
-  // A fee we can't read leaves `candidateFee` at 0, which skips the
-  // already-paid guard below — deliberate, so a Stripe hiccup never blocks
-  // someone from paying. What Stripe charges comes from the price ID above,
-  // not from this number, so the payer is unaffected either way.
-  const feeResult = await getCandidateFee()
-  if (Results.isErr(feeResult)) {
+  // The price comes from the candidate's weekend group, worked out on the
+  // server along with what's already been paid.
+  const target: CheckoutTarget = {
+    kind: 'candidate',
+    candidateId: candidate.id,
+  }
+  const quoteResult = await getCheckoutQuote(target)
+  if (Results.isErr(quoteResult)) {
     logger.error({
       path: '/payment/candidate-fee',
       candidate_id,
-      error: feeResult.error,
-      msg: 'Candidate fee price lookup failed; skipping already-paid check',
+      error: Errors.FAILED_TO_FETCH_CANDIDATE,
+      errorMessage: quoteResult.error,
+      msg: 'Failed to price candidate fee checkout',
     })
+    redirect(`/home?error=${Errors.FAILED_TO_FETCH_CANDIDATE}`)
   }
-  const candidateFee =
-    !Results.isErr(feeResult) && !isNil(feeResult.data.unitAmount)
-      ? feeResult.data.unitAmount / 100
-      : 0
 
-  if (candidateFee > 0 && candidate.amountPaid >= candidateFee) {
+  const { price } = quoteResult.data
+  if (Results.isErr(price)) {
     logger.info({
       path: '/payment/candidate-fee',
       candidate_id,
-      amountPaid: candidate.amountPaid,
-      candidateFee,
-      msg: 'Candidate fees already paid',
+      reason: price.error,
+      msg: 'Candidate fee checkout not available',
     })
-    redirect(`/home?error=${Errors.CANDIDATE_FEES_ALREADY_PAID}`)
+    redirect(
+      `/home?error=${
+        price.error === 'already-paid'
+          ? Errors.CANDIDATE_FEES_ALREADY_PAID
+          : Errors.INVALID_CANDIDATE_STATUS
+      }`
+    )
   }
 
   // Validate payment_owner parameter
@@ -110,20 +111,10 @@ export default async function CandidateFeesPaymentPage({
     redirect(`/home?error=${Errors.INVALID_PAYMENT_OWNER}`)
   }
 
-  // Determine the actual payer name based on who is paying
-  const payerName =
-    candidate.paymentOwner === 'sponsor' && !isNil(candidate.sponsorInfo)
-      ? candidate.sponsorInfo.name
-      : `${candidate.firstName} ${candidate.lastName}`
-
   return (
     <div className="payment-page">
       <PublicCheckout
-        priceId={candidateFeePriceId}
-        metadata={{
-          candidateId: candidate.id,
-          payment_owner: payerName,
-        }}
+        target={target}
         returnUrl={getUrl(
           '/payment/candidate-fee/success?session_id={CHECKOUT_SESSION_ID}'
         )}

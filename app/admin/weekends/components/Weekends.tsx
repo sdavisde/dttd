@@ -3,7 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { isNil } from 'lodash'
-import { ArrowUpRight, CalendarPlus, Plus, Settings2 } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CalendarPlus,
+  CircleDollarSign,
+  Plus,
+  Settings2,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
@@ -25,8 +31,11 @@ import {
   type BoardGroupBuckets,
   type WeekendStats,
 } from '@/lib/admin/weekend-stats'
+import { formatFee, type GroupFees } from '@/lib/payments/group-fees'
+import type { FeeDefaults } from '@/services/fees'
 import { WeekendSidebar } from './WeekendSidebar'
 import { SetActiveWeekendButton } from './SetActiveWeekendButton'
+import { GroupFeesDialog } from './GroupFeesDialog'
 
 interface WeekendsProps {
   buckets: BoardGroupBuckets
@@ -35,6 +44,11 @@ interface WeekendsProps {
   pastCandidateCounts?: Record<string, number> | null
   allGroups: WeekendGroupWithId[]
   canEdit?: boolean
+  /** Fees keyed by group id; a group missing here isn't tracked. Null when unreadable. */
+  feesByGroupId?: Record<string, GroupFees> | null
+  feeDefaults?: FeeDefaults | null
+  canManageFees?: boolean
+  canReadPayments?: boolean
 }
 
 const groupNumber = (group: WeekendGroupWithId): number | null =>
@@ -132,6 +146,22 @@ function WeekendSubCard({
   )
 }
 
+/** Opens a group's fees: "Fee $200", or a nudge when none are set. */
+function FeeButton({
+  fees,
+  onClick,
+}: {
+  fees: GroupFees | null | undefined
+  onClick: () => void
+}) {
+  return (
+    <Button variant="outline" size="sm" onClick={onClick}>
+      <CircleDollarSign className="h-4 w-4" />
+      {isNil(fees) ? 'No fees set' : `Fee ${formatFee(fees.teamFee)}`}
+    </Button>
+  )
+}
+
 function GroupLinks({ group }: { group: WeekendGroupWithId }) {
   return (
     <div className="flex items-center gap-4">
@@ -161,11 +191,27 @@ export function Weekends({
   pastCandidateCounts = null,
   allGroups,
   canEdit = false,
+  feesByGroupId = null,
+  feeDefaults = null,
+  canManageFees = false,
+  canReadPayments = false,
 }: WeekendsProps) {
   const [selectedGroup, setSelectedGroup] = useState<WeekendGroupWithId | null>(
     null
   )
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [feesGroup, setFeesGroup] = useState<WeekendGroupWithId | null>(null)
+
+  // Prices are visible to anyone here; the dialog (history, changes) is for
+  // people who handle money. Unknown fees (a failed read) hide the button.
+  const canOpenFees =
+    !isNil(feesByGroupId) && (canManageFees || canReadPayments)
+  const feesFor = (group: WeekendGroupWithId) =>
+    feesByGroupId?.[group.groupId] ?? null
+  const feeButton = (group: WeekendGroupWithId) =>
+    canOpenFees ? (
+      <FeeButton fees={feesFor(group)} onClick={() => setFeesGroup(group)} />
+    ) : null
 
   const openCreate = () => {
     if (!canEdit) return
@@ -198,6 +244,7 @@ export function Weekends({
               weekendGroups={allGroups.filter(
                 (g) => getGroupStatus(g) !== WeekendStatus.FINISHED
               )}
+              feesByGroupId={feesByGroupId}
             />
             <Button onClick={openCreate} aria-expanded={isSidebarOpen}>
               <Plus className="h-4 w-4" />
@@ -220,17 +267,19 @@ export function Weekends({
             <Badge className="rounded-full border-transparent bg-success/15 px-3 font-semibold text-success">
               Active
             </Badge>
-            {canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto"
-                onClick={() => openEdit(activeGroup)}
-              >
-                <Settings2 className="h-4 w-4" />
-                Group settings
-              </Button>
-            )}
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {feeButton(activeGroup)}
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEdit(activeGroup)}
+                >
+                  <Settings2 className="h-4 w-4" />
+                  Group settings
+                </Button>
+              )}
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {!isNil(activeGroup.weekends.MENS) && (
@@ -260,8 +309,9 @@ export function Weekends({
           <p className="text-[13.5px] text-muted-foreground">
             {groupDateRange(group)} · planning
           </p>
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex flex-wrap items-center gap-4">
             <GroupLinks group={group} />
+            {feeButton(group)}
             {canEdit && (
               <Button
                 variant="outline"
@@ -321,8 +371,9 @@ export function Weekends({
                     {groupDateRange(group)}
                     {!isNil(candidateCounts) && ` \u00b7 ${candidateCounts}`}
                   </p>
-                  <div className="ml-auto">
+                  <div className="ml-auto flex flex-wrap items-center gap-4">
                     <GroupLinks group={group} />
+                    {feeButton(group)}
                   </div>
                 </div>
               )
@@ -336,7 +387,23 @@ export function Weekends({
         onClose={handleCloseSidebar}
         weekendGroup={selectedGroup}
         nextGroupNumber={nextGroupNumber(allGroups)}
+        feeDefaults={feeDefaults}
+        canManageFees={canManageFees}
       />
+
+      {!isNil(feesGroup) && (
+        <GroupFeesDialog
+          key={feesGroup.groupId}
+          open
+          onClose={() => setFeesGroup(null)}
+          groupId={feesGroup.groupId}
+          groupNumber={groupNumber(feesGroup)}
+          fees={feesFor(feesGroup)}
+          defaults={feeDefaults}
+          canManageFees={canManageFees}
+          canReadHistory={canReadPayments}
+        />
+      )}
     </div>
   )
 }

@@ -1,34 +1,43 @@
 import 'server-only'
 
-import { stripe } from '@/lib/stripe'
 import type { Result } from '@/lib/results'
-import { err, isErr, isOk, ok, unwrapOr } from '@/lib/results'
+import { err, isErr, isOk, map, ok, unwrapOr } from '@/lib/results'
 import * as PaymentRepository from './repository'
 import * as WeekendRepository from '@/services/weekend/repository'
 import * as GroupMemberRepository from '@/services/weekend-group-member/repository'
-import {
-  getCandidateCountByWeekend,
-  getCandidateIdsByWeekend,
-} from '@/services/candidates/actions'
 import {
   computeActiveWeekendFinancials,
   type ActiveWeekendFinancials,
 } from '@/lib/payments/compute-totals'
 import {
-  deriveOutstandingFees,
-  type FeePerson,
-  type OutstandingFee,
-} from '@/lib/payments/outstanding'
+  buildFeeAccounts,
+  deriveFeeBalances,
+  type FeeAccount,
+  type FeeBalances,
+  type FeeWeekend,
+} from '@/lib/payments/fee-balances'
+import {
+  candidateOwesFee,
+  groupFeesFromColumns,
+  isFeeExemptRole,
+  type TrackedGroup,
+} from '@/lib/payments/group-fees'
+import {
+  priceCheckout,
+  type CheckoutFeeType,
+  type CheckoutPrice,
+  type CheckoutRefusal,
+  type CheckoutTarget,
+} from '@/lib/payments/checkout-price'
+import * as FeesService from '@/services/fees/fees-service'
 import { pickRoleForWeekend, type RosterRoleRow } from '@/lib/payments/roles'
 import { WAIVED_PAID_BY, isWaived } from '@/lib/payments/waived'
-import type Stripe from 'stripe'
 import { isNil } from 'lodash'
 import { logger } from '@/lib/logger'
 import { getLoggedInUser } from '@/services/identity/user'
 import { formatWeekendGroupTitle, formatWeekendLabelFor } from '@/lib/weekend'
 import type { Weekend } from '@/lib/weekend/types'
 import type {
-  PriceInfo,
   ServiceOptions,
   TargetIdentity,
   CreatePaymentInput,
@@ -56,73 +65,107 @@ import {
 } from './types'
 
 // ============================================================================
-// Stripe Price Functions
+// Checkout pricing
 // ============================================================================
 
-/**
- * Converts a Stripe Price object to a plain PriceInfo object.
- * This is necessary because Stripe objects have methods and cannot
- * be serialized when passed from server to client components.
- */
-function toPriceInfo(price: Stripe.Price): PriceInfo {
-  return {
-    id: price.id,
-    unitAmount: price.unit_amount,
-    currency: price.currency,
-  }
+export type CheckoutQuote = {
+  /** What to charge, or why checkout won't start. */
+  price: Result<CheckoutRefusal, CheckoutPrice>
+  /** Recorded as the payment's payer. */
+  payerName: string
+  groupId: string | null
+  groupNumber: number | null
+  /** The team member's user; null for a candidate. */
+  userId: string | null
 }
 
 /**
- * Retrieves a Stripe price object by its ID.
- * Used to fetch pricing information for checkout flows.
- * @param priceId - The Stripe price ID (e.g., 'price_xxx')
- * @returns The full Stripe Price object containing amount, currency, and product details
- * @throws Stripe.errors.StripeInvalidRequestError if the price ID is invalid
+ * Prices an online payment from the payer's group fees and what is already
+ * on record, with the same rules outstanding fees use: candidates owe once
+ * approved, spiritual directors owe nothing, dropped members owe nothing.
  */
-export async function retrievePrice(priceId: string): Promise<Stripe.Price> {
-  return await stripe.prices.retrieve(priceId)
+export async function getCheckoutQuote(
+  target: CheckoutTarget
+): Promise<Result<string, CheckoutQuote>> {
+  if (target.kind === 'candidate') {
+    const rowResult = await PaymentRepository.findCandidateCheckoutRow(
+      target.candidateId
+    )
+    if (isErr(rowResult)) return rowResult
+    const row = rowResult.data
+    if (isNil(row)) return err('Candidate not found')
+
+    const coveredResult = await PaymentRepository.sumLivePaymentsForTargets([
+      row.id,
+    ])
+    if (isErr(coveredResult)) return coveredResult
+
+    return ok({
+      price: priceCheckout({
+        feeType: 'candidate',
+        fees: isNil(row.group) ? null : groupFeesFromColumns(row.group),
+        owes: candidateOwesFee(row.status),
+        coveredSoFar: coveredResult.data,
+      }),
+      // The sponsorship form records who is paying: the sponsor or the
+      // candidate themselves.
+      payerName:
+        (row.paymentOwner === 'sponsor'
+          ? row.sponsorName
+          : row.candidateName) ??
+        row.candidateName ??
+        'Unknown',
+      groupId: row.groupId,
+      groupNumber: row.group?.number ?? null,
+      userId: null,
+    })
+  }
+
+  const rowResult = await PaymentRepository.findGroupMemberCheckoutRow(
+    target.groupMemberId
+  )
+  if (isErr(rowResult)) return rowResult
+  const row = rowResult.data
+  if (isNil(row)) return err('Team member not found')
+
+  // Older payments were recorded against roster rows; they still count.
+  const coveredResult = await PaymentRepository.sumLivePaymentsForTargets([
+    row.id,
+    ...row.rosterRows.map((r) => r.id),
+  ])
+  if (isErr(coveredResult)) return coveredResult
+
+  const active = row.rosterRows.filter((r) => r.status !== 'drop')
+  return ok({
+    price: priceCheckout({
+      feeType: 'team',
+      fees: isNil(row.group) ? null : groupFeesFromColumns(row.group),
+      owes:
+        active.length > 0 && !active.every((r) => isFeeExemptRole(r.chaRole)),
+      coveredSoFar: coveredResult.data,
+    }),
+    payerName: row.name ?? 'Unknown',
+    groupId: row.groupId,
+    groupNumber: row.group?.number ?? null,
+    userId: row.userId,
+  })
 }
 
 /**
- * Retrieves a Stripe price and wraps it in a Result type.
- * @param priceId - The Stripe price ID to retrieve
- * @returns Result containing a plain PriceInfo object or an error message
+ * The Stripe product a fee is sold under (TEAM_FEE_PRODUCT_ID /
+ * CANDIDATE_FEE_PRODUCT_ID). The amount comes from the group's fees; the
+ * product only keeps Stripe reports grouped by fee type.
  */
-export async function getPrice(
-  priceId: string
-): Promise<Result<string, PriceInfo>> {
-  try {
-    const price = await retrievePrice(priceId)
-    return ok(toPriceInfo(price))
-  } catch {
-    return err('Failed to retrieve price information')
-  }
-}
-
-/**
- * Retrieves the team fee price from Stripe.
- * Uses the TEAM_FEE_PRICE_ID environment variable.
- * @returns Result containing a plain PriceInfo object or an error message
- */
-export async function getTeamFee(): Promise<Result<string, PriceInfo>> {
-  const priceId = process.env.TEAM_FEE_PRICE_ID
-  if (isNil(priceId)) {
-    return err('Team fee price ID is not configured')
-  }
-  return getPrice(priceId)
-}
-
-/**
- * Retrieves the candidate fee price from Stripe.
- * Uses the CANDIDATE_FEE_PRICE_ID environment variable.
- * @returns Result containing a plain PriceInfo object or an error message
- */
-export async function getCandidateFee(): Promise<Result<string, PriceInfo>> {
-  const priceId = process.env.CANDIDATE_FEE_PRICE_ID
-  if (isNil(priceId)) {
-    return err('Candidate fee price ID is not configured')
-  }
-  return getPrice(priceId)
+export function resolveFeeProductId(
+  feeType: CheckoutFeeType
+): Result<string, string> {
+  const productId =
+    feeType === 'team'
+      ? process.env.TEAM_FEE_PRODUCT_ID
+      : process.env.CANDIDATE_FEE_PRODUCT_ID
+  return isNil(productId) || productId === ''
+    ? err(`No Stripe product configured for the ${feeType} fee`)
+    : ok(productId)
 }
 
 // ============================================================================
@@ -609,19 +652,17 @@ export async function backfillStripeData(
 // ============================================================================
 
 /**
- * Error value `getActiveWeekendFinancials` returns when the Stripe fee prices
- * could not be read. Callers match on it to tell "we don't know the fees" apart
- * from a generic failure, and to surface the right message to admins.
+ * Error value the fee calculations return when a group has no fees set, so
+ * callers can say "fees aren't set for this group" instead of showing $0.
  */
-export const FEE_LOOKUP_FAILED = 'fee-lookup-failed'
+export const FEES_NOT_SET = 'fees-not-set'
 
 /**
- * Computes financial health metrics for the active weekend group.
- * Fetches roster counts, candidate counts, group members, and fee prices,
- * then computes expected vs received totals per weekend.
+ * Computes financial health metrics for the active weekend group, priced from
+ * the group's stored fees. Expected counts follow the same rules as
+ * outstanding fees: approved candidates only, spiritual directors exempt.
  *
- * Returns `err(FEE_LOOKUP_FAILED)` when the fee prices are unavailable —
- * without them every expected total would be wrong, not merely missing.
+ * Returns `err(FEES_NOT_SET)` when the active group has no fees.
  */
 export async function getActiveWeekendFinancials(
   payments: PaymentTransactionDTO[],
@@ -629,44 +670,55 @@ export async function getActiveWeekendFinancials(
 ): Promise<Result<string, ActiveWeekendFinancials>> {
   const mensWeekend = activeWeekends.MENS
   const womensWeekend = activeWeekends.WOMENS
-  const groupId = mensWeekend.groupId
+  const groupId = mensWeekend.groupId ?? womensWeekend.groupId
 
   const [
     mensRoster,
     womensRoster,
-    mensCandidateCount,
-    womensCandidateCount,
-    mensCandidateIds,
-    womensCandidateIds,
+    candidatesResult,
     groupMembersResult,
-    teamFeeResult,
-    candidateFeeResult,
+    feesResult,
   ] = await Promise.all([
     WeekendRepository.findWeekendRoster(mensWeekend.id),
     WeekendRepository.findWeekendRoster(womensWeekend.id),
-    getCandidateCountByWeekend(mensWeekend.id),
-    getCandidateCountByWeekend(womensWeekend.id),
-    getCandidateIdsByWeekend(mensWeekend.id),
-    getCandidateIdsByWeekend(womensWeekend.id),
+    PaymentRepository.findCandidateFeeTargets([
+      mensWeekend.id,
+      womensWeekend.id,
+    ]),
     !isNil(groupId)
       ? GroupMemberRepository.findGroupMembersByGroupId(groupId)
       : Promise.resolve(null),
-    getTeamFee(),
-    getCandidateFee(),
+    isNil(groupId)
+      ? Promise.resolve(ok(null))
+      : FeesService.getGroupFees(groupId),
   ])
 
-  // findWeekendRoster excludes dropped members by default
-  const activeMensRoster = unwrapOr(mensRoster, [])
-  const activeWomensRoster = unwrapOr(womensRoster, [])
+  if (isErr(feesResult)) return feesResult
+  if (isNil(feesResult.data)) return err(FEES_NOT_SET)
+  const fees = feesResult.data
+
+  // findWeekendRoster excludes dropped members; exempt roles owe nothing, so
+  // they are neither expected nor counted as paying.
+  const owingRoster = (result: typeof mensRoster) =>
+    unwrapOr(result, []).filter((m) => !isFeeExemptRole(m.cha_role))
+  const activeMensRoster = owingRoster(mensRoster)
+  const activeWomensRoster = owingRoster(womensRoster)
 
   const rosterCounts: Record<string, number> = {
     [mensWeekend.id]: activeMensRoster.length,
     [womensWeekend.id]: activeWomensRoster.length,
   }
 
+  const owingCandidates = unwrapOr(candidatesResult, []).filter((c) =>
+    candidateOwesFee(c.status)
+  )
   const candidateCounts: Record<string, number> = {
-    [mensWeekend.id]: unwrapOr(mensCandidateCount, 0),
-    [womensWeekend.id]: unwrapOr(womensCandidateCount, 0),
+    [mensWeekend.id]: owingCandidates.filter(
+      (c) => c.weekendId === mensWeekend.id
+    ).length,
+    [womensWeekend.id]: owingCandidates.filter(
+      (c) => c.weekendId === womensWeekend.id
+    ).length,
   }
 
   // Build set of active team target IDs (group member IDs for active roster users)
@@ -684,34 +736,7 @@ export async function getActiveWeekendFinancials(
     }
   }
 
-  // Build set of active candidate IDs so paid counts only reflect active candidates
-  const activeCandidateTargetIds = new Set<string>([
-    ...unwrapOr(mensCandidateIds, []),
-    ...unwrapOr(womensCandidateIds, []),
-  ])
-
-  // A missing price ID or a Stripe outage used to fall back to a fee of $0,
-  // which silently turned every balance into "fully settled". Carry it as an
-  // error instead so callers can say "can't be calculated" out loud.
-  const teamUnitAmount = isOk(teamFeeResult)
-    ? teamFeeResult.data.unitAmount
-    : null
-  const candidateUnitAmount = isOk(candidateFeeResult)
-    ? candidateFeeResult.data.unitAmount
-    : null
-  if (isNil(teamUnitAmount) || isNil(candidateUnitAmount)) {
-    logger.error({
-      msg: 'Stripe fee lookup failed; weekend financials cannot be computed',
-      teamFeeError: isErr(teamFeeResult) ? teamFeeResult.error : null,
-      candidateFeeError: isErr(candidateFeeResult)
-        ? candidateFeeResult.error
-        : null,
-      groupId,
-    })
-    return err(FEE_LOOKUP_FAILED)
-  }
-  const teamFee = teamUnitAmount / 100
-  const candidateFee = candidateUnitAmount / 100
+  const activeCandidateTargetIds = new Set(owingCandidates.map((c) => c.id))
 
   return ok(
     computeActiveWeekendFinancials(
@@ -719,8 +744,8 @@ export async function getActiveWeekendFinancials(
       { MENS: mensWeekend.id, WOMENS: womensWeekend.id },
       rosterCounts,
       candidateCounts,
-      teamFee,
-      candidateFee,
+      fees.teamFee,
+      fees.candidateFee,
       activeTeamTargetIds,
       activeCandidateTargetIds
     )
@@ -728,142 +753,92 @@ export async function getActiveWeekendFinancials(
 }
 
 // ============================================================================
-// Outstanding Fees (calculated, never stored)
+// Fee balances (calculated, never stored)
 // ============================================================================
 
 /**
- * Lists who in the active weekend group still owes a fee, and how much.
- *
- * The people expected to pay are the same ones getActiveWeekendFinancials
- * counts: every active (non-dropped) roster member and every non-rejected
- * candidate. A team member serving both weekends owes one fee and is listed
- * once, under the first weekend they serve.
- *
- * Returns `err(FEE_LOOKUP_FAILED)` when the fee prices are unavailable.
+ * Every fee account across every weekend group whose fees are set: who owes,
+ * who is settled, and who paid more than they owe. Groups without fees are
+ * skipped — that is what keeps groups from before fee tracking out.
  *
  * @param payments - All payments; voided rows are ignored, waived rows count
  * as covering the fee
- * @param activeWeekends - The active group's weekends
+ * @param groupsOverride - Price these groups instead of every tracked group
+ * (used to preview a fee change)
  */
-export async function getOutstandingFees(
+export async function getFeeAccounts(
   payments: PaymentTransactionDTO[],
-  activeWeekends: Record<'MENS' | 'WOMENS', Weekend>
-): Promise<Result<string, OutstandingFee[]>> {
-  const orderedWeekends = [activeWeekends.MENS, activeWeekends.WOMENS]
-  const groupId = activeWeekends.MENS.groupId ?? activeWeekends.WOMENS.groupId
+  groupsOverride?: TrackedGroup[]
+): Promise<Result<string, FeeAccount[]>> {
+  let groups = groupsOverride
+  if (isNil(groups)) {
+    const groupsResult = await FeesService.getTrackedGroups()
+    if (isErr(groupsResult)) return groupsResult
+    groups = groupsResult.data
+  }
+  if (groups.length === 0) return ok([])
 
-  const [
-    mensRoster,
-    womensRoster,
-    candidatesResult,
-    groupMembersResult,
-    teamFeeResult,
-    candidateFeeResult,
-  ] = await Promise.all([
-    WeekendRepository.findWeekendRoster(activeWeekends.MENS.id),
-    WeekendRepository.findWeekendRoster(activeWeekends.WOMENS.id),
-    PaymentRepository.findCandidateFeeTargets(orderedWeekends.map((w) => w.id)),
-    !isNil(groupId)
-      ? GroupMemberRepository.findGroupMembersByGroupId(groupId)
-      : Promise.resolve(null),
-    getTeamFee(),
-    getCandidateFee(),
-  ])
+  const groupIds = groups.map((g) => g.groupId)
+  const weekendsResult =
+    await WeekendRepository.findWeekendsByGroupIds(groupIds)
+  if (isErr(weekendsResult)) return weekendsResult
 
-  if (isErr(mensRoster)) return mensRoster
-  if (isErr(womensRoster)) return womensRoster
+  const weekends: FeeWeekend[] = weekendsResult.data.flatMap((w) =>
+    isNil(w.group_id)
+      ? []
+      : [
+          {
+            id: w.id,
+            groupId: w.group_id,
+            number: w.weekend_groups?.number ?? null,
+            type: w.type,
+          },
+        ]
+  )
+  const weekendIds = weekends.map((w) => w.id)
+
+  const [rosterResult, candidatesResult, groupMembersResult] =
+    await Promise.all([
+      WeekendRepository.findRosterRowsForFees(weekendIds),
+      PaymentRepository.findCandidateFeeTargets(weekendIds),
+      GroupMemberRepository.findGroupMembersByGroupIds(groupIds),
+    ])
+  if (isErr(rosterResult)) return rosterResult
   if (isErr(candidatesResult)) return candidatesResult
-
-  const teamUnitAmount = isOk(teamFeeResult)
-    ? teamFeeResult.data.unitAmount
-    : null
-  const candidateUnitAmount = isOk(candidateFeeResult)
-    ? candidateFeeResult.data.unitAmount
-    : null
-  if (isNil(teamUnitAmount) || isNil(candidateUnitAmount)) {
-    logger.error({
-      msg: 'Stripe fee lookup failed; outstanding fees cannot be computed',
-      groupId,
-    })
-    return err(FEE_LOOKUP_FAILED)
-  }
-
-  const weekendById = new Map(orderedWeekends.map((w) => [w.id, w]))
-  const groupMemberIdByUser = new Map<string, string>()
-  if (!isNil(groupMembersResult) && isOk(groupMembersResult)) {
-    for (const gm of groupMembersResult.data) {
-      groupMemberIdByUser.set(gm.user_id, gm.id)
-    }
-  }
-
-  // One entry per person: Men's roster first, so a dual-server lands there.
-  const teamByKey = new Map<string, FeePerson>()
-  for (const rosterRow of [...mensRoster.data, ...womensRoster.data]) {
-    const key = rosterRow.user_id ?? rosterRow.id
-    const existing = teamByKey.get(key)
-    if (!isNil(existing)) {
-      existing.legacyTargetIds.push(rosterRow.id)
-      continue
-    }
-
-    const weekend = isNil(rosterRow.weekend_id)
-      ? undefined
-      : weekendById.get(rosterRow.weekend_id)
-    const groupMemberId = isNil(rosterRow.user_id)
-      ? undefined
-      : groupMemberIdByUser.get(rosterRow.user_id)
-    const name =
-      `${rosterRow.users?.first_name ?? ''} ${rosterRow.users?.last_name ?? ''}`.trim()
-
-    teamByKey.set(key, {
-      // Payments target the group membership; the roster row is the fallback
-      // for a member who somehow has none, and the home of older payments.
-      targetType: isNil(groupMemberId)
-        ? 'weekend_roster'
-        : 'weekend_group_member',
-      targetId: groupMemberId ?? rosterRow.id,
-      legacyTargetIds: isNil(groupMemberId) ? [] : [rosterRow.id],
-      name: name !== '' ? name : null,
-      expectedPayer: name !== '' ? name : null,
-      // The role comes off the roster row this person was taken from, so a
-      // dual-server's role matches the weekend they are listed under.
-      chaRole: rosterRow.cha_role,
-      weekendId: weekend?.id ?? null,
-      weekendNumber: weekend?.number ?? null,
-      weekendType: weekend?.type ?? null,
-    })
-  }
-
-  const candidatePeople: FeePerson[] = candidatesResult.data.map((c) => {
-    const weekend = isNil(c.weekendId)
-      ? undefined
-      : weekendById.get(c.weekendId)
-    return {
-      targetType: 'candidate',
-      targetId: c.id,
-      legacyTargetIds: [],
-      name: c.name,
-      // The sponsorship form records who is paying: the sponsor or the
-      // candidate themselves.
-      expectedPayer: c.paymentOwner === 'candidate' ? c.name : c.sponsorName,
-      // Candidates are guests, not team — they have no CHA role.
-      chaRole: null,
-      weekendId: weekend?.id ?? null,
-      weekendNumber: weekend?.number ?? null,
-      weekendType: weekend?.type ?? null,
-    }
-  })
+  if (isErr(groupMembersResult)) return groupMembersResult
 
   return ok(
-    deriveOutstandingFees(
-      [...candidatePeople, ...teamByKey.values()],
+    buildFeeAccounts({
+      groups,
+      weekends,
+      rosterRows: rosterResult.data.map((row) => {
+        const name =
+          `${row.users?.first_name ?? ''} ${row.users?.last_name ?? ''}`.trim()
+        return {
+          id: row.id,
+          weekendId: row.weekend_id,
+          userId: row.user_id,
+          chaRole: row.cha_role,
+          status: row.status,
+          name: name !== '' ? name : null,
+        }
+      }),
+      candidates: candidatesResult.data,
+      groupMembers: groupMembersResult.data.map((m) => ({
+        id: m.id,
+        groupId: m.group_id,
+        userId: m.user_id,
+      })),
       payments,
-      {
-        teamFee: teamUnitAmount / 100,
-        candidateFee: candidateUnitAmount / 100,
-      }
-    )
+    })
   )
+}
+
+/** Who still owes, and who paid more than they owe, across tracked groups. */
+export async function getFeeBalances(
+  payments: PaymentTransactionDTO[]
+): Promise<Result<string, FeeBalances>> {
+  return map(await getFeeAccounts(payments), deriveFeeBalances)
 }
 
 // ============================================================================

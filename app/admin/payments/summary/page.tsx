@@ -4,6 +4,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import {
   getAllPayments,
   getActiveWeekendFinancials,
+  FEES_NOT_SET,
   type ActiveWeekendFinancials,
 } from '@/services/payment'
 import { getActiveWeekends } from '@/services/weekend'
@@ -36,16 +37,18 @@ export default async function PaymentSummaryPage() {
   }
 
   let activeWeekendFinancials: ActiveWeekendFinancials | null = null
+  let activeFeesNotSet = false
 
   if (isOk(activeWeekendsResult)) {
-    // A failure here (including FEE_LOOKUP_FAILED, when the Stripe fee prices
-    // can't be read) leaves the active-group section out rather than showing
+    // A failure here leaves the active-group section out rather than showing
     // expected totals computed from a fee we don't actually know.
     const financialsResult = await getActiveWeekendFinancials(
       paymentsResult.data,
       activeWeekendsResult.data
     )
-    Results.logFailures(financialsResult)
+    activeFeesNotSet =
+      isErr(financialsResult) && financialsResult.error === FEES_NOT_SET
+    if (!activeFeesNotSet) Results.logFailures(financialsResult)
     activeWeekendFinancials = Results.toNullable(financialsResult)
   }
 
@@ -66,6 +69,7 @@ export default async function PaymentSummaryPage() {
         <PaymentReport
           payments={paymentsResult.data}
           activeWeekendFinancials={activeWeekendFinancials}
+          activeFeesNotSet={activeFeesNotSet}
         />
       </div>
     </>

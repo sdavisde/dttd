@@ -3,7 +3,7 @@ import { getLoggedInUser } from '@/services/identity/user'
 import { CommitmentFormComponent } from '@/components/team-forms/commitment-form-component'
 import { Results } from '@/lib/results'
 import { isNil } from 'lodash'
-import { getTeamFee } from '@/services/payment'
+import { getGroupFees } from '@/services/fees'
 import { formatTeamMemberTitle, formatTeamMemberRole } from '@/lib/weekend'
 
 export default async function CommitmentFormPage() {
@@ -22,9 +22,10 @@ export default async function CommitmentFormPage() {
   const weekendTitle = formatTeamMemberTitle(user.teamMemberInfo)
   const userName = `${user.firstName} ${user.lastName}`.trim()
   const userRole = formatTeamMemberRole(user.teamMemberInfo)
-  const teamFee = await getTeamFee()
-  const teamFeeAmount = Results.unwrapOr(teamFee, null)?.unitAmount ?? null
-  const teamFeeDollars = isNil(teamFeeAmount) ? null : teamFeeAmount / 100
+  // The fee people commit to is the group's price (the cash amount); paying
+  // online adds card processing on top.
+  const feesResult = await getGroupFees(user.teamMemberInfo.groupId)
+  const teamFeeDollars = Results.unwrapOr(feesResult, null)?.teamFee ?? null
 
   return (
     <CommitmentFormComponent
