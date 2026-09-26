@@ -2966,7 +2966,7 @@
   dependencies:
     "@sentry/core" "11.0.0"
 
-"@sentry/nextjs@^11.0.0":
+"@sentry/nextjs@^11":
   version "11.0.0"
   resolved "https://registry.yarnpkg.com/@sentry/nextjs/-/nextjs-11.0.0.tgz#db73046cb8c45c2cc0f365a659957cbdc8143f04"
   integrity sha512-ZiJrzm0hKf9plrRklaLU1QEGpXwYCPe18AzMEhfSNkorP3qJdi5X9xnZV52ap6zB4ypPru88aXUQtDGBdpl4cQ==

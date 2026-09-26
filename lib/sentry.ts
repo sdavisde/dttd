@@ -7,8 +7,14 @@
  * events separate.
  */
 export const sentryOptions = {
-  dsn: 'https://8751354f812cf91c313e1144e5011fb4@o4510754355216384.ingest.us.sentry.io/4510754360590336',
+  dsn: 'https://5675e62079634277450530edbdb25073@o4512153973424128.ingest.us.sentry.io/4512153984892928',
   enabled: process.env.NODE_ENV === 'production',
   environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'local',
-  tracesSampleRate: 0.1,
+  tracesSampleRate: 0.4,
+  dataCollection: {
+    // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#dataCollection
+    // userInfo: false,
+    // httpBodies: [],
+  },
 }
